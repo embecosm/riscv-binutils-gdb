@@ -2688,6 +2688,10 @@ dump_dwarf (bfd *abfd)
       init_dwarf_regnames_s390 ();
       break;
 
+    case bfd_arch_riscv:
+      init_dwarf_regnames_riscv ();
+      break;
+
     default:
       break;
     }

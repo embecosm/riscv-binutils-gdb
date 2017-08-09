@@ -1,0 +1,9 @@
+2017-08-09  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* dwarf.c (dwarf_regnames_riscv): New global.
+	(init_dwarf_regnames_riscv): New function.
+	(init_dwarf_regnames): Call init_dwarf_regnames_riscv when
+	appropriate.
+	* dwarf.h (init_dwarf_regnames_riscv): Declare.
+	* objdump.c (dump_dwarf): Call init_dwarf_regnames_riscv when
+	appropriate.
