@@ -219,7 +219,10 @@ TARGET_LIBOPCODES_CFILES = \
 	ppc-opc.c \
 	pru-dis.c \
 	pru-opc.c \
+	riscv-asm.c \
+	riscv-desc.c \
 	riscv-dis.c \
+	riscv-ibld.c \
 	riscv-opc.c \
 	rl78-decode.c \
 	rl78-dis.c \
@@ -351,7 +354,7 @@ po/POTFILES.in: @MAINT@ Makefile
 CLEANFILES = \
 	stamp-epiphany stamp-fr30 stamp-frv stamp-ip2k stamp-iq2000 stamp-lm32 \
 	stamp-m32c stamp-m32r stamp-mep stamp-mt \
-	stamp-or1k stamp-xc16x stamp-xstormy16 \
+	stamp-or1k stamp-riscv stamp-xc16x stamp-xstormy16 \
 	libopcodes.a stamp-lib
 
 
@@ -367,7 +370,7 @@ CGENDEPS = \
 	$(CGENDIR)/opc-opinst.scm \
 	cgen-asm.in cgen-dis.in cgen-ibld.in
 
-CGEN_CPUS = epiphany fr30 frv ip2k iq2000 lm32 m32c m32r mep mt or1k xc16x xstormy16
+CGEN_CPUS = epiphany fr30 frv ip2k iq2000 lm32 m32c m32r mep mt or1k riscv xc16x xstormy16
 
 if CGEN_MAINT
 EPIPHANY_DEPS = stamp-epiphany
@@ -381,6 +384,7 @@ M32R_DEPS = stamp-m32r
 MEP_DEPS = stamp-mep
 MT_DEPS = stamp-mt
 OR1K_DEPS = stamp-or1k
+RISCV_DEPS = stamp-riscv
 XC16X_DEPS = stamp-xc16x
 XSTORMY16_DEPS = stamp-xstormy16
 else
@@ -395,6 +399,7 @@ M32R_DEPS =
 MEP_DEPS =
 MT_DEPS =
 OR1K_DEPS =
+RISCV_DEPS =
 XC16X_DEPS =
 XSTORMY16_DEPS =
 endif
@@ -493,6 +498,12 @@ $(srcdir)/or1k-desc.h $(srcdir)/or1k-desc.c $(srcdir)/or1k-opc.h $(srcdir)/or1k-
 stamp-or1k: $(CGENDEPS) $(CPUDIR)/or1k.cpu $(CPUDIR)/or1k.opc $(CPUDIR)/or1kcommon.cpu $(CPUDIR)/or1korbis.cpu $(CPUDIR)/or1korfpx.cpu
 	$(MAKE) run-cgen arch=or1k prefix=or1k options=opinst \
 		archfile=$(CPUDIR)/or1k.cpu opcfile=$(CPUDIR)/or1k.opc extrafiles=opinst
+
+$(srcdir)/riscv-desc.h $(srcdir)/riscv-desc.c $(srcdir)/riscv-opc.h $(srcdir)/riscv-opc.c $(srcdir)/riscv-ibld.c $(srcdir)/riscv-asm.c $(srcdir)/riscv-dis.c: $(RISCV_DEPS)
+	@true
+stamp-riscv: $(CGENDEPS) $(CPUDIR)/riscv.cpu $(CPUDIR)/riscv.opc
+	$(MAKE) run-cgen arch=riscv prefix=riscv options= \
+		archfile=$(CPUDIR)/riscv.cpu opcfile=$(CPUDIR)/riscv.opc extrafiles=
 
 $(srcdir)/xc16x-desc.h $(srcdir)/xc16x-desc.c $(srcdir)/xc16x-opc.h $(srcdir)/xc16x-opc.c $(srcdir)/xc16x-ibld.c $(srcdir)/xc16x-asm.c $(srcdir)/xc16x-dis.c: $(XC16X_DEPS)
 	@true

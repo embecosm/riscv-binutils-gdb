@@ -561,9 +561,6 @@ disassembler_usage (FILE *stream ATTRIBUTE_UNUSED)
 #ifdef ARCH_powerpc
   print_ppc_disassembler_options (stream);
 #endif
-#ifdef ARCH_riscv
-  print_riscv_disassembler_options (stream);
-#endif
 #ifdef ARCH_i386
   print_i386_disassembler_options (stream);
 #endif

@@ -1,0 +1,5 @@
+2018-07-13  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add CPU definition for RISCV.
+	* riscv.opc: Add implementation for RISCV.
+

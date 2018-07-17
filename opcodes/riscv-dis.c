@@ -1,10 +1,13 @@
-/* RISC-V disassembler
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+/* DO NOT EDIT!  -*- buffer-read-only: t -*- vi:set ro:  */
+/* Disassembler interface for targets using CGEN. -*- C -*-
+   CGEN: Cpu tools GENerator
 
-   Contributed by Andrew Waterman (andrew@sifive.com).
-   Based on MIPS target.
+   THIS FILE IS MACHINE GENERATED WITH CGEN.
+   - the resultant file is machine generated, cgen-dis.in isn't
 
-   This file is part of the GNU opcodes library.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+
+   This file is part of libopcodes.
 
    This library is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,520 +20,804 @@
    License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; see the file COPYING3. If not,
-   see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software Foundation, Inc.,
+   51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  */
+
+/* ??? Eventually more and more of this stuff can go to cpu-independent files.
+   Keep that in mind.  */
 
 #include "sysdep.h"
+#include <stdio.h>
+#include "ansidecl.h"
 #include "disassemble.h"
+#include "bfd.h"
+#include "symcat.h"
 #include "libiberty.h"
-#include "opcode/riscv.h"
+#include "riscv-desc.h"
+#include "riscv-opc.h"
 #include "opintl.h"
-#include "elf-bfd.h"
-#include "elf/riscv.h"
 
-#include <stdint.h>
-#include <ctype.h>
+/* Default text to print if an instruction isn't recognized.  */
+#define UNKNOWN_INSN_MSG _("*unknown*")
 
-struct riscv_private_data
+static void print_normal
+  (CGEN_CPU_DESC, void *, long, unsigned int, bfd_vma, int);
+static void print_address
+  (CGEN_CPU_DESC, void *, bfd_vma, unsigned int, bfd_vma, int) ATTRIBUTE_UNUSED;
+static void print_keyword
+  (CGEN_CPU_DESC, void *, CGEN_KEYWORD *, long, unsigned int) ATTRIBUTE_UNUSED;
+static void print_insn_normal
+  (CGEN_CPU_DESC, void *, const CGEN_INSN *, CGEN_FIELDS *, bfd_vma, int);
+static int print_insn
+  (CGEN_CPU_DESC, bfd_vma,  disassemble_info *, bfd_byte *, unsigned);
+static int default_print_insn
+  (CGEN_CPU_DESC, bfd_vma, disassemble_info *) ATTRIBUTE_UNUSED;
+static int read_insn
+  (CGEN_CPU_DESC, bfd_vma, disassemble_info *, bfd_byte *, int, CGEN_EXTRACT_INFO *,
+   unsigned long *);
+
+/* -- disassembler routines inserted here.  */
+
+/* -- dis.c */
+
+static inline unsigned int riscv_insn_length (bfd_vma insn)
 {
-  bfd_vma gp;
-  bfd_vma print_addr;
-  bfd_vma hi_addr[OP_MASK_RD + 1];
-};
-
-static const char * const *riscv_gpr_names;
-static const char * const *riscv_fpr_names;
-
-/* Other options.  */
-static int no_aliases;	/* If set disassemble as most general inst.  */
-
-static void
-set_default_riscv_dis_options (void)
-{
-  riscv_gpr_names = riscv_gpr_names_abi;
-  riscv_fpr_names = riscv_fpr_names_abi;
-  no_aliases = 0;
+  if ((insn & 0x3) != 0x3) /* RVC.  */
+    return 2;
+  /* Currently no instrs > 32-bits.  */
+  return 4;
 }
 
-static void
-parse_riscv_dis_option (const char *option)
-{
-  if (strcmp (option, "no-aliases") == 0)
-    no_aliases = 1;
-  else if (strcmp (option, "numeric") == 0)
-    {
-      riscv_gpr_names = riscv_gpr_names_numeric;
-      riscv_fpr_names = riscv_fpr_names_numeric;
-    }
-  else
-    {
-      /* xgettext:c-format */
-      opcodes_error_handler (_("unrecognized disassembler option: %s"), option);
-    }
-}
-
-static void
-parse_riscv_dis_options (const char *opts_in)
-{
-  char *opts = xstrdup (opts_in), *opt = opts, *opt_end = opts;
-
-  set_default_riscv_dis_options ();
-
-  for ( ; opt_end != NULL; opt = opt_end + 1)
-    {
-      if ((opt_end = strchr (opt, ',')) != NULL)
-	*opt_end = 0;
-      parse_riscv_dis_option (opt);
-    }
-
-  free (opts);
-}
-
-/* Print one argument from an array.  */
-
-static void
-arg_print (struct disassemble_info *info, unsigned long val,
-	   const char* const* array, size_t size)
-{
-  const char *s = val >= size || array[val] == NULL ? "unknown" : array[val];
-  (*info->fprintf_func) (info->stream, "%s", s);
-}
-
-static void
-maybe_print_address (struct riscv_private_data *pd, int base_reg, int offset)
-{
-  if (pd->hi_addr[base_reg] != (bfd_vma)-1)
-    {
-      pd->print_addr = (base_reg != 0 ? pd->hi_addr[base_reg] : 0) + offset;
-      pd->hi_addr[base_reg] = -1;
-    }
-  else if (base_reg == X_GP && pd->gp != (bfd_vma)-1)
-    pd->print_addr = pd->gp + offset;
-  else if (base_reg == X_TP || base_reg == 0)
-    pd->print_addr = offset;
-}
-
-/* Print insn arguments for 32/64-bit code.  */
-
-static void
-print_insn_args (const char *d, insn_t l, bfd_vma pc, disassemble_info *info)
-{
-  struct riscv_private_data *pd = info->private_data;
-  int rs1 = (l >> OP_SH_RS1) & OP_MASK_RS1;
-  int rd = (l >> OP_SH_RD) & OP_MASK_RD;
-  fprintf_ftype print = info->fprintf_func;
-
-  if (*d != '\0')
-    print (info->stream, "\t");
-
-  for (; *d != '\0'; d++)
-    {
-      switch (*d)
-	{
-	case 'C': /* RVC */
-	  switch (*++d)
-	    {
-	    case 's': /* RS1 x8-x15 */
-	    case 'w': /* RS1 x8-x15 */
-	      print (info->stream, "%s",
-		     riscv_gpr_names[EXTRACT_OPERAND (CRS1S, l) + 8]);
-	      break;
-	    case 't': /* RS2 x8-x15 */
-	    case 'x': /* RS2 x8-x15 */
-	      print (info->stream, "%s",
-		     riscv_gpr_names[EXTRACT_OPERAND (CRS2S, l) + 8]);
-	      break;
-	    case 'U': /* RS1, constrained to equal RD */
-	      print (info->stream, "%s", riscv_gpr_names[rd]);
-	      break;
-	    case 'c': /* RS1, constrained to equal sp */
-	      print (info->stream, "%s", riscv_gpr_names[X_SP]);
-	      break;
-	    case 'V': /* RS2 */
-	      print (info->stream, "%s",
-		     riscv_gpr_names[EXTRACT_OPERAND (CRS2, l)]);
-	      break;
-	    case 'i':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_SIMM3 (l));
-	      break;
-	    case 'o':
-	    case 'j':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_IMM (l));
-	      break;
-	    case 'k':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_LW_IMM (l));
-	      break;
-	    case 'l':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_LD_IMM (l));
-	      break;
-	    case 'm':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_LWSP_IMM (l));
-	      break;
-	    case 'n':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_LDSP_IMM (l));
-	      break;
-	    case 'K':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_ADDI4SPN_IMM (l));
-	      break;
-	    case 'L':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_ADDI16SP_IMM (l));
-	      break;
-	    case 'M':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_SWSP_IMM (l));
-	      break;
-	    case 'N':
-	      print (info->stream, "%d", (int)EXTRACT_RVC_SDSP_IMM (l));
-	      break;
-	    case 'p':
-	      info->target = EXTRACT_RVC_B_IMM (l) + pc;
-	      (*info->print_address_func) (info->target, info);
-	      break;
-	    case 'a':
-	      info->target = EXTRACT_RVC_J_IMM (l) + pc;
-	      (*info->print_address_func) (info->target, info);
-	      break;
-	    case 'u':
-	      print (info->stream, "0x%x",
-		     (int)(EXTRACT_RVC_IMM (l) & (RISCV_BIGIMM_REACH-1)));
-	      break;
-	    case '>':
-	      print (info->stream, "0x%x", (int)EXTRACT_RVC_IMM (l) & 0x3f);
-	      break;
-	    case '<':
-	      print (info->stream, "0x%x", (int)EXTRACT_RVC_IMM (l) & 0x1f);
-	      break;
-	    case 'T': /* floating-point RS2 */
-	      print (info->stream, "%s",
-		     riscv_fpr_names[EXTRACT_OPERAND (CRS2, l)]);
-	      break;
-	    case 'D': /* floating-point RS2 x8-x15 */
-	      print (info->stream, "%s",
-		     riscv_fpr_names[EXTRACT_OPERAND (CRS2S, l) + 8]);
-	      break;
-	    }
-	  break;
-
-	case ',':
-	case '(':
-	case ')':
-	case '[':
-	case ']':
-	  print (info->stream, "%c", *d);
-	  break;
-
-	case '0':
-	  /* Only print constant 0 if it is the last argument */
-	  if (!d[1])
-	    print (info->stream, "0");
-	  break;
-
-	case 'b':
-	case 's':
-	  if ((l & MASK_JALR) == MATCH_JALR)
-	    maybe_print_address (pd, rs1, 0);
-	  print (info->stream, "%s", riscv_gpr_names[rs1]);
-	  break;
-
-	case 't':
-	  print (info->stream, "%s",
-		 riscv_gpr_names[EXTRACT_OPERAND (RS2, l)]);
-	  break;
-
-	case 'u':
-	  print (info->stream, "0x%x",
-		 (unsigned)EXTRACT_UTYPE_IMM (l) >> RISCV_IMM_BITS);
-	  break;
-
-	case 'm':
-	  arg_print (info, EXTRACT_OPERAND (RM, l),
-		     riscv_rm, ARRAY_SIZE (riscv_rm));
-	  break;
-
-	case 'P':
-	  arg_print (info, EXTRACT_OPERAND (PRED, l),
-		     riscv_pred_succ, ARRAY_SIZE (riscv_pred_succ));
-	  break;
-
-	case 'Q':
-	  arg_print (info, EXTRACT_OPERAND (SUCC, l),
-		     riscv_pred_succ, ARRAY_SIZE (riscv_pred_succ));
-	  break;
-
-	case 'o':
-	  maybe_print_address (pd, rs1, EXTRACT_ITYPE_IMM (l));
-	  /* Fall through.  */
-	case 'j':
-	  if (((l & MASK_ADDI) == MATCH_ADDI && rs1 != 0)
-	      || (l & MASK_JALR) == MATCH_JALR)
-	    maybe_print_address (pd, rs1, EXTRACT_ITYPE_IMM (l));
-	  print (info->stream, "%d", (int)EXTRACT_ITYPE_IMM (l));
-	  break;
-
-	case 'q':
-	  maybe_print_address (pd, rs1, EXTRACT_STYPE_IMM (l));
-	  print (info->stream, "%d", (int)EXTRACT_STYPE_IMM (l));
-	  break;
-
-	case 'a':
-	  info->target = EXTRACT_UJTYPE_IMM (l) + pc;
-	  (*info->print_address_func) (info->target, info);
-	  break;
-
-	case 'p':
-	  info->target = EXTRACT_SBTYPE_IMM (l) + pc;
-	  (*info->print_address_func) (info->target, info);
-	  break;
-
-	case 'd':
-	  if ((l & MASK_AUIPC) == MATCH_AUIPC)
-	    pd->hi_addr[rd] = pc + EXTRACT_UTYPE_IMM (l);
-	  else if ((l & MASK_LUI) == MATCH_LUI)
-	    pd->hi_addr[rd] = EXTRACT_UTYPE_IMM (l);
-	  else if ((l & MASK_C_LUI) == MATCH_C_LUI)
-	    pd->hi_addr[rd] = EXTRACT_RVC_LUI_IMM (l);
-	  print (info->stream, "%s", riscv_gpr_names[rd]);
-	  break;
-
-	case 'z':
-	  print (info->stream, "%s", riscv_gpr_names[0]);
-	  break;
-
-	case '>':
-	  print (info->stream, "0x%x", (int)EXTRACT_OPERAND (SHAMT, l));
-	  break;
-
-	case '<':
-	  print (info->stream, "0x%x", (int)EXTRACT_OPERAND (SHAMTW, l));
-	  break;
-
-	case 'S':
-	case 'U':
-	  print (info->stream, "%s", riscv_fpr_names[rs1]);
-	  break;
-
-	case 'T':
-	  print (info->stream, "%s", riscv_fpr_names[EXTRACT_OPERAND (RS2, l)]);
-	  break;
-
-	case 'D':
-	  print (info->stream, "%s", riscv_fpr_names[rd]);
-	  break;
-
-	case 'R':
-	  print (info->stream, "%s", riscv_fpr_names[EXTRACT_OPERAND (RS3, l)]);
-	  break;
-
-	case 'E':
-	  {
-	    const char* csr_name = NULL;
-	    unsigned int csr = EXTRACT_OPERAND (CSR, l);
-	    switch (csr)
-	      {
-#define DECLARE_CSR(name, num) case num: csr_name = #name; break;
-#include "opcode/riscv-opc.h"
-#undef DECLARE_CSR
-	      }
-	    if (csr_name)
-	      print (info->stream, "%s", csr_name);
-	    else
-	      print (info->stream, "0x%x", csr);
-	    break;
-	  }
-
-	case 'Z':
-	  print (info->stream, "%d", rs1);
-	  break;
-
-	default:
-	  /* xgettext:c-format */
-	  print (info->stream, _("# internal error, undefined modifier (%c)"),
-		 *d);
-	  return;
-	}
-    }
-}
-
-/* Print the RISC-V instruction at address MEMADDR in debugged memory,
-   on using INFO.  Returns length of the instruction, in bytes.
-   BIGENDIAN must be 1 if this is big-endian code, 0 if
-   this is little-endian code.  */
+#define CGEN_PRINT_INSN riscv_print_insn
 
 static int
-riscv_disassemble_insn (bfd_vma memaddr, insn_t word, disassemble_info *info)
+riscv_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
 {
-  const struct riscv_opcode *op;
-  static bfd_boolean init = 0;
-  static const struct riscv_opcode *riscv_hash[OP_MASK_OP + 1];
-  struct riscv_private_data *pd;
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  int buflen;
+  int status;
   int insnlen;
 
-#define OP_HASH_IDX(i) ((i) & (riscv_insn_length (i) == 2 ? 0x3 : OP_MASK_OP))
+  /* Attempt to read the base part of the insn.  */
+  buflen = cd->base_insn_bitsize / 8;
+  status = (*info->read_memory_func) (pc, buf, buflen, info);
 
-  /* Build a hash table to shorten the search time.  */
-  if (! init)
+  /* Try again with the minimum part, if min < base.  */
+  if (status != 0 && (cd->min_insn_bitsize < cd->base_insn_bitsize))
     {
-      for (op = riscv_opcodes; op->name; op++)
-	if (!riscv_hash[OP_HASH_IDX (op->match)])
-	  riscv_hash[OP_HASH_IDX (op->match)] = op;
-
-      init = 1;
+      buflen = cd->min_insn_bitsize / 8;
+      status = (*info->read_memory_func) (pc, buf, buflen, info);
     }
 
-  if (info->private_data == NULL)
+  if (status != 0)
     {
-      int i;
-
-      pd = info->private_data = xcalloc (1, sizeof (struct riscv_private_data));
-      pd->gp = -1;
-      pd->print_addr = -1;
-      for (i = 0; i < (int)ARRAY_SIZE (pd->hi_addr); i++)
-	pd->hi_addr[i] = -1;
-
-      for (i = 0; i < info->symtab_size; i++)
-	if (strcmp (bfd_asymbol_name (info->symtab[i]), RISCV_GP_SYMBOL) == 0)
-	  pd->gp = bfd_asymbol_value (info->symtab[i]);
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
     }
-  else
-    pd = info->private_data;
 
+  bfd_vma word = buf[0];
   insnlen = riscv_insn_length (word);
 
   info->bytes_per_chunk = insnlen % 4 == 0 ? 4 : 2;
   info->bytes_per_line = 8;
-  info->display_endian = info->endian;
-  info->insn_info_valid = 1;
-  info->branch_delay_insns = 0;
-  info->data_size = 0;
-  info->insn_type = dis_nonbranch;
-  info->target = 0;
-  info->target2 = 0;
 
-  op = riscv_hash[OP_HASH_IDX (word)];
-  if (op != NULL)
-    {
-      int xlen = 0;
-
-      /* If XLEN is not known, get its value from the ELF class.  */
-      if (info->mach == bfd_mach_riscv64)
-	xlen = 64;
-      else if (info->mach == bfd_mach_riscv32)
-	xlen = 32;
-      else if (info->section != NULL)
-	{
-	  Elf_Internal_Ehdr *ehdr = elf_elfheader (info->section->owner);
-	  xlen = ehdr->e_ident[EI_CLASS] == ELFCLASS64 ? 64 : 32;
-	}
-
-      for (; op->name; op++)
-	{
-	  /* Does the opcode match?  */
-	  if (! (op->match_func) (op, word))
-	    continue;
-	  /* Is this a pseudo-instruction and may we print it as such?  */
-	  if (no_aliases && (op->pinfo & INSN_ALIAS))
-	    continue;
-	  /* Is this instruction restricted to a certain value of XLEN?  */
-	  if (isdigit (op->subset[0]) && atoi (op->subset) != xlen)
-	    continue;
-
-	  /* It's a match.  */
-	  (*info->fprintf_func) (info->stream, "%s", op->name);
-	  print_insn_args (op->args, word, memaddr, info);
-
-	  /* Try to disassemble multi-instruction addressing sequences.  */
-	  if (pd->print_addr != (bfd_vma)-1)
-	    {
-	      info->target = pd->print_addr;
-	      (*info->fprintf_func) (info->stream, " # ");
-	      (*info->print_address_func) (info->target, info);
-	      pd->print_addr = -1;
-	    }
-
-	  /* Finish filling out insn_info fields.  */
-	  switch (op->pinfo & INSN_TYPE)
-	    {
-	    case INSN_BRANCH:
-	      info->insn_type = dis_branch;
-	      break;
-	    case INSN_CONDBRANCH:
-	      info->insn_type = dis_condbranch;
-	      break;
-	    case INSN_JSR:
-	      info->insn_type = dis_jsr;
-	      break;
-	    case INSN_DREF:
-	      info->insn_type = dis_dref;
-	      break;
-	    default:
-	      break;
-	    }
-
-	  if (op->pinfo & INSN_DATA_SIZE)
-	    {
-	      int size = ((op->pinfo & INSN_DATA_SIZE)
-			  >> INSN_DATA_SIZE_SHIFT);
-	      info->data_size = 1 << (size - 1);
-	    }
-
-	  return insnlen;
-	}
-    }
-
-  /* We did not find a match, so just print the instruction bits.  */
-  info->insn_type = dis_noninsn;
-  (*info->fprintf_func) (info->stream, "0x%llx", (unsigned long long)word);
-  return insnlen;
+  return print_insn (cd, pc, info, buf, buflen);
 }
 
-int
-print_insn_riscv (bfd_vma memaddr, struct disassemble_info *info)
+static void
+print_sp (CGEN_CPU_DESC cd,
+          void * dis_info,
+          CGEN_KEYWORD * valuep,
+          bfd_vma field ATTRIBUTE_UNUSED,
+          int length ATTRIBUTE_UNUSED)
 {
-  bfd_byte packet[2];
-  insn_t insn = 0;
-  bfd_vma n;
-  int status;
-
-  if (info->disassembler_options != NULL)
-    {
-      parse_riscv_dis_options (info->disassembler_options);
-      /* Avoid repeatedly parsing the options.  */
-      info->disassembler_options = NULL;
-    }
-  else if (riscv_gpr_names == NULL)
-    set_default_riscv_dis_options ();
-
-  /* Instructions are a sequence of 2-byte packets in little-endian order.  */
-  for (n = 0; n < sizeof (insn) && n < riscv_insn_length (insn); n += 2)
-    {
-      status = (*info->read_memory_func) (memaddr + n, packet, 2, info);
-      if (status != 0)
-	{
-	  /* Don't fail just because we fell off the end.  */
-	  if (n > 0)
-	    break;
-	  (*info->memory_error_func) (status, memaddr, info);
-	  return status;
-	}
-
-      insn |= ((insn_t) bfd_getl16 (packet)) << (8 * n);
-    }
-
-  return riscv_disassemble_insn (memaddr, insn, info);
+  disassemble_info *info = dis_info;
+  print_keyword (cd, info, valuep, /*SP*/ 2, 0);
 }
+
+/* Print a single value as a tied register pair */
+static void
+print_tied_reg_pair (CGEN_CPU_DESC cd,
+                     void * dis_info,
+                     CGEN_KEYWORD * valuep,
+                     bfd_vma field,
+                     int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  print_keyword (cd, info, valuep, field, 0);
+  (*info->fprintf_func) (info->stream, ",");
+  print_keyword (cd, info, valuep, field, 0);
+}
+
+/* CSR, either a known value, or an explicit address.  */
+static void
+print_csr (CGEN_CPU_DESC cd,
+           void * dis_info,
+           CGEN_KEYWORD * keyword_table,
+           bfd_vma field,
+           int length)
+{
+  disassemble_info *info = dis_info;
+  if (cgen_keyword_lookup_value (keyword_table, field))
+    print_keyword (cd, info, keyword_table, field, 0 /*attrs*/);
+  else
+    print_address (cd, info, field, 0 /*attrs*/, 0 /*pc*/, length);
+}
+
+static void
+print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                       void * dis_info,
+                       long value,
+                       unsigned int attrs ATTRIBUTE_UNUSED,
+                       bfd_vma pc ATTRIBUTE_UNUSED,
+                       int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  if (value & 0x8)
+    (*info->fprintf_func) (info->stream, "i");
+  if (value & 0x4)
+    (*info->fprintf_func) (info->stream, "o");
+  if (value & 0x2)
+    (*info->fprintf_func) (info->stream, "r");
+  if (value & 0x1)
+    (*info->fprintf_func) (info->stream, "w");
+}
+
+static void
+print_uimm32_hi20 (CGEN_CPU_DESC cd,
+                   void * dis_info,
+                   unsigned long value,
+                   unsigned int attrs,
+                   bfd_vma pc,
+                   int length)
+{
+  value >>= 12;
+  print_normal (cd, dis_info, value, attrs, pc, length);
+}
+
+static void
+print_nzuimm18_hi6 (CGEN_CPU_DESC cd,
+                    void * dis_info,
+                    unsigned long value,
+                    unsigned int attrs,
+                    bfd_vma pc,
+                    int length)
+{
+  value >>= 12;
+
+  /* Although this is only a 6 bit immediate, it represents a 20 bit immediate
+     value where the upper 14 bits are a copy of the sign in bit 5.  Manually
+     sign extend up to 20 bits here.  */
+  value = (char)(value << 2) >> 2;
+  value &= 0xfffff;
+
+  print_normal (cd, dis_info, value, attrs, pc, length);
+}
+
+/* -- ibd.h */
+
+void riscv_cgen_print_operand
+  (CGEN_CPU_DESC, int, PTR, CGEN_FIELDS *, void const *, bfd_vma, int);
+
+/* Main entry point for printing operands.
+   XINFO is a `void *' and not a `disassemble_info *' to not put a requirement
+   of dis-asm.h on cgen.h.
+
+   This function is basically just a big switch statement.  Earlier versions
+   used tables to look up the function to use, but
+   - if the table contains both assembler and disassembler functions then
+     the disassembler contains much of the assembler and vice-versa,
+   - there's a lot of inlining possibilities as things grow,
+   - using a switch statement avoids the function call overhead.
+
+   This function could be moved into `print_insn_normal', but keeping it
+   separate makes clear the interface between `print_insn_normal' and each of
+   the handlers.  */
 
 void
-print_riscv_disassembler_options (FILE *stream)
+riscv_cgen_print_operand (CGEN_CPU_DESC cd,
+			   int opindex,
+			   void * xinfo,
+			   CGEN_FIELDS *fields,
+			   void const *attrs ATTRIBUTE_UNUSED,
+			   bfd_vma pc,
+			   int length)
 {
-  fprintf (stream, _("\n\
-The following RISC-V-specific disassembler options are supported for use\n\
-with the -M switch (multiple options should be separated by commas):\n"));
+  disassemble_info *info = (disassemble_info *) xinfo;
 
-  fprintf (stream, _("\n\
-  numeric       Print numeric register names, rather than ABI names.\n"));
+  switch (opindex)
+    {
+    case RISCV_OPERAND_BRANCH13 :
+      print_normal (cd, info, fields->f_imm13_311_71_306_114_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_C_REG117 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_REG117_NE0 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_REG117_NE0_NE2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero_or_sp, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_REG42 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_43, 0);
+      break;
+    case RISCV_OPERAND_C_REG62 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_65, 0);
+      break;
+    case RISCV_OPERAND_C_REG62_NE0 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_65, 0);
+      break;
+    case RISCV_OPERAND_C_REG97 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_93, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117 :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117_NE0 :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117_NE0_COMMUTATIVE :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117_NE0_NE2 :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr_not_zero_or_sp, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS97 :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_93, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS97_COMMUTATIVE :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_93, 0);
+      break;
+    case RISCV_OPERAND_CBRANCH9 :
+      print_normal (cd, info, fields->f_imm9_121_62_21_112_42_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_CJMP12 :
+      print_normal (cd, info, fields->f_imm12_121_81_102_61_71_21_111_53_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_CSR :
+      print_csr (cd, info, & riscv_cgen_opval_h_csr, fields->f_csr, 0);
+      break;
+    case RISCV_OPERAND_FC_RD :
+      print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_123, 0);
+      break;
+    case RISCV_OPERAND_FC_RS1 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_93, 0);
+      break;
+    case RISCV_OPERAND_FC_RS2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_43, 0);
+      break;
+    case RISCV_OPERAND_FC_RS3 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_65, 0);
+      break;
+    case RISCV_OPERAND_FL_DUMMY :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_dummy, 0);
+      break;
+    case RISCV_OPERAND_FL_RD :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rd, 0);
+      break;
+    case RISCV_OPERAND_FL_RS1 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rs1, 0);
+      break;
+    case RISCV_OPERAND_FL_RS2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rs2, 0);
+      break;
+    case RISCV_OPERAND_FL_RS3 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rs3, 0);
+      break;
+    case RISCV_OPERAND_FL_TIED_REGS2419 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_245, 0);
+      break;
+    case RISCV_OPERAND_IMM_LO12 :
+      print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      break;
+    case RISCV_OPERAND_IMM_LO12_ABS :
+      print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      break;
+    case RISCV_OPERAND_IMM6_121_65_ABS :
+      print_normal (cd, info, fields->f_imm6_121_65, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_JMP21 :
+      print_normal (cd, info, fields->f_imm21_311_198_201_3010_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_NZIMM10_121_42_51_21_61_0000_ABS :
+      print_normal (cd, info, fields->f_imm10_121_42_51_21_61_0000, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_NZIMM6_121_65_ABS :
+      print_normal (cd, info, fields->f_imm6_121_65, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_NZUIMM10_104_122_51_61_00_ABS :
+      print_normal (cd, info, fields->f_uimm10_104_122_51_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_NZUIMM18_121_65_000000000000_ABS :
+      print_nzuimm18_hi6 (cd, info, fields->f_uimm18_121_65_000000000000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_NZUIMM6_121_65_ABS :
+      print_normal (cd, info, fields->f_uimm6_121_65, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_PRED :
+      print_fence_succ_pred (cd, info, fields->f_pred, 0, pc, length);
+      break;
+    case RISCV_OPERAND_RD :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rd, 0);
+      break;
+    case RISCV_OPERAND_RS1 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs1, 0);
+      break;
+    case RISCV_OPERAND_RS2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs2, 0);
+      break;
+    case RISCV_OPERAND_SP_REG :
+      print_sp (cd, info, & riscv_cgen_opval_h_sp, fields->f_dummy, 0);
+      break;
+    case RISCV_OPERAND_STORE12 :
+      print_normal (cd, info, fields->f_imm12_317_115, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_SUCC :
+      print_fence_succ_pred (cd, info, fields->f_succ, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM12_3112 :
+      print_normal (cd, info, fields->f_uimm12_3112, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM12_317_115 :
+      print_normal (cd, info, fields->f_uimm12_317_115, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM32_3120_000000000000 :
+      print_uimm32_hi20 (cd, info, fields->f_uimm32_3120_000000000000, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM5 :
+      print_normal (cd, info, fields->f_uimm5_195, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM5_245 :
+      print_normal (cd, info, fields->f_uimm5_245, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM5_ABS :
+      print_normal (cd, info, fields->f_uimm5_195, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM6_256 :
+      print_normal (cd, info, fields->f_uimm6_256, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
+      print_normal (cd, info, fields->f_uimm7_51_123_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
+      print_normal (cd, info, fields->f_uimm8_32_121_63_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM8_62_123_000_ABS :
+      print_normal (cd, info, fields->f_uimm8_62_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM8_82_124_00_ABS :
+      print_normal (cd, info, fields->f_uimm8_82_124_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM9_43_121_62_000_ABS :
+      print_normal (cd, info, fields->f_uimm9_43_121_62_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM9_93_123_000_ABS :
+      print_normal (cd, info, fields->f_uimm9_93_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
 
-  fprintf (stream, _("\n\
-  no-aliases    Disassemble only into canonical instructions, rather\n\
-                than into pseudoinstructions.\n"));
+    default :
+      /* xgettext:c-format */
+      fprintf (stderr, _("Unrecognized field %d while printing insn.\n"),
+	       opindex);
+    abort ();
+  }
+}
 
-  fprintf (stream, _("\n"));
+cgen_print_fn * const riscv_cgen_print_handlers[] =
+{
+  print_insn_normal,
+};
+
+
+void
+riscv_cgen_init_dis (CGEN_CPU_DESC cd)
+{
+  riscv_cgen_init_opcode_table (cd);
+  riscv_cgen_init_ibld_table (cd);
+  cd->print_handlers = & riscv_cgen_print_handlers[0];
+  cd->print_operand = riscv_cgen_print_operand;
+}
+
+
+/* Default print handler.  */
+
+static void
+print_normal (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+	      void *dis_info,
+	      long value,
+	      unsigned int attrs,
+	      bfd_vma pc ATTRIBUTE_UNUSED,
+	      int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+
+  /* Print the operand as directed by the attributes.  */
+  if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_SEM_ONLY))
+    ; /* nothing to do */
+  else if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_SIGNED))
+    (*info->fprintf_func) (info->stream, "%ld", value);
+  else
+    (*info->fprintf_func) (info->stream, "0x%lx", value);
+}
+
+/* Default address handler.  */
+
+static void
+print_address (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+	       void *dis_info,
+	       bfd_vma value,
+	       unsigned int attrs,
+	       bfd_vma pc ATTRIBUTE_UNUSED,
+	       int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+
+  /* Print the operand as directed by the attributes.  */
+  if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_SEM_ONLY))
+    ; /* Nothing to do.  */
+  else if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_PCREL_ADDR))
+    (*info->print_address_func) (value, info);
+  else if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_ABS_ADDR))
+    (*info->print_address_func) (value, info);
+  else if (CGEN_BOOL_ATTR (attrs, CGEN_OPERAND_SIGNED))
+    (*info->fprintf_func) (info->stream, "%ld", (long) value);
+  else
+    (*info->fprintf_func) (info->stream, "0x%lx", (long) value);
+}
+
+/* Keyword print handler.  */
+
+static void
+print_keyword (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+	       void *dis_info,
+	       CGEN_KEYWORD *keyword_table,
+	       long value,
+	       unsigned int attrs ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+  const CGEN_KEYWORD_ENTRY *ke;
+
+  ke = cgen_keyword_lookup_value (keyword_table, value);
+  if (ke != NULL)
+    (*info->fprintf_func) (info->stream, "%s", ke->name);
+  else
+    (*info->fprintf_func) (info->stream, "???");
+}
+
+/* Default insn printer.
+
+   DIS_INFO is defined as `void *' so the disassembler needn't know anything
+   about disassemble_info.  */
+
+static void
+print_insn_normal (CGEN_CPU_DESC cd,
+		   void *dis_info,
+		   const CGEN_INSN *insn,
+		   CGEN_FIELDS *fields,
+		   bfd_vma pc,
+		   int length)
+{
+  const CGEN_SYNTAX *syntax = CGEN_INSN_SYNTAX (insn);
+  disassemble_info *info = (disassemble_info *) dis_info;
+  const CGEN_SYNTAX_CHAR_TYPE *syn;
+
+  CGEN_INIT_PRINT (cd);
+
+  for (syn = CGEN_SYNTAX_STRING (syntax); *syn; ++syn)
+    {
+      if (CGEN_SYNTAX_MNEMONIC_P (*syn))
+	{
+	  (*info->fprintf_func) (info->stream, "%s", CGEN_INSN_MNEMONIC (insn));
+	  continue;
+	}
+      if (CGEN_SYNTAX_CHAR_P (*syn))
+	{
+	  (*info->fprintf_func) (info->stream, "%c", CGEN_SYNTAX_CHAR (*syn));
+	  continue;
+	}
+
+      /* We have an operand.  */
+      riscv_cgen_print_operand (cd, CGEN_SYNTAX_FIELD (*syn), info,
+				 fields, CGEN_INSN_ATTRS (insn), pc, length);
+    }
+}
+
+/* Subroutine of print_insn. Reads an insn into the given buffers and updates
+   the extract info.
+   Returns 0 if all is well, non-zero otherwise.  */
+
+static int
+read_insn (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+	   bfd_vma pc,
+	   disassemble_info *info,
+	   bfd_byte *buf,
+	   int buflen,
+	   CGEN_EXTRACT_INFO *ex_info,
+	   unsigned long *insn_value)
+{
+  int status = (*info->read_memory_func) (pc, buf, buflen, info);
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  ex_info->dis_info = info;
+  ex_info->valid = (1 << buflen) - 1;
+  ex_info->insn_bytes = buf;
+
+  *insn_value = bfd_get_bits (buf, buflen * 8, info->endian == BFD_ENDIAN_BIG);
+  return 0;
+}
+
+/* Utility to print an insn.
+   BUF is the base part of the insn, target byte order, BUFLEN bytes long.
+   The result is the size of the insn in bytes or zero for an unknown insn
+   or -1 if an error occurs fetching data (memory_error_func will have
+   been called).  */
+
+static int
+print_insn (CGEN_CPU_DESC cd,
+	    bfd_vma pc,
+	    disassemble_info *info,
+	    bfd_byte *buf,
+	    unsigned int buflen)
+{
+  CGEN_INSN_INT insn_value;
+  const CGEN_INSN_LIST *insn_list;
+  CGEN_EXTRACT_INFO ex_info;
+  int basesize;
+
+  /* Extract base part of instruction, just in case CGEN_DIS_* uses it. */
+  basesize = cd->base_insn_bitsize < buflen * 8 ?
+                                     cd->base_insn_bitsize : buflen * 8;
+  insn_value = cgen_get_insn_value (cd, buf, basesize);
+
+
+  /* Fill in ex_info fields like read_insn would.  Don't actually call
+     read_insn, since the incoming buffer is already read (and possibly
+     modified a la m32r).  */
+  ex_info.valid = (1 << buflen) - 1;
+  ex_info.dis_info = info;
+  ex_info.insn_bytes = buf;
+
+  /* The instructions are stored in hash lists.
+     Pick the first one and keep trying until we find the right one.  */
+
+  insn_list = CGEN_DIS_LOOKUP_INSN (cd, (char *) buf, insn_value);
+  while (insn_list != NULL)
+    {
+      const CGEN_INSN *insn = insn_list->insn;
+      CGEN_FIELDS fields;
+      int length;
+      unsigned long insn_value_cropped;
+
+#ifdef CGEN_VALIDATE_INSN_SUPPORTED
+      /* Not needed as insn shouldn't be in hash lists if not supported.  */
+      /* Supported by this cpu?  */
+      if (! riscv_cgen_insn_supported (cd, insn))
+        {
+          insn_list = CGEN_DIS_NEXT_INSN (insn_list);
+	  continue;
+        }
+#endif
+
+      /* Basic bit mask must be correct.  */
+      /* ??? May wish to allow target to defer this check until the extract
+	 handler.  */
+
+      /* Base size may exceed this instruction's size.  Extract the
+         relevant part from the buffer. */
+      if ((unsigned) (CGEN_INSN_BITSIZE (insn) / 8) < buflen &&
+	  (unsigned) (CGEN_INSN_BITSIZE (insn) / 8) <= sizeof (unsigned long))
+	insn_value_cropped = bfd_get_bits (buf, CGEN_INSN_BITSIZE (insn),
+					   info->endian == BFD_ENDIAN_BIG);
+      else
+	insn_value_cropped = insn_value;
+
+      if ((insn_value_cropped & CGEN_INSN_BASE_MASK (insn))
+	  == CGEN_INSN_BASE_VALUE (insn))
+	{
+	  /* Printing is handled in two passes.  The first pass parses the
+	     machine insn and extracts the fields.  The second pass prints
+	     them.  */
+
+	  /* Make sure the entire insn is loaded into insn_value, if it
+	     can fit.  */
+	  if (((unsigned) CGEN_INSN_BITSIZE (insn) > cd->base_insn_bitsize) &&
+	      (unsigned) (CGEN_INSN_BITSIZE (insn) / 8) <= sizeof (unsigned long))
+	    {
+	      unsigned long full_insn_value;
+	      int rc = read_insn (cd, pc, info, buf,
+				  CGEN_INSN_BITSIZE (insn) / 8,
+				  & ex_info, & full_insn_value);
+	      if (rc != 0)
+		return rc;
+	      length = CGEN_EXTRACT_FN (cd, insn)
+		(cd, insn, &ex_info, full_insn_value, &fields, pc);
+	    }
+	  else
+	    length = CGEN_EXTRACT_FN (cd, insn)
+	      (cd, insn, &ex_info, insn_value_cropped, &fields, pc);
+
+	  /* Length < 0 -> error.  */
+	  if (length < 0)
+	    return length;
+	  if (length > 0)
+	    {
+	      CGEN_PRINT_FN (cd, insn) (cd, info, insn, &fields, pc, length);
+	      /* Length is in bits, result is in bytes.  */
+	      return length / 8;
+	    }
+	}
+
+      insn_list = CGEN_DIS_NEXT_INSN (insn_list);
+    }
+
+  return 0;
+}
+
+/* Default value for CGEN_PRINT_INSN.
+   The result is the size of the insn in bytes or zero for an unknown insn
+   or -1 if an error occured fetching bytes.  */
+
+#ifndef CGEN_PRINT_INSN
+#define CGEN_PRINT_INSN default_print_insn
+#endif
+
+static int
+default_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+{
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  int buflen;
+  int status;
+
+  /* Attempt to read the base part of the insn.  */
+  buflen = cd->base_insn_bitsize / 8;
+  status = (*info->read_memory_func) (pc, buf, buflen, info);
+
+  /* Try again with the minimum part, if min < base.  */
+  if (status != 0 && (cd->min_insn_bitsize < cd->base_insn_bitsize))
+    {
+      buflen = cd->min_insn_bitsize / 8;
+      status = (*info->read_memory_func) (pc, buf, buflen, info);
+    }
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  return print_insn (cd, pc, info, buf, buflen);
+}
+
+/* Main entry point.
+   Print one instruction from PC on INFO->STREAM.
+   Return the size of the instruction (in bytes).  */
+
+typedef struct cpu_desc_list
+{
+  struct cpu_desc_list *next;
+  CGEN_BITSET *isa;
+  int mach;
+  int endian;
+  CGEN_CPU_DESC cd;
+} cpu_desc_list;
+
+int
+print_insn_riscv (bfd_vma pc, disassemble_info *info)
+{
+  static cpu_desc_list *cd_list = 0;
+  cpu_desc_list *cl = 0;
+  static CGEN_CPU_DESC cd = 0;
+  static CGEN_BITSET *prev_isa;
+  static int prev_mach;
+  static int prev_endian;
+  int length;
+  CGEN_BITSET *isa;
+  int mach;
+  int endian = (info->endian == BFD_ENDIAN_BIG
+		? CGEN_ENDIAN_BIG
+		: CGEN_ENDIAN_LITTLE);
+  enum bfd_architecture arch;
+
+  /* ??? gdb will set mach but leave the architecture as "unknown" */
+#ifndef CGEN_BFD_ARCH
+#define CGEN_BFD_ARCH bfd_arch_riscv
+#endif
+  arch = info->arch;
+  if (arch == bfd_arch_unknown)
+    arch = CGEN_BFD_ARCH;
+
+  /* There's no standard way to compute the machine or isa number
+     so we leave it to the target.  */
+#ifdef CGEN_COMPUTE_MACH
+  mach = CGEN_COMPUTE_MACH (info);
+#else
+  mach = info->mach;
+#endif
+
+#ifdef CGEN_COMPUTE_ISA
+  {
+    static CGEN_BITSET *permanent_isa;
+
+    if (!permanent_isa)
+      permanent_isa = cgen_bitset_create (MAX_ISAS);
+    isa = permanent_isa;
+    cgen_bitset_clear (isa);
+    cgen_bitset_add (isa, CGEN_COMPUTE_ISA (info));
+  }
+#else
+  isa = info->insn_sets;
+#endif
+
+  /* If we've switched cpu's, try to find a handle we've used before */
+  if (cd
+      && (cgen_bitset_compare (isa, prev_isa) != 0
+	  || mach != prev_mach
+	  || endian != prev_endian))
+    {
+      cd = 0;
+      for (cl = cd_list; cl; cl = cl->next)
+	{
+	  if (cgen_bitset_compare (cl->isa, isa) == 0 &&
+	      cl->mach == mach &&
+	      cl->endian == endian)
+	    {
+	      cd = cl->cd;
+ 	      prev_isa = cd->isas;
+	      break;
+	    }
+	}
+    }
+
+  /* If we haven't initialized yet, initialize the opcode table.  */
+  if (! cd)
+    {
+      const bfd_arch_info_type *arch_type = bfd_lookup_arch (arch, mach);
+      const char *mach_name;
+
+      if (!arch_type)
+	abort ();
+      mach_name = arch_type->printable_name;
+
+      prev_isa = cgen_bitset_copy (isa);
+      prev_mach = mach;
+      prev_endian = endian;
+      cd = riscv_cgen_cpu_open (CGEN_CPU_OPEN_ISAS, prev_isa,
+				 CGEN_CPU_OPEN_BFDMACH, mach_name,
+				 CGEN_CPU_OPEN_ENDIAN, prev_endian,
+				 CGEN_CPU_OPEN_END);
+      if (!cd)
+	abort ();
+
+      /* Save this away for future reference.  */
+      cl = xmalloc (sizeof (struct cpu_desc_list));
+      cl->cd = cd;
+      cl->isa = prev_isa;
+      cl->mach = mach;
+      cl->endian = endian;
+      cl->next = cd_list;
+      cd_list = cl;
+
+      riscv_cgen_init_dis (cd);
+    }
+
+  /* We try to have as much common code as possible.
+     But at this point some targets need to take over.  */
+  /* ??? Some targets may need a hook elsewhere.  Try to avoid this,
+     but if not possible try to move this hook elsewhere rather than
+     have two hooks.  */
+  length = CGEN_PRINT_INSN (cd, pc, info);
+  if (length > 0)
+    return length;
+  if (length < 0)
+    return -1;
+
+  (*info->fprintf_func) (info->stream, UNKNOWN_INSN_MSG);
+  return cd->default_insn_bitsize / 8;
 }

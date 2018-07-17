@@ -501,10 +501,17 @@ changequote([,])dnl
 	AC_MSG_RESULT($enable_audio_ext)
 	;;
 
-      aarch64 | i386 | riscv | s390 | sparc)
+      aarch64 | i386 | s390 | sparc)
 	if test $this_target = $target ; then
 	  AC_DEFINE_UNQUOTED(DEFAULT_ARCH, "${arch}", [Default architecture.])
 	fi
+	;;
+
+      riscv)
+	if test $this_target = $target ; then
+	  AC_DEFINE_UNQUOTED(DEFAULT_ARCH, "${arch}", [Default architecture.])
+	fi
+	using_cgen=yes
 	;;
 
       rl78)
@@ -672,6 +679,8 @@ if test $using_cgen = yes ; then
   case ${target_cpu} in
     or1knd)
        cgen_cpu_prefix=or1k ;;
+    riscv*)
+       cgen_cpu_prefix=riscv ;;
     *) cgen_cpu_prefix=${target_cpu} ;;
   esac
   AC_SUBST(cgen_cpu_prefix)

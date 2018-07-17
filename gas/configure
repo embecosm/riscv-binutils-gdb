@@ -12919,7 +12919,7 @@ $as_echo "#define NDS32_DEFAULT_AUDIO_EXT 1" >>confdefs.h
 $as_echo "$enable_audio_ext" >&6; }
 	;;
 
-      aarch64 | i386 | riscv | s390 | sparc)
+      aarch64 | i386 | s390 | sparc)
 	if test $this_target = $target ; then
 
 cat >>confdefs.h <<_ACEOF
@@ -12927,6 +12927,17 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 	fi
+	;;
+
+      riscv)
+	if test $this_target = $target ; then
+
+cat >>confdefs.h <<_ACEOF
+#define DEFAULT_ARCH "${arch}"
+_ACEOF
+
+	fi
+	using_cgen=yes
 	;;
 
       rl78)
@@ -13100,6 +13111,8 @@ if test $using_cgen = yes ; then
   case ${target_cpu} in
     or1knd)
        cgen_cpu_prefix=or1k ;;
+    riscv*)
+       cgen_cpu_prefix=riscv ;;
     *) cgen_cpu_prefix=${target_cpu} ;;
   esac
 

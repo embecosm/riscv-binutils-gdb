@@ -1,0 +1,18 @@
+2018-08-13  Edward Jones  <ed.jones@embecosm.com>
+
+	* opcodes/Makefile.am: Add riscv-asm.c, riscv-desc.c and
+	riscv-ibld.c to the sources for building libopcodes.
+	* opcodes/Makefile.in: Regenerated.
+	* opcodes/configure: Likewise.
+	* opcodes/configure.ac: Add cgen generated files to the link when
+	building riscv tools.
+	* opcodes/disassemble.c (disassembler_usage): Remove riscv hook
+	for printing disassembler options. This is not yet implemented
+	for the CGEN tools.
+	* opcodes/riscv-asm.c: Generated.
+	* opcodes/riscv-desc.c: Likewise.
+	* opcodes/riscv-desc.h: Likewise.
+	* opcodes/riscv-dis.c: Likewise.
+	* opcodes/riscv-ibld.c: Likewise.
+	* opcodes/riscv-opc.c: Likewise.
+	* opcodes/riscv-opc.h: Likewise.

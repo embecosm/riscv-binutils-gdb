@@ -1,0 +1,3 @@
+2018-08-13  Edward Jones  <ed.jones@embecosm.com>
+
+	* include/dis-asm.h: Add forward declaration of print_insn_riscv

@@ -1,0 +1,45 @@
+2018-08-13  Edward Jones  <ed.jones@embecosm.com>
+
+	* gas/config/tc-riscv.c: Modify to be based on CGEN.
+	* gas/config/tc-riscv.h: Likewise.
+	* gas/configure: Regenerated.
+	* gas/configure.ac: Configure gas to use CGEN for RISCV.
+	* gas/testsuite/gas/riscv/a-common.d: Added file.
+	* gas/testsuite/gas/riscv/a-common.s: Likewise.
+	* gas/testsuite/gas/riscv/alias-common.d: Likewise.
+	* gas/testsuite/gas/riscv/alias-common.s: Likewise.
+	* gas/testsuite/gas/riscv/auipc-x0.d: Modify output to
+	match cgen based assembler+disassembler.
+	* gas/testsuite/gas/riscv/c-aliases.d: Likewise.
+	* gas/testsuite/gas/riscv/c-aliases.s: Likewise.
+	* gas/testsuite/gas/riscv/c-common.d: Likewise.
+	* gas/testsuite/gas/riscv/c-common.s: Likewise.
+	* gas/testsuite/gas/riscv/c-relax.d: Likewise.
+	* gas/testsuite/gas/riscv/c-relax.s: Likewise.
+	* gas/testsuite/gas/riscv/c-zero-imm.d: Update output to match
+	output from cgen based tools.
+	* gas/testsuite/gas/riscv/c-zero-imm.s: Remove some inputs.
+	* gas/testsuite/gas/riscv/csr.d: Added file.
+	* gas/testsuite/gas/riscv/csr.s: Likewise.
+	* gas/testsuite/gas/riscv/f-common.d: Likewise.
+	* gas/testsuite/gas/riscv/f-common.s: Likewise.
+	* gas/testsuite/gas/riscv/i-common.d: Likewise.
+	* gas/testsuite/gas/riscv/i-common.s: Likewise.
+	* gas/testsuite/gas/riscv/li.d: Likewise.
+	* gas/testsuite/gas/riscv/li.s: Likewise.
+	* gas/testsuite/gas/riscv/load-aliases.d: Likewise.
+	* gas/testsuite/gas/riscv/load-aliases.s: Likewise.
+	* gas/testsuite/gas/riscv/m-common.d: Likewise.
+	* gas/testsuite/gas/riscv/m-common.s: Likewise.
+	* gas/testsuite/gas/riscv/pic.d: Likewise.
+	* gas/testsuite/gas/riscv/pic.s: Likewise.
+	* gas/testsuite/gas/riscv/relax.d: Likewise.
+	* gas/testsuite/gas/riscv/relax.s: Likewise.
+	* gas/testsuite/gas/riscv/reloc.d: Likewise.
+	* gas/testsuite/gas/riscv/reloc.s: Likewise.
+	* gas/testsuite/gas/riscv/rv32e.d: Likewise.
+	* gas/testsuite/gas/riscv/rv32e.s: Likewise.
+	* gas/testsuite/gas/riscv/store-aliases.d: Likewise.
+	* gas/testsuite/gas/riscv/store-aliases.s: Likewise.
+	* gas/testsuite/gas/riscv/tied_reg.d: Likewise.
+	* gas/testsuite/gas/riscv/tied_reg.s: Likewise.
