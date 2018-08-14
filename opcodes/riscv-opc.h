@@ -205,7 +205,6 @@ struct cgen_fields
   long f_imm12_121_81_102_61_71_21_111_53_0;
   long f_uimm8_32_121_63_00;
   long f_uimm9_43_121_62_000;
-  long f_uimm12_317_115;
 };
 
 #define CGEN_INIT_PARSE(od) \

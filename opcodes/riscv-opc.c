@@ -229,11 +229,11 @@ static const CGEN_IFMT ifmt_sc_w ATTRIBUTE_UNUSED = {
 };
 
 static const CGEN_IFMT ifmt_flw ATTRIBUTE_UNUSED = {
-  32, 32, 0x707f, { { F (F_UIMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+  32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_fsw ATTRIBUTE_UNUSED = {
-  32, 32, 0x707f, { { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_UIMM12_317_115) }, { F (F_OPCODE) }, { 0 } }
+  32, 32, 0x707f, { { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_IMM12_317_115) }, { F (F_OPCODE) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_fmadd_s ATTRIBUTE_UNUSED = {
@@ -1559,16 +1559,16 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (RD), ',', OP (RS2), ',', '(', OP (RS1), ')', 0 } },
     & ifmt_sc_w, { 0xe600302f }
   },
-/* flw ${fl-rd},${uimm12-3112}(${rs1}) */
+/* flw ${fl-rd},${imm-lo12}(${rs1}) */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (UIMM12_3112), '(', OP (RS1), ')', 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (IMM_LO12), '(', OP (RS1), ')', 0 } },
     & ifmt_flw, { 0x2007 }
   },
-/* fsw ${fl-rs2},${uimm12-317-115}(${rs1}) */
+/* fsw ${fl-rs2},${store12}(${rs1}) */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RS2), ',', OP (UIMM12_317_115), '(', OP (RS1), ')', 0 } },
+    { { MNEM, ' ', OP (FL_RS2), ',', OP (STORE12), '(', OP (RS1), ')', 0 } },
     & ifmt_fsw, { 0x2027 }
   },
 /* fmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
@@ -1739,16 +1739,16 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
     & ifmt_fcvt_s_w, { 0xd0307053 }
   },
-/* fld ${fl-rd},${uimm12-3112}(${rs1}) */
+/* fld ${fl-rd},${imm-lo12}(${rs1}) */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (UIMM12_3112), '(', OP (RS1), ')', 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (IMM_LO12), '(', OP (RS1), ')', 0 } },
     & ifmt_flw, { 0x3007 }
   },
-/* fsd ${fl-rs2},${uimm12-317-115}(${rs1}) */
+/* fsd ${fl-rs2},${store12}(${rs1}) */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RS2), ',', OP (UIMM12_317_115), '(', OP (RS1), ')', 0 } },
+    { { MNEM, ' ', OP (FL_RS2), ',', OP (STORE12), '(', OP (RS1), ')', 0 } },
     & ifmt_fsw, { 0x3027 }
   },
 /* fmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */

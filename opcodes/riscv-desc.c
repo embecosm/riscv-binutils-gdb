@@ -879,7 +879,6 @@ const CGEN_IFLD riscv_cgen_ifld_table[] =
   { RISCV_F_IMM12_121_81_102_61_71_21_111_53_0, "f-imm12-121-81-102-61-71-21-111-53-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
   { RISCV_F_UIMM8_32_121_63_00, "f-uimm8-32-121-63-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
   { RISCV_F_UIMM9_43_121_62_000, "f-uimm9-43-121-62-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM12_317_115, "f-uimm12-317-115", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
   { 0, 0, 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } }
 };
 
@@ -905,7 +904,6 @@ const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM8_82_124_00_MULTI_IFIELD [];
 const CGEN_MAYBE_MULTI_IFLD RISCV_F_IMM12_121_81_102_61_71_21_111_53_0_MULTI_IFIELD [];
 const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM8_32_121_63_00_MULTI_IFIELD [];
 const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM9_43_121_62_000_MULTI_IFIELD [];
-const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM12_317_115_MULTI_IFIELD [];
 
 
 /* multi ifield definitions */
@@ -1025,12 +1023,6 @@ const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM9_43_121_62_000_MULTI_IFIELD [] =
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_43] } },
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM1_121] } },
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM2_62] } },
-    { 0, { (const PTR) 0 } }
-};
-const CGEN_MAYBE_MULTI_IFLD RISCV_F_UIMM12_317_115_MULTI_IFIELD [] =
-{
-    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM7_317] } },
-    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
     { 0, { (const PTR) 0 } }
 };
 
@@ -1260,14 +1252,6 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
 /* uimm8-62-123-000-abs: uimm8 [6..5][12..10]000 (absolute) */
   { "uimm8-62-123-000-abs", RISCV_OPERAND_UIMM8_62_123_000_ABS, HW_H_UINT, 6, 5,
     { 2, { (const PTR) &RISCV_F_UIMM8_62_123_000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-/* uimm12-3112: uimm12 [31..20] */
-  { "uimm12-3112", RISCV_OPERAND_UIMM12_3112, HW_H_UINT, 31, 12,
-    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM12_3112] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-/* uimm12-317-115: uimm12 [31..25][11..7] */
-  { "uimm12-317-115", RISCV_OPERAND_UIMM12_317_115, HW_H_UINT, 11, 12,
-    { 2, { (const PTR) &RISCV_F_UIMM12_317_115_MULTI_IFIELD[0] } },
     { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* sentinel */
   { 0, 0, 0, 0, 0,
@@ -2359,12 +2343,12 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_AMOMAXU_D_AQRL, "amomaxu.d.aqrl", "amomaxu.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* flw ${fl-rd},${uimm12-3112}(${rs1}) */
+/* flw ${fl-rd},${imm-lo12}(${rs1}) */
   {
     RISCV_INSN_FLW, "flw", "flw", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fsw ${fl-rs2},${uimm12-317-115}(${rs1}) */
+/* fsw ${fl-rs2},${store12}(${rs1}) */
   {
     RISCV_INSN_FSW, "fsw", "fsw", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
@@ -2509,12 +2493,12 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCVT_S_LU, "fcvt.s.lu", "fcvt.s.lu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x20" } } } }
   },
-/* fld ${fl-rd},${uimm12-3112}(${rs1}) */
+/* fld ${fl-rd},${imm-lo12}(${rs1}) */
   {
     RISCV_INSN_FLD, "fld", "fld", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fsd ${fl-rs2},${uimm12-317-115}(${rs1}) */
+/* fsd ${fl-rs2},${store12}(${rs1}) */
   {
     RISCV_INSN_FSD, "fsd", "fsd", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }

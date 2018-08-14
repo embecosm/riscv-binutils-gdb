@@ -902,23 +902,6 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       errmsg = insert_normal (cd, fields->f_succ, 0, 0, 27, 4, 32, total_length, buffer);
       break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      errmsg = insert_normal (cd, fields->f_uimm12_3112, 0, 0, 31, 12, 32, total_length, buffer);
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      {
-{
-  FLD (f_uimm7_317) = ((((UINT) (FLD (f_uimm12_317_115)) >> (5))) & (127));
-  FLD (f_uimm5_115) = ((FLD (f_uimm12_317_115)) & (31));
-}
-        errmsg = insert_normal (cd, fields->f_uimm7_317, 0, 0, 31, 7, 32, total_length, buffer);
-        if (errmsg)
-          break;
-        errmsg = insert_normal (cd, fields->f_uimm5_115, 0, 0, 11, 5, 32, total_length, buffer);
-        if (errmsg)
-          break;
-      }
-      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       {
         long value = fields->f_uimm32_3120_000000000000;
@@ -1339,20 +1322,6 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 27, 4, 32, total_length, pc, & fields->f_succ);
       break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      length = extract_normal (cd, ex_info, insn_value, 0, 0, 31, 12, 32, total_length, pc, & fields->f_uimm12_3112);
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      {
-        length = extract_normal (cd, ex_info, insn_value, 0, 0, 31, 7, 32, total_length, pc, & fields->f_uimm7_317);
-        if (length <= 0) break;
-        length = extract_normal (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_uimm5_115);
-        if (length <= 0) break;
-{
-  FLD (f_uimm12_317_115) = ((((FLD (f_uimm7_317)) << (5))) | (((FLD (f_uimm5_115)) << (0))));
-}
-      }
-      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       {
         long value;
@@ -1618,12 +1587,6 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_SUCC :
       value = fields->f_succ;
       break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      value = fields->f_uimm12_3112;
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      value = fields->f_uimm12_317_115;
-      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       value = fields->f_uimm32_3120_000000000000;
       break;
@@ -1805,12 +1768,6 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_SUCC :
       value = fields->f_succ;
-      break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      value = fields->f_uimm12_3112;
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      value = fields->f_uimm12_317_115;
       break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       value = fields->f_uimm32_3120_000000000000;
@@ -2001,12 +1958,6 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_SUCC :
       fields->f_succ = value;
       break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      fields->f_uimm12_3112 = value;
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      fields->f_uimm12_317_115 = value;
-      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       fields->f_uimm32_3120_000000000000 = value;
       break;
@@ -2185,12 +2136,6 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_SUCC :
       fields->f_succ = value;
-      break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      fields->f_uimm12_3112 = value;
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      fields->f_uimm12_317_115 = value;
       break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       fields->f_uimm32_3120_000000000000 = value;

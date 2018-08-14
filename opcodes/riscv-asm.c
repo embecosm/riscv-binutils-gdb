@@ -856,12 +856,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       errmsg = parse_fence_succ_pred (cd, strp, RISCV_OPERAND_SUCC, (unsigned long *) (& fields->f_succ));
       break;
-    case RISCV_OPERAND_UIMM12_3112 :
-      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_UIMM12_3112, (unsigned long *) (& fields->f_uimm12_3112));
-      break;
-    case RISCV_OPERAND_UIMM12_317_115 :
-      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_UIMM12_317_115, (unsigned long *) (& fields->f_uimm12_317_115));
-      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       errmsg = parse_uimm32_hi20 (cd, strp, RISCV_OPERAND_UIMM32_3120_000000000000, (unsigned long *) (& fields->f_uimm32_3120_000000000000));
       break;
