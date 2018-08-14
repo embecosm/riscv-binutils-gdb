@@ -1,3 +1,14 @@
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
+	* gas/config/tc-riscv.c (riscv_isa_for_subset): Handle
+	requests for the 'D' extension, returning ISA_RV64D or
+	ISA_RV32D depending on xlen.
+	(riscv_set_arch): Add 'd' to the list of all extensions,
+	place before 'c' in the string so that this is also added
+	when 'g' is requested.
+	(riscv_after_parse_args): If 'd' is supported then set
+	the float abi to FLOAT_ABI_DOUBLE.
+
 2018-08-13  Edward Jones  <ed.jones@embecosm.com>
 
 	* gas/config/tc-riscv.c: Modify to be based on CGEN.

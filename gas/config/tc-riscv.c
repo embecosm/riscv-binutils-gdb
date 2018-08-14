@@ -138,6 +138,8 @@ riscv_isa_for_subset (const char *subset)
     return (xlen == 64) ? ISA_RV64A : ISA_RV32A;
   else if (!strcmp(subset, "f"))
     return (xlen == 64) ? ISA_RV64F : ISA_RV32F;
+  else if (!strcmp(subset, "d"))
+    return (xlen == 64) ? ISA_RV64D : ISA_RV32D;
   else
     as_fatal ("ISA not yet supported");
 }
@@ -208,7 +210,7 @@ riscv_remove_subset (const char *subset)
 static void
 riscv_set_arch (const char *s)
 {
-  const char *all_subsets = "imafce";
+  const char *all_subsets = "imafdce";
   char *extension = NULL;
   const char *p = s;
 
@@ -910,6 +912,9 @@ riscv_after_parse_args (void)
     {
       /* Assume soft-float unless D extension is present.  */
       float_abi = FLOAT_ABI_SOFT;
+
+      if (riscv_subset_supports ("d"))
+	float_abi = FLOAT_ABI_DOUBLE;
     }
 
   if (rve_abi)
