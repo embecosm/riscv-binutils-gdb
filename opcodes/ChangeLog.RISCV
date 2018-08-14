@@ -1,3 +1,11 @@
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
+	* opcodes/riscv-desc.c: Regenerated with add 'D' extension
+	support.
+	* opcodes/riscv-desc.h: Likewise.
+	* opcodes/riscv-opc.c: Likewise.
+	* opcodes/riscv-opc.h: Likewise.
+
 2018-08-13  Edward Jones  <ed.jones@embecosm.com>
 
 	* opcodes/Makefile.am: Add riscv-asm.c, riscv-desc.c and
