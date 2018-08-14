@@ -1,5 +1,12 @@
 2018-08-14  Edward Jones  <ed.jones@embecosm.com>
 
+	* gas/config/tc-riscv.c (riscv_set_arch): Also add
+	the base integer ISA (rv32i) when the user specifies
+	rv32e. Emit a fatal error if 'e' is specified for
+	anything other than rv32.
+
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
 	* gas/config/tc-riscv.c (riscv_isa_for_subset): Handle
 	requests for the 'D' extension, returning ISA_RV64D or
 	ISA_RV32D depending on xlen.
