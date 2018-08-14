@@ -849,22 +849,6 @@
   (decode (value pc) (sll DI value 3))
 )
 
-(define-multi-ifield
-  (name f-uimm12-317-115)
-  (comment "uimm12 [31..25][11..7]")
-  (attrs all-isas)
-  (mode UINT)
-  (subfields f-uimm7-317 f-uimm5-115)
-  (insert (sequence ()
-    (set (ifield f-uimm7-317) (and (srl (ifield f-uimm12-317-115) 5) #x7f))
-    (set (ifield f-uimm5-115) (and      (ifield f-uimm12-317-115)    #x1f)))
-  )
-  (extract (sequence ()
-    (set (ifield f-uimm12-317-115)
-      (or (sll (ifield f-uimm7-317) 5) (sll (ifield f-uimm5-115) 0))))
-  )
-)
-
 ;; Register operands
 
 (define-operand
@@ -1310,20 +1294,6 @@
   (index f-uimm8-62-123-000)
   (handlers (parse "uimm8_mask3_abs"))
 )
-(define-operand
-  (name uimm12-3112)
-  (comment "uimm12 [31..20]")
-  (attrs all-isas)
-  (type h-uint)
-  (index f-uimm12-3112)
-)
-(define-operand
-  (name uimm12-317-115)
-  (comment "uimm12 [31..25][11..7]")
-  (attrs all-isas)
-  (type h-uint)
-  (index f-uimm12-317-115)
-)
 
 ;; Instruction formats
 
@@ -1616,8 +1586,8 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fl-rd},${uimm12-3112}(${rs1})"))
-    (format (.splice + uimm12-3112 rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
+    (syntax (.str mnemonic " ${fl-rd},${imm-lo12}(${rs1})"))
+    (format (.splice + imm-lo12 rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
   )
 )
 
@@ -1631,8 +1601,8 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fl-rs2},${uimm12-317-115}(${rs1})"))
-    (format (.splice + uimm12-317-115 fl-rs2 rs1 (f-funct3 funct3) (f-opcode opcode)))
+    (syntax (.str mnemonic " ${fl-rs2},${store12}(${rs1})"))
+    (format (.splice + store12 fl-rs2 rs1 (f-funct3 funct3) (f-opcode opcode)))
   )
 )
 
