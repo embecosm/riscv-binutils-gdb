@@ -1,4 +1,10 @@
-2018-07-13  Edward Jones  <ed.jones@embecosm.com>
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add rv32d and rv64d isas. Add 'D' extension
+	instructions. Update floating point registers (h-fpr) to be
+	64 bits wide.
+
+2018-08-13  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Add CPU definition for RISCV.
 	* riscv.opc: Add implementation for RISCV.
