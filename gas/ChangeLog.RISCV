@@ -1,5 +1,11 @@
 2018-08-14  Edward Jones  <ed.jones@embecosm.com>
 
+	* config/tc-riscv.c (riscv_isa_for_subset): Do not
+	emit an error when retrieving the ISA for the 'e' extension
+	when xlen is >32. This is checked elsewhere.
+
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
 	* config/tc-riscv.c (riscv_set_arch): Emit fatal
 	errors if 'e' and 'f' extensions are both specified,
 	or 'd' is specified without 'f' being specified first.

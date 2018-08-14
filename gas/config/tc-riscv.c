@@ -126,8 +126,6 @@ riscv_isa_for_subset (const char *subset)
     return (xlen == 64) ? ISA_RV64I : ISA_RV32I;
   else if (!strcmp(subset, "e"))
     {
-      if (xlen != 32)
-	as_fatal ("e requires RV32");
       return ISA_RV32E;
     }
   else if (!strcmp(subset, "m"))
