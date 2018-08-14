@@ -288,6 +288,12 @@ riscv_set_arch (const char *s)
 	as_fatal ("-march=%s: unsupported ISA subset `%c'", s, *p);
     }
 
+  if (riscv_subset_supports ("e") && riscv_subset_supports ("f"))
+    as_fatal ("-march=%s: rv32e does not support the `f' extension", s);
+
+  if (riscv_subset_supports ("d") && !riscv_subset_supports ("f"))
+    as_fatal ("-march=%s: `d' extension requires `f' extension", s);
+
   free (extension);
 }
 

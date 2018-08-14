@@ -1,5 +1,11 @@
 2018-08-14  Edward Jones  <ed.jones@embecosm.com>
 
+	* config/tc-riscv.c (riscv_set_arch): Emit fatal
+	errors if 'e' and 'f' extensions are both specified,
+	or 'd' is specified without 'f' being specified first.
+
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
 	* gas/config/tc-riscv.c (riscv_set_arch): Also add
 	the base integer ISA (rv32i) when the user specifies
 	rv32e. Emit a fatal error if 'e' is specified for
