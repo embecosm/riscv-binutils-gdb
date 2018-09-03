@@ -81,6 +81,8 @@ int riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn)
 #define NOT_COMPRESSED          "operand not compressed"
 #define SYMBOL_NOT_ALLOWED      "operand can not be a symbol"
 #define ILLEGAL_REGISTER        "register illegal in RV32E"
+#define UNKNOWN_ROUNDING_MODE   "unknown rounding mode for floating point " \
+                                "operation"
 
 static const char *
 parse_value (CGEN_CPU_DESC cd, const char **strp, int opindex,
@@ -540,6 +542,47 @@ parse_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static const char *
+parse_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                           const char **strp,
+                           int opindex ATTRIBUTE_UNUSED,
+                           unsigned long *valuep)
+{
+  unsigned long res = 0;
+  if (!strncmp (*strp, "rne", strlen ("rne")))
+    {
+      res = 0x0;
+      *strp += strlen ("rne");
+    }
+  else if (!strncmp (*strp, "rtz", strlen ("rtz")))
+    {
+      res = 0x1;
+      *strp += strlen ("rtz");
+    }
+  else if (!strncmp (*strp, "rdn", strlen ("rdn")))
+    {
+      res = 0x2;
+      *strp += strlen ("rdn");
+    }
+  else if (!strncmp (*strp, "rup", strlen ("rup")))
+    {
+      res = 0x3;
+      *strp += strlen ("rup");
+    }
+  else if (!strncmp (*strp, "rmm", strlen ("rmm")))
+    {
+      res = 0x4;
+      *strp += strlen ("rmm");
+    }
+  else
+    {
+      *valuep = 0;
+      return UNKNOWN_ROUNDING_MODE;
+    }
+  *valuep = res;
+  return NULL;
+}
+
+static const char *
 parse_cjmp12 (CGEN_CPU_DESC cd,
               const char **strp,
               int opindex,
@@ -808,6 +851,32 @@ print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     (*info->fprintf_func) (info->stream, "r");
   if (value & 0x1)
     (*info->fprintf_func) (info->stream, "w");
+}
+
+static void
+print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                           void * dis_info,
+                           long value,
+                           unsigned int attrs ATTRIBUTE_UNUSED,
+                           bfd_vma pc ATTRIBUTE_UNUSED,
+                           int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  const char *str;
+
+  switch (value)
+    {
+    case 0x0:  str = "rne";  break;
+    case 0x1:  str = "rtz";  break;
+    case 0x2:  str = "rdn";  break;
+    case 0x3:  str = "rup";  break;
+    case 0x4:  str = "rmm";  break;
+    case 0x7:  str = "";     break;
+    default:
+      str = "<invalid>";
+    }
+
+  (*info->fprintf_func) (info->stream, str);
 }
 
 static void

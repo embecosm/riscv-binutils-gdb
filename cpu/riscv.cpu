@@ -1041,12 +1041,12 @@
   (index f-uimm5-65)
 )
 (define-operand
-  (name fl-tied-regs2419)
-  (comment "tied register pair, encoded in [24:19]")
+  (name fl-tied-regs1915)
+  (comment "tied register pair, encoded in [19:15]")
   (attrs all-isas)
   (type h-fpr)
-  (index f-uimm5-245)
-  (handlers (parse "tied_reg_pair"))
+  (index f-uimm5-195)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
 )
 (define-operand
   (name fl-dummy)
@@ -1084,6 +1084,15 @@
   (mode UDI)
   (index f-succ)
   (handlers (parse "fence_succ_pred") (print "fence_succ_pred"))
+)
+(define-operand
+  (name fl-rm)
+  (comment "fl-rm")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct3)
+  (handlers (parse "float_rounding_mode") (print "float_rounding_mode"))
 )
 
 ;; Immediate operands
@@ -1619,13 +1628,13 @@
 ; +-----+-----+-----+-----+-----+----+--------+
 ; |<rs3>|<fp2>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +-----+-----+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-3 mnemonic attr fp2 funct3 opcode)
+(define-pmacro (rv-format-f-3-rm mnemonic attr fp2 opcode)
   (define-insn
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}"))
-    (format (.splice + fl-rs3 (f-fp2 fp2) fl-rs2 fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
+    (syntax (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm}"))
+    (format (.splice + fl-rs3 (f-fp2 fp2) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode)))
   )
 )
 
@@ -1643,19 +1652,28 @@
     (format (.splice + (f-funct7 funct7) fl-rs2 fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
   )
 )
+(define-pmacro (rv-format-f-4-rm mnemonic attr funct7 opcode)
+  (define-insn
+    (name (.sym mnemonic))
+    (comment (.str mnemonic))
+    (attrs attr)
+    (syntax (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm}"))
+    (format (.splice + (f-funct7 funct7) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode)))
+  )
+)
 
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; +--------+-----+-----+-----+----+--------+
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-5 mnemonic attr funct7 reg funct3 opcode)
+(define-pmacro (rv-format-f-5-rm mnemonic attr funct7 reg opcode)
   (define-insn
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fl-rd},${fl-rs1}"))
-    (format (.splice + (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
+    (syntax (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rm}"))
+    (format (.splice + (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm fl-rd (f-opcode opcode)))
   )
 )
 
@@ -1673,6 +1691,15 @@
     (format (.splice + (f-funct7 funct7) (f-rs2 reg) rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
   )
 )
+(define-pmacro (rv-format-f-6-rm mnemonic attr funct7 reg opcode)
+  (define-insn
+    (name (.sym mnemonic))
+    (comment (.str mnemonic))
+    (attrs attr)
+    (syntax (.str mnemonic " ${fl-rd},${rs1},${fl-rm}"))
+    (format (.splice + (f-funct7 funct7) (f-rs2 reg) rs1 fl-rm fl-rd (f-opcode opcode)))
+  )
+)
 
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
@@ -1686,6 +1713,15 @@
     (attrs attr)
     (syntax (.str mnemonic " ${rd},${fl-rs1}"))
     (format (.splice + (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) rd (f-opcode opcode)))
+  )
+)
+(define-pmacro (rv-format-f-7-rm mnemonic attr funct7 reg opcode)
+  (define-insn
+    (name (.sym mnemonic))
+    (comment (.str mnemonic))
+    (attrs attr)
+    (syntax (.str mnemonic " ${rd},${fl-rs1},${fl-rm}"))
+    (format (.splice + (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm rd (f-opcode opcode)))
   )
 )
 
@@ -2282,9 +2318,6 @@
 ; type of an operand (immediate vs register operand). If this case, we don't
 ; want to accidentally parse the register name as a symbol for an immediate
 ; field.
-;
-; TODO: Currently we cannot handle tied registers when there is an
-;       operand in the middle. This affects and, or, xor, add and addw.
 
 (define-pmacro (rvc-pseudo pseudo-name mnemonic attr-list asm expansion)
   (dnmi pseudo-name mnemonic attr-list (.str mnemonic asm) expansion)
@@ -2570,88 +2603,90 @@
 
 ;===-------------------- 'F' extension instructions -------------------------===
 
-(rv-format-f-1 "flw"       f-extension #b010 #b0000111)
-(rv-format-f-2 "fsw"       f-extension #b010 #b0100111)
-(rv-format-f-3 "fmadd.s"   f-extension #b00 #b111 #b1000011)
-(rv-format-f-3 "fmsub.s"   f-extension #b00 #b111 #b1000111)
-(rv-format-f-3 "fnmsub.s"  f-extension #b00 #b111 #b1001011)
-(rv-format-f-3 "fnmadd.s"  f-extension #b00 #b111 #b1001111)
+(rv-format-f-1 "flw"          f-extension #b010 #b0000111)
+(rv-format-f-2 "fsw"          f-extension #b010 #b0100111)
+(rv-format-f-3-rm "fmadd.s"   f-extension #b00 #b1000011)
+(rv-format-f-3-rm "fmsub.s"   f-extension #b00 #b1000111)
+(rv-format-f-3-rm "fnmsub.s"  f-extension #b00 #b1001011)
+(rv-format-f-3-rm "fnmadd.s"  f-extension #b00 #b1001111)
 
-(rv-format-f-4 "fadd.s"    f-extension #b0000000 #b111 #b1010011)
-(rv-format-f-4 "fsub.s"    f-extension #b0000100 #b111 #b1010011)
-(rv-format-f-4 "fmul.s"    f-extension #b0001000 #b111 #b1010011)
-(rv-format-f-4 "fdiv.s"    f-extension #b0001100 #b111 #b1010011)
-(rv-format-f-4 "fsgnj.s"   f-extension #b0010000 #b000 #b1010011)
-(rv-format-f-4 "fsgnjn.s"  f-extension #b0010000 #b001 #b1010011)
-(rv-format-f-4 "fsgnjx.s"  f-extension #b0010000 #b010 #b1010011)
-(rv-format-f-4 "fmin.s"    f-extension #b0010100 #b000 #b1010011)
-(rv-format-f-4 "fmax.s"    f-extension #b0010100 #b001 #b1010011)
-(rv-format-f-8 "feq.s"     f-extension #b1010000 #b010 #b1010011)
-(rv-format-f-8 "flt.s"     f-extension #b1010000 #b001 #b1010011)
-(rv-format-f-8 "fle.s"     f-extension #b1010000 #b000 #b1010011)
+(rv-format-f-4-rm "fadd.s"    f-extension #b0000000 #b1010011)
+(rv-format-f-4-rm "fsub.s"    f-extension #b0000100 #b1010011)
+(rv-format-f-4-rm "fmul.s"    f-extension #b0001000 #b1010011)
+(rv-format-f-4-rm "fdiv.s"    f-extension #b0001100 #b1010011)
 
-(rv-format-f-5 "fsqrt.s"   f-extension #b0101100 #b00000 #b111 #b1010011)
+(rv-format-f-4 "fsgnj.s"      f-extension #b0010000 #b000 #b1010011)
+(rv-format-f-4 "fsgnjn.s"     f-extension #b0010000 #b001 #b1010011)
+(rv-format-f-4 "fsgnjx.s"     f-extension #b0010000 #b010 #b1010011)
+(rv-format-f-4 "fmin.s"       f-extension #b0010100 #b000 #b1010011)
+(rv-format-f-4 "fmax.s"       f-extension #b0010100 #b001 #b1010011)
+(rv-format-f-8 "feq.s"        f-extension #b1010000 #b010 #b1010011)
+(rv-format-f-8 "flt.s"        f-extension #b1010000 #b001 #b1010011)
+(rv-format-f-8 "fle.s"        f-extension #b1010000 #b000 #b1010011)
 
-(rv-format-f-7 "fcvt.w.s"  f-extension #b1100000 #b00000 #b111 #b1010011)
-(rv-format-f-7 "fcvt.wu.s" f-extension #b1100000 #b00001 #b111 #b1010011)
-(rv-format-f-7 "fmv.x.s"   f-extension #b1110000 #b00000 #b000 #b1010011)
-(rv-format-f-7 "fclass.s"  f-extension #b1110000 #b00000 #b001 #b1010011)
-(rv-format-f-6 "fcvt.s.w"  f-extension #b1101000 #b00000 #b111 #b1010011)
-(rv-format-f-6 "fcvt.s.wu" f-extension #b1101000 #b00001 #b111 #b1010011)
-(rv-format-f-6 "fmv.s.x"   f-extension #b1111000 #b00000 #b000 #b1010011)
+(rv-format-f-5-rm "fsqrt.s"   f-extension #b0101100 #b00000 #b1010011)
+
+(rv-format-f-7-rm "fcvt.w.s"  f-extension #b1100000 #b00000 #b1010011)
+(rv-format-f-7-rm "fcvt.wu.s" f-extension #b1100000 #b00001 #b1010011)
+(rv-format-f-7    "fmv.x.w"   f-extension #b1110000 #b00000 #b000 #b1010011)
+(rv-format-f-7    "fclass.s"  f-extension #b1110000 #b00000 #b001 #b1010011)
+(rv-format-f-6-rm "fcvt.s.w"  f-extension #b1101000 #b00000 #b1010011)
+(rv-format-f-6-rm "fcvt.s.wu" f-extension #b1101000 #b00001 #b1010011)
+(rv-format-f-6    "fmv.w.x"   f-extension #b1111000 #b00000 #b000 #b1010011)
 
 ;RV64F
 
-(rv-format-f-7 "fcvt.l.s"  (ISA rv64f) #b1100000 #b00010 #b111 #b1010011)
-(rv-format-f-7 "fcvt.lu.s" (ISA rv64f) #b1100000 #b00011 #b111 #b1010011)
-(rv-format-f-6 "fcvt.s.l"  (ISA rv64f) #b1101000 #b00010 #b111 #b1010011)
-(rv-format-f-6 "fcvt.s.lu" (ISA rv64f) #b1101000 #b00011 #b111 #b1010011)
+(rv-format-f-7-rm "fcvt.l.s"  (ISA rv64f) #b1100000 #b00010 #b1010011)
+(rv-format-f-7-rm "fcvt.lu.s" (ISA rv64f) #b1100000 #b00011 #b1010011)
+(rv-format-f-6-rm "fcvt.s.l"  (ISA rv64f) #b1101000 #b00010 #b1010011)
+(rv-format-f-6-rm "fcvt.s.lu" (ISA rv64f) #b1101000 #b00011 #b1010011)
 
 
 ;===-------------------- 'D' extension instructions -------------------------===
 
-(rv-format-f-1 "fld"       d-extension #b011 #b0000111)
-(rv-format-f-2 "fsd"       d-extension #b011 #b0100111)
-(rv-format-f-3 "fmadd.d"   d-extension #b01 #b111 #b1000011)
-(rv-format-f-3 "fmsub.d"   d-extension #b01 #b111 #b1000111)
-(rv-format-f-3 "fnmsub.d"  d-extension #b01 #b111 #b1001011)
-(rv-format-f-3 "fnmadd.d"  d-extension #b01 #b111 #b1001111)
+(rv-format-f-1    "fld"       d-extension #b011 #b0000111)
+(rv-format-f-2    "fsd"       d-extension #b011 #b0100111)
+(rv-format-f-3-rm "fmadd.d"   d-extension #b01 #b1000011)
+(rv-format-f-3-rm "fmsub.d"   d-extension #b01 #b1000111)
+(rv-format-f-3-rm "fnmsub.d"  d-extension #b01 #b1001011)
+(rv-format-f-3-rm "fnmadd.d"  d-extension #b01 #b1001111)
 
-(rv-format-f-4 "fadd.d"    d-extension #b0000001 #b111 #b1010011)
-(rv-format-f-4 "fsub.d"    d-extension #b0000101 #b111 #b1010011)
-(rv-format-f-4 "fmul.d"    d-extension #b0001001 #b111 #b1010011)
-(rv-format-f-4 "fdiv.d"    d-extension #b0001101 #b111 #b1010011)
-(rv-format-f-4 "fsgnj.d"   d-extension #b0010001 #b000 #b1010011)
-(rv-format-f-4 "fsgnjn.d"  d-extension #b0010001 #b001 #b1010011)
-(rv-format-f-4 "fsgnjx.d"  d-extension #b0010001 #b010 #b1010011)
-(rv-format-f-4 "fmin.d"    d-extension #b0010101 #b000 #b1010011)
-(rv-format-f-4 "fmax.d"    d-extension #b0010101 #b001 #b1010011)
-(rv-format-f-8 "feq.d"     d-extension #b1010001 #b010 #b1010011)
-(rv-format-f-8 "flt.d"     d-extension #b1010001 #b001 #b1010011)
-(rv-format-f-8 "fle.d"     d-extension #b1010001 #b000 #b1010011)
+(rv-format-f-4-rm "fadd.d"    d-extension #b0000001 #b1010011)
+(rv-format-f-4-rm "fsub.d"    d-extension #b0000101 #b1010011)
+(rv-format-f-4-rm "fmul.d"    d-extension #b0001001 #b1010011)
+(rv-format-f-4-rm "fdiv.d"    d-extension #b0001101 #b1010011)
 
-(rv-format-f-5 "fsqrt.d"   d-extension #b0101101 #b00000 #b111 #b1010011)
+(rv-format-f-4    "fsgnj.d"   d-extension #b0010001 #b000 #b1010011)
+(rv-format-f-4    "fsgnjn.d"  d-extension #b0010001 #b001 #b1010011)
+(rv-format-f-4    "fsgnjx.d"  d-extension #b0010001 #b010 #b1010011)
+(rv-format-f-4    "fmin.d"    d-extension #b0010101 #b000 #b1010011)
+(rv-format-f-4    "fmax.d"    d-extension #b0010101 #b001 #b1010011)
+(rv-format-f-8    "feq.d"     d-extension #b1010001 #b010 #b1010011)
+(rv-format-f-8    "flt.d"     d-extension #b1010001 #b001 #b1010011)
+(rv-format-f-8    "fle.d"     d-extension #b1010001 #b000 #b1010011)
 
-(rv-format-f-7 "fcvt.w.d"  d-extension #b1100001 #b00000 #b111 #b1010011)
-(rv-format-f-7 "fcvt.wu.d" d-extension #b1100001 #b00001 #b111 #b1010011)
-(rv-format-f-7 "fclass.d"  d-extension #b1110001 #b00000 #b001 #b1010011)
-(rv-format-f-6 "fcvt.d.w"  d-extension #b1101001 #b00000 #b111 #b1010011)
-(rv-format-f-6 "fcvt.d.wu" d-extension #b1101001 #b00001 #b111 #b1010011)
+(rv-format-f-5-rm "fsqrt.d"   d-extension #b0101101 #b00000 #b1010011)
 
-(rv-format-f-5 "fcvt.s.d"  d-extension #b0100000 #b00001 #b111 #b1010011)
-(rv-format-f-5 "fcvt.d.s"  d-extension #b0100001 #b00000 #b111 #b1010011)
+(rv-format-f-7-rm "fcvt.w.d"  d-extension #b1100001 #b00000 #b1010011)
+(rv-format-f-7-rm "fcvt.wu.d" d-extension #b1100001 #b00001 #b1010011)
+(rv-format-f-7    "fclass.d"  d-extension #b1110001 #b00000 #b001 #b1010011)
+(rv-format-f-6-rm "fcvt.d.w"  d-extension #b1101001 #b00000 #b1010011)
+(rv-format-f-6-rm "fcvt.d.wu" d-extension #b1101001 #b00001 #b1010011)
+
+(rv-format-f-5-rm "fcvt.s.d"  d-extension #b0100000 #b00001 #b1010011)
+(rv-format-f-5-rm "fcvt.d.s"  d-extension #b0100001 #b00000 #b1010011)
 
 ;RV64D
 
-(rv-format-f-7  "fcvt.l.d"  (ISA rv64d) #b1100001 #b00010 #b111 #b1010011)
-(rv-format-f-7  "fcvt.lu.d" (ISA rv64d) #b1100001 #b00011 #b111 #b1010011)
-(rv-format-f-7  "fmv.x.d"   (ISA rv64d) #b1110001 #b00000 #b000 #b1010011)
-(rv-format-f-6  "fcvt.d.l"  (ISA rv64d) #b1101001 #b00010 #b111 #b1010011)
-(rv-format-f-6  "fcvt.d.lu" (ISA rv64d) #b1101001 #b00011 #b111 #b1010011)
-(rv-format-f-6  "fmv.d.x"   (ISA rv64d) #b1111001 #b00000 #b000 #b1010011)
+(rv-format-f-7-rm "fcvt.l.d"  (ISA rv64d) #b1100001 #b00010 #b1010011)
+(rv-format-f-7-rm "fcvt.lu.d" (ISA rv64d) #b1100001 #b00011 #b1010011)
+(rv-format-f-7    "fmv.x.d"   (ISA rv64d) #b1110001 #b00000 #b000 #b1010011)
+(rv-format-f-6-rm "fcvt.d.l"  (ISA rv64d) #b1101001 #b00010 #b1010011)
+(rv-format-f-6-rm "fcvt.d.lu" (ISA rv64d) #b1101001 #b00011 #b1010011)
+(rv-format-f-6    "fmv.d.x"   (ISA rv64d) #b1111001 #b00000 #b000 #b1010011)
 
 
-;===---------------------------- Macro instructions -------------------------===
+;===------------------------- 'I' Macro instructions ------------------------===
 
 (define-pmacro (rv-pseudo pseudo-name mnemonic attr-list asm expansion)
   (dnmi pseudo-name mnemonic attr-list (.str mnemonic asm) expansion)
@@ -2684,10 +2719,6 @@
 (rv-pseudo p-sgtu   "sgtu" (base-isas NO-DIS) " ${rd},${rs2},${rs1}"            (emit sltu  rd rs1 rs2))
 (rv-pseudo p-or     "or"   (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit ori   rd rs1 (imm-lo12 imm-lo12-abs)))
 (rv-pseudo p-xor    "xor"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit xori  rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-addw   "addw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-sllw   "sllw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit slliw-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-srlw   "srlw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit srliw-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-sraw   "sraw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit sraiw-shift5 rd rs1 uimm5-245))
 
 ; Syntax for loads and stores where the offset is omitted
 (rv-pseudo p-lb  "lb"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lb  rd rs1 (imm-lo12 0)))
@@ -2698,11 +2729,6 @@
 (rv-pseudo p-sb  "sb"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sb rs2 rs1 (store12 0)))
 (rv-pseudo p-sh  "sh"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sh rs2 rs1 (store12 0)))
 (rv-pseudo p-sw  "sw"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sw rs2 rs1 (store12 0)))
-; RV64I
-(rv-pseudo p-lwu "lwu" ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit lwu rd rs1 (imm-lo12 0)))
-(rv-pseudo p-ld  "ld"  ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit ld  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-sd  "sd"  ((ISA rv64i) NO-DIS) " ${rs2},($rs1)" (emit sd rs2 rs1 (store12 0)))
-
 
 ; Pseudo instructions defined in the ISA
 (rv-pseudo p-nop    "nop"    (base-isas)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
@@ -2712,7 +2738,6 @@
 (rv-pseudo p-not    "not"    (base-isas)   " ${rd},${rs1}"       (emit xori  rd rs1 (imm-lo12 #xfff)))
 (rv-pseudo p-neg    "neg"    (base-isas)   " ${rd},${rs2}"       (emit sub   rd (rs1 0) rs2))
 (rv-pseudo p-negw   "negw"   (base-isas)   " ${rd},${rs2}"       (emit subw  rd (rs1 0) rs2))
-(rv-pseudo p-sextw  "sext.w" ((ISA rv64i)) " ${rd},${rs1}"       (emit addiw rd rs1 (imm-lo12 0)))
 (rv-pseudo p-seqz   "seqz"   (base-isas)   " ${rd},${rs1}"       (emit sltiu rd rs1 (imm-lo12 1)))
 (rv-pseudo p-snez   "snez"   (base-isas)   " ${rd},${rs2}"       (emit sltu  rd (rs1 0) rs2))
 (rv-pseudo p-sltz   "sltz"   (base-isas)   " ${rd},${rs1}"       (emit slt   rd rs1 (rs2 0)))
@@ -2753,9 +2778,6 @@
 (rv-pseudo p-rdinstret  "rdinstret"  (base-isas) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
 (rv-pseudo p-rdcycle    "rdcycle"    (base-isas) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
 (rv-pseudo p-rdtime     "rdtime"     (base-isas) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
-(rv-pseudo p-rdinstreth "rdinstreth" ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
-(rv-pseudo p-rdcycleh   "rdcycleh"   ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
-(rv-pseudo p-rdtimeh    "rdtimeh"    ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
 (rv-pseudo p-csrr   "csrr"  (base-isas)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
 (rv-pseudo p-csrw-1 "csrw"  (base-isas)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
@@ -2772,30 +2794,111 @@
 (rv-pseudo p-sfence-vma-1 "sfence.vma" (base-isas) ""        (emit sfence.vma (rs1 0) (rs2 0)))
 (rv-pseudo p-sfence-vma-2 "sfence.vma" (base-isas) " ${rs1}" (emit sfence.vma rs1     (rs2 0)))
 
-; Floating point extension
+; RV32I
+(rv-pseudo p-rdinstreth "rdinstreth" ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-pseudo p-rdcycleh   "rdcycleh"   ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-pseudo p-rdtimeh    "rdtimeh"    ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
-(rv-pseudo p-frsr       "frsr"     (f-extension)        " ${rd}"         (emit csrrs rd     (csr #x03) (rs1 0)))
-(rv-pseudo p-fssr-1     "fssr"     (f-extension)        " ${rd},${rs1}"  (emit csrrw rd     (csr #x03) rs1))
-(rv-pseudo p-fssr-2     "fssr"     (f-extension)        " ${rs1}"        (emit csrrw (rd 0) (csr #x03) rs1))
-(rv-pseudo p-frcsr      "frcsr"    (f-extension)        " ${rd}"         (emit csrrs rd     (csr #x03) (rs1 0)))
-(rv-pseudo p-fscsr-1    "fscsr"    (f-extension)        " ${rd},${rs1}"  (emit csrrw rd     (csr #x03) rs1))
-(rv-pseudo p-fscsr-2    "fscsr"    (f-extension)        " ${rs1}"        (emit csrrw (rd 0) (csr #x03) rs1))
-(rv-pseudo p-frrm       "frrm"     (f-extension)        " ${rd}"         (emit csrrs rd     (csr #x02) (rs1 0)))
-(rv-pseudo p-fsrm-1     "fsrm"     (f-extension)        " ${rd},${rs1}"  (emit csrrw rd     (csr #x02) rs1))
-(rv-pseudo p-fsrm-2     "fsrm"     (f-extension)        " ${rs1}"        (emit csrrw (rd 0) (csr #x02) rs1))
-(rv-pseudo p-fsrmi-1    "fsrmi"    (f-extension)        " ${rd},${uimm5}" (emit csrrwi rd    (csr #x02) uimm5))
-(rv-pseudo p-fsrmi-2    "fsrmi"    (f-extension)        " ${uimm5}"       (emit csrrwi (rd 0)(csr #x02) uimm5))
-(rv-pseudo p-frflags    "frflags"  (f-extension)        " ${rd}"         (emit csrrs rd     (csr #x01) (rs1 0)))
-(rv-pseudo p-fsflags-1  "fsflags"  (f-extension)        " ${rd},${rs1}"  (emit csrrw rd     (csr #x01) rs1))
-(rv-pseudo p-fsflags-2  "fsflags"  (f-extension)        " ${rs1}"        (emit csrrw (rd 0) (csr #x01) rs1))
-(rv-pseudo p-fsflagsi-1 "fsflagsi" (f-extension NO-DIS) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
-(rv-pseudo p-fsflagsi-2 "fsflagsi" (f-extension NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
+; RV64I
+(rv-pseudo p-addw   "addw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-pseudo p-sllw   "sllw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit slliw-shift5 rd rs1 uimm5-245))
+(rv-pseudo p-srlw   "srlw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit srliw-shift5 rd rs1 uimm5-245))
+(rv-pseudo p-sraw   "sraw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit sraiw-shift5 rd rs1 uimm5-245))
 
-(rv-pseudo p-fmv.x.w "fmv.x.w" (f-extension)  " ${rd},${fl-rs1}"  (emit fmv.x.s rd fl-rs1))
-(rv-pseudo p-fmv.w.x "fmv.w.x" (f-extension)  " ${fl-rd},${rs1}"  (emit fmv.s.x fl-rd rs1))
+(rv-pseudo p-lwu "lwu" ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit lwu rd rs1 (imm-lo12 0)))
+(rv-pseudo p-ld  "ld"  ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit ld  rd rs1 (imm-lo12 0)))
+(rv-pseudo p-sd  "sd"  ((ISA rv64i) NO-DIS) " ${rs2},($rs1)" (emit sd rs2 rs1 (store12 0)))
 
-; FIXME: Not working
-(rv-pseudo p-fmvs  "fmv.s"  (f-extension)  " ${fl-rd},${fl-tied-regs2419}"  (emit fsgnj.s  fl-rd (fl-rs1 fl-tied-regs2419)  (fl-rs2 0)))
-(rv-pseudo p-fabss "fabs.s" (f-extension)  " ${fl-rd},${fl-tied-regs2419}"  (emit fsgnjx.s fl-rd (fl-rs1 fl-tied-regs2419)  (fl-rs2 fl-dummy)))
-(rv-pseudo p-fnegs "fneg.s" (f-extension)  " ${fl-rd},${fl-tied-regs2419}"  (emit fsgnjn.s fl-rd (fl-rs1 fl-tied-regs2419)  (fl-rs2 fl-dummy)))
+(rv-pseudo p-sextw  "sext.w" ((ISA rv64i)) " ${rd},${rs1}"   (emit addiw rd rs1 (imm-lo12 0)))
+
+
+;===-------------------- 'M' extension instructions -------------------------===
+
+
+;===-------------------- 'A' extension instructions -------------------------===
+
+
+;===----------------- 'F' extension macro instructions ----------------------===
+
+(rv-pseudo p-frsr       "frsr"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-pseudo p-fssr-1     "fssr"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-pseudo p-fssr-2     "fssr"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-pseudo p-frcsr      "frcsr"     (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-pseudo p-fscsr-1    "fscsr"     (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-pseudo p-fscsr-2    "fscsr"     (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-pseudo p-frrm       "frrm"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x02) (rs1 0)))
+(rv-pseudo p-fsrm-1     "fsrm"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x02) rs1))
+(rv-pseudo p-fsrm-2     "fsrm"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x02) rs1))
+(rv-pseudo p-fsrmi-1    "fsrmi"     (f-extension)        " ${rd},${uimm5}" (emit csrrwi rd    (csr #x02) uimm5))
+(rv-pseudo p-fsrmi-2    "fsrmi"     (f-extension)        " ${uimm5}"       (emit csrrwi (rd 0)(csr #x02) uimm5))
+(rv-pseudo p-frflags    "frflags"   (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x01) (rs1 0)))
+(rv-pseudo p-fsflags-1  "fsflags"   (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x01) rs1))
+(rv-pseudo p-fsflags-2  "fsflags"   (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x01) rs1))
+(rv-pseudo p-fsflagsi-1 "fsflagsi"  (f-extension NO-DIS) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
+(rv-pseudo p-fsflagsi-2 "fsflagsi"  (f-extension NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
+
+(rv-pseudo p-fmv.x.s   "fmv.x.s"   (f-extension) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
+(rv-pseudo p-fmv.s.x   "fmv.s.x"   (f-extension) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
+
+(rv-pseudo p-fmv.s     "fmv.s"     (f-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnj.s  fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+(rv-pseudo p-fabs.s    "fabs.s"    (f-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnjx.s fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+(rv-pseudo p-fneg.s    "fneg.s"    (f-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnjn.s fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+
+(rv-pseudo p-fmadd.s   "fmadd.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fmsub.s   "fmsub.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fnmsub.s  "fnmsub.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fnmadd.s  "fnmadd.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+
+(rv-pseudo p-fadd.s    "fadd.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fsub.s    "fsub.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fmul.s    "fmul.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fdiv.s    "fdiv.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+
+(rv-pseudo p-fsqrt.s   "fsqrt.s"   (f-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.s fl-rd fl-rs1 (fl-rm #b111)))
+
+(rv-pseudo p-fcvt.w.s  "fcvt.w.s"  (f-extension) " ${rd},${fl-rs1}" (emit fcvt.w.s  rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.wu.s "fcvt.wu.s" (f-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.s rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.s.w  "fcvt.s.w"  (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.s.wu "fcvt.s.wu" (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
+
+;RV64F
+
+(rv-pseudo p-fcvt.l.s  "fcvt.l.s"  ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.lu.s "fcvt.lu.s" ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.lu.s rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.s.l  "fcvt.s.l"  ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.l  fl-rd rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.s.lu "fcvt.s.lu" ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
+
+
+;===----------------- 'D' extension macro instructions ----------------------===
+
+(rv-pseudo p-fmv.d     "fmv.d"     (d-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnj.d  fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+(rv-pseudo p-fabs.d    "fabs.d"    (d-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnjx.d fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+(rv-pseudo p-fneg.d    "fneg.d"    (d-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnjn.d fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
+
+(rv-pseudo p-fmadd.d   "fmadd.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fmsub.d   "fmsub.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fnmsub.d  "fnmsub.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-pseudo p-fnmadd.d  "fnmadd.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+
+(rv-pseudo p-fadd.d    "fadd.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fsub.d    "fsub.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fmul.d    "fmul.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-pseudo p-fdiv.d    "fdiv.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+
+(rv-pseudo p-fsqrt.d   "fsqrt.d"   (d-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.d fl-rd fl-rs1 (fl-rm #b111)))
+
+(rv-pseudo p-fcvt.w.d  "fcvt.w.d"  (d-extension) " ${rd},${fl-rs1}" (emit fcvt.w.d  rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.wu.d "fcvt.wu.d" (d-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.d rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.d.w  "fcvt.d.w"  (d-extension) " ${fl-rd},${rs1}" (emit fcvt.d.w  fl-rd rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.d.wu "fcvt.d.wu" (d-extension) " ${fl-rd},${rs1}" (emit fcvt.d.wu fl-rd rs1 (fl-rm #b111)))
+
+(rv-pseudo p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.d.s  "fcvt.d.s"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.d.s fl-rd fl-rs1 (fl-rm #b111)))
+
+;RV64D
+
+(rv-pseudo p-fcvt.l.d  "fcvt.l.d"  ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.l.d  rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.lu.d "fcvt.lu.d" ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.lu.d rd fl-rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.d.l  "fcvt.d.l"  ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.l  fl-rd rs1 (fl-rm #b111)))
+(rv-pseudo p-fcvt.d.lu "fcvt.d.lu" ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.lu fl-rd rs1 (fl-rm #b111)))
 

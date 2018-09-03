@@ -1,4 +1,22 @@
-2018-08-03  Edward Jones  <ed.jones@embecosm.com>
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Rearrange instructions, add missing 'F' and 'D'
+	extension instructions. Add versions of floating point instructions
+	with an extra operand to select the rounding mode. Add macros
+	for 'D' extension instructions.
+	(rv-format-f-3-rm rv-format-f-4-rm rv-format-f-5-rm)
+	(rv-format-f-6-rm rv-format-f-7-rm): Add new instruction formats
+	for floating point instructions with selectable floating point
+	rounding modes.
+	(fl-rm): Add operand type to select floating point rounding
+	modes.
+	(fl-tied-regs1915): Rename from fl-tied-regs2419.
+	* riscv.opc (parse_float_rounding_mode): Add function to
+	parse floating point rounding mode operands
+	(print_float_rounding_mode): Add function to print floating
+	point rounding modes.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Fix assembly syntax of 'A' extension instructions.
 
