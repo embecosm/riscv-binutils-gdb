@@ -1982,7 +1982,7 @@
     (comment (.str mnemonic))
     (attrs attr)
     (syntax (.str mnemonic " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"))
-    (format (.splice + (f-c-funct3 funct3) uimm9-93-123-000-abs fc-rs3 (f-c-opcode opcode)))
+    (format (.splice + (f-c-funct3 funct3) uimm8-82-124-00-abs fc-rs3 (f-c-opcode opcode)))
   )
 )
 
@@ -2867,6 +2867,20 @@
 (rv-pseudo p-fcvt.lu.s "fcvt.lu.s" ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.lu.s rd fl-rs1 (fl-rm #b111)))
 (rv-pseudo p-fcvt.s.l  "fcvt.s.l"  ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.l  fl-rd rs1 (fl-rm #b111)))
 (rv-pseudo p-fcvt.s.lu "fcvt.s.lu" ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
+
+;RV32FC
+
+(rvc-pseudo p-c-flwsp   "flw" ((ISA rv32c)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"  (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
+(rvc-pseudo p-c-fswsp   "fsw" ((ISA rv32c)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"    (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
+(rvc-pseudo p-c-fsw     "fsw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${fc-rs1})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs fc-rs1))
+(rvc-pseudo p-c-flw     "flw" ((ISA rv32c)) " ${fc-rd},${uimm7-51-123-61-00-abs}(${fc-rs1})"  (emit c.flw fc-rd uimm7-51-123-61-00-abs fc-rs1))
+
+;RV64FC
+
+(rvc-pseudo p-c-fldsp   "fld" (c-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})" (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
+(rvc-pseudo p-c-fsdsp   "fsd" (c-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"   (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
+(rvc-pseudo p-c-fsd     "fsd" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${fc-rs1})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs fc-rs1))
+(rvc-pseudo p-c-fld     "fld" (c-extension) " ${fc-rd},${uimm8-62-123-000-abs}(${fc-rs1})"    (emit c.fld fc-rd uimm8-62-123-000-abs fc-rs1))
 
 
 ;===----------------- 'D' extension macro instructions ----------------------===
