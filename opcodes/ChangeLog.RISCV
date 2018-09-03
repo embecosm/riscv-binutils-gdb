@@ -1,6 +1,11 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
-	* riscv.opc.c: Regenerated with 'F' and 'D' compressed macro
+	* riscv-opc.c: Regenerate with fgt and fge macros for
+	F and D extensions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv-opc.c: Regenerated with 'F' and 'D' compressed macro
 	instructions.
 
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
