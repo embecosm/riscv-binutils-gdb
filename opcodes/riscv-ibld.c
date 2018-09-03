@@ -722,6 +722,9 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RD :
       errmsg = insert_normal (cd, fields->f_rd, 0, 0, 11, 5, 32, total_length, buffer);
       break;
+    case RISCV_OPERAND_FL_RM :
+      errmsg = insert_normal (cd, fields->f_funct3, 0, 0, 14, 3, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_FL_RS1 :
       errmsg = insert_normal (cd, fields->f_rs1, 0, 0, 19, 5, 32, total_length, buffer);
       break;
@@ -731,8 +734,8 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RS3 :
       errmsg = insert_normal (cd, fields->f_rs3, 0, 0, 31, 5, 32, total_length, buffer);
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      errmsg = insert_normal (cd, fields->f_uimm5_245, 0, 0, 24, 5, 32, total_length, buffer);
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      errmsg = insert_normal (cd, fields->f_uimm5_195, 0, 0, 19, 5, 32, total_length, buffer);
       break;
     case RISCV_OPERAND_IMM_LO12 :
       errmsg = insert_normal (cd, fields->f_imm12_3112, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, buffer);
@@ -1185,6 +1188,9 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RD :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_rd);
       break;
+    case RISCV_OPERAND_FL_RM :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 14, 3, 32, total_length, pc, & fields->f_funct3);
+      break;
     case RISCV_OPERAND_FL_RS1 :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 19, 5, 32, total_length, pc, & fields->f_rs1);
       break;
@@ -1194,8 +1200,8 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RS3 :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 31, 5, 32, total_length, pc, & fields->f_rs3);
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      length = extract_normal (cd, ex_info, insn_value, 0, 0, 24, 5, 32, total_length, pc, & fields->f_uimm5_245);
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 19, 5, 32, total_length, pc, & fields->f_uimm5_195);
       break;
     case RISCV_OPERAND_IMM_LO12 :
       length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, pc, & fields->f_imm12_3112);
@@ -1533,6 +1539,9 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RD :
       value = fields->f_rd;
       break;
+    case RISCV_OPERAND_FL_RM :
+      value = fields->f_funct3;
+      break;
     case RISCV_OPERAND_FL_RS1 :
       value = fields->f_rs1;
       break;
@@ -1542,8 +1551,8 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RS3 :
       value = fields->f_rs3;
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      value = fields->f_uimm5_245;
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      value = fields->f_uimm5_195;
       break;
     case RISCV_OPERAND_IMM_LO12 :
       value = fields->f_imm12_3112;
@@ -1718,6 +1727,9 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RD :
       value = fields->f_rd;
       break;
+    case RISCV_OPERAND_FL_RM :
+      value = fields->f_funct3;
+      break;
     case RISCV_OPERAND_FL_RS1 :
       value = fields->f_rs1;
       break;
@@ -1727,8 +1739,8 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RS3 :
       value = fields->f_rs3;
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      value = fields->f_uimm5_245;
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      value = fields->f_uimm5_195;
       break;
     case RISCV_OPERAND_IMM_LO12 :
       value = fields->f_imm12_3112;
@@ -1910,6 +1922,9 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RD :
       fields->f_rd = value;
       break;
+    case RISCV_OPERAND_FL_RM :
+      fields->f_funct3 = value;
+      break;
     case RISCV_OPERAND_FL_RS1 :
       fields->f_rs1 = value;
       break;
@@ -1919,8 +1934,8 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RS3 :
       fields->f_rs3 = value;
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      fields->f_uimm5_245 = value;
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      fields->f_uimm5_195 = value;
       break;
     case RISCV_OPERAND_IMM_LO12 :
       fields->f_imm12_3112 = value;
@@ -2092,6 +2107,9 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RD :
       fields->f_rd = value;
       break;
+    case RISCV_OPERAND_FL_RM :
+      fields->f_funct3 = value;
+      break;
     case RISCV_OPERAND_FL_RS1 :
       fields->f_rs1 = value;
       break;
@@ -2101,8 +2119,8 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_FL_RS3 :
       fields->f_rs3 = value;
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      fields->f_uimm5_245 = value;
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      fields->f_uimm5_195 = value;
       break;
     case RISCV_OPERAND_IMM_LO12 :
       fields->f_imm12_3112 = value;

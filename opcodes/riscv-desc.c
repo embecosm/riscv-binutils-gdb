@@ -1137,9 +1137,9 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "fc-rs3", RISCV_OPERAND_FC_RS3, HW_H_FPR, 6, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_65] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-/* fl-tied-regs2419: tied register pair, encoded in [24:19] */
-  { "fl-tied-regs2419", RISCV_OPERAND_FL_TIED_REGS2419, HW_H_FPR, 24, 5,
-    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_245] } },
+/* fl-tied-regs1915: tied register pair, encoded in [19:15] */
+  { "fl-tied-regs1915", RISCV_OPERAND_FL_TIED_REGS1915, HW_H_FPR, 19, 5,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* fl-dummy: fl-dummy */
   { "fl-dummy", RISCV_OPERAND_FL_DUMMY, HW_H_FPR, 0, 0,
@@ -1156,6 +1156,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
 /* succ: succ */
   { "succ", RISCV_OPERAND_SUCC, HW_H_UINT, 27, 4,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_SUCC] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+/* fl-rm: fl-rm */
+  { "fl-rm", RISCV_OPERAND_FL_RM, HW_H_UINT, 14, 3,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT3] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* imm-zero: imm operand which is always zero */
   { "imm-zero", RISCV_OPERAND_IMM_ZERO, HW_H_SINT, 0, 0,
@@ -2357,42 +2361,42 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FSW, "fsw", "fsw", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FMADD_S, "fmadd.s", "fmadd.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmsub.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fmsub.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FMSUB_S, "fmsub.s", "fmsub.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fnmsub.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fnmsub.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FNMSUB_S, "fnmsub.s", "fnmsub.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fnmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fnmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FNMADD_S, "fnmadd.s", "fnmadd.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fadd.s ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FADD_S, "fadd.s", "fadd.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fsub.s ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fsub.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FSUB_S, "fsub.s", "fsub.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmul.s ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fmul.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FMUL_S, "fmul.s", "fmul.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fdiv.s ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fdiv.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FDIV_S, "fdiv.s", "fdiv.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
@@ -2437,24 +2441,24 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FLE_S, "fle.s", "fle.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fsqrt.s ${fl-rd},${fl-rs1} */
+/* fsqrt.s ${fl-rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FSQRT_S, "fsqrt.s", "fsqrt.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fcvt.w.s ${rd},${fl-rs1} */
+/* fcvt.w.s ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_W_S, "fcvt.w.s", "fcvt.w.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fcvt.wu.s ${rd},${fl-rs1} */
+/* fcvt.wu.s ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_WU_S, "fcvt.wu.s", "fcvt.wu.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmv.x.s ${rd},${fl-rs1} */
+/* fmv.x.w ${rd},${fl-rs1} */
   {
-    RISCV_INSN_FMV_X_S, "fmv.x.s", "fmv.x.s", 32,
+    RISCV_INSN_FMV_X_W, "fmv.x.w", "fmv.x.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
 /* fclass.s ${rd},${fl-rs1} */
@@ -2462,37 +2466,37 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCLASS_S, "fclass.s", "fclass.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fcvt.s.w ${fl-rd},${rs1} */
+/* fcvt.s.w ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_S_W, "fcvt.s.w", "fcvt.s.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fcvt.s.wu ${fl-rd},${rs1} */
+/* fcvt.s.wu ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_S_WU, "fcvt.s.wu", "fcvt.s.wu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmv.s.x ${fl-rd},${rs1} */
+/* fmv.w.x ${fl-rd},${rs1} */
   {
-    RISCV_INSN_FMV_S_X, "fmv.s.x", "fmv.s.x", 32,
+    RISCV_INSN_FMV_W_X, "fmv.w.x", "fmv.w.x", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fcvt.l.s ${rd},${fl-rs1} */
+/* fcvt.l.s ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_L_S, "fcvt.l.s", "fcvt.l.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x20" } } } }
   },
-/* fcvt.lu.s ${rd},${fl-rs1} */
+/* fcvt.lu.s ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_LU_S, "fcvt.lu.s", "fcvt.lu.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x20" } } } }
   },
-/* fcvt.s.l ${fl-rd},${rs1} */
+/* fcvt.s.l ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_S_L, "fcvt.s.l", "fcvt.s.l", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x20" } } } }
   },
-/* fcvt.s.lu ${fl-rd},${rs1} */
+/* fcvt.s.lu ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_S_LU, "fcvt.s.lu", "fcvt.s.lu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x20" } } } }
@@ -2507,42 +2511,42 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FSD, "fsd", "fsd", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FMADD_D, "fmadd.d", "fmadd.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fmsub.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fmsub.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FMSUB_D, "fmsub.d", "fmsub.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fnmsub.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fnmsub.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FNMSUB_D, "fnmsub.d", "fnmsub.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fnmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
+/* fnmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
   {
     RISCV_INSN_FNMADD_D, "fnmadd.d", "fnmadd.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fadd.d ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FADD_D, "fadd.d", "fadd.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fsub.d ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fsub.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FSUB_D, "fsub.d", "fsub.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fmul.d ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fmul.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FMUL_D, "fmul.d", "fmul.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fdiv.d ${fl-rd},${fl-rs1},${fl-rs2} */
+/* fdiv.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
   {
     RISCV_INSN_FDIV_D, "fdiv.d", "fdiv.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
@@ -2587,17 +2591,17 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FLE_D, "fle.d", "fle.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fsqrt.d ${fl-rd},${fl-rs1} */
+/* fsqrt.d ${fl-rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FSQRT_D, "fsqrt.d", "fsqrt.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.w.d ${rd},${fl-rs1} */
+/* fcvt.w.d ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_W_D, "fcvt.w.d", "fcvt.w.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.wu.d ${rd},${fl-rs1} */
+/* fcvt.wu.d ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_WU_D, "fcvt.wu.d", "fcvt.wu.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
@@ -2607,32 +2611,32 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCLASS_D, "fclass.d", "fclass.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.w ${fl-rd},${rs1} */
+/* fcvt.d.w ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_D_W, "fcvt.d.w", "fcvt.d.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.wu ${fl-rd},${rs1} */
+/* fcvt.d.wu ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_D_WU, "fcvt.d.wu", "fcvt.d.wu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.s.d ${fl-rd},${fl-rs1} */
+/* fcvt.s.d ${fl-rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_S_D, "fcvt.s.d", "fcvt.s.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.s ${fl-rd},${fl-rs1} */
+/* fcvt.d.s ${fl-rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_D_S, "fcvt.d.s", "fcvt.d.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.l.d ${rd},${fl-rs1} */
+/* fcvt.l.d ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_L_D, "fcvt.l.d", "fcvt.l.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }
   },
-/* fcvt.lu.d ${rd},${fl-rs1} */
+/* fcvt.lu.d ${rd},${fl-rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_LU_D, "fcvt.lu.d", "fcvt.lu.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }
@@ -2642,12 +2646,12 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FMV_X_D, "fmv.x.d", "fmv.x.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }
   },
-/* fcvt.d.l ${fl-rd},${rs1} */
+/* fcvt.d.l ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_D_L, "fcvt.d.l", "fcvt.d.l", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }
   },
-/* fcvt.d.lu ${fl-rd},${rs1} */
+/* fcvt.d.lu ${fl-rd},${rs1},${fl-rm} */
   {
     RISCV_INSN_FCVT_D_LU, "fcvt.d.lu", "fcvt.d.lu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }

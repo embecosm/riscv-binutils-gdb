@@ -1,5 +1,16 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-asm.c: Regenerated with 'F' and 'D' extension fixes and
+	improvements.
+	* riscv-desc.c: Likewise.
+	* riscv-desc.h: Likewise.
+	* riscv-dis.c: Likewise.
+	* riscv-ibld.c: Likewise.
+	* riscv-opc.c: Likewise.
+	* riscv-opc.h: Likewise.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv-asm.c: Regenerated.
 	* riscv-desc.c: Likewise.
 	* riscv-desc.h: Likewise.

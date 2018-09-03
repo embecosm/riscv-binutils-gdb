@@ -74,6 +74,8 @@ static const char * parse_insn_normal
 #define NOT_COMPRESSED          "operand not compressed"
 #define SYMBOL_NOT_ALLOWED      "operand can not be a symbol"
 #define ILLEGAL_REGISTER        "register illegal in RV32E"
+#define UNKNOWN_ROUNDING_MODE   "unknown rounding mode for floating point " \
+                                "operation"
 
 static const char *
 parse_value (CGEN_CPU_DESC cd, const char **strp, int opindex,
@@ -533,6 +535,47 @@ parse_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static const char *
+parse_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                           const char **strp,
+                           int opindex ATTRIBUTE_UNUSED,
+                           unsigned long *valuep)
+{
+  unsigned long res = 0;
+  if (!strncmp (*strp, "rne", strlen ("rne")))
+    {
+      res = 0x0;
+      *strp += strlen ("rne");
+    }
+  else if (!strncmp (*strp, "rtz", strlen ("rtz")))
+    {
+      res = 0x1;
+      *strp += strlen ("rtz");
+    }
+  else if (!strncmp (*strp, "rdn", strlen ("rdn")))
+    {
+      res = 0x2;
+      *strp += strlen ("rdn");
+    }
+  else if (!strncmp (*strp, "rup", strlen ("rup")))
+    {
+      res = 0x3;
+      *strp += strlen ("rup");
+    }
+  else if (!strncmp (*strp, "rmm", strlen ("rmm")))
+    {
+      res = 0x4;
+      *strp += strlen ("rmm");
+    }
+  else
+    {
+      *valuep = 0;
+      return UNKNOWN_ROUNDING_MODE;
+    }
+  *valuep = res;
+  return NULL;
+}
+
+static const char *
 parse_cjmp12 (CGEN_CPU_DESC cd,
               const char **strp,
               int opindex,
@@ -796,6 +839,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RD :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_rd);
       break;
+    case RISCV_OPERAND_FL_RM :
+      errmsg = parse_float_rounding_mode (cd, strp, RISCV_OPERAND_FL_RM, (unsigned long *) (& fields->f_funct3));
+      break;
     case RISCV_OPERAND_FL_RS1 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_rs1);
       break;
@@ -805,8 +851,8 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RS3 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_rs3);
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_uimm5_245);
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_uimm5_195);
       break;
     case RISCV_OPERAND_IMM_LO12 :
       errmsg = parse_imm_lo12_i (cd, strp, RISCV_OPERAND_IMM_LO12, (long *) (& fields->f_imm12_3112));

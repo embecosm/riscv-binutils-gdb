@@ -165,6 +165,32 @@ print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
+print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                           void * dis_info,
+                           long value,
+                           unsigned int attrs ATTRIBUTE_UNUSED,
+                           bfd_vma pc ATTRIBUTE_UNUSED,
+                           int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  const char *str;
+
+  switch (value)
+    {
+    case 0x0:  str = "rne";  break;
+    case 0x1:  str = "rtz";  break;
+    case 0x2:  str = "rdn";  break;
+    case 0x3:  str = "rup";  break;
+    case 0x4:  str = "rmm";  break;
+    case 0x7:  str = "";     break;
+    default:
+      str = "<invalid>";
+    }
+
+  (*info->fprintf_func) (info->stream, str);
+}
+
+static void
 print_uimm32_hi20 (CGEN_CPU_DESC cd,
                    void * dis_info,
                    unsigned long value,
@@ -297,6 +323,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RD :
       print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rd, 0);
       break;
+    case RISCV_OPERAND_FL_RM :
+      print_float_rounding_mode (cd, info, fields->f_funct3, 0, pc, length);
+      break;
     case RISCV_OPERAND_FL_RS1 :
       print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rs1, 0);
       break;
@@ -306,8 +335,8 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_RS3 :
       print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_rs3, 0);
       break;
-    case RISCV_OPERAND_FL_TIED_REGS2419 :
-      print_keyword (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_245, 0);
+    case RISCV_OPERAND_FL_TIED_REGS1915 :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_195, 0);
       break;
     case RISCV_OPERAND_IMM_LO12 :
       print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
