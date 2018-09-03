@@ -2861,6 +2861,9 @@
 (rv-pseudo p-fcvt.s.w  "fcvt.s.w"  (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
 (rv-pseudo p-fcvt.s.wu "fcvt.s.wu" (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
 
+(rv-pseudo p-fgt.s     "fgt.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs2 fl-rs1))
+(rv-pseudo p-fge.s     "fge.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs2 fl-rs1))
+
 ;RV64F
 
 (rv-pseudo p-fcvt.l.s  "fcvt.l.s"  ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
@@ -2908,6 +2911,9 @@
 
 (rv-pseudo p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
 (rv-pseudo p-fcvt.d.s  "fcvt.d.s"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.d.s fl-rd fl-rs1 (fl-rm #b111)))
+
+(rv-pseudo p-fgt.d     "fgt.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.d rd fl-rs2 fl-rs1))
+(rv-pseudo p-fge.d     "fge.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.d rd fl-rs2 fl-rs1))
 
 ;RV64D
 
