@@ -2820,6 +2820,9 @@
 
 ;===----------------- 'F' extension macro instructions ----------------------===
 
+(rv-pseudo p-flw        "flw"       (f-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flw fl-rd imm-lo12 rs1))
+(rv-pseudo p-fsw        "fsw"       (f-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsw fl-rs2 store12 rs1))
+
 (rv-pseudo p-frsr       "frsr"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
 (rv-pseudo p-fssr-1     "fssr"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
 (rv-pseudo p-fssr-2     "fssr"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
@@ -2887,6 +2890,9 @@
 
 
 ;===----------------- 'D' extension macro instructions ----------------------===
+
+(rv-pseudo p-fld       "fld"       (d-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit fld fl-rd imm-lo12 rs1))
+(rv-pseudo p-fsd       "fsd"       (d-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsd fl-rs2 store12 rs1))
 
 (rv-pseudo p-fmv.d     "fmv.d"     (d-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnj.d  fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))
 (rv-pseudo p-fabs.d    "fabs.d"    (d-extension) " ${fl-rd},${fl-tied-regs1915}" (emit fsgnjx.d fl-rd (fl-rs1 fl-tied-regs1915) (fl-rs2 fl-tied-regs1915)))

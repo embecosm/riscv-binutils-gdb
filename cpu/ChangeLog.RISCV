@@ -1,5 +1,9 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Add f[ls][wd] pseudo instructions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.cpu: Add fgt and fge pseudo instructions for F and D
 	extensions.
 
