@@ -1,5 +1,10 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-opc.c: Regenerate with fixes to fmv, fabs and fneg
+	assembly syntax.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv-opc.c: Regenerate with new flw,fsw,fld,fsd macro
 	instructions.
 

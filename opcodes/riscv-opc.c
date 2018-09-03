@@ -3634,17 +3634,17 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-fmv.s.x", "fmv.s.x", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fmv.s ${fl-rd},${fl-tied-regs1915} */
+/* fmv.s ${fl-rd},${fl-rs1} */
   {
     -1, "p-fmv.s", "fmv.s", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fabs.s ${fl-rd},${fl-tied-regs1915} */
+/* fabs.s ${fl-rd},${fl-rs1} */
   {
     -1, "p-fabs.s", "fabs.s", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
-/* fneg.s ${fl-rd},${fl-tied-regs1915} */
+/* fneg.s ${fl-rd},${fl-rs1} */
   {
     -1, "p-fneg.s", "fneg.s", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
@@ -3794,17 +3794,17 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-fsd", "fsd", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fmv.d ${fl-rd},${fl-tied-regs1915} */
+/* fmv.d ${fl-rd},${fl-rs1} */
   {
     -1, "p-fmv.d", "fmv.d", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fabs.d ${fl-rd},${fl-tied-regs1915} */
+/* fabs.d ${fl-rd},${fl-rs1} */
   {
     -1, "p-fabs.d", "fabs.d", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fneg.d ${fl-rd},${fl-tied-regs1915} */
+/* fneg.d ${fl-rd},${fl-rs1} */
   {
     -1, "p-fneg.d", "fneg.d", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
@@ -4880,22 +4880,22 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
     & ifmt_p_fmv_s_x, { 0xf0000053 }
   },
-/* fmv.s ${fl-rd},${fl-tied-regs1915} */
+/* fmv.s ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fmv_s, { 0x20000053 }
   },
-/* fabs.s ${fl-rd},${fl-tied-regs1915} */
+/* fabs.s ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fabs_s, { 0x20002053 }
   },
-/* fneg.s ${fl-rd},${fl-tied-regs1915} */
+/* fneg.s ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fneg_s, { 0x20001053 }
   },
 /* fmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
@@ -5072,22 +5072,22 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (FL_RS2), ',', OP (STORE12), ',', OP (RS1), 0 } },
     & ifmt_p_fsd, { 0x3027 }
   },
-/* fmv.d ${fl-rd},${fl-tied-regs1915} */
+/* fmv.d ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fmv_d, { 0x22000053 }
   },
-/* fabs.d ${fl-rd},${fl-tied-regs1915} */
+/* fabs.d ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fabs_d, { 0x22002053 }
   },
-/* fneg.d ${fl-rd},${fl-tied-regs1915} */
+/* fneg.d ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_TIED_REGS1915), 0 } },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fneg_d, { 0x22001053 }
   },
 /* fmadd.d ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
