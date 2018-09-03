@@ -1,5 +1,9 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Fix fmv, fabs and fneg assembly syntax.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.cpu: Add f[ls][wd] pseudo instructions.
 
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
