@@ -1,5 +1,10 @@
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-opc.c: Regenerate with new flw,fsw,fld,fsd macro
+	instructions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv-opc.c: Regenerate with fgt and fge macros for
 	F and D extensions.
 

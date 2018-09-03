@@ -2517,6 +2517,14 @@ static const CGEN_IFMT ifmt_p_sextw ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_p_flw ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_fsw ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_317_115) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_frsr ATTRIBUTE_UNUSED = {
   32, 32, 0xfffff07f, { { F (F_CSR) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -2707,6 +2715,14 @@ static const CGEN_IFMT ifmt_p_c_fsd ATTRIBUTE_UNUSED = {
 
 static const CGEN_IFMT ifmt_p_c_fld ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_UIMM8_62_123_000) }, { F (F_UIMM3_123) }, { F (F_UIMM3_93) }, { F (F_C_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_fld ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_fsd ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_317_115) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_OPCODE) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_p_fmv_d ATTRIBUTE_UNUSED = {
@@ -3518,6 +3534,16 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-sextw", "sext.w", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x40\x0" } } } }
   },
+/* flw ${fl-rd},${imm-lo12},${rs1} */
+  {
+    -1, "p-flw", "flw", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
+  },
+/* fsw ${fl-rs2},${store12},${rs1} */
+  {
+    -1, "p-fsw", "fsw", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
+  },
 /* frsr ${rd} */
   {
     -1, "p-frsr", "frsr", 32,
@@ -3757,6 +3783,16 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
   {
     -1, "p-c-fld", "fld", 16,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+  },
+/* fld ${fl-rd},${imm-lo12},${rs1} */
+  {
+    -1, "p-fld", "fld", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
+  },
+/* fsd ${fl-rs2},${store12},${rs1} */
+  {
+    -1, "p-fsd", "fsd", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
 /* fmv.d ${fl-rd},${fl-tied-regs1915} */
   {
@@ -4724,6 +4760,18 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
     & ifmt_p_sextw, { 0x1b }
   },
+/* flw ${fl-rd},${imm-lo12},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (IMM_LO12), ',', OP (RS1), 0 } },
+    & ifmt_p_flw, { 0x2007 }
+  },
+/* fsw ${fl-rs2},${store12},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (FL_RS2), ',', OP (STORE12), ',', OP (RS1), 0 } },
+    & ifmt_p_fsw, { 0x2027 }
+  },
 /* frsr ${rd} */
   {
     { 0, 0, 0, 0 },
@@ -5011,6 +5059,18 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (FC_RD), ',', OP (UIMM8_62_123_000_ABS), '(', OP (FC_RS1), ')', 0 } },
     & ifmt_p_c_fld, { 0x2000 }
+  },
+/* fld ${fl-rd},${imm-lo12},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (IMM_LO12), ',', OP (RS1), 0 } },
+    & ifmt_p_fld, { 0x3007 }
+  },
+/* fsd ${fl-rs2},${store12},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (FL_RS2), ',', OP (STORE12), ',', OP (RS1), 0 } },
+    & ifmt_p_fsd, { 0x3027 }
   },
 /* fmv.d ${fl-rd},${fl-tied-regs1915} */
   {
