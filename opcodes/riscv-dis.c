@@ -315,6 +315,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_IMM_LO12_ABS :
       print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
       break;
+    case RISCV_OPERAND_IMM_ZERO :
+      print_normal (cd, info, fields->f_dummy, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      break;
     case RISCV_OPERAND_IMM6_121_65_ABS :
       print_normal (cd, info, fields->f_imm6_121_65, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;

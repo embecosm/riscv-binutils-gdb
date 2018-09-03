@@ -1157,6 +1157,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "succ", RISCV_OPERAND_SUCC, HW_H_UINT, 27, 4,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_SUCC] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+/* imm-zero: imm operand which is always zero */
+  { "imm-zero", RISCV_OPERAND_IMM_ZERO, HW_H_SINT, 0, 0,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* uimm5: uimm5 [19..15] */
   { "uimm5", RISCV_OPERAND_UIMM5, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
@@ -1903,442 +1907,442 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_REMUW, "remuw", "remuw", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x8\x0" } } } }
   },
-/* lr.w ${rd},(${rs1}) */
+/* lr.w ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_W, "lr.w", "lr.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* lr.w.aq ${rd},(${rs1}) */
+/* lr.w.aq ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_W_AQ, "lr.w.aq", "lr.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* lr.w.rl ${rd},(${rs1}) */
+/* lr.w.rl ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_W_RL, "lr.w.rl", "lr.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* lr.w.aqrl ${rd},(${rs1}) */
+/* lr.w.aqrl ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_W_AQRL, "lr.w.aqrl", "lr.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* sc.w ${rd},${rs2},(${rs1}) */
+/* sc.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_W, "sc.w", "sc.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* sc.w.aq ${rd},${rs2},(${rs1}) */
+/* sc.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_W_AQ, "sc.w.aq", "sc.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* sc.w.rl ${rd},${rs2},(${rs1}) */
+/* sc.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_W_RL, "sc.w.rl", "sc.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* sc.w.aqrl ${rd},${rs2},(${rs1}) */
+/* sc.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_W_AQRL, "sc.w.aqrl", "sc.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoswap.w ${rd},${rs2},(${rs1}) */
+/* amoswap.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_W, "amoswap.w", "amoswap.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoswap.w.aq ${rd},${rs2},(${rs1}) */
+/* amoswap.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_W_AQ, "amoswap.w.aq", "amoswap.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoswap.w.rl ${rd},${rs2},(${rs1}) */
+/* amoswap.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_W_RL, "amoswap.w.rl", "amoswap.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoswap.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amoswap.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_W_AQRL, "amoswap.w.aqrl", "amoswap.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoadd.w ${rd},${rs2},(${rs1}) */
+/* amoadd.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_W, "amoadd.w", "amoadd.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoadd.w.aq ${rd},${rs2},(${rs1}) */
+/* amoadd.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_W_AQ, "amoadd.w.aq", "amoadd.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoadd.w.rl ${rd},${rs2},(${rs1}) */
+/* amoadd.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_W_RL, "amoadd.w.rl", "amoadd.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoadd.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amoadd.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_W_AQRL, "amoadd.w.aqrl", "amoadd.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoxor.w ${rd},${rs2},(${rs1}) */
+/* amoxor.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_W, "amoxor.w", "amoxor.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoxor.w.aq ${rd},${rs2},(${rs1}) */
+/* amoxor.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_W_AQ, "amoxor.w.aq", "amoxor.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoxor.w.rl ${rd},${rs2},(${rs1}) */
+/* amoxor.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_W_RL, "amoxor.w.rl", "amoxor.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoxor.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amoxor.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_W_AQRL, "amoxor.w.aqrl", "amoxor.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoand.w ${rd},${rs2},(${rs1}) */
+/* amoand.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_W, "amoand.w", "amoand.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoand.w.aq ${rd},${rs2},(${rs1}) */
+/* amoand.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_W_AQ, "amoand.w.aq", "amoand.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoand.w.rl ${rd},${rs2},(${rs1}) */
+/* amoand.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_W_RL, "amoand.w.rl", "amoand.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoand.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amoand.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_W_AQRL, "amoand.w.aqrl", "amoand.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoor.w ${rd},${rs2},(${rs1}) */
+/* amoor.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_W, "amoor.w", "amoor.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoor.w.aq ${rd},${rs2},(${rs1}) */
+/* amoor.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_W_AQ, "amoor.w.aq", "amoor.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoor.w.rl ${rd},${rs2},(${rs1}) */
+/* amoor.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_W_RL, "amoor.w.rl", "amoor.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amoor.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amoor.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_W_AQRL, "amoor.w.aqrl", "amoor.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomin.w ${rd},${rs2},(${rs1}) */
+/* amomin.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_W, "amomin.w", "amomin.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomin.w.aq ${rd},${rs2},(${rs1}) */
+/* amomin.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_W_AQ, "amomin.w.aq", "amomin.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomin.w.rl ${rd},${rs2},(${rs1}) */
+/* amomin.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_W_RL, "amomin.w.rl", "amomin.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomin.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amomin.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_W_AQRL, "amomin.w.aqrl", "amomin.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomax.w ${rd},${rs2},(${rs1}) */
+/* amomax.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_W, "amomax.w", "amomax.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomax.w.aq ${rd},${rs2},(${rs1}) */
+/* amomax.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_W_AQ, "amomax.w.aq", "amomax.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomax.w.rl ${rd},${rs2},(${rs1}) */
+/* amomax.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_W_RL, "amomax.w.rl", "amomax.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomax.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amomax.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_W_AQRL, "amomax.w.aqrl", "amomax.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amominu.w ${rd},${rs2},(${rs1}) */
+/* amominu.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_W, "amominu.w", "amominu.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amominu.w.aq ${rd},${rs2},(${rs1}) */
+/* amominu.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_W_AQ, "amominu.w.aq", "amominu.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amominu.w.rl ${rd},${rs2},(${rs1}) */
+/* amominu.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_W_RL, "amominu.w.rl", "amominu.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amominu.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amominu.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_W_AQRL, "amominu.w.aqrl", "amominu.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomaxu.w ${rd},${rs2},(${rs1}) */
+/* amomaxu.w ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_W, "amomaxu.w", "amomaxu.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomaxu.w.aq ${rd},${rs2},(${rs1}) */
+/* amomaxu.w.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_W_AQ, "amomaxu.w.aq", "amomaxu.w.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomaxu.w.rl ${rd},${rs2},(${rs1}) */
+/* amomaxu.w.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_W_RL, "amomaxu.w.rl", "amomaxu.w.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* amomaxu.w.aqrl ${rd},${rs2},(${rs1}) */
+/* amomaxu.w.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_W_AQRL, "amomaxu.w.aqrl", "amomaxu.w.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x1\x80" } } } }
   },
-/* lr.d ${rd},(${rs1}) */
+/* lr.d ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_D, "lr.d", "lr.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* lr.d.aq ${rd},(${rs1}) */
+/* lr.d.aq ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_D_AQ, "lr.d.aq", "lr.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* lr.d.rl ${rd},(${rs1}) */
+/* lr.d.rl ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_D_RL, "lr.d.rl", "lr.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* lr.d.aqrl ${rd},(${rs1}) */
+/* lr.d.aqrl ${rd},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_LR_D_AQRL, "lr.d.aqrl", "lr.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* sc.d ${rd},${rs2},(${rs1}) */
+/* sc.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_D, "sc.d", "sc.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* sc.d.aq ${rd},${rs2},(${rs1}) */
+/* sc.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_D_AQ, "sc.d.aq", "sc.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* sc.d.rl ${rd},${rs2},(${rs1}) */
+/* sc.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_D_RL, "sc.d.rl", "sc.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* sc.d.aqrl ${rd},${rs2},(${rs1}) */
+/* sc.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_SC_D_AQRL, "sc.d.aqrl", "sc.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoswap.d ${rd},${rs2},(${rs1}) */
+/* amoswap.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_D, "amoswap.d", "amoswap.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoswap.d.aq ${rd},${rs2},(${rs1}) */
+/* amoswap.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_D_AQ, "amoswap.d.aq", "amoswap.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoswap.d.rl ${rd},${rs2},(${rs1}) */
+/* amoswap.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_D_RL, "amoswap.d.rl", "amoswap.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoswap.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amoswap.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOSWAP_D_AQRL, "amoswap.d.aqrl", "amoswap.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoadd.d ${rd},${rs2},(${rs1}) */
+/* amoadd.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_D, "amoadd.d", "amoadd.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoadd.d.aq ${rd},${rs2},(${rs1}) */
+/* amoadd.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_D_AQ, "amoadd.d.aq", "amoadd.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoadd.d.rl ${rd},${rs2},(${rs1}) */
+/* amoadd.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_D_RL, "amoadd.d.rl", "amoadd.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoadd.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amoadd.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOADD_D_AQRL, "amoadd.d.aqrl", "amoadd.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoxor.d ${rd},${rs2},(${rs1}) */
+/* amoxor.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_D, "amoxor.d", "amoxor.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoxor.d.aq ${rd},${rs2},(${rs1}) */
+/* amoxor.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_D_AQ, "amoxor.d.aq", "amoxor.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoxor.d.rl ${rd},${rs2},(${rs1}) */
+/* amoxor.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_D_RL, "amoxor.d.rl", "amoxor.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoxor.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amoxor.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOXOR_D_AQRL, "amoxor.d.aqrl", "amoxor.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoand.d ${rd},${rs2},(${rs1}) */
+/* amoand.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_D, "amoand.d", "amoand.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoand.d.aq ${rd},${rs2},(${rs1}) */
+/* amoand.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_D_AQ, "amoand.d.aq", "amoand.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoand.d.rl ${rd},${rs2},(${rs1}) */
+/* amoand.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_D_RL, "amoand.d.rl", "amoand.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoand.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amoand.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOAND_D_AQRL, "amoand.d.aqrl", "amoand.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoor.d ${rd},${rs2},(${rs1}) */
+/* amoor.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_D, "amoor.d", "amoor.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoor.d.aq ${rd},${rs2},(${rs1}) */
+/* amoor.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_D_AQ, "amoor.d.aq", "amoor.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoor.d.rl ${rd},${rs2},(${rs1}) */
+/* amoor.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_D_RL, "amoor.d.rl", "amoor.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amoor.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amoor.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOOR_D_AQRL, "amoor.d.aqrl", "amoor.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomin.d ${rd},${rs2},(${rs1}) */
+/* amomin.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_D, "amomin.d", "amomin.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomin.d.aq ${rd},${rs2},(${rs1}) */
+/* amomin.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_D_AQ, "amomin.d.aq", "amomin.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomin.d.rl ${rd},${rs2},(${rs1}) */
+/* amomin.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_D_RL, "amomin.d.rl", "amomin.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomin.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amomin.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMIN_D_AQRL, "amomin.d.aqrl", "amomin.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomax.d ${rd},${rs2},(${rs1}) */
+/* amomax.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_D, "amomax.d", "amomax.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomax.d.aq ${rd},${rs2},(${rs1}) */
+/* amomax.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_D_AQ, "amomax.d.aq", "amomax.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomax.d.rl ${rd},${rs2},(${rs1}) */
+/* amomax.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_D_RL, "amomax.d.rl", "amomax.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomax.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amomax.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAX_D_AQRL, "amomax.d.aqrl", "amomax.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amominu.d ${rd},${rs2},(${rs1}) */
+/* amominu.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_D, "amominu.d", "amominu.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amominu.d.aq ${rd},${rs2},(${rs1}) */
+/* amominu.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_D_AQ, "amominu.d.aq", "amominu.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amominu.d.rl ${rd},${rs2},(${rs1}) */
+/* amominu.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_D_RL, "amominu.d.rl", "amominu.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amominu.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amominu.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMINU_D_AQRL, "amominu.d.aqrl", "amominu.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomaxu.d ${rd},${rs2},(${rs1}) */
+/* amomaxu.d ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_D, "amomaxu.d", "amomaxu.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomaxu.d.aq ${rd},${rs2},(${rs1}) */
+/* amomaxu.d.aq ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_D_AQ, "amomaxu.d.aq", "amomaxu.d.aq", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomaxu.d.rl ${rd},${rs2},(${rs1}) */
+/* amomaxu.d.rl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_D_RL, "amomaxu.d.rl", "amomaxu.d.rl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }
   },
-/* amomaxu.d.aqrl ${rd},${rs2},(${rs1}) */
+/* amomaxu.d.aqrl ${rd},${rs2},${imm-zero}(${rs1}) */
   {
     RISCV_INSN_AMOMAXU_D_AQRL, "amomaxu.d.aqrl", "amomaxu.d.aqrl", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x80" } } } }

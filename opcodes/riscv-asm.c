@@ -814,6 +814,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_IMM_LO12_ABS :
       errmsg = parse_imm_lo12_abs (cd, strp, RISCV_OPERAND_IMM_LO12_ABS, (long *) (& fields->f_imm12_3112));
       break;
+    case RISCV_OPERAND_IMM_ZERO :
+      errmsg = cgen_parse_signed_integer (cd, strp, RISCV_OPERAND_IMM_ZERO, (long *) (& fields->f_dummy));
+      break;
     case RISCV_OPERAND_IMM6_121_65_ABS :
       errmsg = parse_imm6_abs (cd, strp, RISCV_OPERAND_IMM6_121_65_ABS, (long *) (& fields->f_imm6_121_65));
       break;
