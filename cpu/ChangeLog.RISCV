@@ -1,3 +1,7 @@
+2018-08-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix assembly syntax of 'A' extension instructions.
+
 2018-08-14  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Fix flw, fld, fsw, fsd to use the correct operand

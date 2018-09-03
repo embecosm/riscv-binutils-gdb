@@ -1092,6 +1092,14 @@
 ; field names, but without the "f-" prefix.
 
 (define-operand
+  (name imm-zero)
+  (comment "imm operand which is always zero")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-dummy)
+)
+(define-operand
   (name uimm5)
   (comment "uimm5 [19..15]")
   (attrs all-isas)
@@ -1561,7 +1569,7 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${rd},(${rs1})"))
+    (syntax (.str mnemonic " ${rd},${imm-zero}(${rs1})"))
     (format (.splice + (f-funct5 funct5) (f-aq aq) (f-rl rl) (f-rs2 0) rs1 (f-funct3 funct3) rd (f-opcode #b0101111)))
   )
 )
@@ -1570,7 +1578,7 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${rd},${rs2},(${rs1})"))
+    (syntax (.str mnemonic " ${rd},${rs2},${imm-zero}(${rs1})"))
     (format (.splice + (f-funct5 funct5) (f-aq aq) (f-rl rl) rs2 rs1 (f-funct3 funct3) rd (f-opcode #b0101111)))
   )
 )
