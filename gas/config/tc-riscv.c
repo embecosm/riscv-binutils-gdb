@@ -766,6 +766,94 @@ assemble_late_pseudos(char * str)
                      local_sym, 0, 0, lo_reloc_info);
       return NULL;
     }
+  else if (str[0] == 'f')
+    {
+      /* looking for flw, fsw, fld, fsd */
+      char type_char = str[1];
+      char mem_op_char = str[1] != '\0' ? str[2] : '\0';
+      if (!(type_char == 's' || type_char == 'l')
+          || !(mem_op_char == 'w' || mem_op_char == 'd'))
+	return "unknown memory pseudo instruction";
+      str += 3;
+
+      /* destination register */
+      input_line_pointer = str;
+      SKIP_WHITESPACE ();
+
+      for (i = 0; i < 7 && ISALNUM (*input_line_pointer); i++)
+	{
+	  dst_reg[i] = *input_line_pointer++;
+	  dst_reg[i+1] = '\0';
+	}
+      SKIP_WHITESPACE ();
+      if (*input_line_pointer != ',')
+	return "illegal operand";
+      input_line_pointer++;
+
+      /* operand */
+      SKIP_WHITESPACE ();
+      expression (&exp);
+
+      /* source register */
+      if (*input_line_pointer != ',')
+	return "illegal operand";
+      input_line_pointer++;
+      SKIP_WHITESPACE ();
+
+      for (i = 0; i < 7 && ISALNUM (*input_line_pointer); i++)
+	{
+	  src_reg[i] = *input_line_pointer++;
+	  src_reg[i+1] = '\0';
+	}
+
+      /* Create a new local symbol, this will be the target of the
+         BFD_RELOC_RISCV_LO12_I fixup */
+      local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
+                                                 (valueT) frag_now_fix(),
+                                                 frag_now);
+      /* Assemble the auipc that the relocation will be attached to */
+      sprintf (instr_buf, "auipc %s,0", src_reg);
+
+      finished_insnS result;
+      errmsg = assemble_one (instr_buf, &result);
+      if (errmsg)
+	return errmsg;
+
+      /* Create a BFD_RELOC_RISCV_HI20 fixup from the expression and attach
+         it to the auipc instruction.  */
+      if (exp.X_op != O_symbol)
+	return "illegal operand";
+
+      riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
+                         &exp, 0, BFD_RELOC_RISCV_PCREL_HI20);
+
+      /* Assemble the subsequent flw, fsw, fld, fsd
+
+         We must temporarily disable the 'C' extension here, otherwise we
+         will assemble to a compressed instruction which we cannot apply
+         a relocation to.  */
+      int c_was_enabled = riscv_subset_supports ("c");
+      riscv_remove_subset ("c");
+      {
+	sprintf (instr_buf, "f%c%c %s,0(%s)", type_char, mem_op_char, dst_reg,
+	         src_reg);
+
+	errmsg = assemble_one (instr_buf, &result);
+      }
+      if (c_was_enabled)
+	riscv_add_subset ("c");
+      if (errmsg)
+	return errmsg;
+
+      /* Create a BFD_RELOC_RISCV_LO12_{I/S} fixup from the newly created
+         local symbol and attach it to the just created instruction.  */
+      int lo_reloc_info = type_char == 's' ? BFD_RELOC_RISCV_PCREL_LO12_S
+                                           : BFD_RELOC_RISCV_PCREL_LO12_I;
+      riscv_fix_new (frag_now, result.addr - frag_now->fr_literal, 4,
+                     local_sym, 0, 0, lo_reloc_info);
+      return NULL;
+    }
+
   return "unknown pseudo";
 }
 
