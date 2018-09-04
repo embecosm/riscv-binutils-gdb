@@ -1,5 +1,10 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* config/tc-riscv (assemble_late_pseudos): Also assemble
+	fmv.[sd], fabs.[sd] and fneg.[sd] pseudo instructions.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* config/tc-riscv (assemble_late_pseudos): Also assemble F and
 	D extension pseudos flw, fsw, fld, fsd for loading and storing
 	float values.

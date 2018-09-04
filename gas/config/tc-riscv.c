@@ -766,7 +766,69 @@ assemble_late_pseudos(char * str)
                      local_sym, 0, 0, lo_reloc_info);
       return NULL;
     }
-  else if (str[0] == 'f')
+  else if (str[0] == 'f' && (str[1] == 'm' || str[1] == 'a' || str[1] == 'n'))
+    {
+      /* looking for fmv.[sd], fabs.[sd], fneg.[sd]  */
+      char type_char;
+      bfd_boolean is_fmv, is_fabs, is_fneg;
+      if ((is_fmv  = !strncmp (str, "fmv", 3)))
+	str += 3;
+      if ((is_fabs = !strncmp (str, "fabs", 4)))
+	str += 4;
+      if ((is_fneg = !strncmp (str, "fneg", 4)))
+	str += 4;
+      gas_assert (is_fmv || is_fabs || is_fneg);
+
+      if (str[0] != '.')
+	return "unknown instruction";
+      str++;
+      type_char = str[0];
+      if (type_char != 's' && type_char != 'd')
+	return "unknown instruction";
+      str++;
+
+      /* destination register */
+      input_line_pointer = str;
+      SKIP_WHITESPACE ();
+
+      for (i = 0; i < 7 && ISALNUM (*input_line_pointer); i++)
+	{
+	  dst_reg[i] = *input_line_pointer++;
+	  dst_reg[i+1] = '\0';
+	}
+      SKIP_WHITESPACE ();
+
+      if (*input_line_pointer != ',')
+	return "illegal operand";
+      input_line_pointer++;
+
+      /* source register */
+      SKIP_WHITESPACE();
+      for (i = 0; i < 7 && ISALNUM (*input_line_pointer); i++)
+	{
+	  src_reg[i] = *input_line_pointer++;
+	  src_reg[i+1] = '\0';
+	}
+
+      /* assemble the resulting instruction. */
+      if (is_fmv)
+	sprintf (instr_buf, "fsgnj.%c %s,%s,%s", type_char, dst_reg, src_reg,
+	         src_reg);
+      else if (is_fabs)
+	sprintf (instr_buf, "fsgnjx.%c %s,%s,%s", type_char, dst_reg, src_reg,
+	         src_reg);
+      else if (is_fneg)
+	sprintf (instr_buf, "fsgnjn.%c %s,%s,%s", type_char, dst_reg, src_reg,
+	         src_reg);
+
+      finished_insnS result;
+      errmsg = assemble_one (instr_buf, &result);
+      if (errmsg)
+	return errmsg;
+
+      return NULL;
+    }
+  else if (str[0] == 'f' && (str[1] == 'l' || str[1] == 's'))
     {
       /* looking for flw, fsw, fld, fsd */
       char type_char = str[1];
