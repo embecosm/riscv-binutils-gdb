@@ -1013,13 +1013,6 @@
   (index f-rs3)
 )
 (define-operand
-  (name fc-rd)
-  (comment "fp register field for compressed (12:10)")
-  (attrs all-isas)
-  (type h-c-fpr)
-  (index f-uimm3-123)
-)
-(define-operand
   (name fc-rs2)
   (comment "fp register field for compressed (4:2)")
   (attrs all-isas)
@@ -2057,8 +2050,8 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fc-rd},${uimm7-51-123-61-00-abs}(${c-reg97})"))
-    (format (.splice + (f-c-funct3 funct3) uimm7-51-123-61-00-abs fc-rd c-reg97 (f-c-opcode opcode)))
+    (syntax (.str mnemonic " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})"))
+    (format (.splice + (f-c-funct3 funct3) uimm7-51-123-61-00-abs fc-rs2 c-reg97 (f-c-opcode opcode)))
   )
 )
 
@@ -2073,8 +2066,8 @@
     (name (.sym mnemonic))
     (comment (.str mnemonic))
     (attrs attr)
-    (syntax (.str mnemonic " ${fc-rd},${uimm8-62-123-000-abs}(${c-reg97})"))
-    (format (.splice + (f-c-funct3 funct3) uimm8-62-123-000-abs fc-rd c-reg97 (f-c-opcode opcode)))
+    (syntax (.str mnemonic " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"))
+    (format (.splice + (f-c-funct3 funct3) uimm8-62-123-000-abs fc-rs2 c-reg97 (f-c-opcode opcode)))
   )
 )
 
@@ -2894,14 +2887,14 @@
 (rvc-pseudo p-c-flwsp   "flw" ((ISA rv32c)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
 (rvc-pseudo p-c-fswsp   "fsw" ((ISA rv32c)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
 (rvc-pseudo p-c-fsw     "fsw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
-(rvc-pseudo p-c-flw     "flw" ((ISA rv32c)) " ${fc-rd},${uimm7-51-123-61-00-abs}(${c-reg97})"  (emit c.flw fc-rd uimm7-51-123-61-00-abs c-reg97))
+(rvc-pseudo p-c-flw     "flw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
 
 ;RV64FC
 
 (rvc-pseudo p-c-fldsp   "fld" (c-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
 (rvc-pseudo p-c-fsdsp   "fsd" (c-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
 (rvc-pseudo p-c-fsd     "fsd" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
-(rvc-pseudo p-c-fld     "fld" (c-extension) " ${fc-rd},${uimm8-62-123-000-abs}(${c-reg97})"    (emit c.fld fc-rd uimm8-62-123-000-abs c-reg97))
+(rvc-pseudo p-c-fld     "fld" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
 
 
 ;===----------------- 'D' extension macro instructions ----------------------===

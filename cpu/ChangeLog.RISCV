@@ -1,5 +1,9 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Fix destination operand for c.flw and c.fld.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.cpu: Fix compressed c.flw/c.fsw/c.fld/c.fsd instructions
 	and their accompanying macro instructions to use the correct
 	register operand types. One of the operands was defined to
