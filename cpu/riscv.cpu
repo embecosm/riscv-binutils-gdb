@@ -2691,8 +2691,8 @@
 (rv-format-f-7-rm "fcvt.w.d"  d-extension #b1100001 #b00000 #b1010011)
 (rv-format-f-7-rm "fcvt.wu.d" d-extension #b1100001 #b00001 #b1010011)
 (rv-format-f-7    "fclass.d"  d-extension #b1110001 #b00000 #b001 #b1010011)
-(rv-format-f-6-rm "fcvt.d.w"  d-extension #b1101001 #b00000 #b1010011)
-(rv-format-f-6-rm "fcvt.d.wu" d-extension #b1101001 #b00001 #b1010011)
+(rv-format-f-6    "fcvt.d.w"  d-extension #b1101001 #b00000 #b000 #b1010011)
+(rv-format-f-6    "fcvt.d.wu" d-extension #b1101001 #b00001 #b000 #b1010011)
 
 (rv-format-f-5-rm "fcvt.s.d"  d-extension #b0100000 #b00001 #b1010011)
 (rv-format-f-5    "fcvt.d.s"  d-extension #b0100001 #b00000 #b000 #b1010011)
@@ -2934,8 +2934,6 @@
 
 (rv-pseudo p-fcvt.w.d  "fcvt.w.d"  (d-extension) " ${rd},${fl-rs1}" (emit fcvt.w.d  rd fl-rs1 (fl-rm #b111)))
 (rv-pseudo p-fcvt.wu.d "fcvt.wu.d" (d-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.d rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.d.w  "fcvt.d.w"  (d-extension) " ${fl-rd},${rs1}" (emit fcvt.d.w  fl-rd rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.d.wu "fcvt.d.wu" (d-extension) " ${fl-rd},${rs1}" (emit fcvt.d.wu fl-rd rs1 (fl-rm #b111)))
 
 (rv-pseudo p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
 

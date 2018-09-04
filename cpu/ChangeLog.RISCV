@@ -1,5 +1,11 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Fix fcvt.d.w and fcvt.d.wu to not have a
+	configurable rounding mode. Always set rounding mode bits
+	to 0b000.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.opc (parse_imm_lo12): Don't forget to set
 	*valuep when parsing a %tprel_lo reloc type.
 
