@@ -2851,10 +2851,6 @@
 (rv-pseudo p-fmv.x.s   "fmv.x.s"   (f-extension) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
 (rv-pseudo p-fmv.s.x   "fmv.s.x"   (f-extension) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
 
-(rv-pseudo p-fmv.s     "fmv.s"     (f-extension) " ${fl-rd},${fl-rs1}" (emit fsgnj.s  fl-rd fl-rs1 (fl-rs2 fl-rs1)))
-(rv-pseudo p-fabs.s    "fabs.s"    (f-extension) " ${fl-rd},${fl-rs1}" (emit fsgnjx.s fl-rd fl-rs1 (fl-rs2 fl-rs1)))
-(rv-pseudo p-fneg.s    "fneg.s"    (f-extension) " ${fl-rd},${fl-rs1}" (emit fsgnjn.s fl-rd fl-rs1 (fl-rs2 fl-rs1)))
-
 (rv-pseudo p-fmadd.s   "fmadd.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
 (rv-pseudo p-fmsub.s   "fmsub.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
 (rv-pseudo p-fnmsub.s  "fnmsub.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
@@ -2901,10 +2897,6 @@
 
 (rv-pseudo p-fld       "fld"       (d-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit fld fl-rd imm-lo12 rs1))
 (rv-pseudo p-fsd       "fsd"       (d-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsd fl-rs2 store12 rs1))
-
-(rv-pseudo p-fmv.d     "fmv.d"     (d-extension) " ${fl-rd},${fl-rs1}" (emit fsgnj.d  fl-rd fl-rs1 (fl-rs2 fl-rs1)))
-(rv-pseudo p-fabs.d    "fabs.d"    (d-extension) " ${fl-rd},${fl-rs1}" (emit fsgnjx.d fl-rd fl-rs1 (fl-rs2 fl-rs1)))
-(rv-pseudo p-fneg.d    "fneg.d"    (d-extension) " ${fl-rd},${fl-rs1}" (emit fsgnjn.d fl-rd fl-rs1 (fl-rs2 fl-rs1)))
 
 (rv-pseudo p-fmadd.d   "fmadd.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
 (rv-pseudo p-fmsub.d   "fmsub.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
