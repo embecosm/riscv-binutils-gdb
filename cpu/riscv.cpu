@@ -1676,6 +1676,15 @@
 ; +--------+-----+-----+-----+----+--------+
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-5 mnemonic attr funct7 reg funct3 opcode)
+  (define-insn
+    (name (.sym mnemonic))
+    (comment (.str mnemonic))
+    (attrs attr)
+    (syntax (.str mnemonic " ${fl-rd},${fl-rs1}"))
+    (format (.splice + (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode)))
+  )
+)
 (define-pmacro (rv-format-f-5-rm mnemonic attr funct7 reg opcode)
   (define-insn
     (name (.sym mnemonic))
@@ -2686,7 +2695,7 @@
 (rv-format-f-6-rm "fcvt.d.wu" d-extension #b1101001 #b00001 #b1010011)
 
 (rv-format-f-5-rm "fcvt.s.d"  d-extension #b0100000 #b00001 #b1010011)
-(rv-format-f-5-rm "fcvt.d.s"  d-extension #b0100001 #b00000 #b1010011)
+(rv-format-f-5    "fcvt.d.s"  d-extension #b0100001 #b00000 #b000 #b1010011)
 
 ;RV64D
 
@@ -2929,7 +2938,6 @@
 (rv-pseudo p-fcvt.d.wu "fcvt.d.wu" (d-extension) " ${fl-rd},${rs1}" (emit fcvt.d.wu fl-rd rs1 (fl-rm #b111)))
 
 (rv-pseudo p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.d.s  "fcvt.d.s"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.d.s fl-rd fl-rs1 (fl-rm #b111)))
 
 (rv-pseudo p-fgt.d     "fgt.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.d rd fl-rs2 fl-rs1))
 (rv-pseudo p-fge.d     "fge.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.d rd fl-rs2 fl-rs1))

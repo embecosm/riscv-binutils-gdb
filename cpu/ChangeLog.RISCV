@@ -1,5 +1,10 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Fix fcvt.d.s to not have a configurable
+	rounding mode. Always set rounding mode bits to 0b000.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.cpu: Add special tprel_add operand to parse the
 	%tprel_add modifier on the optional last operand of the
 	add. Redefine 'add' to have this optional argument, and
