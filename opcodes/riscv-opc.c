@@ -276,6 +276,10 @@ static const CGEN_IFMT ifmt_fmv_w_x ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_fcvt_d_s ATTRIBUTE_UNUSED = {
+  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 #undef F
 
 #define A(a) (1 << CGEN_INSN_##a)
@@ -1905,11 +1909,11 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), ',', OP (FL_RM), 0 } },
     & ifmt_fsqrt_s, { 0x40100053 }
   },
-/* fcvt.d.s ${fl-rd},${fl-rs1},${fl-rm} */
+/* fcvt.d.s ${fl-rd},${fl-rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), ',', OP (FL_RM), 0 } },
-    & ifmt_fsqrt_s, { 0x42000053 }
+    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
+    & ifmt_fcvt_d_s, { 0x42000053 }
   },
 /* fcvt.l.d ${rd},${fl-rs1},${fl-rm} */
   {
@@ -2794,10 +2798,6 @@ static const CGEN_IFMT ifmt_p_fcvt_d_wu ATTRIBUTE_UNUSED = {
 };
 
 static const CGEN_IFMT ifmt_p_fcvt_s_d ATTRIBUTE_UNUSED = {
-  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_p_fcvt_d_s ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -3886,11 +3886,6 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fcvt.s.d ${fl-rd},${fl-rs1} */
   {
     -1, "p-fcvt.s.d", "fcvt.s.d", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
-  },
-/* fcvt.d.s ${fl-rd},${fl-rs1} */
-  {
-    -1, "p-fcvt.d.s", "fcvt.d.s", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
 /* fgt.d ${rd},${fl-rs2},${fl-rs1} */
@@ -5188,12 +5183,6 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fcvt_s_d, { 0x40107053 }
-  },
-/* fcvt.d.s ${fl-rd},${fl-rs1} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (FL_RS1), 0 } },
-    & ifmt_p_fcvt_d_s, { 0x42007053 }
   },
 /* fgt.d ${rd},${fl-rs2},${fl-rs1} */
   {

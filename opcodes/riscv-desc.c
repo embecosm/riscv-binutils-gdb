@@ -1287,13 +1287,13 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
   { 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } },
 /* c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs} */
   {
-    RISCV_INSN_C_ADDI16SP, "c.addi16sp", "c.addi16sp", 16,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+    -1, "c.addi16sp", "c.addi16sp", 16,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.addi4spn ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs} */
   {
-    RISCV_INSN_C_ADDI4SPN, "c.addi4spn", "c.addi4spn", 16,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+    -1, "c.addi4spn", "c.addi4spn", 16,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.nop */
   {
@@ -2630,7 +2630,7 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCVT_S_D, "fcvt.s.d", "fcvt.s.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.s ${fl-rd},${fl-rs1},${fl-rm} */
+/* fcvt.d.s ${fl-rd},${fl-rs1} */
   {
     RISCV_INSN_FCVT_D_S, "fcvt.d.s", "fcvt.d.s", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
