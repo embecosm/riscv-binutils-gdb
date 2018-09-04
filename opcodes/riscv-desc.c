@@ -1121,10 +1121,6 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "fl-rs3", RISCV_OPERAND_FL_RS3, HW_H_FPR, 31, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS3] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-/* fc-rd: fp register field for compressed (12:10) */
-  { "fc-rd", RISCV_OPERAND_FC_RD, HW_H_C_FPR, 12, 3,
-    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_123] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* fc-rs2: fp register field for compressed (4:2) */
   { "fc-rs2", RISCV_OPERAND_FC_RS2, HW_H_C_FPR, 4, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_43] } },
@@ -1471,7 +1467,7 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_C_FSW, "c.fsw", "c.fsw", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x4\x0" } } } }
   },
-/* c.flw ${fc-rd},${uimm7-51-123-61-00-abs}(${c-reg97}) */
+/* c.flw ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97}) */
   {
     RISCV_INSN_C_FLW, "c.flw", "c.flw", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x4\x0" } } } }
@@ -1491,7 +1487,7 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_C_FSD, "c.fsd", "c.fsd", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
-/* c.fld ${fc-rd},${uimm8-62-123-000-abs}(${c-reg97}) */
+/* c.fld ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97}) */
   {
     RISCV_INSN_C_FLD, "c.fld", "c.fld", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }

@@ -1,5 +1,16 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-asm.c: Regenerated after fixes to c.flw and c.fld, and
+	removal of fmv.[sd], fabs.[sd] and fneg.[sd] macro instructions.
+	and c.fsd operand types.
+	* riscv-desc.c: Likewise.
+	* riscv-desc.h: Likewise.
+	* riscv-dis.c: Likewise
+	* riscv-ibld.c: Likewise.
+	* riscv-opc.c: Likewise.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv-asm.c: Regenerated after fixes to c.flw, c.fsw, c.fld
 	and c.fsd operand types.
 	* riscv-desc.c: Likewise.

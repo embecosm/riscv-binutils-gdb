@@ -856,9 +856,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CSR :
       errmsg = parse_csr (cd, strp, & riscv_cgen_opval_h_csr, & fields->f_csr);
       break;
-    case RISCV_OPERAND_FC_RD :
-      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_c_fpr, & fields->f_uimm3_123);
-      break;
     case RISCV_OPERAND_FC_RS2 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_c_fpr, & fields->f_uimm3_43);
       break;

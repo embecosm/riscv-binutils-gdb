@@ -305,9 +305,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CSR :
       print_csr (cd, info, & riscv_cgen_opval_h_csr, fields->f_csr, 0);
       break;
-    case RISCV_OPERAND_FC_RD :
-      print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_123, 0);
-      break;
     case RISCV_OPERAND_FC_RS2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_43, 0);
       break;
