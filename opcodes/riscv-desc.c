@@ -1161,6 +1161,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "fl-rm", RISCV_OPERAND_FL_RM, HW_H_UINT, 14, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT3] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+/* tprel_add: Special field to attach a %tprel_add reloc to an add instruction */
+  { "tprel_add", RISCV_OPERAND_TPREL_ADD, HW_H_SINT, 0, 0,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
 /* imm-zero: imm operand which is always zero */
   { "imm-zero", RISCV_OPERAND_IMM_ZERO, HW_H_SINT, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
@@ -1631,10 +1635,10 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_SRAI_SHIFT5, "srai-shift5", "srai", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
-/* add ${rd},${rs1},${rs2} */
+/* add ${rd},${rs1},${rs2},${tprel_add} */
   {
-    RISCV_INSN_ADD, "add", "add", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+    -1, "add", "add", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* sub ${rd},${rs1},${rs2} */
   {

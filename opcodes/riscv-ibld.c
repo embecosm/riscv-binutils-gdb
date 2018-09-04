@@ -908,6 +908,9 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       errmsg = insert_normal (cd, fields->f_succ, 0, 0, 27, 4, 32, total_length, buffer);
       break;
+    case RISCV_OPERAND_TPREL_ADD :
+      errmsg = insert_normal (cd, fields->f_dummy, 0, 0, 0, 0, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       {
         long value = fields->f_uimm32_3120_000000000000;
@@ -1334,6 +1337,9 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 27, 4, 32, total_length, pc, & fields->f_succ);
       break;
+    case RISCV_OPERAND_TPREL_ADD :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 0, 0, 32, total_length, pc, & fields->f_dummy);
+      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       {
         long value;
@@ -1605,6 +1611,9 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_SUCC :
       value = fields->f_succ;
       break;
+    case RISCV_OPERAND_TPREL_ADD :
+      value = fields->f_dummy;
+      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       value = fields->f_uimm32_3120_000000000000;
       break;
@@ -1792,6 +1801,9 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_SUCC :
       value = fields->f_succ;
+      break;
+    case RISCV_OPERAND_TPREL_ADD :
+      value = fields->f_dummy;
       break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       value = fields->f_uimm32_3120_000000000000;
@@ -1988,6 +2000,9 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_SUCC :
       fields->f_succ = value;
       break;
+    case RISCV_OPERAND_TPREL_ADD :
+      fields->f_dummy = value;
+      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       fields->f_uimm32_3120_000000000000 = value;
       break;
@@ -2172,6 +2187,9 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_SUCC :
       fields->f_succ = value;
+      break;
+    case RISCV_OPERAND_TPREL_ADD :
+      fields->f_dummy = value;
       break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       fields->f_uimm32_3120_000000000000 = value;

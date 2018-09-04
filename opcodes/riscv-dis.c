@@ -389,6 +389,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_SUCC :
       print_fence_succ_pred (cd, info, fields->f_succ, 0, pc, length);
       break;
+    case RISCV_OPERAND_TPREL_ADD :
+      print_normal (cd, info, fields->f_dummy, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       print_uimm32_hi20 (cd, info, fields->f_uimm32_3120_000000000000, 0, pc, length);
       break;

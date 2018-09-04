@@ -575,6 +575,40 @@ parse_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   return NULL;
 }
 
+/* A tprel_add operand is only used as an optional final operand to the
+   add instruction. It only parses %tprel_add(<x>) where <x> is a symbol,
+   and is used to attach a BFD_RELOC_RISCV_TPREL_ADD reloc to the add.  */
+static const char *
+parse_tprel_add (CGEN_CPU_DESC cd,
+                 const char **strp,
+                 int opindex,
+                 long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  if (strncasecmp (*strp, "%tprel_add(", strlen ("%tprel_add(")) == 0)
+    {
+      *strp += strlen("%tprel_add(");
+
+      errmsg = (* cd->parse_operand_fn)
+        (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp, opindex,
+         BFD_RELOC_RISCV_TPREL_ADD, &result_type, &value);
+      if (errmsg)
+        return errmsg;
+      if (**strp != ')')
+        return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        return TLS_RELOC_AGAINST_CONST;
+      *valuep = 0;
+      return NULL;
+    }
+  return ILLEGAL_OPERANDS;
+}
+
 static const char *
 parse_cjmp12 (CGEN_CPU_DESC cd,
               const char **strp,
@@ -904,6 +938,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_SUCC :
       errmsg = parse_fence_succ_pred (cd, strp, RISCV_OPERAND_SUCC, (unsigned long *) (& fields->f_succ));
+      break;
+    case RISCV_OPERAND_TPREL_ADD :
+      errmsg = parse_tprel_add (cd, strp, RISCV_OPERAND_TPREL_ADD, (long *) (& fields->f_dummy));
       break;
     case RISCV_OPERAND_UIMM32_3120_000000000000 :
       errmsg = parse_uimm32_hi20 (cd, strp, RISCV_OPERAND_UIMM32_3120_000000000000, (unsigned long *) (& fields->f_uimm32_3120_000000000000));

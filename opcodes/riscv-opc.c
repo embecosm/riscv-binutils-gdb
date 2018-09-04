@@ -711,10 +711,10 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM5_245), 0 } },
     & ifmt_slli_shift5, { 0x40005013 }
   },
-/* add ${rd},${rs1},${rs2} */
+/* add ${rd},${rs1},${rs2},${tprel_add} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), ',', OP (TPREL_ADD), 0 } },
     & ifmt_add, { 0x33 }
   },
 /* sub ${rd},${rs1},${rs2} */
@@ -2181,11 +2181,15 @@ static const CGEN_IFMT ifmt_p_jalr_1 ATTRIBUTE_UNUSED = {
   32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_and ATTRIBUTE_UNUSED = {
+static const CGEN_IFMT ifmt_p_add_1 ATTRIBUTE_UNUSED = {
+  32, 32, 0xfe00707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_add_2 ATTRIBUTE_UNUSED = {
   32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_add ATTRIBUTE_UNUSED = {
+static const CGEN_IFMT ifmt_p_and ATTRIBUTE_UNUSED = {
   32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -3114,14 +3118,19 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-jalr-1", "jalr", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
-/* and ${rd},${rs1},${imm-lo12-abs} */
+/* add ${rd},${rs1},${rs2} */
   {
-    -1, "p-and", "and", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+    -1, "p-add-1", "add", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* add ${rd},${rs1},${imm-lo12-abs} */
   {
-    -1, "p-add", "add", 32,
+    -1, "p-add-2", "add", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* and ${rd},${rs1},${imm-lo12-abs} */
+  {
+    -1, "p-and", "and", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* sll ${rd},${rs1},${uimm5-245} */
@@ -4256,17 +4265,23 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RD), ',', OP (IMM_LO12), '(', OP (RS1), ')', 0 } },
     & ifmt_p_jalr_1, { 0x67 }
   },
-/* and ${rd},${rs1},${imm-lo12-abs} */
+/* add ${rd},${rs1},${rs2} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (IMM_LO12_ABS), 0 } },
-    & ifmt_p_and, { 0x7013 }
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_p_add_1, { 0x33 }
   },
 /* add ${rd},${rs1},${imm-lo12-abs} */
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (IMM_LO12_ABS), 0 } },
-    & ifmt_p_add, { 0x13 }
+    & ifmt_p_add_2, { 0x13 }
+  },
+/* and ${rd},${rs1},${imm-lo12-abs} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (IMM_LO12_ABS), 0 } },
+    & ifmt_p_and, { 0x7013 }
   },
 /* sll ${rd},${rs1},${uimm5-245} */
   {

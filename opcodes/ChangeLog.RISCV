@@ -1,3 +1,12 @@
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* opcodes/riscv-asm.c: Regenerated.
+	* opcodes/riscv-desc.c: Likewise.
+	* opcodes/riscv-desc.h: Likewise.
+	* opcodes/riscv-dis.c: Likewise.
+	* opcodes/riscv-ibld.c: Likewise.
+	* opcodes/riscv-opc.c: Likewise.
+
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv-opc.c: Regenerate with fixes to fmv, fabs and fneg
