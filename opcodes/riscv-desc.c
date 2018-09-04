@@ -2615,12 +2615,12 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCLASS_D, "fclass.d", "fclass.d", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.w ${fl-rd},${rs1},${fl-rm} */
+/* fcvt.d.w ${fl-rd},${rs1} */
   {
     RISCV_INSN_FCVT_D_W, "fcvt.d.w", "fcvt.d.w", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
-/* fcvt.d.wu ${fl-rd},${rs1},${fl-rm} */
+/* fcvt.d.wu ${fl-rd},${rs1} */
   {
     RISCV_INSN_FCVT_D_WU, "fcvt.d.wu", "fcvt.d.wu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }

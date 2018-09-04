@@ -1891,17 +1891,17 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (RD), ',', OP (FL_RS1), 0 } },
     & ifmt_fmv_x_w, { 0xe2001053 }
   },
-/* fcvt.d.w ${fl-rd},${rs1},${fl-rm} */
+/* fcvt.d.w ${fl-rd},${rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), ',', OP (FL_RM), 0 } },
-    & ifmt_fcvt_s_w, { 0xd2000053 }
+    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
+    & ifmt_fmv_w_x, { 0xd2000053 }
   },
-/* fcvt.d.wu ${fl-rd},${rs1},${fl-rm} */
+/* fcvt.d.wu ${fl-rd},${rs1} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), ',', OP (FL_RM), 0 } },
-    & ifmt_fcvt_s_w, { 0xd2100053 }
+    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
+    & ifmt_fmv_w_x, { 0xd2100053 }
   },
 /* fcvt.s.d ${fl-rd},${fl-rs1},${fl-rm} */
   {
@@ -2786,14 +2786,6 @@ static const CGEN_IFMT ifmt_p_fcvt_w_d ATTRIBUTE_UNUSED = {
 };
 
 static const CGEN_IFMT ifmt_p_fcvt_wu_d ATTRIBUTE_UNUSED = {
-  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_p_fcvt_d_w ATTRIBUTE_UNUSED = {
-  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_p_fcvt_d_wu ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -3871,16 +3863,6 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fcvt.wu.d ${rd},${fl-rs1} */
   {
     -1, "p-fcvt.wu.d", "fcvt.wu.d", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
-  },
-/* fcvt.d.w ${fl-rd},${rs1} */
-  {
-    -1, "p-fcvt.d.w", "fcvt.d.w", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
-  },
-/* fcvt.d.wu ${fl-rd},${rs1} */
-  {
-    -1, "p-fcvt.d.wu", "fcvt.d.wu", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x18" } } } }
   },
 /* fcvt.s.d ${fl-rd},${fl-rs1} */
@@ -5165,18 +5147,6 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fcvt_wu_d, { 0xc2107053 }
-  },
-/* fcvt.d.w ${fl-rd},${rs1} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
-    & ifmt_p_fcvt_d_w, { 0xd2007053 }
-  },
-/* fcvt.d.wu ${fl-rd},${rs1} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
-    & ifmt_p_fcvt_d_wu, { 0xd2107053 }
   },
 /* fcvt.s.d ${fl-rd},${fl-rs1} */
   {
