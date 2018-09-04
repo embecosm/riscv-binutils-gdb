@@ -1,5 +1,9 @@
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-asm.c: Regenerated.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv-desc.c: Regenerated after fix to fcvt.d.s rounding mode.
 	* riscv-opc.c: Likewise.
 

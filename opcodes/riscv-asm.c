@@ -264,6 +264,7 @@ parse_imm_lo12 (CGEN_CPU_DESC cd,
 
       if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
 	return TLS_RELOC_AGAINST_CONST;
+      *valuep = value;
       return NULL;
     }
   else if (**strp == '%')
