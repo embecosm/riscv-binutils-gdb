@@ -1094,6 +1094,15 @@
   (index f-funct3)
   (handlers (parse "float_rounding_mode") (print "float_rounding_mode"))
 )
+(define-operand
+  (name tprel_add)
+  (comment "Special field to attach a %tprel_add reloc to an add instruction")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-dummy)
+  (handlers (parse "tprel_add"))
+)
 
 ;; Immediate operands
 
@@ -2224,16 +2233,14 @@
   (c-extension)
   "c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}"
   (+ (f-c-funct3 #b011) nzimm10-121-42-51-21-61-0000-abs (f-uimm5-115 #b00010) (f-c-opcode #b01))
-  (nop)
-  ()
+  #f ()
 )
 
 (dni c.addi4spn "c.addi4spn"
   (c-extension)
   "c.addi4spn ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"
   (+ (f-c-funct3 #b000) nzuimm10-104-122-51-61-00-abs c-reg42 (f-c-opcode #b00))
-  (nop)
-  ()
+  #f ()
 )
 
 (rv-format-craw  "c.nop"    c-extension #b0000000000000001)
@@ -2424,7 +2431,12 @@
 (rv-format-shift5 "srli" base-isas #b0000000 #b101 #b0010011)
 (rv-format-shift5 "srai" base-isas #b0100000 #b101 #b0010011)
 
-(rv-format-r "add"  base-isas #b0000000 #b000 #b0110011)
+(dni add "add"
+  (base-isas)
+  "add ${rd},${rs1},${rs2},${tprel_add}"
+  (+ (f-funct7 #b0000000) rs2 rs1 (f-funct3 #b000) rd (f-opcode #b0110011))
+  #f ()
+)
 (rv-format-r "sub"  base-isas #b0100000 #b000 #b0110011)
 (rv-format-r "sll"  base-isas #b0000000 #b001 #b0110011)
 (rv-format-r "slt"  base-isas #b0000000 #b010 #b0110011)
@@ -2705,8 +2717,9 @@
 ; immediate operands for these instructions will reject anything which is
 ; not an absolute value.
 
+(rv-pseudo p-add-1  "add"  (base-isas)        " ${rd},${rs1},${rs2}"            (emit add  rd rs1 rs2))
+(rv-pseudo p-add-2  "add"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit addi rd rs1 (imm-lo12 imm-lo12-abs)))
 (rv-pseudo p-and    "and"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit andi rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-add    "add"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit addi rd rs1 (imm-lo12 imm-lo12-abs)))
 (rv-pseudo p-sll-1  "sll"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit slli-shift5 rd rs1 uimm5-245))
 (rv-pseudo p-srl-1  "srl"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srli-shift5 rd rs1 uimm5-245))
 (rv-pseudo p-sra-1  "sra"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srai-shift5 rd rs1 uimm5-245))

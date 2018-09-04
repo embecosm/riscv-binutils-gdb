@@ -1,3 +1,13 @@
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add special tprel_add operand to parse the
+	%tprel_add modifier on the optional last operand of the
+	add. Redefine 'add' to have this optional argument, and
+	define a new 'add' macro instruction without it.
+	* riscv.opc (parse_tprel_add): Added function to parse
+	the %tprel_add(..) operand. This only takes a symbol
+	of the form %tprel_add(<symbol>)
+
 2018-09-03  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Fix fmv, fabs and fneg assembly syntax.
