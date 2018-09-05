@@ -1,3 +1,10 @@
+2018-09-05  Edward Jones  <ed.jones@embecosm.com>
+
+	* config/tc-riscv (s_riscv_leb128): Add function to custom
+	parse .sleb128 and .uleb128 directives.
+	(riscv_pseudo_table): Add entries for .sleb128 and .uleb128
+	directives.
+
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
 	* config/tc-riscv (assemble_late_pseudos): Also assemble
