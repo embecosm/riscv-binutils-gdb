@@ -1,5 +1,11 @@
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.cpu: Move 'C' extension macro instructions to be
+	defined just before macro instructions for the other
+	extensions.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.opc: Mark error strings with calls to gettext.
 
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>

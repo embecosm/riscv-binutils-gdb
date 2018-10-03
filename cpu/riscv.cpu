@@ -2302,93 +2302,6 @@
 (rv-format-cl-4   "c.fld"   c-extension #b001 #b00)
 
 
-;===----------------- 'C' extension pseudo instructions ---------------------===
-;
-; It is important that the compressed macro instructions are defined *before*
-; the normal pseudos. This is because the priority of assembly/disassembly
-; is dependent on the order they are defined, and we want to try shorter
-; compressed instructions first.
-;
-; Also where there are multiple ways to assembler or disassemble an
-; instruction, the order in this first determines the priority.
-; FIXME: It would probably be best not to rely on this.
-;
-; Aside from jumps and branches, compressed instructions reject anything
-; which isn't an absolute value. This avoids two problems; First, we cannot
-; generate locations for symbols in most compressed instructions; and second,
-; a number of instructions share the same mnemonic and differ only in the
-; type of an operand (immediate vs register operand). If this case, we don't
-; want to accidentally parse the register name as a symbol for an immediate
-; field.
-
-(define-pmacro (rvc-pseudo pseudo-name mnemonic attr-list asm expansion)
-  (dnmi pseudo-name mnemonic attr-list (.str mnemonic asm) expansion)
-)
-
-(rvc-pseudo p-c-nop     "nop"    (c-extension) "" (emit c.nop))
-(rvc-pseudo p-c-ebreak  "ebreak" (c-extension) "" (emit c.ebreak))
-(rvc-pseudo p-c-unimp   "unimp"  (c-extension) "" (emit c.unimp))
-(rvc-pseudo p-c-sbreak  "sbreak" (c-extension) "" (emit c.ebreak))
-(rvc-pseudo p-c-ret     "ret"    (c-extension) "" (emit c.jr (c-reg117-ne0 1)))
-
-(rvc-pseudo p-c-jr      "jr"     (c-extension) " ${c-reg117-ne0}" (emit c.jr   c-reg117-ne0))
-(rvc-pseudo p-c-jalr    "jalr"   (c-extension) " ${c-reg117-ne0}" (emit c.jalr c-reg117-ne0))
-
-(rvc-pseudo p-c-j       "j"      (c-extension RELAXABLE) " ${cjmp12}" (emit c.j    cjmp12))
-(rvc-pseudo p-c-jal     "jal"    ((ISA rv32c) RELAXABLE) " ${cjmp12}" (emit c.jal  cjmp12))
-(rvc-pseudo p-c-beqz    "beqz"   (c-extension RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.beqz c-reg97 cbranch9))
-(rvc-pseudo p-c-bnez    "bnez"   (c-extension RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.bnez c-reg97 cbranch9))
-
-(rvc-pseudo p-c-lui     "lui"    (c-extension) " ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs}" (emit c.lui c-reg117-ne0-ne2 nzuimm18-121-65-000000000000-abs))
-(rvc-pseudo p-c-li      "li"     (c-extension) " ${c-reg117-ne0},${imm6-121-65-abs}"                      (emit c.li  c-reg117-ne0     imm6-121-65-abs))
-(rvc-pseudo p-c-mv      "mv"     (c-extension) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
-(rvc-pseudo p-c-move    "move"   (c-extension) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
-(rvc-pseudo p-c-andi    "andi"   (c-extension) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
-(rvc-pseudo p-c-and-1   "and"    (c-extension) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
-(rvc-pseudo p-c-and-2   "and"    (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.and  (c-reg97 c-tied-regs97-commutative) c-reg42))
-
-(rvc-pseudo p-c-addi-1  "addi"   (c-extension) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
-(rvc-pseudo p-c-addi-2  "addi"   (c-extension) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
-(rvc-pseudo p-c-addi-3  "addi"   (c-extension) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
-(rvc-pseudo p-c-add-1   "add"    (c-extension) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
-(rvc-pseudo p-c-add-2   "add"    (c-extension) " ${c-tied-regs117-ne0-commutative},${c-reg62-ne0}"        (emit c.add  (c-reg117-ne0 c-tied-regs117-ne0-commutative) c-reg62-ne0))
-(rvc-pseudo p-c-add-3   "add"    (c-extension) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
-(rvc-pseudo p-c-add-4   "add"    (c-extension) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
-(rvc-pseudo p-c-slli    "slli"   (c-extension) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-sll     "sll"    (c-extension) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-srli    "srli"   (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-srl     "srl"    (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-srai    "srai"   (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-sra     "sra"    (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
-(rvc-pseudo p-c-sub     "sub"    (c-extension) " ${c-tied-regs97},${c-reg42}"                             (emit c.sub  (c-reg97 c-tied-regs97) c-reg42))
-(rvc-pseudo p-c-lw-1    "lw"     (c-extension) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.lw c-reg42 uimm7-51-123-61-00-abs c-reg97))
-(rvc-pseudo p-c-lw-2    "lw"     (c-extension) " ${c-reg117-ne0},${uimm8-32-121-63-00-abs}(${sp-reg})"    (emit c.lwsp c-reg117-ne0 uimm8-32-121-63-00-abs))
-(rvc-pseudo p-c-lw-3    "lw"     (c-extension NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.lw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
-(rvc-pseudo p-c-lw-4    "lw"     (c-extension NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.lwsp c-reg117-ne0 (uimm8-32-121-63-00-abs 0)))
-(rvc-pseudo p-c-or      "or"     (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.or   (c-reg97 c-tied-regs97-commutative) c-reg42))
-(rvc-pseudo p-c-sw-1    "sw"     (c-extension) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.sw c-reg42 uimm7-51-123-61-00-abs c-reg97))
-(rvc-pseudo p-c-sw-2    "sw"     (c-extension) " ${c-reg62},${uimm8-82-124-00-abs}(${sp-reg})"            (emit c.swsp c-reg62 uimm8-82-124-00-abs))
-(rvc-pseudo p-c-sw-3    "sw"     (c-extension NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
-(rvc-pseudo p-c-sw-4    "sw"     (c-extension NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.swsp c-reg62 (uimm8-82-124-00-abs 0)))
-(rvc-pseudo p-c-xor     "xor"    (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.xor (c-reg97 c-tied-regs97-commutative) c-reg42))
-
-; RV64C
-
-(rvc-pseudo p-c-ld-1    "ld"     ((ISA rv64c)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.ld   c-reg42 uimm8-62-123-000-abs c-reg97))
-(rvc-pseudo p-c-ld-2    "ld"     ((ISA rv64c)) " ${c-reg117-ne0},${uimm9-43-121-62-000-abs}(${sp-reg})"   (emit c.ldsp c-reg117-ne0 uimm9-43-121-62-000-abs))
-(rvc-pseudo p-c-ld-3    "ld"     ((ISA rv64c) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.ld   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
-(rvc-pseudo p-c-ld-4    "ld"     ((ISA rv64c) NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.ldsp c-reg117-ne0 (uimm9-43-121-62-000-abs 0)))
-(rvc-pseudo p-c-sd-1    "sd"     ((ISA rv64c)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.sd   c-reg42 uimm8-62-123-000-abs c-reg97))
-(rvc-pseudo p-c-sd-2    "sd"     ((ISA rv64c)) " ${c-reg62},${uimm9-93-123-000-abs}(${sp-reg})"           (emit c.sdsp c-reg62 uimm9-93-123-000-abs))
-(rvc-pseudo p-c-sd-3    "sd"     ((ISA rv64c) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sd   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
-(rvc-pseudo p-c-sd-4    "sd"     ((ISA rv64c) NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.sdsp c-reg62 (uimm9-93-123-000-abs 0)))
-(rvc-pseudo p-c-sext-w  "sext.w" ((ISA rv64c) NO-DIS) " ${c-tied-regs117-ne0}"                            (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) (imm6-121-65-abs 0)))
-(rvc-pseudo p-c-addiw   "addiw"  ((ISA rv64c)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
-(rvc-pseudo p-c-addw-1  "addw"   ((ISA rv64c)) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.addw  (c-reg97 c-tied-regs97-commutative) c-reg42))
-(rvc-pseudo p-c-addw-2  "addw"   ((ISA rv64c)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
-(rvc-pseudo p-c-subw    "subw"   ((ISA rv64c)) " ${c-tied-regs97},${c-reg42}"                             (emit c.subw  (c-reg97 c-tied-regs97) c-reg42))
-
-
 ;===------------------------- 'I' Base instructions -------------------------===
 
 (rv-format-u "lui" base-isas #b0110111)
@@ -2693,14 +2606,101 @@
 (rv-format-f-6    "fmv.d.x"   (ISA rv64d) #b1111001 #b00000 #b000 #b1010011)
 
 
+;===------------------ 'C' extension macro instructions ---------------------===
+;
+; It is important that the compressed macro instructions are defined *before*
+; the normal macro instructions. This is because the priority of
+; assembly/disassembly is dependent on the order they are defined, and we want
+; to try shorter compressed instructions first.
+;
+; Also where there are multiple ways to assembler or disassemble an
+; instruction, the order in this list determines the priority.
+; It would be nice to not rely on this.
+;
+; Aside from jumps and branches, compressed instructions reject anything
+; which isn't an absolute value. This avoids two problems; First, we cannot
+; generate locations for symbols in most compressed instructions; and second,
+; a number of instructions share the same mnemonic and differ only in the
+; type of an operand (immediate vs register operand). If this case, we don't
+; want to accidentally parse the register name as a symbol for an immediate
+; field.
+
+(define-pmacro (rvc-macro macro-name mnemonic attr-list asm expansion)
+  (dnmi macro-name mnemonic attr-list (.str mnemonic asm) expansion)
+)
+
+(rvc-macro p-c-nop     "nop"    (c-extension) "" (emit c.nop))
+(rvc-macro p-c-ebreak  "ebreak" (c-extension) "" (emit c.ebreak))
+(rvc-macro p-c-unimp   "unimp"  (c-extension) "" (emit c.unimp))
+(rvc-macro p-c-sbreak  "sbreak" (c-extension) "" (emit c.ebreak))
+(rvc-macro p-c-ret     "ret"    (c-extension) "" (emit c.jr (c-reg117-ne0 1)))
+
+(rvc-macro p-c-jr      "jr"     (c-extension) " ${c-reg117-ne0}" (emit c.jr   c-reg117-ne0))
+(rvc-macro p-c-jalr    "jalr"   (c-extension) " ${c-reg117-ne0}" (emit c.jalr c-reg117-ne0))
+
+(rvc-macro p-c-j       "j"      (c-extension RELAXABLE) " ${cjmp12}" (emit c.j    cjmp12))
+(rvc-macro p-c-jal     "jal"    ((ISA rv32c) RELAXABLE) " ${cjmp12}" (emit c.jal  cjmp12))
+(rvc-macro p-c-beqz    "beqz"   (c-extension RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.beqz c-reg97 cbranch9))
+(rvc-macro p-c-bnez    "bnez"   (c-extension RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.bnez c-reg97 cbranch9))
+
+(rvc-macro p-c-lui     "lui"    (c-extension) " ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs}" (emit c.lui c-reg117-ne0-ne2 nzuimm18-121-65-000000000000-abs))
+(rvc-macro p-c-li      "li"     (c-extension) " ${c-reg117-ne0},${imm6-121-65-abs}"                      (emit c.li  c-reg117-ne0     imm6-121-65-abs))
+(rvc-macro p-c-mv      "mv"     (c-extension) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
+(rvc-macro p-c-move    "move"   (c-extension) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
+(rvc-macro p-c-andi    "andi"   (c-extension) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
+(rvc-macro p-c-and-1   "and"    (c-extension) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
+(rvc-macro p-c-and-2   "and"    (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.and  (c-reg97 c-tied-regs97-commutative) c-reg42))
+
+(rvc-macro p-c-addi-1  "addi"   (c-extension) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
+(rvc-macro p-c-addi-2  "addi"   (c-extension) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
+(rvc-macro p-c-addi-3  "addi"   (c-extension) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
+(rvc-macro p-c-add-1   "add"    (c-extension) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
+(rvc-macro p-c-add-2   "add"    (c-extension) " ${c-tied-regs117-ne0-commutative},${c-reg62-ne0}"        (emit c.add  (c-reg117-ne0 c-tied-regs117-ne0-commutative) c-reg62-ne0))
+(rvc-macro p-c-add-3   "add"    (c-extension) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
+(rvc-macro p-c-add-4   "add"    (c-extension) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
+(rvc-macro p-c-slli    "slli"   (c-extension) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
+(rvc-macro p-c-sll     "sll"    (c-extension) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
+(rvc-macro p-c-srli    "srli"   (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-srl     "srl"    (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-srai    "srai"   (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-sra     "sra"    (c-extension) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-sub     "sub"    (c-extension) " ${c-tied-regs97},${c-reg42}"                             (emit c.sub  (c-reg97 c-tied-regs97) c-reg42))
+(rvc-macro p-c-lw-1    "lw"     (c-extension) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.lw c-reg42 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-lw-2    "lw"     (c-extension) " ${c-reg117-ne0},${uimm8-32-121-63-00-abs}(${sp-reg})"    (emit c.lwsp c-reg117-ne0 uimm8-32-121-63-00-abs))
+(rvc-macro p-c-lw-3    "lw"     (c-extension NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.lw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
+(rvc-macro p-c-lw-4    "lw"     (c-extension NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.lwsp c-reg117-ne0 (uimm8-32-121-63-00-abs 0)))
+(rvc-macro p-c-or      "or"     (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.or   (c-reg97 c-tied-regs97-commutative) c-reg42))
+(rvc-macro p-c-sw-1    "sw"     (c-extension) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.sw c-reg42 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-sw-2    "sw"     (c-extension) " ${c-reg62},${uimm8-82-124-00-abs}(${sp-reg})"            (emit c.swsp c-reg62 uimm8-82-124-00-abs))
+(rvc-macro p-c-sw-3    "sw"     (c-extension NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
+(rvc-macro p-c-sw-4    "sw"     (c-extension NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.swsp c-reg62 (uimm8-82-124-00-abs 0)))
+(rvc-macro p-c-xor     "xor"    (c-extension) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.xor (c-reg97 c-tied-regs97-commutative) c-reg42))
+
+; RV64C
+
+(rvc-macro p-c-ld-1    "ld"     ((ISA rv64c)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.ld   c-reg42 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-ld-2    "ld"     ((ISA rv64c)) " ${c-reg117-ne0},${uimm9-43-121-62-000-abs}(${sp-reg})"   (emit c.ldsp c-reg117-ne0 uimm9-43-121-62-000-abs))
+(rvc-macro p-c-ld-3    "ld"     ((ISA rv64c) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.ld   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
+(rvc-macro p-c-ld-4    "ld"     ((ISA rv64c) NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.ldsp c-reg117-ne0 (uimm9-43-121-62-000-abs 0)))
+(rvc-macro p-c-sd-1    "sd"     ((ISA rv64c)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.sd   c-reg42 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-sd-2    "sd"     ((ISA rv64c)) " ${c-reg62},${uimm9-93-123-000-abs}(${sp-reg})"           (emit c.sdsp c-reg62 uimm9-93-123-000-abs))
+(rvc-macro p-c-sd-3    "sd"     ((ISA rv64c) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sd   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
+(rvc-macro p-c-sd-4    "sd"     ((ISA rv64c) NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.sdsp c-reg62 (uimm9-93-123-000-abs 0)))
+(rvc-macro p-c-sext-w  "sext.w" ((ISA rv64c) NO-DIS) " ${c-tied-regs117-ne0}"                            (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) (imm6-121-65-abs 0)))
+(rvc-macro p-c-addiw   "addiw"  ((ISA rv64c)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
+(rvc-macro p-c-addw-1  "addw"   ((ISA rv64c)) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.addw  (c-reg97 c-tied-regs97-commutative) c-reg42))
+(rvc-macro p-c-addw-2  "addw"   ((ISA rv64c)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
+(rvc-macro p-c-subw    "subw"   ((ISA rv64c)) " ${c-tied-regs97},${c-reg42}"                             (emit c.subw  (c-reg97 c-tied-regs97) c-reg42))
+
+
 ;===------------------------- 'I' Macro instructions ------------------------===
 
-(define-pmacro (rv-pseudo pseudo-name mnemonic attr-list asm expansion)
-  (dnmi pseudo-name mnemonic attr-list (.str mnemonic asm) expansion)
+(define-pmacro (rv-macro macro-name mnemonic attr-list asm expansion)
+  (dnmi macro-name mnemonic attr-list (.str mnemonic asm) expansion)
 )
 
 ; Alternative syntax
-(rv-pseudo p-jalr-1 "jalr" (base-isas) " ${rd},${imm-lo12}(${rs1})" (emit jalr rd rs1 imm-lo12))
+(rv-macro p-jalr-1 "jalr" (base-isas) " ${rd},${imm-lo12}(${rs1})" (emit jalr rd rs1 imm-lo12))
 
 ; Instruction mnemonic aliases
 ;
@@ -2712,216 +2712,216 @@
 ; immediate operands for these instructions will reject anything which is
 ; not an absolute value.
 
-(rv-pseudo p-add-1  "add"  (base-isas)        " ${rd},${rs1},${rs2}"            (emit add  rd rs1 rs2))
-(rv-pseudo p-add-2  "add"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit addi rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-and    "and"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit andi rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-sll-1  "sll"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit slli-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-srl-1  "srl"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srli-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-sra-1  "sra"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srai-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-sll-2  "sll"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit slli-shift6 rd rs1 uimm6-256))
-(rv-pseudo p-srl-2  "srl"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srli-shift6 rd rs1 uimm6-256))
-(rv-pseudo p-sra-2  "sra"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srai-shift6 rd rs1 uimm6-256))
-(rv-pseudo p-slt    "slt"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit slti  rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-sltu   "sltu" (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit sltiu rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-sgt    "sgt"  (base-isas NO-DIS) " ${rd},${rs2},${rs1}"            (emit slt   rd rs1 rs2))
-(rv-pseudo p-sgtu   "sgtu" (base-isas NO-DIS) " ${rd},${rs2},${rs1}"            (emit sltu  rd rs1 rs2))
-(rv-pseudo p-or     "or"   (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit ori   rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-xor    "xor"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit xori  rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-add-1  "add"  (base-isas)        " ${rd},${rs1},${rs2}"            (emit add  rd rs1 rs2))
+(rv-macro p-add-2  "add"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit addi rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-and    "and"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit andi rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sll-1  "sll"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit slli-shift5 rd rs1 uimm5-245))
+(rv-macro p-srl-1  "srl"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srli-shift5 rd rs1 uimm5-245))
+(rv-macro p-sra-1  "sra"  (base-isas NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srai-shift5 rd rs1 uimm5-245))
+(rv-macro p-sll-2  "sll"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit slli-shift6 rd rs1 uimm6-256))
+(rv-macro p-srl-2  "srl"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srli-shift6 rd rs1 uimm6-256))
+(rv-macro p-sra-2  "sra"  (base-isas NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srai-shift6 rd rs1 uimm6-256))
+(rv-macro p-slt    "slt"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit slti  rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sltu   "sltu" (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit sltiu rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sgt    "sgt"  (base-isas NO-DIS) " ${rd},${rs2},${rs1}"            (emit slt   rd rs1 rs2))
+(rv-macro p-sgtu   "sgtu" (base-isas NO-DIS) " ${rd},${rs2},${rs1}"            (emit sltu  rd rs1 rs2))
+(rv-macro p-or     "or"   (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit ori   rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-xor    "xor"  (base-isas NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit xori  rd rs1 (imm-lo12 imm-lo12-abs)))
 
 ; Syntax for loads and stores where the offset is omitted
-(rv-pseudo p-lb  "lb"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lb  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-lh  "lh"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lh  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-lw  "lw"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lw  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-lbu "lbu" (base-isas NO-DIS) " ${rd},($rs1)"  (emit lbu rd rs1 (imm-lo12 0)))
-(rv-pseudo p-lhu "lhu" (base-isas NO-DIS) " ${rd},($rs1)"  (emit lhu rd rs1 (imm-lo12 0)))
-(rv-pseudo p-sb  "sb"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sb rs2 rs1 (store12 0)))
-(rv-pseudo p-sh  "sh"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sh rs2 rs1 (store12 0)))
-(rv-pseudo p-sw  "sw"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sw rs2 rs1 (store12 0)))
+(rv-macro p-lb  "lb"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lb  rd rs1 (imm-lo12 0)))
+(rv-macro p-lh  "lh"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lh  rd rs1 (imm-lo12 0)))
+(rv-macro p-lw  "lw"  (base-isas NO-DIS) " ${rd},($rs1)"  (emit lw  rd rs1 (imm-lo12 0)))
+(rv-macro p-lbu "lbu" (base-isas NO-DIS) " ${rd},($rs1)"  (emit lbu rd rs1 (imm-lo12 0)))
+(rv-macro p-lhu "lhu" (base-isas NO-DIS) " ${rd},($rs1)"  (emit lhu rd rs1 (imm-lo12 0)))
+(rv-macro p-sb  "sb"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sb rs2 rs1 (store12 0)))
+(rv-macro p-sh  "sh"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sh rs2 rs1 (store12 0)))
+(rv-macro p-sw  "sw"  (base-isas NO-DIS) " ${rs2},($rs1)" (emit sw rs2 rs1 (store12 0)))
 
-; Pseudo instructions defined in the ISA
-(rv-pseudo p-nop    "nop"    (base-isas)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
-(rv-pseudo p-li     "li"     (base-isas)   " ${rd},${imm-lo12}" (emit addi  rd (rs1 0) imm-lo12))
-(rv-pseudo p-mv     "mv"     (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-move   "move"   (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-not    "not"    (base-isas)   " ${rd},${rs1}"       (emit xori  rd rs1 (imm-lo12 #xfff)))
-(rv-pseudo p-neg    "neg"    (base-isas)   " ${rd},${rs2}"       (emit sub   rd (rs1 0) rs2))
-(rv-pseudo p-negw   "negw"   (base-isas)   " ${rd},${rs2}"       (emit subw  rd (rs1 0) rs2))
-(rv-pseudo p-seqz   "seqz"   (base-isas)   " ${rd},${rs1}"       (emit sltiu rd rs1 (imm-lo12 1)))
-(rv-pseudo p-snez   "snez"   (base-isas)   " ${rd},${rs2}"       (emit sltu  rd (rs1 0) rs2))
-(rv-pseudo p-sltz   "sltz"   (base-isas)   " ${rd},${rs1}"       (emit slt   rd rs1 (rs2 0)))
-(rv-pseudo p-sgtz   "sgtz"   (base-isas)   " ${rd},${rs2}"       (emit slt   rd (rs1 0) rs2))
+; macro instructions defined in the ISA
+(rv-macro p-nop    "nop"    (base-isas)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
+(rv-macro p-li     "li"     (base-isas)   " ${rd},${imm-lo12}" (emit addi  rd (rs1 0) imm-lo12))
+(rv-macro p-mv     "mv"     (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
+(rv-macro p-move   "move"   (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
+(rv-macro p-not    "not"    (base-isas)   " ${rd},${rs1}"       (emit xori  rd rs1 (imm-lo12 #xfff)))
+(rv-macro p-neg    "neg"    (base-isas)   " ${rd},${rs2}"       (emit sub   rd (rs1 0) rs2))
+(rv-macro p-negw   "negw"   (base-isas)   " ${rd},${rs2}"       (emit subw  rd (rs1 0) rs2))
+(rv-macro p-seqz   "seqz"   (base-isas)   " ${rd},${rs1}"       (emit sltiu rd rs1 (imm-lo12 1)))
+(rv-macro p-snez   "snez"   (base-isas)   " ${rd},${rs2}"       (emit sltu  rd (rs1 0) rs2))
+(rv-macro p-sltz   "sltz"   (base-isas)   " ${rd},${rs1}"       (emit slt   rd rs1 (rs2 0)))
+(rv-macro p-sgtz   "sgtz"   (base-isas)   " ${rd},${rs2}"       (emit slt   rd (rs1 0) rs2))
 
-(rv-pseudo p-beqz   "beqz"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit beq rs1 (rs2 0) branch13))
-(rv-pseudo p-bnez   "bnez"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit bne rs1 (rs2 0) branch13))
-(rv-pseudo p-blez   "blez"   (base-isas RELAXABLE) " ${rs2},${branch13}" (emit bge (rs1 0) rs2 branch13))
-(rv-pseudo p-bgez   "bgez"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit bge rs1 (rs2 0) branch13))
-(rv-pseudo p-bltz   "bltz"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit blt rs1 (rs2 0) branch13))
-(rv-pseudo p-bgtz   "bgtz"   (base-isas RELAXABLE) " ${rs2},${branch13}" (emit blt (rs1 0) rs2 branch13))
+(rv-macro p-beqz   "beqz"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit beq rs1 (rs2 0) branch13))
+(rv-macro p-bnez   "bnez"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit bne rs1 (rs2 0) branch13))
+(rv-macro p-blez   "blez"   (base-isas RELAXABLE) " ${rs2},${branch13}" (emit bge (rs1 0) rs2 branch13))
+(rv-macro p-bgez   "bgez"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit bge rs1 (rs2 0) branch13))
+(rv-macro p-bltz   "bltz"   (base-isas RELAXABLE) " ${rs1},${branch13}" (emit blt rs1 (rs2 0) branch13))
+(rv-macro p-bgtz   "bgtz"   (base-isas RELAXABLE) " ${rs2},${branch13}" (emit blt (rs1 0) rs2 branch13))
 
-(rv-pseudo p-bgt    "bgt"    (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit blt   rs1 rs2 branch13))
-(rv-pseudo p-ble    "ble"    (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bge   rs1 rs2 branch13))
-(rv-pseudo p-bgtu   "bgtu"   (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bltu  rs1 rs2 branch13))
-(rv-pseudo p-bleu   "bleu"   (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bgeu  rs1 rs2 branch13))
+(rv-macro p-bgt    "bgt"    (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit blt   rs1 rs2 branch13))
+(rv-macro p-ble    "ble"    (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bge   rs1 rs2 branch13))
+(rv-macro p-bgtu   "bgtu"   (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bltu  rs1 rs2 branch13))
+(rv-macro p-bleu   "bleu"   (base-isas RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bgeu  rs1 rs2 branch13))
 
-(rv-pseudo p-j      "j"      (base-isas)        " ${jmp21}"            (emit jal  (rd 0) jmp21))
-(rv-pseudo p-jal    "jal"    (base-isas NO-DIS) " ${jmp21}"            (emit jal  (rd 1) jmp21))
-(rv-pseudo p-jr-1   "jr"     (base-isas)        " ${rs1}"              (emit jalr (rd 0) rs1 (imm-lo12 0)))
-(rv-pseudo p-jr-2   "jr"     (base-isas)        " ${imm-lo12}(${rs1})" (emit jalr (rd 0) rs1 imm-lo12))
-(rv-pseudo p-jr-3   "jr"     (base-isas NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 0) rs1 imm-lo12))
-(rv-pseudo p-jalr-2 "jalr"   (base-isas)        " ${rs1}"              (emit jalr (rd 1) rs1 (imm-lo12 0)))
-(rv-pseudo p-jalr-3 "jalr"   (base-isas)        " ${imm-lo12}(${rs1})" (emit jalr (rd 1) rs1 imm-lo12))
-(rv-pseudo p-jalr-4 "jalr"   (base-isas NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 1) rs1 imm-lo12))
-(rv-pseudo p-jalr-5 "jalr"   (base-isas)        " ${rd},${rs1}"        (emit jalr rd rs1 (imm-lo12 0)))
-(rv-pseudo p-ret    "ret"    (base-isas)        ""                     (emit jalr (rd 0) (rs1 1) (imm-lo12 0)))
+(rv-macro p-j      "j"      (base-isas)        " ${jmp21}"            (emit jal  (rd 0) jmp21))
+(rv-macro p-jal    "jal"    (base-isas NO-DIS) " ${jmp21}"            (emit jal  (rd 1) jmp21))
+(rv-macro p-jr-1   "jr"     (base-isas)        " ${rs1}"              (emit jalr (rd 0) rs1 (imm-lo12 0)))
+(rv-macro p-jr-2   "jr"     (base-isas)        " ${imm-lo12}(${rs1})" (emit jalr (rd 0) rs1 imm-lo12))
+(rv-macro p-jr-3   "jr"     (base-isas NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 0) rs1 imm-lo12))
+(rv-macro p-jalr-2 "jalr"   (base-isas)        " ${rs1}"              (emit jalr (rd 1) rs1 (imm-lo12 0)))
+(rv-macro p-jalr-3 "jalr"   (base-isas)        " ${imm-lo12}(${rs1})" (emit jalr (rd 1) rs1 imm-lo12))
+(rv-macro p-jalr-4 "jalr"   (base-isas NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 1) rs1 imm-lo12))
+(rv-macro p-jalr-5 "jalr"   (base-isas)        " ${rd},${rs1}"        (emit jalr rd rs1 (imm-lo12 0)))
+(rv-macro p-ret    "ret"    (base-isas)        ""                     (emit jalr (rd 0) (rs1 1) (imm-lo12 0)))
 
 ; Misc
-(rv-pseudo p-unimp "unimp" (base-isas) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
-(rv-pseudo p-fence "fence" (base-isas) "" (emit fence (succ 15) (pred 15)))
+(rv-macro p-unimp "unimp" (base-isas) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
+(rv-macro p-fence "fence" (base-isas) "" (emit fence (succ 15) (pred 15)))
 
 ; Deprecated aliases for ebreak/sbreak
-(rv-pseudo p-scall  "scall"  (base-isas NO-DIS) "" (emit ecall))
-(rv-pseudo p-sbreak "sbreak" (base-isas NO-DIS) "" (emit ebreak))
+(rv-macro p-scall  "scall"  (base-isas NO-DIS) "" (emit ecall))
+(rv-macro p-sbreak "sbreak" (base-isas NO-DIS) "" (emit ebreak))
 
 ; Supervisor instructions
-(rv-pseudo p-rdinstret  "rdinstret"  (base-isas) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
-(rv-pseudo p-rdcycle    "rdcycle"    (base-isas) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
-(rv-pseudo p-rdtime     "rdtime"     (base-isas) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
+(rv-macro p-rdinstret  "rdinstret"  (base-isas) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
+(rv-macro p-rdcycle    "rdcycle"    (base-isas) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
+(rv-macro p-rdtime     "rdtime"     (base-isas) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
 
-(rv-pseudo p-csrr   "csrr"  (base-isas)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
-(rv-pseudo p-csrw-1 "csrw"  (base-isas)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
-(rv-pseudo p-csrs-1 "csrs"  (base-isas)        " ${csr},${rs1}"      (emit csrrs  (rd 0) csr rs1))
-(rv-pseudo p-csrc-1 "csrc"  (base-isas)        " ${csr},${rs1}"      (emit csrrc  (rd 0) csr rs1))
-(rv-pseudo p-csrw-2 "csrw"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrwi (rd 0) csr uimm5))
-(rv-pseudo p-csrs-2 "csrs"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrsi (rd 0) csr uimm5))
-(rv-pseudo p-csrc-2 "csrc"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrci (rd 0) csr uimm5))
-(rv-pseudo p-csrwi  "csrwi" (base-isas)        " ${csr},${uimm5}"     (emit csrrwi (rd 0) csr uimm5))
-(rv-pseudo p-csrsi  "csrsi" (base-isas)        " ${csr},${uimm5}"     (emit csrrsi (rd 0) csr uimm5))
-(rv-pseudo p-csrci  "csrci" (base-isas)        " ${csr},${uimm5}"     (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-csrr   "csrr"  (base-isas)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
+(rv-macro p-csrw-1 "csrw"  (base-isas)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
+(rv-macro p-csrs-1 "csrs"  (base-isas)        " ${csr},${rs1}"      (emit csrrs  (rd 0) csr rs1))
+(rv-macro p-csrc-1 "csrc"  (base-isas)        " ${csr},${rs1}"      (emit csrrc  (rd 0) csr rs1))
+(rv-macro p-csrw-2 "csrw"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrs-2 "csrs"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrc-2 "csrc"  (base-isas NO-DIS) " ${csr},${uimm5-abs}" (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-csrwi  "csrwi" (base-isas)        " ${csr},${uimm5}"     (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrsi  "csrsi" (base-isas)        " ${csr},${uimm5}"     (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrci  "csrci" (base-isas)        " ${csr},${uimm5}"     (emit csrrci (rd 0) csr uimm5))
 
-(rv-pseudo p-sfence-vm    "sfence.vm"  (base-isas) ""        (emit sfence.vm  (rs1 0)))
-(rv-pseudo p-sfence-vma-1 "sfence.vma" (base-isas) ""        (emit sfence.vma (rs1 0) (rs2 0)))
-(rv-pseudo p-sfence-vma-2 "sfence.vma" (base-isas) " ${rs1}" (emit sfence.vma rs1     (rs2 0)))
+(rv-macro p-sfence-vm    "sfence.vm"  (base-isas) ""        (emit sfence.vm  (rs1 0)))
+(rv-macro p-sfence-vma-1 "sfence.vma" (base-isas) ""        (emit sfence.vma (rs1 0) (rs2 0)))
+(rv-macro p-sfence-vma-2 "sfence.vma" (base-isas) " ${rs1}" (emit sfence.vma rs1     (rs2 0)))
 
 ; RV32I
-(rv-pseudo p-rdinstreth "rdinstreth" ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
-(rv-pseudo p-rdcycleh   "rdcycleh"   ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
-(rv-pseudo p-rdtimeh    "rdtimeh"    ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
+(rv-macro p-rdinstreth "rdinstreth" ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-macro p-rdcycleh   "rdcycleh"   ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-macro p-rdtimeh    "rdtimeh"    ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
 ; RV64I
-(rv-pseudo p-addw   "addw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))
-(rv-pseudo p-sllw   "sllw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit slliw-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-srlw   "srlw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit srliw-shift5 rd rs1 uimm5-245))
-(rv-pseudo p-sraw   "sraw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit sraiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-addw   "addw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sllw   "sllw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit slliw-shift5 rd rs1 uimm5-245))
+(rv-macro p-srlw   "srlw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit srliw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sraw   "sraw" ((ISA rv64i) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit sraiw-shift5 rd rs1 uimm5-245))
 
-(rv-pseudo p-lwu "lwu" ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit lwu rd rs1 (imm-lo12 0)))
-(rv-pseudo p-ld  "ld"  ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit ld  rd rs1 (imm-lo12 0)))
-(rv-pseudo p-sd  "sd"  ((ISA rv64i) NO-DIS) " ${rs2},($rs1)" (emit sd rs2 rs1 (store12 0)))
+(rv-macro p-lwu "lwu" ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit lwu rd rs1 (imm-lo12 0)))
+(rv-macro p-ld  "ld"  ((ISA rv64i) NO-DIS) " ${rd},($rs1)"  (emit ld  rd rs1 (imm-lo12 0)))
+(rv-macro p-sd  "sd"  ((ISA rv64i) NO-DIS) " ${rs2},($rs1)" (emit sd rs2 rs1 (store12 0)))
 
-(rv-pseudo p-sextw  "sext.w" ((ISA rv64i)) " ${rd},${rs1}"   (emit addiw rd rs1 (imm-lo12 0)))
-
-
-;===-------------------- 'M' extension instructions -------------------------===
+(rv-macro p-sextw  "sext.w" ((ISA rv64i)) " ${rd},${rs1}"   (emit addiw rd rs1 (imm-lo12 0)))
 
 
-;===-------------------- 'A' extension instructions -------------------------===
+;===----------------- 'M' extension macro instructions ----------------------===
+
+
+;===----------------- 'A' extension macro instructions ----------------------===
 
 
 ;===----------------- 'F' extension macro instructions ----------------------===
 
-(rv-pseudo p-flw        "flw"       (f-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flw fl-rd imm-lo12 rs1))
-(rv-pseudo p-fsw        "fsw"       (f-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsw fl-rs2 store12 rs1))
+(rv-macro p-flw        "flw"       (f-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flw fl-rd imm-lo12 rs1))
+(rv-macro p-fsw        "fsw"       (f-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsw fl-rs2 store12 rs1))
 
-(rv-pseudo p-frsr       "frsr"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
-(rv-pseudo p-fssr-1     "fssr"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
-(rv-pseudo p-fssr-2     "fssr"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
-(rv-pseudo p-frcsr      "frcsr"     (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
-(rv-pseudo p-fscsr-1    "fscsr"     (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
-(rv-pseudo p-fscsr-2    "fscsr"     (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
-(rv-pseudo p-frrm       "frrm"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x02) (rs1 0)))
-(rv-pseudo p-fsrm-1     "fsrm"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x02) rs1))
-(rv-pseudo p-fsrm-2     "fsrm"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x02) rs1))
-(rv-pseudo p-fsrmi-1    "fsrmi"     (f-extension)        " ${rd},${uimm5}" (emit csrrwi rd    (csr #x02) uimm5))
-(rv-pseudo p-fsrmi-2    "fsrmi"     (f-extension)        " ${uimm5}"       (emit csrrwi (rd 0)(csr #x02) uimm5))
-(rv-pseudo p-frflags    "frflags"   (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x01) (rs1 0)))
-(rv-pseudo p-fsflags-1  "fsflags"   (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x01) rs1))
-(rv-pseudo p-fsflags-2  "fsflags"   (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x01) rs1))
-(rv-pseudo p-fsflagsi-1 "fsflagsi"  (f-extension NO-DIS) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
-(rv-pseudo p-fsflagsi-2 "fsflagsi"  (f-extension NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
+(rv-macro p-frsr       "frsr"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-macro p-fssr-1     "fssr"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-macro p-fssr-2     "fssr"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-macro p-frcsr      "frcsr"     (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-macro p-fscsr-1    "fscsr"     (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-macro p-fscsr-2    "fscsr"     (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-macro p-frrm       "frrm"      (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x02) (rs1 0)))
+(rv-macro p-fsrm-1     "fsrm"      (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x02) rs1))
+(rv-macro p-fsrm-2     "fsrm"      (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x02) rs1))
+(rv-macro p-fsrmi-1    "fsrmi"     (f-extension)        " ${rd},${uimm5}" (emit csrrwi rd    (csr #x02) uimm5))
+(rv-macro p-fsrmi-2    "fsrmi"     (f-extension)        " ${uimm5}"       (emit csrrwi (rd 0)(csr #x02) uimm5))
+(rv-macro p-frflags    "frflags"   (f-extension)        " ${rd}"          (emit csrrs rd     (csr #x01) (rs1 0)))
+(rv-macro p-fsflags-1  "fsflags"   (f-extension)        " ${rd},${rs1}"   (emit csrrw rd     (csr #x01) rs1))
+(rv-macro p-fsflags-2  "fsflags"   (f-extension)        " ${rs1}"         (emit csrrw (rd 0) (csr #x01) rs1))
+(rv-macro p-fsflagsi-1 "fsflagsi"  (f-extension NO-DIS) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
+(rv-macro p-fsflagsi-2 "fsflagsi"  (f-extension NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
 
-(rv-pseudo p-fmv.x.s   "fmv.x.s"   (f-extension) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
-(rv-pseudo p-fmv.s.x   "fmv.s.x"   (f-extension) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
+(rv-macro p-fmv.x.s   "fmv.x.s"   (f-extension) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
+(rv-macro p-fmv.s.x   "fmv.s.x"   (f-extension) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
 
-(rv-pseudo p-fmadd.s   "fmadd.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fmsub.s   "fmsub.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fnmsub.s  "fnmsub.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fnmadd.s  "fnmadd.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmadd.s   "fmadd.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.s   "fmsub.s"   (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.s  "fnmsub.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.s  "fnmadd.s"  (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
 
-(rv-pseudo p-fadd.s    "fadd.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fsub.s    "fsub.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fmul.s    "fmul.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fdiv.s    "fdiv.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fadd.s    "fadd.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.s    "fsub.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.s    "fmul.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.s    "fdiv.s"    (f-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
 
-(rv-pseudo p-fsqrt.s   "fsqrt.s"   (f-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.s fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fsqrt.s   "fsqrt.s"   (f-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.s fl-rd fl-rs1 (fl-rm #b111)))
 
-(rv-pseudo p-fcvt.w.s  "fcvt.w.s"  (f-extension) " ${rd},${fl-rs1}" (emit fcvt.w.s  rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.wu.s "fcvt.wu.s" (f-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.s rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.s.w  "fcvt.s.w"  (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.s.wu "fcvt.s.wu" (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.w.s  "fcvt.w.s"  (f-extension) " ${rd},${fl-rs1}" (emit fcvt.w.s  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.s "fcvt.wu.s" (f-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.s rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.w  "fcvt.s.w"  (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.wu "fcvt.s.wu" (f-extension) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
 
-(rv-pseudo p-fgt.s     "fgt.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs2 fl-rs1))
-(rv-pseudo p-fge.s     "fge.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs2 fl-rs1))
+(rv-macro p-fgt.s     "fgt.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs2 fl-rs1))
+(rv-macro p-fge.s     "fge.s"     (f-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs2 fl-rs1))
 
 ;RV64F
 
-(rv-pseudo p-fcvt.l.s  "fcvt.l.s"  ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.lu.s "fcvt.lu.s" ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.lu.s rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.s.l  "fcvt.s.l"  ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.l  fl-rd rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.s.lu "fcvt.s.lu" ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.l.s  "fcvt.l.s"  ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.s "fcvt.lu.s" ((ISA rv64f)) " ${rd},${fl-rs1}" (emit fcvt.lu.s rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.l  "fcvt.s.l"  ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.lu "fcvt.s.lu" ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
 
 ;RV32FC
 
-(rvc-pseudo p-c-flwsp   "flw" ((ISA rv32c)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
-(rvc-pseudo p-c-fswsp   "fsw" ((ISA rv32c)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
-(rvc-pseudo p-c-fsw     "fsw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
-(rvc-pseudo p-c-flw     "flw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-flwsp   "flw" ((ISA rv32c)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
+(rvc-macro p-c-fswsp   "fsw" ((ISA rv32c)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
+(rvc-macro p-c-fsw     "fsw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-flw     "flw" ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
 
 ;RV64FC
 
-(rvc-pseudo p-c-fldsp   "fld" (c-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
-(rvc-pseudo p-c-fsdsp   "fsd" (c-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
-(rvc-pseudo p-c-fsd     "fsd" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
-(rvc-pseudo p-c-fld     "fld" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-fldsp   "fld" (c-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
+(rvc-macro p-c-fsdsp   "fsd" (c-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
+(rvc-macro p-c-fsd     "fsd" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-fld     "fld" (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
 
 
 ;===----------------- 'D' extension macro instructions ----------------------===
 
-(rv-pseudo p-fld       "fld"       (d-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit fld fl-rd imm-lo12 rs1))
-(rv-pseudo p-fsd       "fsd"       (d-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsd fl-rs2 store12 rs1))
+(rv-macro p-fld       "fld"       (d-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit fld fl-rd imm-lo12 rs1))
+(rv-macro p-fsd       "fsd"       (d-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsd fl-rs2 store12 rs1))
 
-(rv-pseudo p-fmadd.d   "fmadd.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fmsub.d   "fmsub.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fnmsub.d  "fnmsub.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
-(rv-pseudo p-fnmadd.d  "fnmadd.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmadd.d   "fmadd.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.d   "fmsub.d"   (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.d  "fnmsub.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.d  "fnmadd.d"  (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
 
-(rv-pseudo p-fadd.d    "fadd.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fsub.d    "fsub.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fmul.d    "fmul.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
-(rv-pseudo p-fdiv.d    "fdiv.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fadd.d    "fadd.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.d    "fsub.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.d    "fmul.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.d    "fdiv.d"    (d-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
 
-(rv-pseudo p-fsqrt.d   "fsqrt.d"   (d-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.d fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fsqrt.d   "fsqrt.d"   (d-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.d fl-rd fl-rs1 (fl-rm #b111)))
 
-(rv-pseudo p-fcvt.w.d  "fcvt.w.d"  (d-extension) " ${rd},${fl-rs1}" (emit fcvt.w.d  rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.wu.d "fcvt.wu.d" (d-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.d rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.w.d  "fcvt.w.d"  (d-extension) " ${rd},${fl-rs1}" (emit fcvt.w.d  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.d "fcvt.wu.d" (d-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.d rd fl-rs1 (fl-rm #b111)))
 
-(rv-pseudo p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.d  "fcvt.s.d"  (d-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
 
-(rv-pseudo p-fgt.d     "fgt.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.d rd fl-rs2 fl-rs1))
-(rv-pseudo p-fge.d     "fge.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.d rd fl-rs2 fl-rs1))
+(rv-macro p-fgt.d     "fgt.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.d rd fl-rs2 fl-rs1))
+(rv-macro p-fge.d     "fge.d"     (d-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.d rd fl-rs2 fl-rs1))
 
 ;RV64D
 
-(rv-pseudo p-fcvt.l.d  "fcvt.l.d"  ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.l.d  rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.lu.d "fcvt.lu.d" ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.lu.d rd fl-rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.d.l  "fcvt.d.l"  ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.l  fl-rd rs1 (fl-rm #b111)))
-(rv-pseudo p-fcvt.d.lu "fcvt.d.lu" ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.lu fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.l.d  "fcvt.l.d"  ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.l.d  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.d "fcvt.lu.d" ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.lu.d rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.l  "fcvt.d.l"  ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.lu "fcvt.d.lu" ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.lu fl-rd rs1 (fl-rm #b111)))
 
