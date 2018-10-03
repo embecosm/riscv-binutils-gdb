@@ -1,5 +1,9 @@
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv.opc: Mark error strings with calls to gettext.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* riscv.opc (disassemble_init_riscv): Added function to set
 	up the supported ISAs based on the machine id.
 	(CGEN_VALIDATE_INSN_SUPPORTED): Define macro so that

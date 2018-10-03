@@ -1,5 +1,9 @@
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>
 
+	* riscv-asm.c: Regenerated.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
 	* disassemble.c (disassemble_init_for_target): Call
 	disassemble_init_riscv to set correct ISA at init time.
 	* riscv-dis.c: Regenerated.

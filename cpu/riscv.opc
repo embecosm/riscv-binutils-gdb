@@ -75,17 +75,16 @@ int riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn)
 #endif
 
 
-#define MISSING_CLOSING_PARENS  "missing closing parenthesis"
-#define TLS_RELOC_AGAINST_CONST "TLS relocation against a constant"
-#define ILLEGAL_OPERANDS        "illegal operands"
-#define UNKNOWN_CSR             "unknown CSR"
-#define OUT_OF_RANGE            "operand out of range"
-#define TIED_REGISTERS_NO_MATCH "tied register operands do not match"
-#define NOT_COMPRESSED          "operand not compressed"
-#define SYMBOL_NOT_ALLOWED      "operand can not be a symbol"
-#define ILLEGAL_REGISTER        "register illegal in RV32E"
-#define UNKNOWN_ROUNDING_MODE   "unknown rounding mode for floating point " \
-                                "operation"
+#define MISSING_CLOSING_PARENS  _("missing closing parenthesis")
+#define TLS_RELOC_AGAINST_CONST _("TLS relocation against a constant")
+#define ILLEGAL_OPERANDS        _("illegal operands")
+#define UNKNOWN_CSR             _("unknown CSR")
+#define OUT_OF_RANGE            _("operand out of range")
+#define TIED_REGISTERS_NO_MATCH _("tied register operands do not match")
+#define SYMBOL_NOT_ALLOWED      _("operand can not be a symbol")
+#define ILLEGAL_REGISTER        _("register illegal in RV32E")
+#define UNKNOWN_ROUNDING_MODE   _("unknown rounding mode for floating point " \
+                                "operation")
 
 static const char *
 parse_value (CGEN_CPU_DESC cd, const char **strp, int opindex,
