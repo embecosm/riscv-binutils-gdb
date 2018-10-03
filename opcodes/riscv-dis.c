@@ -60,6 +60,33 @@ static int read_insn
 
 /* -- dis.c */
 
+#define CGEN_VALIDATE_INSN_SUPPORTED
+
+void
+disassemble_init_riscv (struct disassemble_info *info)
+{
+  if (!info->insn_sets)
+    info->insn_sets = cgen_bitset_create (ISA_MAX);
+  if (info->mach == bfd_mach_riscv32)
+    {
+      cgen_bitset_add (info->insn_sets, ISA_RV32I);
+      cgen_bitset_add (info->insn_sets, ISA_RV32M);
+      cgen_bitset_add (info->insn_sets, ISA_RV32C);
+      cgen_bitset_add (info->insn_sets, ISA_RV32A);
+      cgen_bitset_add (info->insn_sets, ISA_RV32F);
+      cgen_bitset_add (info->insn_sets, ISA_RV32D);
+    }
+  else
+    {
+      cgen_bitset_add (info->insn_sets, ISA_RV64I);
+      cgen_bitset_add (info->insn_sets, ISA_RV64M);
+      cgen_bitset_add (info->insn_sets, ISA_RV64C);
+      cgen_bitset_add (info->insn_sets, ISA_RV64A);
+      cgen_bitset_add (info->insn_sets, ISA_RV64F);
+      cgen_bitset_add (info->insn_sets, ISA_RV64D);
+    }
+}
+
 static inline unsigned int riscv_insn_length (bfd_vma insn)
 {
   if ((insn & 0x3) != 0x3) /* RVC.  */

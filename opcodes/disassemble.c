@@ -652,6 +652,11 @@ disassemble_init_for_target (struct disassemble_info * info)
       disassemble_init_powerpc (info);
       break;
 #endif
+#ifdef ARCH_riscv
+    case bfd_arch_riscv:
+      disassemble_init_riscv (info);
+      break;
+#endif
 #ifdef ARCH_wasm32
     case bfd_arch_wasm32:
       disassemble_init_wasm32 (info);

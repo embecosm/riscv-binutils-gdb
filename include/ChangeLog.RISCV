@@ -1,3 +1,8 @@
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* include/dis-asm.h (disassemble_init_riscv): Added forward
+	declaration.
+
 2018-08-13  Edward Jones  <ed.jones@embecosm.com>
 
 	* include/dis-asm.h: Add forward declaration of print_insn_riscv

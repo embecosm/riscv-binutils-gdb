@@ -1,3 +1,11 @@
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.opc (disassemble_init_riscv): Added function to set
+	up the supported ISAs based on the machine id.
+	(CGEN_VALIDATE_INSN_SUPPORTED): Define macro so that
+	riscv_cgen_insn_supported will be called to check before
+	disassembling to a specific instruction.
+
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Remove definitions of fmv.[sd], fabs.[sd] and

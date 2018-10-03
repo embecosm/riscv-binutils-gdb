@@ -37,7 +37,10 @@ extern "C" {
 #undef  CGEN_DIS_HASH
 #define CGEN_DIS_HASH(buffer, value) 0
 
+struct disassemble_info;
+
 extern int riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn);
+extern void disassemble_init_riscv (struct disassemble_info *info);
 
 /* -- */
 /* Enum declaration for riscv instruction types.  */
