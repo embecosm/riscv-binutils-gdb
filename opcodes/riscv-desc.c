@@ -68,6 +68,8 @@ static const CGEN_ATTR_ENTRY ISA_attr[] ATTRIBUTE_UNUSED =
   { "rv64f", ISA_RV64F },
   { "rv32d", ISA_RV32D },
   { "rv64d", ISA_RV64D },
+  { "rv32q", ISA_RV32Q },
+  { "rv64q", ISA_RV64Q },
   { "max", ISA_MAX },
   { 0, 0 }
 };
@@ -144,6 +146,8 @@ static const CGEN_ISA riscv_cgen_isa_table[] = {
   { "rv64f", 32, 32, 32, 32 },
   { "rv32d", 32, 32, 32, 32 },
   { "rv64d", 32, 32, 32, 32 },
+  { "rv32q", 32, 32, 32, 32 },
+  { "rv64q", 32, 32, 32, 32 },
   { 0, 0, 0, 0, 0 }
 };
 
@@ -771,21 +775,21 @@ CGEN_KEYWORD riscv_cgen_opval_h_c_fpr =
 
 const CGEN_HW_ENTRY riscv_cgen_hw_table[] =
 {
-  { "h-memory", HW_H_MEMORY, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-sint", HW_H_SINT, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-uint", HW_H_UINT, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-addr", HW_H_ADDR, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-iaddr", HW_H_IADDR, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-pc", HW_H_PC, CGEN_ASM_NONE, 0, { 0|A(PC), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-gpr", HW_H_GPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-gpr-not-zero", HW_H_GPR_NOT_ZERO, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr_not_zero, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-gpr-not-zero-or-sp", HW_H_GPR_NOT_ZERO_OR_SP, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr_not_zero_or_sp, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-zero", HW_H_ZERO, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_zero, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-sp", HW_H_SP, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_sp, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-c-gpr", HW_H_C_GPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_c_gpr, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-csr", HW_H_CSR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_csr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-fpr", HW_H_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_fpr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
-  { "h-c-fpr", HW_H_C_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_c_fpr, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xf8" } } } } },
+  { "h-memory", HW_H_MEMORY, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-sint", HW_H_SINT, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-uint", HW_H_UINT, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-addr", HW_H_ADDR, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-iaddr", HW_H_IADDR, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-pc", HW_H_PC, CGEN_ASM_NONE, 0, { 0|A(PC), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-gpr", HW_H_GPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-gpr-not-zero", HW_H_GPR_NOT_ZERO, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr_not_zero, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-gpr-not-zero-or-sp", HW_H_GPR_NOT_ZERO_OR_SP, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_gpr_not_zero_or_sp, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-zero", HW_H_ZERO, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_zero, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-sp", HW_H_SP, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_sp, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-c-gpr", HW_H_C_GPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_c_gpr, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-csr", HW_H_CSR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_csr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-fpr", HW_H_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_fpr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-c-fpr", HW_H_C_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_c_fpr, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
   { 0, 0, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } }
 };
 
@@ -798,87 +802,87 @@ const CGEN_HW_ENTRY riscv_cgen_hw_table[] =
 
 const CGEN_IFLD riscv_cgen_ifld_table[] =
 {
-  { RISCV_F_NIL, "f-nil", 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_ANYOF, "f-anyof", 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_DUMMY, "f-dummy", 0, 32, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_OPCODE, "f-opcode", 0, 32, 6, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_C_OPCODE, "f-c-opcode", 0, 32, 1, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_RD, "f-rd", 0, 32, 11, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_RS1, "f-rs1", 0, 32, 19, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_RS2, "f-rs2", 0, 32, 24, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_RS3, "f-rs3", 0, 32, 31, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_CSR, "f-csr", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_SUCC, "f-succ", 0, 32, 27, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_PRED, "f-pred", 0, 32, 23, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_FUNCT5, "f-funct5", 0, 32, 31, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_FUNCT6, "f-funct6", 0, 32, 31, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_FUNCT7, "f-funct7", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_FUNCT3, "f-funct3", 0, 32, 14, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_C_FUNCT3, "f-c-funct3", 0, 32, 15, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_C_FUNCT4, "f-c-funct4", 0, 32, 15, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_C_FUNCT6, "f-c-funct6", 0, 32, 15, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_AQ, "f-aq", 0, 32, 26, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_RL, "f-rl", 0, 32, 25, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_FP2, "f-fp2", 0, 32, 26, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_21, "f-uimm1-21", 0, 32, 2, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_32, "f-uimm2-32", 0, 32, 3, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_42, "f-uimm2-42", 0, 32, 4, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM3_43, "f-uimm3-43", 0, 32, 4, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_51, "f-uimm1-51", 0, 32, 5, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM3_53, "f-uimm3-53", 0, 32, 5, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_61, "f-uimm1-61", 0, 32, 6, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_62, "f-uimm2-62", 0, 32, 6, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM3_63, "f-uimm3-63", 0, 32, 6, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM5_65, "f-uimm5-65", 0, 32, 6, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_71, "f-uimm1-71", 0, 32, 7, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_81, "f-uimm1-81", 0, 32, 8, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_82, "f-uimm2-82", 0, 32, 8, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM3_93, "f-uimm3-93", 0, 32, 9, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_102, "f-uimm2-102", 0, 32, 10, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM4_104, "f-uimm4-104", 0, 32, 10, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_111, "f-uimm1-111", 0, 32, 11, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_112, "f-uimm2-112", 0, 32, 11, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM4_114, "f-uimm4-114", 0, 32, 11, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM5_115, "f-uimm5-115", 0, 32, 11, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_121, "f-uimm1-121", 0, 32, 12, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM2_122, "f-uimm2-122", 0, 32, 12, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM3_123, "f-uimm3-123", 0, 32, 12, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM4_124, "f-uimm4-124", 0, 32, 12, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM15_1415, "f-uimm15-1415", 0, 32, 14, 15, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM16_1516, "f-uimm16-1516", 0, 32, 15, 16, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM5_195, "f-uimm5-195", 0, 32, 19, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM8_198, "f-uimm8-198", 0, 32, 19, 8, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM20_1920, "f-uimm20-1920", 0, 32, 19, 20, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM1_201, "f-uimm1-201", 0, 32, 20, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM5_245, "f-uimm5-245", 0, 32, 24, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM6_256, "f-uimm6-256", 0, 32, 25, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM6_306, "f-uimm6-306", 0, 32, 30, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM10_3010, "f-uimm10-3010", 0, 32, 30, 10, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM4_314, "f-uimm4-314", 0, 32, 31, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM7_317, "f-uimm7-317", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM12_3112, "f-uimm12-3112", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM32_3132, "f-uimm32-3132", 0, 32, 31, 32, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM32_3120_000000000000, "f-uimm32-3120-000000000000", 0, 32, 31, 20, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM1_121, "f-imm1-121", 0, 32, 12, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM1_311, "f-imm1-311", 0, 32, 31, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM7_317, "f-imm7-317", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM12_3112, "f-imm12-3112", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM12_317_115, "f-imm12-317-115", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM13_311_71_306_114_0, "f-imm13-311-71-306-114-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM21_311_198_201_3010_0, "f-imm21-311-198-201-3010-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM6_121_65, "f-imm6-121-65", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM6_121_65, "f-uimm6-121-65", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM18_121_65_000000000000, "f-uimm18-121-65-000000000000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM9_121_62_21_112_42_0, "f-imm9-121-62-21-112-42-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM7_51_123_61_00, "f-uimm7-51-123-61-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM8_62_123_000, "f-uimm8-62-123-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM10_104_122_51_61_00, "f-uimm10-104-122-51-61-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM10_121_42_51_21_61_0000, "f-imm10-121-42-51-21-61-0000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM9_93_123_000, "f-uimm9-93-123-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM8_82_124_00, "f-uimm8-82-124-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_IMM12_121_81_102_61_71_21_111_53_0, "f-imm12-121-81-102-61-71-21-111-53-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM8_32_121_63_00, "f-uimm8-32-121-63-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
-  { RISCV_F_UIMM9_43_121_62_000, "f-uimm9-43-121-62-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+  { RISCV_F_NIL, "f-nil", 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_ANYOF, "f-anyof", 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_DUMMY, "f-dummy", 0, 32, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_OPCODE, "f-opcode", 0, 32, 6, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_C_OPCODE, "f-c-opcode", 0, 32, 1, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_RD, "f-rd", 0, 32, 11, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_RS1, "f-rs1", 0, 32, 19, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_RS2, "f-rs2", 0, 32, 24, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_RS3, "f-rs3", 0, 32, 31, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_CSR, "f-csr", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_SUCC, "f-succ", 0, 32, 27, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_PRED, "f-pred", 0, 32, 23, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_FUNCT5, "f-funct5", 0, 32, 31, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_FUNCT6, "f-funct6", 0, 32, 31, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_FUNCT7, "f-funct7", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_FUNCT3, "f-funct3", 0, 32, 14, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_C_FUNCT3, "f-c-funct3", 0, 32, 15, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_C_FUNCT4, "f-c-funct4", 0, 32, 15, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_C_FUNCT6, "f-c-funct6", 0, 32, 15, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_AQ, "f-aq", 0, 32, 26, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_RL, "f-rl", 0, 32, 25, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_FP2, "f-fp2", 0, 32, 26, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_21, "f-uimm1-21", 0, 32, 2, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_32, "f-uimm2-32", 0, 32, 3, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_42, "f-uimm2-42", 0, 32, 4, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM3_43, "f-uimm3-43", 0, 32, 4, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_51, "f-uimm1-51", 0, 32, 5, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM3_53, "f-uimm3-53", 0, 32, 5, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_61, "f-uimm1-61", 0, 32, 6, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_62, "f-uimm2-62", 0, 32, 6, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM3_63, "f-uimm3-63", 0, 32, 6, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM5_65, "f-uimm5-65", 0, 32, 6, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_71, "f-uimm1-71", 0, 32, 7, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_81, "f-uimm1-81", 0, 32, 8, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_82, "f-uimm2-82", 0, 32, 8, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM3_93, "f-uimm3-93", 0, 32, 9, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_102, "f-uimm2-102", 0, 32, 10, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM4_104, "f-uimm4-104", 0, 32, 10, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_111, "f-uimm1-111", 0, 32, 11, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_112, "f-uimm2-112", 0, 32, 11, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM4_114, "f-uimm4-114", 0, 32, 11, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM5_115, "f-uimm5-115", 0, 32, 11, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_121, "f-uimm1-121", 0, 32, 12, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM2_122, "f-uimm2-122", 0, 32, 12, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM3_123, "f-uimm3-123", 0, 32, 12, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM4_124, "f-uimm4-124", 0, 32, 12, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM15_1415, "f-uimm15-1415", 0, 32, 14, 15, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM16_1516, "f-uimm16-1516", 0, 32, 15, 16, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM5_195, "f-uimm5-195", 0, 32, 19, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM8_198, "f-uimm8-198", 0, 32, 19, 8, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM20_1920, "f-uimm20-1920", 0, 32, 19, 20, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM1_201, "f-uimm1-201", 0, 32, 20, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM5_245, "f-uimm5-245", 0, 32, 24, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM6_256, "f-uimm6-256", 0, 32, 25, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM6_306, "f-uimm6-306", 0, 32, 30, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM10_3010, "f-uimm10-3010", 0, 32, 30, 10, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM4_314, "f-uimm4-314", 0, 32, 31, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM7_317, "f-uimm7-317", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM12_3112, "f-uimm12-3112", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM32_3132, "f-uimm32-3132", 0, 32, 31, 32, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM32_3120_000000000000, "f-uimm32-3120-000000000000", 0, 32, 31, 20, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM1_121, "f-imm1-121", 0, 32, 12, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM1_311, "f-imm1-311", 0, 32, 31, 1, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM7_317, "f-imm7-317", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM12_3112, "f-imm12-3112", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM12_317_115, "f-imm12-317-115", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM13_311_71_306_114_0, "f-imm13-311-71-306-114-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM21_311_198_201_3010_0, "f-imm21-311-198-201-3010-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM6_121_65, "f-imm6-121-65", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM6_121_65, "f-uimm6-121-65", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM18_121_65_000000000000, "f-uimm18-121-65-000000000000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM9_121_62_21_112_42_0, "f-imm9-121-62-21-112-42-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM7_51_123_61_00, "f-uimm7-51-123-61-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM8_62_123_000, "f-uimm8-62-123-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM10_104_122_51_61_00, "f-uimm10-104-122-51-61-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM10_121_42_51_21_61_0000, "f-imm10-121-42-51-21-61-0000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM9_93_123_000, "f-uimm9-93-123-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM8_82_124_00, "f-uimm8-82-124-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_IMM12_121_81_102_61_71_21_111_53_0, "f-imm12-121-81-102-61-71-21-111-53-0", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM8_32_121_63_00, "f-uimm8-32-121-63-00", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+  { RISCV_F_UIMM9_43_121_62_000, "f-uimm9-43-121-62-000", 0, 0, 0, 0,{ 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
   { 0, 0, 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } }
 };
 
@@ -1036,227 +1040,227 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
 /* pc: program counter */
   { "pc", RISCV_OPERAND_PC, HW_H_PC, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_NIL] } },
-    { 0|A(SEM_ONLY), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(SEM_ONLY), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* rd: rd */
   { "rd", RISCV_OPERAND_RD, HW_H_GPR, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RD] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* sp-reg: register tied to the stack pointer */
   { "sp-reg", RISCV_OPERAND_SP_REG, HW_H_SP, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* rs1: rs1 */
   { "rs1", RISCV_OPERAND_RS1, HW_H_GPR, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS1] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* rs2: rs2 */
   { "rs2", RISCV_OPERAND_RS2, HW_H_GPR, 24, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS2] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg117: register field for compressed (11:7) */
   { "c-reg117", RISCV_OPERAND_C_REG117, HW_H_GPR, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg117-ne0: register field for compressed (11:7) */
   { "c-reg117-ne0", RISCV_OPERAND_C_REG117_NE0, HW_H_GPR_NOT_ZERO, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg117-ne0-ne2: register field for compressed (11:7) */
   { "c-reg117-ne0-ne2", RISCV_OPERAND_C_REG117_NE0_NE2, HW_H_GPR_NOT_ZERO_OR_SP, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg62: register field for compressed (6:2) */
   { "c-reg62", RISCV_OPERAND_C_REG62, HW_H_GPR, 6, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_65] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg62-ne0: register field for compressed (6:2) */
   { "c-reg62-ne0", RISCV_OPERAND_C_REG62_NE0, HW_H_GPR_NOT_ZERO, 6, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_65] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg97: register field for compressed (9:7) */
   { "c-reg97", RISCV_OPERAND_C_REG97, HW_H_C_GPR, 9, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_93] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-reg42: register field for compressed (4:2) */
   { "c-reg42", RISCV_OPERAND_C_REG42, HW_H_C_GPR, 4, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_43] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs97: tied register pair, encoded in [9:7] */
   { "c-tied-regs97", RISCV_OPERAND_C_TIED_REGS97, HW_H_C_GPR, 9, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_93] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs97-commutative: tied register pair, encoded in [9:7] */
   { "c-tied-regs97-commutative", RISCV_OPERAND_C_TIED_REGS97_COMMUTATIVE, HW_H_C_GPR, 9, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_93] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs117: tied register pair, encoded in [11:7] */
   { "c-tied-regs117", RISCV_OPERAND_C_TIED_REGS117, HW_H_GPR, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs117-ne0: tied register pair, encoded in [11:7] */
   { "c-tied-regs117-ne0", RISCV_OPERAND_C_TIED_REGS117_NE0, HW_H_GPR_NOT_ZERO, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs117-ne0-commutative: tied register pair, encoded in [11:7] */
   { "c-tied-regs117-ne0-commutative", RISCV_OPERAND_C_TIED_REGS117_NE0_COMMUTATIVE, HW_H_GPR_NOT_ZERO, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* c-tied-regs117-ne0-ne2: tied register pair, encoded in [11:7] */
   { "c-tied-regs117-ne0-ne2", RISCV_OPERAND_C_TIED_REGS117_NE0_NE2, HW_H_GPR_NOT_ZERO_OR_SP, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-rd: fl-rd */
   { "fl-rd", RISCV_OPERAND_FL_RD, HW_H_FPR, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RD] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-rs1: fl-rs1 */
   { "fl-rs1", RISCV_OPERAND_FL_RS1, HW_H_FPR, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS1] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-rs2: fl-rs2 */
   { "fl-rs2", RISCV_OPERAND_FL_RS2, HW_H_FPR, 24, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS2] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-rs3: fl-rs3 */
   { "fl-rs3", RISCV_OPERAND_FL_RS3, HW_H_FPR, 31, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS3] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fc-rs2: fp register field for compressed (4:2) */
   { "fc-rs2", RISCV_OPERAND_FC_RS2, HW_H_C_FPR, 4, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM3_43] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fc-rs3: fp register field for compressed (6:2) */
   { "fc-rs3", RISCV_OPERAND_FC_RS3, HW_H_FPR, 6, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_65] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-tied-regs1915: tied register pair, encoded in [19:15] */
   { "fl-tied-regs1915", RISCV_OPERAND_FL_TIED_REGS1915, HW_H_FPR, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-dummy: fl-dummy */
   { "fl-dummy", RISCV_OPERAND_FL_DUMMY, HW_H_FPR, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* csr: csr */
   { "csr", RISCV_OPERAND_CSR, HW_H_CSR, 31, 12,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_CSR] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* pred: pred */
   { "pred", RISCV_OPERAND_PRED, HW_H_UINT, 23, 4,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_PRED] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* succ: succ */
   { "succ", RISCV_OPERAND_SUCC, HW_H_UINT, 27, 4,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_SUCC] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* fl-rm: fl-rm */
   { "fl-rm", RISCV_OPERAND_FL_RM, HW_H_UINT, 14, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT3] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* tprel_add: Special field to attach a %tprel_add reloc to an add instruction */
   { "tprel_add", RISCV_OPERAND_TPREL_ADD, HW_H_SINT, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* imm-zero: imm operand which is always zero */
   { "imm-zero", RISCV_OPERAND_IMM_ZERO, HW_H_SINT, 0, 0,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_DUMMY] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm5: uimm5 [19..15] */
   { "uimm5", RISCV_OPERAND_UIMM5, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm5-abs: uimm5 [19..15] (absolute) */
   { "uimm5-abs", RISCV_OPERAND_UIMM5_ABS, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* imm-lo12: Low 12-bits of a 32-bit uimmediate */
   { "imm-lo12", RISCV_OPERAND_IMM_LO12, HW_H_SINT, 31, 12,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_IMM12_3112] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* imm-lo12-abs: Low 12-bits of a 32-bit uimmediate (absolute) */
   { "imm-lo12-abs", RISCV_OPERAND_IMM_LO12_ABS, HW_H_SINT, 31, 12,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_IMM12_3112] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm32-3120-000000000000: uimm12 [31..12]000000000000 */
   { "uimm32-3120-000000000000", RISCV_OPERAND_UIMM32_3120_000000000000, HW_H_UINT, 31, 20,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM32_3120_000000000000] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* store12: 12-bit store offset */
   { "store12", RISCV_OPERAND_STORE12, HW_H_SINT, 11, 12,
     { 2, { (const PTR) &RISCV_F_IMM12_317_115_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* branch13: 13-bit PC-relative branch */
   { "branch13", RISCV_OPERAND_BRANCH13, HW_H_SINT, 7, 12,
     { 4, { (const PTR) &RISCV_F_IMM13_311_71_306_114_0_MULTI_IFIELD[0] } },
-    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* jmp21: 21-bit PC-relative jump */
   { "jmp21", RISCV_OPERAND_JMP21, HW_H_SINT, 19, 20,
     { 4, { (const PTR) &RISCV_F_IMM21_311_198_201_3010_0_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* imm6-121-65-abs: imm6 [12][6..2] (absolute) */
   { "imm6-121-65-abs", RISCV_OPERAND_IMM6_121_65_ABS, HW_H_SINT, 6, 6,
     { 2, { (const PTR) &RISCV_F_IMM6_121_65_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* nzuimm18-121-65-000000000000-abs: nzuimm18 [12][6..2]000000000000 (absolute) */
   { "nzuimm18-121-65-000000000000-abs", RISCV_OPERAND_NZUIMM18_121_65_000000000000_ABS, HW_H_UINT, 6, 6,
     { 2, { (const PTR) &RISCV_F_UIMM18_121_65_000000000000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* nzimm6-121-65-abs: nzimm6 [12][6..2] (absolute) */
   { "nzimm6-121-65-abs", RISCV_OPERAND_NZIMM6_121_65_ABS, HW_H_SINT, 6, 6,
     { 2, { (const PTR) &RISCV_F_IMM6_121_65_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* nzimm10-121-42-51-21-61-0000-abs: nzimm10 [12][4..3][5][2][6]0000 (absolute) */
   { "nzimm10-121-42-51-21-61-0000-abs", RISCV_OPERAND_NZIMM10_121_42_51_21_61_0000_ABS, HW_H_SINT, 2, 6,
     { 5, { (const PTR) &RISCV_F_IMM10_121_42_51_21_61_0000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* cbranch9: 13-bit PC-relative branch (C extension) */
   { "cbranch9", RISCV_OPERAND_CBRANCH9, HW_H_SINT, 2, 8,
     { 5, { (const PTR) &RISCV_F_IMM9_121_62_21_112_42_0_MULTI_IFIELD[0] } },
-    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* cjmp12: imm12 [12][8][10..9][6][7][2][11][5..3]0 */
   { "cjmp12", RISCV_OPERAND_CJMP12, HW_H_SINT, 2, 11,
     { 8, { (const PTR) &RISCV_F_IMM12_121_81_102_61_71_21_111_53_0_MULTI_IFIELD[0] } },
-    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(RELAX)|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm5-245: uimm5 [24..20] (absolute) */
   { "uimm5-245", RISCV_OPERAND_UIMM5_245, HW_H_UINT, 24, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_245] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm6-256: uimm6 [25..20] (absolute) */
   { "uimm6-256", RISCV_OPERAND_UIMM6_256, HW_H_UINT, 25, 6,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM6_256] } },
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm9-93-123-000-abs: uimm9 [9..7][12..10]000 (absolute) */
   { "uimm9-93-123-000-abs", RISCV_OPERAND_UIMM9_93_123_000_ABS, HW_H_UINT, 9, 6,
     { 2, { (const PTR) &RISCV_F_UIMM9_93_123_000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm8-82-124-00-abs: uimm8 [8..7][12..9]00 (absolute) */
   { "uimm8-82-124-00-abs", RISCV_OPERAND_UIMM8_82_124_00_ABS, HW_H_UINT, 8, 6,
     { 2, { (const PTR) &RISCV_F_UIMM8_82_124_00_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* nzuimm10-104-122-51-61-00-abs: nzuimm10 [10..7][12..11][5][6]00 */
   { "nzuimm10-104-122-51-61-00-abs", RISCV_OPERAND_NZUIMM10_104_122_51_61_00_ABS, HW_H_UINT, 5, 8,
     { 4, { (const PTR) &RISCV_F_UIMM10_104_122_51_61_00_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* nzuimm6-121-65-abs: nzuimm6 [12][6..2] (absolute) */
   { "nzuimm6-121-65-abs", RISCV_OPERAND_NZUIMM6_121_65_ABS, HW_H_UINT, 6, 6,
     { 2, { (const PTR) &RISCV_F_UIMM6_121_65_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm9-43-121-62-000-abs: uimm9 [4..2][12][6..5]000 (absolute) */
   { "uimm9-43-121-62-000-abs", RISCV_OPERAND_UIMM9_43_121_62_000_ABS, HW_H_UINT, 4, 6,
     { 3, { (const PTR) &RISCV_F_UIMM9_43_121_62_000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm8-32-121-63-00-abs: uimm8 [3..2][12][6..4]00 (absolute) */
   { "uimm8-32-121-63-00-abs", RISCV_OPERAND_UIMM8_32_121_63_00_ABS, HW_H_UINT, 3, 6,
     { 3, { (const PTR) &RISCV_F_UIMM8_32_121_63_00_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm7-51-123-61-00-abs: uimm7 [5][12..10][6]00 (absolute) */
   { "uimm7-51-123-61-00-abs", RISCV_OPERAND_UIMM7_51_123_61_00_ABS, HW_H_UINT, 5, 5,
     { 3, { (const PTR) &RISCV_F_UIMM7_51_123_61_00_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* uimm8-62-123-000-abs: uimm8 [6..5][12..10]000 (absolute) */
   { "uimm8-62-123-000-abs", RISCV_OPERAND_UIMM8_62_123_000_ABS, HW_H_UINT, 6, 5,
     { 2, { (const PTR) &RISCV_F_UIMM8_62_123_000_MULTI_IFIELD[0] } },
-    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }  },
+    { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* sentinel */
   { 0, 0, 0, 0, 0,
     { 0, { (const PTR) 0 } },
@@ -1700,12 +1704,12 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* csrrw ${rd},${csr},${rs1} */
   {
     RISCV_INSN_CSRRW, "csrrw", "csrrw", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }
   },
 /* csrrs ${rd},${csr},${rs1} */
   {
     RISCV_INSN_CSRRS, "csrrs", "csrrs", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }
   },
 /* csrrc ${rd},${csr},${rs1} */
   {
@@ -1715,7 +1719,7 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* csrrwi ${rd},${csr},${uimm5} */
   {
     RISCV_INSN_CSRRWI, "csrrwi", "csrrwi", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xf8" } } } }
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }
   },
 /* csrrsi ${rd},${csr},${uimm5} */
   {
@@ -2656,6 +2660,166 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
   {
     RISCV_INSN_FMV_D_X, "fmv.d.x", "fmv.d.x", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x8" } } } }
+  },
+/* flq ${fl-rd},${imm-lo12}(${rs1}) */
+  {
+    RISCV_INSN_FLQ, "flq", "flq", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsq ${fl-rs2},${store12}(${rs1}) */
+  {
+    RISCV_INSN_FSQ, "fsq", "fsq", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fmadd.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
+  {
+    RISCV_INSN_FMADD_Q, "fmadd.q", "fmadd.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fmsub.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
+  {
+    RISCV_INSN_FMSUB_Q, "fmsub.q", "fmsub.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fnmsub.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
+  {
+    RISCV_INSN_FNMSUB_Q, "fnmsub.q", "fnmsub.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fnmadd.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm} */
+  {
+    RISCV_INSN_FNMADD_Q, "fnmadd.q", "fnmadd.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fadd.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
+  {
+    RISCV_INSN_FADD_Q, "fadd.q", "fadd.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsub.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
+  {
+    RISCV_INSN_FSUB_Q, "fsub.q", "fsub.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fmul.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
+  {
+    RISCV_INSN_FMUL_Q, "fmul.q", "fmul.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fdiv.q ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm} */
+  {
+    RISCV_INSN_FDIV_Q, "fdiv.q", "fdiv.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsgnj.q ${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FSGNJ_Q, "fsgnj.q", "fsgnj.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsgnjn.q ${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FSGNJN_Q, "fsgnjn.q", "fsgnjn.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsgnjx.q ${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FSGNJX_Q, "fsgnjx.q", "fsgnjx.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fmin.q ${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FMIN_Q, "fmin.q", "fmin.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fmax.q ${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FMAX_Q, "fmax.q", "fmax.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* feq.q ${rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FEQ_Q, "feq.q", "feq.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* flt.q ${rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FLT_Q, "flt.q", "flt.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fle.q ${rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_FLE_Q, "fle.q", "fle.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fsqrt.q ${fl-rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FSQRT_Q, "fsqrt.q", "fsqrt.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.w.q ${rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_W_Q, "fcvt.w.q", "fcvt.w.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.wu.q ${rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_WU_Q, "fcvt.wu.q", "fcvt.wu.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fclass.q ${rd},${fl-rs1} */
+  {
+    RISCV_INSN_FCLASS_Q, "fclass.q", "fclass.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.q.w ${fl-rd},${rs1} */
+  {
+    RISCV_INSN_FCVT_Q_W, "fcvt.q.w", "fcvt.q.w", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.q.wu ${fl-rd},${rs1} */
+  {
+    RISCV_INSN_FCVT_Q_WU, "fcvt.q.wu", "fcvt.q.wu", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.s.q ${fl-rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_S_Q, "fcvt.s.q", "fcvt.s.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.d.q ${fl-rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_D_Q, "fcvt.d.q", "fcvt.d.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.q.s ${fl-rd},${fl-rs1} */
+  {
+    RISCV_INSN_FCVT_Q_S, "fcvt.q.s", "fcvt.q.s", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.q.d ${fl-rd},${fl-rs1} */
+  {
+    RISCV_INSN_FCVT_Q_D, "fcvt.q.d", "fcvt.q.d", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x6" } } } }
+  },
+/* fcvt.l.q ${rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_L_Q, "fcvt.l.q", "fcvt.l.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x2" } } } }
+  },
+/* fcvt.lu.q ${rd},${fl-rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_LU_Q, "fcvt.lu.q", "fcvt.lu.q", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x2" } } } }
+  },
+/* fcvt.q.l ${fl-rd},${rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_Q_L, "fcvt.q.l", "fcvt.q.l", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x2" } } } }
+  },
+/* fcvt.q.lu ${fl-rd},${rs1},${fl-rm} */
+  {
+    RISCV_INSN_FCVT_Q_LU, "fcvt.q.lu", "fcvt.q.lu", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x2" } } } }
   },
 };
 

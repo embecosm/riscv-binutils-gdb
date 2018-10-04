@@ -64,100 +64,37 @@
   (comment "RISCV")
   (insn-lsb0? #t)
   (machs riscv:rv32 riscv:rv64)
-  (isas rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d)
+  (isas rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d rv32q rv64q)
 )
 
 ; Instruction set parameters.
-(define-isa
-  (name rv32i)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
+
+(define-pmacro base-isas   () (ISA  rv32i rv64i rv32e))
+
+(define-pmacro (define-riscv-ext isa-name)
+  (define-isa
+    (name isa-name)
+    (default-insn-word-bitsize 32)
+    (default-insn-bitsize 32)
+    (base-insn-bitsize 32)
+  )
 )
 
-(define-isa
-  (name rv64i)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32e)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32m)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv64m)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32c)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv64c)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32a)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv64a)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32f)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv64f)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv32d)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
-
-(define-isa
-  (name rv64d)
-  (default-insn-word-bitsize 32)
-  (default-insn-bitsize 32)
-  (base-insn-bitsize 32)
-)
+(define-riscv-ext rv32i)
+(define-riscv-ext rv64i)
+(define-riscv-ext rv32e)
+(define-riscv-ext rv32m)
+(define-riscv-ext rv64m)
+(define-riscv-ext rv32c)
+(define-riscv-ext rv64c)
+(define-riscv-ext rv32a)
+(define-riscv-ext rv64a)
+(define-riscv-ext rv32f)
+(define-riscv-ext rv64f)
+(define-riscv-ext rv32d)
+(define-riscv-ext rv64d)
+(define-riscv-ext rv32q)
+(define-riscv-ext rv64q)
 
 (define-cpu
   (name riscvbf32)
@@ -212,10 +149,11 @@
 (define-pmacro a-extension () (ISA  rv32a rv64a))
 (define-pmacro f-extension () (ISA  rv32f rv64f))
 (define-pmacro d-extension () (ISA  rv32d rv64d))
+(define-pmacro q-extension () (ISA  rv32q rv64q))
 (define-pmacro m-extension () (ISA  rv32m rv64m))
 (define-pmacro c-extension () (ISA  rv32c rv64c))
 (define-pmacro embed-isas  () (ISA  rv32e))
-(define-pmacro all-isas    () (ISA  rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d))
+(define-pmacro all-isas    () (ISA  rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d rv32q rv64q))
 (define-pmacro all-machs   () (MACH riscv:rv32 riscv:rv64))
 
 (define-hardware
@@ -2606,6 +2544,55 @@
 (rv-format-f-6    "fmv.d.x"   (ISA rv64d) #b1111001 #b00000 #b000 #b1010011)
 
 
+;===-------------------- 'Q' extension instructions -------------------------===
+
+(rv-format-f-1    "flq"       q-extension #b100 #b0000111)
+(rv-format-f-2    "fsq"       q-extension #b100 #b0100111)
+(rv-format-f-3-rm "fmadd.q"   q-extension #b11 #b1000011)
+(rv-format-f-3-rm "fmsub.q"   q-extension #b11 #b1000111)
+(rv-format-f-3-rm "fnmsub.q"  q-extension #b11 #b1001011)
+(rv-format-f-3-rm "fnmadd.q"  q-extension #b11 #b1001111)
+
+(rv-format-f-4-rm "fadd.q"    q-extension #b0000011 #b1010011)
+(rv-format-f-4-rm "fsub.q"    q-extension #b0000111 #b1010011)
+(rv-format-f-4-rm "fmul.q"    q-extension #b0001011 #b1010011)
+(rv-format-f-4-rm "fdiv.q"    q-extension #b0001111 #b1010011)
+
+(rv-format-f-4    "fsgnj.q"   q-extension #b0010011 #b000 #b1010011)
+(rv-format-f-4    "fsgnjn.q"  q-extension #b0010011 #b001 #b1010011)
+(rv-format-f-4    "fsgnjx.q"  q-extension #b0010011 #b010 #b1010011)
+(rv-format-f-4    "fmin.q"    q-extension #b0010111 #b000 #b1010011)
+(rv-format-f-4    "fmax.q"    q-extension #b0010111 #b001 #b1010011)
+(rv-format-f-8    "feq.q"     q-extension #b1010011 #b010 #b1010011)
+(rv-format-f-8    "flt.q"     q-extension #b1010011 #b001 #b1010011)
+(rv-format-f-8    "fle.q"     q-extension #b1010011 #b000 #b1010011)
+
+(rv-format-f-5-rm "fsqrt.q"   q-extension #b0101111 #b00000 #b1010011)
+
+(rv-format-f-7-rm "fcvt.w.q"  q-extension #b1100011 #b00000 #b1010011)
+(rv-format-f-7-rm "fcvt.wu.q" q-extension #b1100011 #b00001 #b1010011)
+(rv-format-f-7    "fclass.q"  q-extension #b1110011 #b00000 #b001 #b1010011)
+(rv-format-f-6    "fcvt.q.w"  q-extension #b1101011 #b00000 #b000 #b1010011)
+(rv-format-f-6    "fcvt.q.wu" q-extension #b1101011 #b00001 #b000 #b1010011)
+
+(rv-format-f-5-rm "fcvt.s.q"  q-extension #b0100000 #b00011 #b1010011)
+(rv-format-f-5-rm "fcvt.d.q"  q-extension #b0100001 #b00011 #b1010011)
+(rv-format-f-5    "fcvt.q.s"  q-extension #b0100011 #b00000 #b000 #b1010011)
+(rv-format-f-5    "fcvt.q.d"  q-extension #b0100011 #b00001 #b000 #b1010011)
+
+;RV64Q
+
+(rv-format-f-7-rm "fcvt.l.q"  (ISA rv64q) #b1100011 #b00010 #b1010011)
+(rv-format-f-7-rm "fcvt.lu.q" (ISA rv64q) #b1100011 #b00011 #b1010011)
+(rv-format-f-6-rm "fcvt.q.l"  (ISA rv64q) #b1101011 #b00010 #b1010011)
+(rv-format-f-6-rm "fcvt.q.lu" (ISA rv64q) #b1101011 #b00011 #b1010011)
+
+;RV128Q (not supported yet)
+
+;(rv-format-f-7    "fmv.x.q"  (ISA rv128q) #b1110011 #b00000 #b000 #b1010011)
+;(rv-format-f-6    "fmv.q.x"  (ISA rv128q) #b1111011 #b00000 #b000 #b1010011)
+
+
 ;===------------------ 'C' extension macro instructions ---------------------===
 ;
 ; It is important that the compressed macro instructions are defined *before*
@@ -2924,4 +2911,38 @@
 (rv-macro p-fcvt.lu.d "fcvt.lu.d" ((ISA rv64d)) " ${rd},${fl-rs1}" (emit fcvt.lu.d rd fl-rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.d.l  "fcvt.d.l"  ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.l  fl-rd rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.d.lu "fcvt.d.lu" ((ISA rv64d)) " ${fl-rd},${rs1}" (emit fcvt.d.lu fl-rd rs1 (fl-rm #b111)))
+
+
+;===----------------- 'Q' extension macro instructions ----------------------===
+
+(rv-macro p-flq       "flq"       (q-extension NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flq fl-rd imm-lo12 rs1))
+(rv-macro p-fsq       "fsq"       (q-extension NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsq fl-rs2 store12 rs1))
+
+(rv-macro p-fmadd.q   "fmadd.q"   (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.q  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.q   "fmsub.q"   (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.q  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.q  "fnmsub.q"  (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.q fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.q  "fnmadd.q"  (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.q fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+
+(rv-macro p-fadd.q    "fadd.q"    (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.q    "fsub.q"    (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.q    "fmul.q"    (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.q    "fdiv.q"    (q-extension) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+
+(rv-macro p-fsqrt.q   "fsqrt.q"   (q-extension) " ${fl-rd},${fl-rs1}" (emit fsqrt.q fl-rd fl-rs1 (fl-rm #b111)))
+
+(rv-macro p-fcvt.w.q  "fcvt.w.q"  (q-extension) " ${rd},${fl-rs1}" (emit fcvt.w.q  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.q "fcvt.wu.q" (q-extension) " ${rd},${fl-rs1}" (emit fcvt.wu.q rd fl-rs1 (fl-rm #b111)))
+
+(rv-macro p-fcvt.s.q  "fcvt.s.q"  (q-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.s.q fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.q  "fcvt.d.q"  (q-extension) " ${fl-rd},${fl-rs1}" (emit fcvt.d.q fl-rd fl-rs1 (fl-rm #b111)))
+
+(rv-macro p-fgt.q     "fgt.q"     (q-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.q rd fl-rs2 fl-rs1))
+(rv-macro p-fge.q     "fge.q"     (q-extension NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.q rd fl-rs2 fl-rs1))
+
+;RV64D
+
+(rv-macro p-fcvt.l.q  "fcvt.l.q"  ((ISA rv64q)) " ${rd},${fl-rs1}" (emit fcvt.l.q  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.q "fcvt.lu.q" ((ISA rv64q)) " ${rd},${fl-rs1}" (emit fcvt.lu.q rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.q.l  "fcvt.q.l"  ((ISA rv64q)) " ${fl-rd},${rs1}" (emit fcvt.q.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.q.lu "fcvt.q.lu" ((ISA rv64q)) " ${fl-rd},${rs1}" (emit fcvt.q.lu fl-rd rs1 (fl-rm #b111)))
 

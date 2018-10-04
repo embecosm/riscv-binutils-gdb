@@ -1,3 +1,16 @@
+2018-10-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu (define-riscv-ext): Add new macro to simplify
+	declaration of new extensions, use for all existing ISAs, plus
+	the new rv32q and rv64q extensions.
+	(q-extension): Define macro to represent both the 32 and
+	64 bit ISAs associated with the Q extension.
+	(all-isas): Add rv32q and rv64q to list of all ISAs.
+	Define all Q extension instructions and macro instructions.
+	* riscv.opc (disassemble_init_riscv): Depending on the machine
+	being disassembled for, add ISA_RV32Q and ISA_RV64Q to the
+	ISAs which will be initialized.
+
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Move 'C' extension macro instructions to be

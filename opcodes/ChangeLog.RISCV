@@ -1,3 +1,11 @@
+2018-10-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv-desc.c: Regenerated.
+	* riscv-desc.h: Likewise.
+	* riscv-dis.c: Likewise.
+	* riscv-opc.c: Likewise.
+	* riscv-opc.h: Likewise.
+
 2018-10-03  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv-asm.c: Regenerated.
