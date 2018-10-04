@@ -1,3 +1,12 @@
+2018-10-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* config/tc-riscv (riscv_set_arch): Add 'q' extension to
+	the string of all architecture subsets.
+	Add extra errors if 'Q' is specified without 'D', or without
+	an xlen >= 64.
+	(assemble_late_pseudos): Add handling for fmv.q, fabs.q, fneg.q,
+	flq and fsq complex pseudo instructions.
+
 2018-09-05  Edward Jones  <ed.jones@embecosm.com>
 
 	* config/tc-riscv (s_riscv_leb128): Add function to custom

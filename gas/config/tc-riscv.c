@@ -138,6 +138,8 @@ riscv_isa_for_subset (const char *subset)
     return (xlen == 64) ? ISA_RV64F : ISA_RV32F;
   else if (!strcmp(subset, "d"))
     return (xlen == 64) ? ISA_RV64D : ISA_RV32D;
+  else if (!strcmp(subset, "q"))
+    return (xlen == 64) ? ISA_RV64Q : ISA_RV32Q;
   else
     as_fatal ("ISA not yet supported");
 }
@@ -208,7 +210,7 @@ riscv_remove_subset (const char *subset)
 static void
 riscv_set_arch (const char *s)
 {
-  const char *all_subsets = "imafdce";
+  const char *all_subsets = "imafdqc";
   char *extension = NULL;
   const char *p = s;
 
@@ -244,7 +246,7 @@ riscv_set_arch (const char *s)
 
       case 'g':
 	p++;
-	for ( ; *all_subsets != 'c'; all_subsets++)
+	for ( ; *all_subsets != 'q'; all_subsets++)
 	  {
 	    const char subset[] = {*all_subsets, '\0'};
 	    riscv_add_subset (subset);
@@ -291,6 +293,12 @@ riscv_set_arch (const char *s)
 
   if (riscv_subset_supports ("d") && !riscv_subset_supports ("f"))
     as_fatal ("-march=%s: `d' extension requires `f' extension", s);
+
+  if (riscv_subset_supports ("q") && !riscv_subset_supports ("d"))
+    as_fatal ("-march=%s: `q' extension requires `d' extension", s);
+
+  if (riscv_subset_supports ("q") && xlen < 64)
+    as_fatal ("-march=%s: rv32 does not support the `q' extension", s);
 
   free (extension);
 }
@@ -768,7 +776,7 @@ assemble_late_pseudos(char * str)
     }
   else if (str[0] == 'f' && (str[1] == 'm' || str[1] == 'a' || str[1] == 'n'))
     {
-      /* looking for fmv.[sd], fabs.[sd], fneg.[sd]  */
+      /* looking for fmv.[sdq], fabs.[sdq], fneg.[sdq]  */
       char type_char;
       bfd_boolean is_fmv, is_fabs, is_fneg;
       if ((is_fmv  = !strncmp (str, "fmv", 3)))
@@ -783,7 +791,7 @@ assemble_late_pseudos(char * str)
 	return "unknown instruction";
       str++;
       type_char = str[0];
-      if (type_char != 's' && type_char != 'd')
+      if (type_char != 's' && type_char != 'd' && type_char != 'q')
 	return "unknown instruction";
       str++;
 
@@ -830,11 +838,11 @@ assemble_late_pseudos(char * str)
     }
   else if (str[0] == 'f' && (str[1] == 'l' || str[1] == 's'))
     {
-      /* looking for flw, fsw, fld, fsd */
+      /* looking for fl[wdq] and fs[wdq].  */
       char type_char = str[1];
       char mem_op_char = str[1] != '\0' ? str[2] : '\0';
       if (!(type_char == 's' || type_char == 'l')
-          || !(mem_op_char == 'w' || mem_op_char == 'd'))
+          || !(mem_op_char == 'w' || mem_op_char == 'd' || mem_op_char == 'q'))
 	return "unknown memory pseudo instruction";
       str += 3;
 
@@ -889,7 +897,7 @@ assemble_late_pseudos(char * str)
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &exp, 0, BFD_RELOC_RISCV_PCREL_HI20);
 
-      /* Assemble the subsequent flw, fsw, fld, fsd
+      /* Assemble the subsequent flw, fsw, fld, fsd, flq, fsq
 
          We must temporarily disable the 'C' extension here, otherwise we
          will assemble to a compressed instruction which we cannot apply
