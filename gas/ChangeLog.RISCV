@@ -1,5 +1,10 @@
 2018-10-04  Edward Jones  <ed.jones@embecosm.com>
 
+	* config/tc-riscv (riscv_after_parse_args): If 'q' extension
+	is specified then default to the quad float ABI.
+
+2018-10-04  Edward Jones  <ed.jones@embecosm.com>
+
 	* config/tc-riscv (riscv_set_arch): Add 'q' extension to
 	the string of all architecture subsets.
 	Add extra errors if 'Q' is specified without 'D', or without

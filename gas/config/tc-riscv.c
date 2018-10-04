@@ -1083,6 +1083,8 @@ riscv_after_parse_args (void)
 
       if (riscv_subset_supports ("d"))
 	float_abi = FLOAT_ABI_DOUBLE;
+      if (riscv_subset_supports ("q"))
+	float_abi = FLOAT_ABI_QUAD;
     }
 
   if (rve_abi)
