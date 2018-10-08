@@ -192,6 +192,14 @@ static const CGEN_IFMT ifmt_fence ATTRIBUTE_UNUSED = {
   32, 32, 0xf00fffff, { { F (F_UIMM4_314) }, { F (F_SUCC) }, { F (F_PRED) }, { F (F_UIMM20_1920) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_sfence_vm ATTRIBUTE_UNUSED = {
+  32, 32, 0xfff07fff, { { F (F_UIMM12_3112) }, { F (F_RS1) }, { F (F_UIMM15_1415) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_sfence_vma ATTRIBUTE_UNUSED = {
+  32, 32, 0xfe007fff, { { F (F_UIMM7_317) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_UIMM15_1415) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_fence_i ATTRIBUTE_UNUSED = {
   32, 32, 0xffffffff, { { F (F_UIMM32_3132) }, { 0 } }
 };
@@ -202,14 +210,6 @@ static const CGEN_IFMT ifmt_csrrw ATTRIBUTE_UNUSED = {
 
 static const CGEN_IFMT ifmt_csrrwi ATTRIBUTE_UNUSED = {
   32, 32, 0x707f, { { F (F_CSR) }, { F (F_UIMM5_195) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_sfence_vm ATTRIBUTE_UNUSED = {
-  32, 32, 0xfff07fff, { { F (F_UIMM12_3112) }, { F (F_RS1) }, { F (F_UIMM15_1415) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_sfence_vma ATTRIBUTE_UNUSED = {
-  32, 32, 0xfe007fff, { { F (F_UIMM7_317) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_UIMM15_1415) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_slli_shift6 ATTRIBUTE_UNUSED = {
@@ -305,6 +305,18 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, 0 } },
     & ifmt_c_nop, { 0x1 }
   },
+/* c.ebreak */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_c_nop, { 0x9002 }
+  },
+/* c.unimp */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_c_nop, { 0x0 }
+  },
 /* c.jr ${c-reg117-ne0} */
   {
     { 0, 0, 0, 0 },
@@ -352,18 +364,6 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (C_REG97), ',', OP (C_REG42), 0 } },
     & ifmt_c_and, { 0x8c01 }
-  },
-/* c.ebreak */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, 0 } },
-    & ifmt_c_nop, { 0x9002 }
-  },
-/* c.unimp */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, 0 } },
-    & ifmt_c_nop, { 0x0 }
   },
 /* c.li ${c-reg117-ne0},${imm6-121-65-abs} */
   {
@@ -773,6 +773,18 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (SUCC), ',', OP (PRED), 0 } },
     & ifmt_fence, { 0xf }
   },
+/* s.fence.vm ${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RS1), 0 } },
+    & ifmt_sfence_vm, { 0x10400073 }
+  },
+/* sfence.vma ${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_sfence_vma, { 0x12000073 }
+  },
 /* fence.i */
   {
     { 0, 0, 0, 0 },
@@ -862,18 +874,6 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, 0 } },
     & ifmt_fence_i, { 0x10500073 }
-  },
-/* sfence.vm ${rs1} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RS1), 0 } },
-    & ifmt_sfence_vm, { 0x10400073 }
-  },
-/* sfence.vma ${rs1},${rs2} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RS1), ',', OP (RS2), 0 } },
-    & ifmt_sfence_vma, { 0x12000073 }
   },
 /* lwu ${rd},${imm-lo12}(${rs1}) */
   {
@@ -2593,14 +2593,6 @@ static const CGEN_IFMT ifmt_p_fence ATTRIBUTE_UNUSED = {
   32, 32, 0xffffffff, { { F (F_UIMM4_314) }, { F (F_PRED) }, { F (F_SUCC) }, { F (F_UIMM20_1920) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_scall ATTRIBUTE_UNUSED = {
-  32, 32, 0xffffffff, { { F (F_UIMM32_3132) }, { 0 } }
-};
-
-static const CGEN_IFMT ifmt_p_sbreak ATTRIBUTE_UNUSED = {
-  32, 32, 0xffffffff, { { F (F_UIMM32_3132) }, { 0 } }
-};
-
 static const CGEN_IFMT ifmt_p_rdinstret ATTRIBUTE_UNUSED = {
   32, 32, 0xfffff07f, { { F (F_CSR) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -2663,6 +2655,14 @@ static const CGEN_IFMT ifmt_p_sfence_vma_1 ATTRIBUTE_UNUSED = {
 
 static const CGEN_IFMT ifmt_p_sfence_vma_2 ATTRIBUTE_UNUSED = {
   32, 32, 0xfff07fff, { { F (F_UIMM7_317) }, { F (F_RS1) }, { F (F_RS2) }, { F (F_UIMM15_1415) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_scall ATTRIBUTE_UNUSED = {
+  32, 32, 0xffffffff, { { F (F_UIMM32_3132) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_sbreak ATTRIBUTE_UNUSED = {
+  32, 32, 0xffffffff, { { F (F_UIMM32_3132) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_p_rdinstreth ATTRIBUTE_UNUSED = {
@@ -3634,16 +3634,6 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-fence", "fence", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
-/* scall */
-  {
-    -1, "p-scall", "scall", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
-  },
-/* sbreak */
-  {
-    -1, "p-sbreak", "sbreak", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
-  },
 /* rdinstret ${rd} */
   {
     -1, "p-rdinstret", "rdinstret", 32,
@@ -3723,6 +3713,16 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
   {
     -1, "p-sfence-vma-2", "sfence.vma", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* scall */
+  {
+    -1, "p-scall", "scall", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* sbreak */
+  {
+    -1, "p-sbreak", "sbreak", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* rdinstreth ${rd} */
   {
@@ -4897,18 +4897,6 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, 0 } },
     & ifmt_p_fence, { 0xff0000f }
   },
-/* scall */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, 0 } },
-    & ifmt_p_scall, { 0x73 }
-  },
-/* sbreak */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, 0 } },
-    & ifmt_p_sbreak, { 0x100073 }
-  },
 /* rdinstret ${rd} */
   {
     { 0, 0, 0, 0 },
@@ -5004,6 +4992,18 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RS1), 0 } },
     & ifmt_p_sfence_vma_2, { 0x12000073 }
+  },
+/* scall */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_p_scall, { 0x73 }
+  },
+/* sbreak */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_p_sbreak, { 0x100073 }
   },
 /* rdinstreth ${rd} */
   {

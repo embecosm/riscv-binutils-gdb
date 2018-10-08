@@ -1,3 +1,9 @@
+2018-10-08  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Refactor instruction format definitions to make
+	them more readable and shorter. Tidy up instruction definitions
+	and reformat to make them easier to read.
+
 2018-10-04  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu (define-riscv-ext): Add new macro to simplify

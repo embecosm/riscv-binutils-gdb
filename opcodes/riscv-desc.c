@@ -1283,17 +1283,27 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
   { 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } },
 /* c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs} */
   {
-    -1, "c.addi16sp", "c.addi16sp", 16,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+    RISCV_INSN_C_ADDI16SP, "c.addi16sp", "c.addi16sp", 16,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.addi4spn ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs} */
   {
-    -1, "c.addi4spn", "c.addi4spn", 16,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+    RISCV_INSN_C_ADDI4SPN, "c.addi4spn", "c.addi4spn", 16,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.nop */
   {
     RISCV_INSN_C_NOP, "c.nop", "c.nop", 16,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+  },
+/* c.ebreak */
+  {
+    RISCV_INSN_C_EBREAK, "c.ebreak", "c.ebreak", 16,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
+  },
+/* c.unimp */
+  {
+    RISCV_INSN_C_UNIMP, "c.unimp", "c.unimp", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.jr ${c-reg117-ne0} */
@@ -1334,16 +1344,6 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* c.sub ${c-reg97},${c-reg42} */
   {
     RISCV_INSN_C_SUB, "c.sub", "c.sub", 16,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
-  },
-/* c.ebreak */
-  {
-    RISCV_INSN_C_EBREAK, "c.ebreak", "c.ebreak", 16,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
-  },
-/* c.unimp */
-  {
-    RISCV_INSN_C_UNIMP, "c.unimp", "c.unimp", 16,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x6\x0" } } } }
   },
 /* c.li ${c-reg117-ne0},${imm6-121-65-abs} */
@@ -1633,8 +1633,8 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
   },
 /* add ${rd},${rs1},${rs2},${tprel_add} */
   {
-    -1, "add", "add", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+    RISCV_INSN_ADD, "add", "add", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* sub ${rd},${rs1},${rs2} */
   {
@@ -1684,6 +1684,16 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* fence ${succ},${pred} */
   {
     RISCV_INSN_FENCE, "fence", "fence", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* s.fence.vm ${rs1} */
+  {
+    RISCV_INSN_SFENCE_VM, "sfence.vm", "s.fence.vm", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* sfence.vma ${rs1},${rs2} */
+  {
+    RISCV_INSN_SFENCE_VMA, "sfence.vma", "sfence.vma", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* fence.i */
@@ -1759,16 +1769,6 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* wfi */
   {
     RISCV_INSN_WFI, "wfi", "wfi", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
-  },
-/* sfence.vm ${rs1} */
-  {
-    RISCV_INSN_SFENCE_VM, "sfence.vm", "sfence.vm", 32,
-    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
-  },
-/* sfence.vma ${rs1},${rs2} */
-  {
-    RISCV_INSN_SFENCE_VMA, "sfence.vma", "sfence.vma", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 /* lwu ${rd},${imm-lo12}(${rs1}) */
