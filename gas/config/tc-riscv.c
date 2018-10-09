@@ -1845,6 +1845,74 @@ s_riscv_leb128 (int sign)
   return s_leb128 (sign);
 }
 
+/* Parse the .insn directive.  */
+static void
+s_riscv_insn (int x ATTRIBUTE_UNUSED)
+{
+  char *save_in;
+  char save_c;
+  char *insn_start;
+  char *insn_end;
+  char *insn_mnemonic;
+
+  save_in = input_line_pointer;
+  while (!is_end_of_line[(unsigned char) *input_line_pointer])
+    ++input_line_pointer;
+  insn_end = input_line_pointer;
+
+  save_c = *input_line_pointer;
+  *input_line_pointer = '\0';
+  input_line_pointer = save_in;
+
+  /* morph .insn <mnemonic> .. to _insn_mnemonic .. 
+     This is the form of the special instructions which have been added
+     to the cgen cpu description.  */
+  while (*input_line_pointer != '.')
+    --input_line_pointer;
+  insn_start = input_line_pointer;
+
+  *input_line_pointer = '_';
+  input_line_pointer += strlen(".insn");
+  *input_line_pointer++ = '_';
+
+  insn_mnemonic = input_line_pointer;
+  SKIP_WHITESPACE ();
+  while (ISALNUM (*input_line_pointer))
+    {
+      *insn_mnemonic = *input_line_pointer;
+      input_line_pointer++;
+      insn_mnemonic++;
+    }
+  while (insn_mnemonic != input_line_pointer)
+    *insn_mnemonic++ = ' ';
+
+  input_line_pointer = insn_start;
+
+  /* Assemble the now morphed instruction.  */
+  riscv_insn insn;
+  char * errmsg;
+  finished_insnS result;
+
+  /* Initialize GAS's cgen interface for a new instruction.  */
+  gas_cgen_init_parse ();
+
+  insn.insn = riscv_cgen_assemble_insn
+    (gas_cgen_cpu_desc, input_line_pointer, & insn.fields, insn.buffer, & errmsg);
+  if (!insn.insn)
+    {
+      as_bad (errmsg);
+      return;
+    }
+
+  /* Doesn't really matter what we pass for RELAX_P here.  */
+  gas_cgen_finish_insn (insn.insn, insn.buffer,
+                        CGEN_FIELDS_BITSIZE (& insn.fields), 1, &result);
+
+  input_line_pointer = insn_end;
+  *input_line_pointer = save_c;
+  demand_empty_rest_of_line ();
+}
+
 /* Pseudo-op table.  */
 
 static const pseudo_typeS riscv_pseudo_table[] =
@@ -1857,6 +1925,7 @@ static const pseudo_typeS riscv_pseudo_table[] =
   {"bss", s_bss, 0},
   {"uleb128", s_riscv_leb128, 0},
   {"sleb128", s_riscv_leb128, 1},
+  {"insn", s_riscv_insn, 0},
 
   { NULL, NULL, 0 },
 };

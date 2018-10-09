@@ -1,11 +1,18 @@
+2018-10-09  Edward Jones  <ed.jones@embecosm.com>
+
+	* config/tc-riscv.c (s_riscv_insn): Added function to
+	handle .insn assembly directives.
+	(riscv_pseudo_table): Add 'insn' as a assembler directive
+	with special handling.
+
 2018-10-04  Edward Jones  <ed.jones@embecosm.com>
 
-	* config/tc-riscv (riscv_after_parse_args): If 'q' extension
+	* config/tc-riscv.c (riscv_after_parse_args): If 'q' extension
 	is specified then default to the quad float ABI.
 
 2018-10-04  Edward Jones  <ed.jones@embecosm.com>
 
-	* config/tc-riscv (riscv_set_arch): Add 'q' extension to
+	* config/tc-riscv.c (riscv_set_arch): Add 'q' extension to
 	the string of all architecture subsets.
 	Add extra errors if 'Q' is specified without 'D', or without
 	an xlen >= 64.
@@ -14,19 +21,19 @@
 
 2018-09-05  Edward Jones  <ed.jones@embecosm.com>
 
-	* config/tc-riscv (s_riscv_leb128): Add function to custom
+	* config/tc-riscv.c (s_riscv_leb128): Add function to custom
 	parse .sleb128 and .uleb128 directives.
 	(riscv_pseudo_table): Add entries for .sleb128 and .uleb128
 	directives.
 
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
-	* config/tc-riscv (assemble_late_pseudos): Also assemble
+	* config/tc-riscv.c (assemble_late_pseudos): Also assemble
 	fmv.[sd], fabs.[sd] and fneg.[sd] pseudo instructions.
 
 2018-09-04  Edward Jones  <ed.jones@embecosm.com>
 
-	* config/tc-riscv (assemble_late_pseudos): Also assemble F and
+	* config/tc-riscv.c (assemble_late_pseudos): Also assemble F and
 	D extension pseudos flw, fsw, fld, fsd for loading and storing
 	float values.
 
