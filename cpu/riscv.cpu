@@ -2168,7 +2168,6 @@
 ;(rv-format-f-7    "fmv.x.q"  (ISA rv128q) #b1110011 #b00000 #b000 #b1010011)
 ;(rv-format-f-6    "fmv.q.x"  (ISA rv128q) #b1111011 #b00000 #b000 #b1010011)
 
-
 ;===------------------ 'C' extension macro instructions ---------------------===
 ;
 ; It is important that the compressed macro instructions are defined *before*
@@ -2475,4 +2474,151 @@
 (rv-macro p-fcvt.lu.q  "fcvt.lu.q" ((ISA rv64q)) " ${rd},${fl-rs1}" (emit fcvt.lu.q rd fl-rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.q.l   "fcvt.q.l"  ((ISA rv64q)) " ${fl-rd},${rs1}" (emit fcvt.q.l  fl-rd rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.q.lu  "fcvt.q.lu" ((ISA rv64q)) " ${fl-rd},${rs1}" (emit fcvt.q.lu fl-rd rs1 (fl-rm #b111)))
+
+;===------------- Special instructions for the .insn directive --------------===
+
+(define-hardware
+  (name h-opcode7)
+  (comment "opcodes")
+  (attrs all-isas all-machs VIRTUAL)
+  (type register DI)
+  (indices keyword "" (
+    (LOAD #x03)  (LOAD_FP #x07) (CUSTOM_0 #x0b) (MISC_MEM #x0f) (OP_IMM #x13)
+    (AUIPC #x17) (OP_IMM_32 #x1b)
+    ; 48b #x1f
+
+    (STORE #x23) (STORE_FP #x27) (CUSTOM_1 #x2b) (AMO #x2f) (OP #x33) (LUI #x37)
+    (OP_32 #x3b)
+    ; 64b #x3f
+
+    (MADD #x43) (MSUB #x47) (NMADD #x4b) (NMSUB #x4f) (OP_FP #x53)
+    ; reserved #x57
+    (CUSTOM_2 #x5b)
+    ; 48b #x5f
+
+    (BRANCH #x63) (JALR #x67)
+    ; reserved #x5b
+    (JAR #x6f) (SYSTEM #x73)
+    ; reserved #x77
+    (CUSTOM_3 #x7b))
+  )
+  ; dummy getters and setters
+  (get () (nop))
+  (set (newval) (nop))
+)
+(define-hardware
+  (name h-copcode2)
+  (comment "compressed opcodes")
+  (attrs all-isas all-machs VIRTUAL)
+  (type register DI)
+  (indices keyword "" ((C0 #x0) (C1 #x1) (C2 #x2)))
+  ; dummy getters and setters
+  (get () (nop))
+  (set (newval) (nop))
+)
+
+(define-operand
+  (name opcode7)
+  (comment "opcode7")
+  (attrs all-isas)
+  (type h-opcode7)
+  (mode UDI)
+  (index f-opcode)
+  (handlers (parse "opcode7"))
+)
+(define-operand
+  (name copcode2)
+  (comment "copcode2")
+  (attrs all-isas)
+  (type h-copcode2)
+  (mode UDI)
+  (index f-c-opcode)
+  (handlers (parse "copcode2"))
+)
+(define-operand
+  (name funct7)
+  (comment "funct7")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct7)
+)
+(define-operand
+  (name funct3)
+  (comment "funct3")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct3)
+)
+(define-operand
+  (name cfunct3)
+  (comment "cfunct3")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct3)
+)
+(define-operand
+  (name cfunct4)
+  (comment "cfunct4")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct4)
+)
+
+(dni insn-r    ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
+  (+ funct7 rs2 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-i-1  ".insn i"   (base-isas NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12}"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-i-2  ".insn i"   (base-isas NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-s    ".insn s"   (base-isas NO-DIS)
+  "_insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-sb-1 ".insn sb"  (base-isas NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1})"
+  (+ store12 rs2 rs1 funct3 opcode7)
+  () ())
+(dni insn-sb-2 ".insn sb"  (base-isas NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13}"
+  (+ branch13 rs2 rs1 funct3 opcode7)
+  () ())
+(dni insn-u    ".insn u"   (base-isas NO-DIS)
+  "_insn_u ${opcode7},${rd},${uimm32-3120-000000000000}"
+  (+ uimm32-3120-000000000000 rd opcode7)
+  () ())
+(dni insn-uj   ".insn uj"  (base-isas NO-DIS)
+  "_insn_uj ${opcode7},${rd},${jmp21}"
+  (+ jmp21 rd opcode7)
+  () ())
+
+(dni insn-ci   ".insn ci"  (base-isas NO-DIS)
+  "_insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
+  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  () ())
+(dni insn-cr   ".insn cr"  (base-isas NO-DIS)
+  "_insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62}"
+  (+ cfunct4 c-reg117 c-reg62 copcode2)
+  () ())
+(dni insn-ciw  ".insn ciw" (base-isas NO-DIS)
+  "_insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
+  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  () ())
+(dni insn-cb   ".insn cb"  (base-isas NO-DIS)
+  "_insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9}"
+  (+ cfunct3 cbranch9 c-reg97 copcode2)
+  () ())
+(dni insn-cj   ".insn cj"  (base-isas NO-DIS)
+  "_insn_cj ${copcode2},${cfunct3},${cjmp12}"
+  (+ cfunct3 cjmp12 copcode2)
+  () ())
 

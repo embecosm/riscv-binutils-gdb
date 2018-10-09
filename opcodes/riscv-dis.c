@@ -329,8 +329,17 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CBRANCH9 :
       print_normal (cd, info, fields->f_imm9_121_62_21_112_42_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
+    case RISCV_OPERAND_CFUNCT3 :
+      print_normal (cd, info, fields->f_c_funct3, 0, pc, length);
+      break;
+    case RISCV_OPERAND_CFUNCT4 :
+      print_normal (cd, info, fields->f_c_funct4, 0, pc, length);
+      break;
     case RISCV_OPERAND_CJMP12 :
       print_normal (cd, info, fields->f_imm12_121_81_102_61_71_21_111_53_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_COPCODE2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_copcode2, fields->f_c_opcode, 0);
       break;
     case RISCV_OPERAND_CSR :
       print_csr (cd, info, & riscv_cgen_opval_h_csr, fields->f_csr, 0);
@@ -362,6 +371,12 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_195, 0);
       break;
+    case RISCV_OPERAND_FUNCT3 :
+      print_normal (cd, info, fields->f_funct3, 0, pc, length);
+      break;
+    case RISCV_OPERAND_FUNCT7 :
+      print_normal (cd, info, fields->f_funct7, 0, pc, length);
+      break;
     case RISCV_OPERAND_IMM_LO12 :
       print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
       break;
@@ -391,6 +406,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_NZUIMM6_121_65_ABS :
       print_normal (cd, info, fields->f_uimm6_121_65, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_OPCODE7 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_opcode7, fields->f_opcode, 0);
       break;
     case RISCV_OPERAND_PRED :
       print_fence_succ_pred (cd, info, fields->f_pred, 0, pc, length);

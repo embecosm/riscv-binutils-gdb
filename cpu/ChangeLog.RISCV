@@ -1,3 +1,12 @@
+2018-10-09  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add new definitions for hardware, operands, and
+	instructions to supported the special .insn assembler
+	directive.
+	* riscv.opc (parse_opcode7 parse_copcode2): Add handlers to
+	parse enumeration values of opcodes in instructions specified
+	through the .insn assembler directive.
+
 2018-10-08  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Refactor instruction format definitions to make

@@ -482,6 +482,62 @@ parse_csr (CGEN_CPU_DESC cd,
 }
 
 static const char *
+parse_opcode7 (CGEN_CPU_DESC cd,
+               const char **strp,
+               CGEN_KEYWORD *keyword,
+               long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (!errmsg)
+    return NULL;
+
+  errmsg = (* cd->parse_operand_fn)
+    (cd, CGEN_PARSE_OPERAND_INTEGER, strp, /*opindex*/ 0, BFD_RELOC_NONE,
+    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return UNKNOWN_CSR;
+
+  *valuep = value;
+  if (*valuep < 0 || *valuep > 127)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
+parse_copcode2 (CGEN_CPU_DESC cd,
+                const char **strp,
+                CGEN_KEYWORD *keyword,
+                long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (!errmsg)
+    return NULL;
+
+  errmsg = (* cd->parse_operand_fn)
+    (cd, CGEN_PARSE_OPERAND_INTEGER, strp, /*opindex*/ 0, BFD_RELOC_NONE,
+    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return UNKNOWN_CSR;
+
+  *valuep = value;
+  if (*valuep < 0 || *valuep > 3)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
 parse_gpr (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
            const char **strp,
            CGEN_KEYWORD *keyword,
@@ -849,8 +905,17 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CBRANCH9 :
       errmsg = parse_cbranch9 (cd, strp, RISCV_OPERAND_CBRANCH9, (long *) (& fields->f_imm9_121_62_21_112_42_0));
       break;
+    case RISCV_OPERAND_CFUNCT3 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT3, (unsigned long *) (& fields->f_c_funct3));
+      break;
+    case RISCV_OPERAND_CFUNCT4 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT4, (unsigned long *) (& fields->f_c_funct4));
+      break;
     case RISCV_OPERAND_CJMP12 :
       errmsg = parse_cjmp12 (cd, strp, RISCV_OPERAND_CJMP12, (long *) (& fields->f_imm12_121_81_102_61_71_21_111_53_0));
+      break;
+    case RISCV_OPERAND_COPCODE2 :
+      errmsg = parse_copcode2 (cd, strp, & riscv_cgen_opval_h_copcode2, & fields->f_c_opcode);
       break;
     case RISCV_OPERAND_CSR :
       errmsg = parse_csr (cd, strp, & riscv_cgen_opval_h_csr, & fields->f_csr);
@@ -882,6 +947,12 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_uimm5_195);
       break;
+    case RISCV_OPERAND_FUNCT3 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT3, (unsigned long *) (& fields->f_funct3));
+      break;
+    case RISCV_OPERAND_FUNCT7 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT7, (unsigned long *) (& fields->f_funct7));
+      break;
     case RISCV_OPERAND_IMM_LO12 :
       errmsg = parse_imm_lo12_i (cd, strp, RISCV_OPERAND_IMM_LO12, (long *) (& fields->f_imm12_3112));
       break;
@@ -911,6 +982,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_NZUIMM6_121_65_ABS :
       errmsg = parse_nzuimm6_abs (cd, strp, RISCV_OPERAND_NZUIMM6_121_65_ABS, (unsigned long *) (& fields->f_uimm6_121_65));
+      break;
+    case RISCV_OPERAND_OPCODE7 :
+      errmsg = parse_opcode7 (cd, strp, & riscv_cgen_opval_h_opcode7, & fields->f_opcode);
       break;
     case RISCV_OPERAND_PRED :
       errmsg = parse_fence_succ_pred (cd, strp, RISCV_OPERAND_PRED, (unsigned long *) (& fields->f_pred));

@@ -133,9 +133,9 @@ const CGEN_ATTR_TABLE riscv_cgen_insn_attr_table[] =
 /* Instruction set variants.  */
 
 static const CGEN_ISA riscv_cgen_isa_table[] = {
-  { "rv32i", 32, 32, 32, 32 },
-  { "rv64i", 32, 32, 32, 32 },
-  { "rv32e", 32, 32, 32, 32 },
+  { "rv32i", 32, 32, 16, 32 },
+  { "rv64i", 32, 32, 16, 32 },
+  { "rv32e", 32, 32, 16, 32 },
   { "rv32m", 32, 32, 32, 32 },
   { "rv64m", 32, 32, 32, 32 },
   { "rv32c", 32, 32, 16, 32 },
@@ -768,6 +768,56 @@ CGEN_KEYWORD riscv_cgen_opval_h_c_fpr =
   0, 0, 0, 0, ""
 };
 
+static CGEN_KEYWORD_ENTRY riscv_cgen_opval_h_opcode7_entries[] =
+{
+  { "LOAD", 3, {0, {{{0, 0}}}}, 0, 0 },
+  { "LOAD_FP", 7, {0, {{{0, 0}}}}, 0, 0 },
+  { "CUSTOM_0", 11, {0, {{{0, 0}}}}, 0, 0 },
+  { "MISC_MEM", 15, {0, {{{0, 0}}}}, 0, 0 },
+  { "OP_IMM", 19, {0, {{{0, 0}}}}, 0, 0 },
+  { "AUIPC", 23, {0, {{{0, 0}}}}, 0, 0 },
+  { "OP_IMM_32", 27, {0, {{{0, 0}}}}, 0, 0 },
+  { "STORE", 35, {0, {{{0, 0}}}}, 0, 0 },
+  { "STORE_FP", 39, {0, {{{0, 0}}}}, 0, 0 },
+  { "CUSTOM_1", 43, {0, {{{0, 0}}}}, 0, 0 },
+  { "AMO", 47, {0, {{{0, 0}}}}, 0, 0 },
+  { "OP", 51, {0, {{{0, 0}}}}, 0, 0 },
+  { "LUI", 55, {0, {{{0, 0}}}}, 0, 0 },
+  { "OP_32", 59, {0, {{{0, 0}}}}, 0, 0 },
+  { "MADD", 67, {0, {{{0, 0}}}}, 0, 0 },
+  { "MSUB", 71, {0, {{{0, 0}}}}, 0, 0 },
+  { "NMADD", 75, {0, {{{0, 0}}}}, 0, 0 },
+  { "NMSUB", 79, {0, {{{0, 0}}}}, 0, 0 },
+  { "OP_FP", 83, {0, {{{0, 0}}}}, 0, 0 },
+  { "CUSTOM_2", 91, {0, {{{0, 0}}}}, 0, 0 },
+  { "BRANCH", 99, {0, {{{0, 0}}}}, 0, 0 },
+  { "JALR", 103, {0, {{{0, 0}}}}, 0, 0 },
+  { "JAR", 111, {0, {{{0, 0}}}}, 0, 0 },
+  { "SYSTEM", 115, {0, {{{0, 0}}}}, 0, 0 },
+  { "CUSTOM_3", 123, {0, {{{0, 0}}}}, 0, 0 }
+};
+
+CGEN_KEYWORD riscv_cgen_opval_h_opcode7 =
+{
+  & riscv_cgen_opval_h_opcode7_entries[0],
+  25,
+  0, 0, 0, 0, ""
+};
+
+static CGEN_KEYWORD_ENTRY riscv_cgen_opval_h_copcode2_entries[] =
+{
+  { "C0", 0, {0, {{{0, 0}}}}, 0, 0 },
+  { "C1", 1, {0, {{{0, 0}}}}, 0, 0 },
+  { "C2", 2, {0, {{{0, 0}}}}, 0, 0 }
+};
+
+CGEN_KEYWORD riscv_cgen_opval_h_copcode2 =
+{
+  & riscv_cgen_opval_h_copcode2_entries[0],
+  3,
+  0, 0, 0, 0, ""
+};
+
 
 /* The hardware table.  */
 
@@ -790,6 +840,8 @@ const CGEN_HW_ENTRY riscv_cgen_hw_table[] =
   { "h-csr", HW_H_CSR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_csr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
   { "h-fpr", HW_H_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_fpr, { 0, { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
   { "h-c-fpr", HW_H_C_FPR, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_c_fpr, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-opcode7", HW_H_OPCODE7, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_opcode7, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
+  { "h-copcode2", HW_H_COPCODE2, CGEN_ASM_KEYWORD, (PTR) & riscv_cgen_opval_h_copcode2, { 0|A(VIRTUAL), { { { (1<<MACH_RISCV_RV32)|(1<<MACH_RISCV_RV64), 0 } }, { { 2, "\xff\xfe" } } } } },
   { 0, 0, CGEN_ASM_NONE, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } } }
 };
 
@@ -1261,6 +1313,30 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "uimm8-62-123-000-abs", RISCV_OPERAND_UIMM8_62_123_000_ABS, HW_H_UINT, 6, 5,
     { 2, { (const PTR) &RISCV_F_UIMM8_62_123_000_MULTI_IFIELD[0] } },
     { 0|A(VIRTUAL), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* opcode7: opcode7 */
+  { "opcode7", RISCV_OPERAND_OPCODE7, HW_H_OPCODE7, 6, 7,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_OPCODE] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* copcode2: copcode2 */
+  { "copcode2", RISCV_OPERAND_COPCODE2, HW_H_COPCODE2, 1, 2,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_OPCODE] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* funct7: funct7 */
+  { "funct7", RISCV_OPERAND_FUNCT7, HW_H_UINT, 31, 7,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT7] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* funct3: funct3 */
+  { "funct3", RISCV_OPERAND_FUNCT3, HW_H_UINT, 14, 3,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT3] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* cfunct3: cfunct3 */
+  { "cfunct3", RISCV_OPERAND_CFUNCT3, HW_H_UINT, 15, 3,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT3] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
+/* cfunct4: cfunct4 */
+  { "cfunct4", RISCV_OPERAND_CFUNCT4, HW_H_UINT, 15, 4,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT4] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xff\xfe" } } } }  },
 /* sentinel */
   { 0, 0, 0, 0, 0,
     { 0, { (const PTR) 0 } },
@@ -2820,6 +2896,71 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
   {
     RISCV_INSN_FCVT_Q_LU, "fcvt.q.lu", "fcvt.q.lu", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x2" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2} */
+  {
+    RISCV_INSN_INSN_R, "insn-r", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12} */
+  {
+    RISCV_INSN_INSN_I_1, "insn-i-1", "_insn_i", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1}) */
+  {
+    RISCV_INSN_INSN_I_2, "insn-i-2", "_insn_i", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1}) */
+  {
+    RISCV_INSN_INSN_S, "insn-s", "_insn_s", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1}) */
+  {
+    RISCV_INSN_INSN_SB_1, "insn-sb-1", "_insn_sb", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13} */
+  {
+    RISCV_INSN_INSN_SB_2, "insn-sb-2", "_insn_sb", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_u ${opcode7},${rd},${uimm32-3120-000000000000} */
+  {
+    RISCV_INSN_INSN_U, "insn-u", "_insn_u", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_uj ${opcode7},${rd},${jmp21} */
+  {
+    RISCV_INSN_INSN_UJ, "insn-uj", "_insn_uj", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs} */
+  {
+    RISCV_INSN_INSN_CI, "insn-ci", "_insn_ci", 16,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62} */
+  {
+    RISCV_INSN_INSN_CR, "insn-cr", "_insn_cr", 16,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs} */
+  {
+    RISCV_INSN_INSN_CIW, "insn-ciw", "_insn_ciw", 16,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9} */
+  {
+    RISCV_INSN_INSN_CB, "insn-cb", "_insn_cb", 16,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
+/* _insn_cj ${copcode2},${cfunct3},${cjmp12} */
+  {
+    RISCV_INSN_INSN_CJ, "insn-cj", "_insn_cj", 16,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
 };
 
