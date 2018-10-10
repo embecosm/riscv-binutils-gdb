@@ -123,23 +123,23 @@ static int
 riscv_isa_for_subset (const char *subset)
 {
   if (!strcmp(subset, "i"))
-    return (xlen == 64) ? ISA_RV64I : ISA_RV32I;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "e"))
     {
-      return ISA_RV32E;
+      return ISA_RV32;
     }
   else if (!strcmp(subset, "m"))
-    return (xlen == 64) ? ISA_RV64M : ISA_RV32M;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "c"))
-    return (xlen == 64) ? ISA_RV64C : ISA_RV32C;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "a"))
-    return (xlen == 64) ? ISA_RV64A : ISA_RV32A;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "f"))
-    return (xlen == 64) ? ISA_RV64F : ISA_RV32F;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "d"))
-    return (xlen == 64) ? ISA_RV64D : ISA_RV32D;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else if (!strcmp(subset, "q"))
-    return (xlen == 64) ? ISA_RV64Q : ISA_RV32Q;
+    return (xlen == 64) ? ISA_RV64 : ISA_RV32;
   else
     as_fatal ("ISA not yet supported");
 }
@@ -288,7 +288,7 @@ riscv_set_arch (const char *s)
 	as_fatal ("-march=%s: unsupported ISA subset `%c'", s, *p);
     }
 
-  if (riscv_subset_supports ("e") && riscv_subset_supports ("f"))
+  /*if (riscv_subset_supports ("e") && riscv_subset_supports ("f"))
     as_fatal ("-march=%s: rv32e does not support the `f' extension", s);
 
   if (riscv_subset_supports ("d") && !riscv_subset_supports ("f"))
@@ -298,7 +298,7 @@ riscv_set_arch (const char *s)
     as_fatal ("-march=%s: `q' extension requires `d' extension", s);
 
   if (riscv_subset_supports ("q") && xlen < 64)
-    as_fatal ("-march=%s: rv32 does not support the `q' extension", s);
+    as_fatal ("-march=%s: rv32 does not support the `q' extension", s); */
 
   free (extension);
 }

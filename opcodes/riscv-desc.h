@@ -43,7 +43,7 @@ extern "C" {
 #define CGEN_INSN_LSB0_P 1
 
 /* Minimum size of any insn (in bytes).  */
-#define CGEN_MIN_INSN_SIZE 2
+#define CGEN_MIN_INSN_SIZE 4
 
 /* Maximum size of any insn (in bytes).  */
 #define CGEN_MAX_INSN_SIZE 4
@@ -70,11 +70,16 @@ typedef enum mach_attr {
 
 /* Enum declaration for instruction set selection.  */
 typedef enum isa_attr {
-  ISA_RV32I, ISA_RV64I, ISA_RV32E, ISA_RV32M
- , ISA_RV64M, ISA_RV32C, ISA_RV64C, ISA_RV32A
- , ISA_RV64A, ISA_RV32F, ISA_RV64F, ISA_RV32D
- , ISA_RV64D, ISA_RV32Q, ISA_RV64Q, ISA_MAX
+  ISA_RV32, ISA_RV64, ISA_MAX
 } ISA_ATTR;
+
+/* Enum declaration for RISC-V Extensions.  */
+typedef enum rvext_attr {
+  RVEXT_RVNONE, RVEXT_RV32I, RVEXT_RV64I, RVEXT_RV32E
+ , RVEXT_RV32M, RVEXT_RV64M, RVEXT_RV32C, RVEXT_RV64C
+ , RVEXT_RV32A, RVEXT_RV64A, RVEXT_RV32F, RVEXT_RV64F
+ , RVEXT_RV32D, RVEXT_RV64D, RVEXT_RV32Q, RVEXT_RV64Q
+} RVEXT_ATTR;
 
 /* Number of architecture variants.  */
 #define MAX_ISAS  ((int) ISA_MAX)
@@ -220,7 +225,7 @@ typedef enum cgen_insn_attr {
   CGEN_INSN_ALIAS, CGEN_INSN_VIRTUAL, CGEN_INSN_UNCOND_CTI, CGEN_INSN_COND_CTI
  , CGEN_INSN_SKIP_CTI, CGEN_INSN_DELAY_SLOT, CGEN_INSN_RELAXABLE, CGEN_INSN_RELAXED
  , CGEN_INSN_NO_DIS, CGEN_INSN_PBB, CGEN_INSN_END_BOOLS, CGEN_INSN_START_NBOOLS = 31
- , CGEN_INSN_MACH, CGEN_INSN_ISA, CGEN_INSN_END_NBOOLS
+ , CGEN_INSN_MACH, CGEN_INSN_ISA, CGEN_INSN_RVEXT, CGEN_INSN_END_NBOOLS
 } CGEN_INSN_ATTR;
 
 /* Number of non-boolean elements in cgen_insn_attr.  */
@@ -229,6 +234,7 @@ typedef enum cgen_insn_attr {
 /* cgen_insn attribute accessor macros.  */
 #define CGEN_ATTR_CGEN_INSN_MACH_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_MACH-CGEN_INSN_START_NBOOLS-1].nonbitset)
 #define CGEN_ATTR_CGEN_INSN_ISA_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_ISA-CGEN_INSN_START_NBOOLS-1].bitset)
+#define CGEN_ATTR_CGEN_INSN_RVEXT_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_RVEXT-CGEN_INSN_START_NBOOLS-1].nonbitset)
 #define CGEN_ATTR_CGEN_INSN_ALIAS_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_ALIAS)) != 0)
 #define CGEN_ATTR_CGEN_INSN_VIRTUAL_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_VIRTUAL)) != 0)
 #define CGEN_ATTR_CGEN_INSN_UNCOND_CTI_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_UNCOND_CTI)) != 0)

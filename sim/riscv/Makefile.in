@@ -1,0 +1,106 @@
+# Makefile template for Configure for the frv simulator
+# Copyright (C) 1998-2017 Free Software Foundation, Inc.
+# Contributed by Red Hat.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## COMMON_PRE_CONFIG_FRAG
+
+RISCV_OBJS = riscv.o cpu.o traps.o decode.o sem.o model.o mloop.o
+
+SIM_OBJS = \
+	$(SIM_NEW_COMMON_OBJS) \
+	cgen-utils.o cgen-trace.o cgen-scache.o \
+	cgen-run.o \
+	sim-if.o arch.o \
+	$(RISCV_OBJS)
+
+# Extra headers included by sim-main.h.
+SIM_EXTRA_DEPS = \
+	$(CGEN_INCLUDE_DEPS) \
+	arch.h cpuall.h riscv-sim.h $(srcdir)/../../opcodes/riscv-desc.h
+
+##TODO: SIM_EXTRA_CFLAGS = @sim_extra_cflags@
+
+SIM_EXTRA_CLEAN = riscv-clean
+
+## COMMON_POST_CONFIG_FRAG
+
+arch = riscv
+
+arch.o: arch.c $(SIM_MAIN_DEPS)
+traps.o: traps.c $(SIM_MAIN_DEPS)
+
+# RISCV objs
+
+RISCVBF32_INCLUDE_DEPS = \
+	$(CGEN_MAIN_CPU_DEPS) \
+	$(SIM_EXTRA_DEPS) \
+	cpu.h decode.h eng.h
+
+sim-if.o: sim-if.c $(SIM_MAIN_DEPS) $(srcdir)/../common/sim-core.h
+riscv.o: riscv.c $(RISCVBF32_INCLUDE_DEPS)
+
+#mloop.o: mloop.c $(RISCV_INCLUDE_DEPS)
+#	$(CC) -c mloop.c $(ALL_CFLAGS)
+#sem.o: sem.c $(RISCV_INCLUDE_DEPS)
+#	$(CC) -c $(srcdir)/sem.c $(ALL_CFLAGS)
+#decode.o: decode.c $(RISCV_INCLUDE_DEPS)
+#	$(CC) -c $(srcdir)/decode.c $(ALL_CFLAGS)
+
+mloop.c eng.h: stamp-mloop ; @true
+stamp-mloop: $(srcdir)/../common/genmloop.sh mloop.in Makefile
+	$(SHELL) $(srccom)/genmloop.sh -shell $(SHELL) \
+	  -mono -no-fast -scache \
+		-prefix riscvbf32_rv32 \
+	  -cpu riscvbf32 -infile $(srcdir)/mloop.in
+	$(SHELL) $(srcroot)/move-if-change eng.hin eng.h
+	$(SHELL) $(srcroot)/move-if-change mloop.cin mloop.c
+	touch stamp-mloop
+
+mloop.o:  mloop.c  $(RISCVBF32_INCLUDE_DEPS)
+cpu.o:    cpu.c    $(RISCVBF32_INCLUDE_DEPS)
+decode.o: decode.c $(RISCVBF32_INCLUDE_DEPS)
+sem.o:    sem.c    $(RISCVBF32_INCLUDE_DEPS)
+model.o:  model.c  $(RISCVBF32_INCLUDE_DEPS)
+
+riscv-clean:
+	rm -f tmp-*
+	rm -f stamp-arch stamp-cpu
+
+# cgen support, enable with --enable-cgen-maint
+CGEN_MAINT = ; @true
+# The following line is commented in or out depending upon --enable-cgen-maint.
+@CGEN_MAINT@CGEN_MAINT =
+
+
+stamp-arch: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+	$(MAKE) cgen-arch $(CGEN_FLAGS_TO_PASS) \
+	  archfile=$(srcdir)/../../cpu/riscv.cpu \
+	  isa=rv32 mach=riscv:rv32 cpu=riscvbf32 \
+	  FLAGS="with-scache"
+	touch stamp-arch
+$(srcdir)/arch.h $(srcdir)/arch.c: $(CGEN_MAINT) stamp-arch
+	@true
+
+stamp-cpu: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+	$(MAKE) cgen-cpu-decode $(CGEN_FLAGS_TO_PASS) \
+	  archfile=$(srcdir)/../../cpu/riscv.cpu \
+	  isa=rv32 mach=riscv:rv32 cpu=riscvbf32 \
+	  FLAGS="with-scache" \
+		EXTRAFILES="$(CGEN_CPU_SEM)"
+	touch stamp-cpu
+$(srcdir)/cpu.h $(srcdir)/cpu.c $(srcdir)/sem.c $(srcdir)/model.c $(srcdir)/decode.c $(srcdir)/decode.h: $(CGEN_MAINT) stamp-cpu
+	@true
+

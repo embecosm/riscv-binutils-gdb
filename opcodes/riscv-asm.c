@@ -549,8 +549,8 @@ parse_gpr (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   if(errmsg)
     return errmsg;
 
-  if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32E))
-    return ILLEGAL_REGISTER;
+  /*if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32))
+      return ILLEGAL_REGISTER; */
 
   return NULL;
 }
