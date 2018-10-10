@@ -20,6 +20,11 @@
 
 # This file was written by Ken Raeburn (raeburn@cygnus.com).
 
+# temporary fix until cgen is rebased onto upstream, at which point,
+# this variable will be set by make
+global experimental
+set experimental true
+
 proc load_common_lib { name } {
     global srcdir
     load_file $srcdir/../../binutils/testsuite/lib/$name
