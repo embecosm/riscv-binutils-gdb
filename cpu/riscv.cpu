@@ -102,48 +102,66 @@
   (base-insn-bitsize 32)
 )
 
-(define-cpu
-  (name riscvbf32)
-  (comment "RISCV CPU family")
-  (attrs (ISA rv32) (MACH riscv:rv32))
-  (insn-endian little)
-  (data-endian little)
-  (word-bitsize 64)
-)
-
-(define-cpu
-  (name riscvbf64)
-  (comment "RISCV CPU family (64-bit)")
-  (attrs (ISA rv64) (MACH riscv:rv64))
-  (insn-endian little)
-  (data-endian little)
-  (word-bitsize 64)
-)
-
-(define-mach
-  (name riscv:rv32)
-  (comment "Generic RISCV CPU (32-bit)")
-  (cpu riscvbf32)
-  (isas rv32)
-)
-
-(define-mach
-  (name riscv:rv64)
-  (comment "Generic RISCV CPU (64-bit)")
-  (cpu riscvbf64)
-  (isas rv64)
-)
-
-(define-model
-  (name riscv)
-  (mach riscv:rv32 riscv:rv64)
-  (unit u-exec "execution unit" ()
-    1 1 ; issue done
-    ()  ; state
-    ()  ; inputs
-    ()  ; ouputs
-    ()  ; profile action (default)
+(if (keep-mach? (riscv:rv32))
+  (begin
+    (define-cpu
+      (name riscv32bf)
+      (comment "RISCV CPU family")
+      (attrs (ISA rv32) (MACH riscv:rv32))
+      (insn-endian little)
+      (data-endian little)
+      (word-bitsize 32)
+      (file-transform "32")
     )
+    (define-mach
+      (name riscv:rv32)
+      (comment "Generic RISCV CPU (32-bit)")
+      (cpu riscv32bf)
+      (isas rv32)
+    )
+    (define-model
+      (name riscv32)
+      (mach riscv:rv32)
+      (unit u-exec "execution unit" ()
+        1 1 ; issue done
+        ()  ; state
+        ()  ; inputs
+        ()  ; ouputs
+        ()  ; profile action (default)
+      )
+    )
+  )
+)
+
+(if (keep-mach? (riscv:rv64))
+  (begin
+    (define-cpu
+      (name riscv64bf)
+      (comment "RISCV CPU family (64-bit)")
+      (attrs (ISA rv64) (MACH riscv:rv64))
+      (insn-endian little)
+      (data-endian little)
+      (word-bitsize 64)
+      (file-transform "64")
+    )
+    (define-mach
+      (name riscv:rv64)
+      (comment "Generic RISCV CPU (64-bit)")
+      (cpu riscv64bf)
+      (isas rv64)
+    )
+    (define-model
+      (name riscv64)
+      (mach riscv:rv64)
+      (unit u-exec "execution unit" ()
+        1 1 ; issue done
+        ()  ; state
+        ()  ; inputs
+        ()  ; ouputs
+        ()  ; profile action (default)
+      )
+    )
+  )
 )
 
 (define-pmacro base-isas   () (ISA  rv32 rv64))
@@ -188,16 +206,16 @@
   (name h-gpr)
   (comment "General Purpose Registers")
   (attrs all-isas all-machs)
-  (type register DI (64))
+  (type register WI (64))
   (indices keyword "" gpr-names)
-  (get (index) (c-call DI "@cpu@_h_gpr_get_handler" index))
-  (set (index newval) (c-call VOID "@cpu@_h_gpr_set_handler" index newval))
+  (get (index) (raw-reg h-gpr index))
+  (set (index newval) (set (raw-reg h-gpr index) newval))
 )
 (define-hardware
   (name h-gpr-not-zero)
   (comment "General Purpose Registers (except x0)")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register WI (32))
   (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 0)) gpr-names))
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
@@ -206,7 +224,7 @@
   (name h-gpr-not-zero-or-sp)
   (comment "General Purpose Registers (except x0/x2)")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register WI (32))
   (indices keyword "" (.find (.pmacro (n) (.andif (.ne (.ref n 1) 0) (.ne (.ref n 1) 2))) gpr-names))
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
@@ -215,7 +233,7 @@
   (name h-zero)
   (comment "zero (x0/ zero)")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register WI (32))
   (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 0)) gpr-names))
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
@@ -224,7 +242,7 @@
   (name h-sp)
   (comment "stack pointer (x2/sp)")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register WI (32))
   (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 2)) gpr-names))
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
@@ -233,7 +251,7 @@
   (name h-c-gpr)
   (comment "RVC Registers")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register WI (32))
   (indices keyword ""
     ; Filter out registers with a value <8 or >15. Remap register values in the
     ; range [8, 15] to [0, 7]
@@ -251,7 +269,7 @@
   (name h-csr)
   (comment "CSRs")
   (attrs all-isas all-machs)
-  (type register UDI (64))
+  (type register UWI (4096))
   (indices keyword ""(
     (ustatus #x0) (uie #x4) (utvec #x5)
     (uscratch #x40) (uepc #x41) (ucause #x42) (utval #x43) (uip #x44)
@@ -328,8 +346,8 @@
     (mhpmcounter31h #xb9f)
     (mtimecmp #x7c0))
   )
-  (get (index) (c-call UDI "@cpu@_h_csr_get_handler" index))
-  (set (index newval) (c-call VOID "@cpu@_h_csr_set_handler" index newval))
+  (get (index) (raw-reg h-csr index))
+  (set (index newval) (set (raw-reg h-csr index) newval))
 )
 
 (define-pmacro fpr-names () (
@@ -354,7 +372,7 @@
   (name h-fpr)
   (comment "Floating Point Registers")
   (attrs all-isas all-machs)
-  (type register DI (64))
+  (type register DI (32))
   (indices keyword "" fpr-names)
 )
 
@@ -362,7 +380,7 @@
   (name h-c-fpr)
   (comment "Floating Point RVC Registers")
   (attrs VIRTUAL all-isas all-machs)
-  (type register DI (64))
+  (type register DI (32))
   (indices keyword ""
     ; Filter out registers with a value <8 or >15. Remap register values in the
     ; range [8, 15] to [0, 7]
@@ -1885,7 +1903,8 @@
 (dni add "add" (base-isas)
   "add ${rd},${rs1},${rs2},${tprel_add}"
   (+ (f-funct7 #b0000000) rs2 rs1 (f-funct3 #b000) rd (f-opcode #b0110011))
-  (nop) ())
+  (set WI rd (add WI rs1 rs2))
+  ())
 (rv-format-r       "sub"     base-isas #b0100000 #b000 #b0110011)
 (rv-format-r       "sll"     base-isas #b0000000 #b001 #b0110011)
 (rv-format-r       "slt"     base-isas #b0000000 #b010 #b0110011)

@@ -1,4 +1,4 @@
-/* CPU family header for riscvbf32.
+/* CPU family header for riscv64bf.
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
@@ -22,8 +22,8 @@ This file is part of the GNU simulators.
 
 */
 
-#ifndef CPU_RISCVBF32_H
-#define CPU_RISCVBF32_H
+#ifndef CPU_RISCV64BF_H
+#define CPU_RISCV64BF_H
 
 /* Maximum number of instructions that are fetched at a time.
    This is for LIW type instructions sets (e.g. m32r).  */
@@ -51,25 +51,25 @@ CPU (h_pc) = (x);\
 ;} while (0)
   /* General Purpose Registers */
   DI h_gpr[64];
-#define GET_H_GPR(index) riscvbf32_h_gpr_get_handler (current_cpu, index)
+#define GET_H_GPR(index) CPU (h_gpr[index])
 #define SET_H_GPR(index, x) \
 do { \
-riscvbf32_h_gpr_set_handler (current_cpu, (index), (x));\
+CPU (h_gpr[(index)]) = (x);\
 ;} while (0)
   /* CSRs */
-  UDI h_csr[64];
-#define GET_H_CSR(index) riscvbf32_h_csr_get_handler (current_cpu, index)
+  UDI h_csr[4096];
+#define GET_H_CSR(index) CPU (h_csr[index])
 #define SET_H_CSR(index, x) \
 do { \
-riscvbf32_h_csr_set_handler (current_cpu, (index), (x));\
+CPU (h_csr[(index)]) = (x);\
 ;} while (0)
   /* Floating Point Registers */
-  DI h_fpr[64];
+  DI h_fpr[32];
 #define GET_H_FPR(a1) CPU (h_fpr)[a1]
 #define SET_H_FPR(a1, x) (CPU (h_fpr)[a1] = (x))
   } hardware;
 #define CPU_CGEN_HW(cpu) (& (cpu)->cpu_data.hardware)
-} RISCVBF32_CPU_DATA;
+} RISCV64BF_CPU_DATA;
 
 /* Virtual regs.  */
 
@@ -115,45 +115,50 @@ do { \
 ;} while (0)
 
 /* Cover fns for register access.  */
-USI riscvbf32_h_pc_get (SIM_CPU *);
-void riscvbf32_h_pc_set (SIM_CPU *, USI);
-DI riscvbf32_h_gpr_get (SIM_CPU *, UINT);
-void riscvbf32_h_gpr_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_gpr_not_zero_get (SIM_CPU *, UINT);
-void riscvbf32_h_gpr_not_zero_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_gpr_not_zero_or_sp_get (SIM_CPU *, UINT);
-void riscvbf32_h_gpr_not_zero_or_sp_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_zero_get (SIM_CPU *, UINT);
-void riscvbf32_h_zero_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_sp_get (SIM_CPU *, UINT);
-void riscvbf32_h_sp_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_c_gpr_get (SIM_CPU *, UINT);
-void riscvbf32_h_c_gpr_set (SIM_CPU *, UINT, DI);
-UDI riscvbf32_h_csr_get (SIM_CPU *, UINT);
-void riscvbf32_h_csr_set (SIM_CPU *, UINT, UDI);
-DI riscvbf32_h_fpr_get (SIM_CPU *, UINT);
-void riscvbf32_h_fpr_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_c_fpr_get (SIM_CPU *, UINT);
-void riscvbf32_h_c_fpr_set (SIM_CPU *, UINT, DI);
-DI riscvbf32_h_opcode7_get (SIM_CPU *);
-void riscvbf32_h_opcode7_set (SIM_CPU *, DI);
-DI riscvbf32_h_copcode2_get (SIM_CPU *);
-void riscvbf32_h_copcode2_set (SIM_CPU *, DI);
+USI riscv64bf_h_pc_get (SIM_CPU *);
+void riscv64bf_h_pc_set (SIM_CPU *, USI);
+DI riscv64bf_h_gpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_gpr_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_gpr_not_zero_get (SIM_CPU *, UINT);
+void riscv64bf_h_gpr_not_zero_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_gpr_not_zero_or_sp_get (SIM_CPU *, UINT);
+void riscv64bf_h_gpr_not_zero_or_sp_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_zero_get (SIM_CPU *, UINT);
+void riscv64bf_h_zero_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_sp_get (SIM_CPU *, UINT);
+void riscv64bf_h_sp_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_c_gpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_c_gpr_set (SIM_CPU *, UINT, DI);
+UDI riscv64bf_h_csr_get (SIM_CPU *, UINT);
+void riscv64bf_h_csr_set (SIM_CPU *, UINT, UDI);
+DI riscv64bf_h_fpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_fpr_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_c_fpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_c_fpr_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_opcode7_get (SIM_CPU *);
+void riscv64bf_h_opcode7_set (SIM_CPU *, DI);
+DI riscv64bf_h_copcode2_get (SIM_CPU *);
+void riscv64bf_h_copcode2_set (SIM_CPU *, DI);
 
 /* These must be hand-written.  */
-extern CPUREG_FETCH_FN riscvbf32_fetch_register;
-extern CPUREG_STORE_FN riscvbf32_store_register;
+extern CPUREG_FETCH_FN riscv64bf_fetch_register;
+extern CPUREG_STORE_FN riscv64bf_store_register;
 
 typedef struct {
   int empty;
-} MODEL_RISCV_DATA;
+} MODEL_RISCV64_DATA;
 
 /* Instruction argument buffer.  */
 
 union sem_fields {
-  struct { /*  */
+  struct { /* no operands */
     int empty;
   } sfmt_empty;
+  struct { /*  */
+    UINT f_rd;
+    UINT f_rs1;
+    UINT f_rs2;
+  } sfmt_add;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {
@@ -409,6 +414,23 @@ struct scache {
   length = 4; \
   f_csr = EXTRACT_LSB0_UINT (insn, 32, 31, 12); \
   f_uimm5_195 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
+  f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
+  f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
+
+#define EXTRACT_IFMT_SLLI_SHIFT6_VARS \
+  UINT f_funct6; \
+  UDI f_uimm6_256; \
+  UINT f_rs1; \
+  UINT f_funct3; \
+  UINT f_rd; \
+  UINT f_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_SLLI_SHIFT6_CODE \
+  length = 4; \
+  f_funct6 = EXTRACT_LSB0_UINT (insn, 32, 31, 6); \
+  f_uimm6_256 = EXTRACT_LSB0_UINT (insn, 32, 25, 6); \
+  f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
   f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
   f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
   f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
@@ -670,4 +692,4 @@ typedef struct trace_record {
   /* FIXME:wip */
 } TRACE_RECORD;
 
-#endif /* CPU_RISCVBF32_H */
+#endif /* CPU_RISCV64BF_H */

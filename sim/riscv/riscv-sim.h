@@ -20,9 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define RISCV_SIM_H
 
 /* Custom hardware handlers */
-DI   riscvbf32_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
-void riscvbf32_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
-UDI  riscvbf32_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
-void riscvbf32_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
+#if XLEN == 32
+DI   riscv32bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
+void riscv32bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
+UDI  riscv32bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
+void riscv32bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
+#endif
+
+#if XLEN == 64
+DI   riscv64bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
+void riscv64bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
+UDI  riscv64bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
+void riscv64bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
+#endif
 
 #endif /* RISCV_SIM_H */

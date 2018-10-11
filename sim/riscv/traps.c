@@ -18,8 +18,15 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#define WANT_CPU riscvbf64
-#define WANT_CPU_riscvbf64
+#if XLEN ==32
+#define WANT_CPU riscv32bf
+#define WANT_CPU_RISCV32BF
+#elif XLEN == 64
+#define WANT_CPU riscv64bf
+#define WANT_CPU_RISCV64BF
+#else
+#error XLEN not defined, or not 32 or 64 bits
+#endif
 
 #include "sim-main.h"
 

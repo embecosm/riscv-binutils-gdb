@@ -55,8 +55,11 @@ struct _sim_cpu {
      One has to of course be careful to not take the size of this
      struct and no structure members accessed in non-cpu specific files can
      go after here.  Oh for a better language.  */
-#if defined (WANT_CPU_RISCVBF32)
-  RISCVBF32_CPU_DATA cpu_data;
+#ifdef WANT_CPU_RISCV32BF
+  RISCV32BF_CPU_DATA cpu_data;
+#endif
+#ifdef WANT_CPU_RISCV64BF
+  RISCV64BF_CPU_DATA cpu_data;
 #endif
 };
 

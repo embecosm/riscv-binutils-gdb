@@ -1,4 +1,4 @@
-/* Misc. support for CPU family riscvbf32.
+/* Misc. support for CPU family riscv64bf.
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
@@ -22,8 +22,8 @@ This file is part of the GNU simulators.
 
 */
 
-#define WANT_CPU riscvbf32
-#define WANT_CPU_RISCVBF32
+#define WANT_CPU riscv64bf
+#define WANT_CPU_RISCV64BF
 
 #include "sim-main.h"
 #include "cgen-ops.h"
@@ -31,7 +31,7 @@ This file is part of the GNU simulators.
 /* Get the value of h-pc.  */
 
 USI
-riscvbf32_h_pc_get (SIM_CPU *current_cpu)
+riscv64bf_h_pc_get (SIM_CPU *current_cpu)
 {
   return GET_H_PC ();
 }
@@ -39,7 +39,7 @@ riscvbf32_h_pc_get (SIM_CPU *current_cpu)
 /* Set a value for h-pc.  */
 
 void
-riscvbf32_h_pc_set (SIM_CPU *current_cpu, USI newval)
+riscv64bf_h_pc_set (SIM_CPU *current_cpu, USI newval)
 {
   SET_H_PC (newval);
 }
@@ -47,7 +47,7 @@ riscvbf32_h_pc_set (SIM_CPU *current_cpu, USI newval)
 /* Get the value of h-gpr.  */
 
 DI
-riscvbf32_h_gpr_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_gpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_GPR (regno);
 }
@@ -55,7 +55,7 @@ riscvbf32_h_gpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-gpr.  */
 
 void
-riscvbf32_h_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_GPR (regno, newval);
 }
@@ -63,7 +63,7 @@ riscvbf32_h_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-gpr-not-zero.  */
 
 DI
-riscvbf32_h_gpr_not_zero_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_gpr_not_zero_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_GPR_NOT_ZERO (regno);
 }
@@ -71,7 +71,7 @@ riscvbf32_h_gpr_not_zero_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-gpr-not-zero.  */
 
 void
-riscvbf32_h_gpr_not_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_gpr_not_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_GPR_NOT_ZERO (regno, newval);
 }
@@ -79,7 +79,7 @@ riscvbf32_h_gpr_not_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-gpr-not-zero-or-sp.  */
 
 DI
-riscvbf32_h_gpr_not_zero_or_sp_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_gpr_not_zero_or_sp_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_GPR_NOT_ZERO_OR_SP (regno);
 }
@@ -87,7 +87,7 @@ riscvbf32_h_gpr_not_zero_or_sp_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-gpr-not-zero-or-sp.  */
 
 void
-riscvbf32_h_gpr_not_zero_or_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_gpr_not_zero_or_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_GPR_NOT_ZERO_OR_SP (regno, newval);
 }
@@ -95,7 +95,7 @@ riscvbf32_h_gpr_not_zero_or_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-zero.  */
 
 DI
-riscvbf32_h_zero_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_zero_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_ZERO (regno);
 }
@@ -103,7 +103,7 @@ riscvbf32_h_zero_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-zero.  */
 
 void
-riscvbf32_h_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_ZERO (regno, newval);
 }
@@ -111,7 +111,7 @@ riscvbf32_h_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-sp.  */
 
 DI
-riscvbf32_h_sp_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_sp_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_SP (regno);
 }
@@ -119,7 +119,7 @@ riscvbf32_h_sp_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-sp.  */
 
 void
-riscvbf32_h_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_SP (regno, newval);
 }
@@ -127,7 +127,7 @@ riscvbf32_h_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-c-gpr.  */
 
 DI
-riscvbf32_h_c_gpr_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_c_gpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_C_GPR (regno);
 }
@@ -135,7 +135,7 @@ riscvbf32_h_c_gpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-c-gpr.  */
 
 void
-riscvbf32_h_c_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_c_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_C_GPR (regno, newval);
 }
@@ -143,7 +143,7 @@ riscvbf32_h_c_gpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-csr.  */
 
 UDI
-riscvbf32_h_csr_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_csr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_CSR (regno);
 }
@@ -151,7 +151,7 @@ riscvbf32_h_csr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-csr.  */
 
 void
-riscvbf32_h_csr_set (SIM_CPU *current_cpu, UINT regno, UDI newval)
+riscv64bf_h_csr_set (SIM_CPU *current_cpu, UINT regno, UDI newval)
 {
   SET_H_CSR (regno, newval);
 }
@@ -159,7 +159,7 @@ riscvbf32_h_csr_set (SIM_CPU *current_cpu, UINT regno, UDI newval)
 /* Get the value of h-fpr.  */
 
 DI
-riscvbf32_h_fpr_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_fpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return CPU (h_fpr[regno]);
 }
@@ -167,7 +167,7 @@ riscvbf32_h_fpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-fpr.  */
 
 void
-riscvbf32_h_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   CPU (h_fpr[regno]) = newval;
 }
@@ -175,7 +175,7 @@ riscvbf32_h_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-c-fpr.  */
 
 DI
-riscvbf32_h_c_fpr_get (SIM_CPU *current_cpu, UINT regno)
+riscv64bf_h_c_fpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_C_FPR (regno);
 }
@@ -183,7 +183,7 @@ riscvbf32_h_c_fpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-c-fpr.  */
 
 void
-riscvbf32_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv64bf_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 {
   SET_H_C_FPR (regno, newval);
 }
@@ -191,7 +191,7 @@ riscvbf32_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 /* Get the value of h-opcode7.  */
 
 DI
-riscvbf32_h_opcode7_get (SIM_CPU *current_cpu)
+riscv64bf_h_opcode7_get (SIM_CPU *current_cpu)
 {
   return GET_H_OPCODE7 ();
 }
@@ -199,7 +199,7 @@ riscvbf32_h_opcode7_get (SIM_CPU *current_cpu)
 /* Set a value for h-opcode7.  */
 
 void
-riscvbf32_h_opcode7_set (SIM_CPU *current_cpu, DI newval)
+riscv64bf_h_opcode7_set (SIM_CPU *current_cpu, DI newval)
 {
   SET_H_OPCODE7 (newval);
 }
@@ -207,7 +207,7 @@ riscvbf32_h_opcode7_set (SIM_CPU *current_cpu, DI newval)
 /* Get the value of h-copcode2.  */
 
 DI
-riscvbf32_h_copcode2_get (SIM_CPU *current_cpu)
+riscv64bf_h_copcode2_get (SIM_CPU *current_cpu)
 {
   return GET_H_COPCODE2 ();
 }
@@ -215,7 +215,7 @@ riscvbf32_h_copcode2_get (SIM_CPU *current_cpu)
 /* Set a value for h-copcode2.  */
 
 void
-riscvbf32_h_copcode2_set (SIM_CPU *current_cpu, DI newval)
+riscv64bf_h_copcode2_set (SIM_CPU *current_cpu, DI newval)
 {
   SET_H_COPCODE2 (newval);
 }
@@ -223,7 +223,7 @@ riscvbf32_h_copcode2_set (SIM_CPU *current_cpu, DI newval)
 /* Record trace results for INSN.  */
 
 void
-riscvbf32_record_trace_results (SIM_CPU *current_cpu, CGEN_INSN *insn,
+riscv64bf_record_trace_results (SIM_CPU *current_cpu, CGEN_INSN *insn,
 			    int *indices, TRACE_RECORD *tr)
 {
 }

@@ -37,8 +37,8 @@ extern "C" {
 
 
 /* Selected cpu families.  */
-#define HAVE_CPU_RISCVBF32
-#define HAVE_CPU_RISCVBF64
+#define HAVE_CPU_RISCV32BF
+#define HAVE_CPU_RISCV64BF
 
 #define CGEN_INSN_LSB0_P 1
 
