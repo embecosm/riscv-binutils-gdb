@@ -2702,6 +2702,71 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FCVT_Q_LU, "fcvt.q.lu", "fcvt.q.lu", 32,
     { 0, { { { (1<<MACH_RV64GQC), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
   },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2} */
+  {
+    -1, "insn-r", "_insn_r", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12} */
+  {
+    -1, "insn-i-1", "_insn_i", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1}) */
+  {
+    -1, "insn-i-2", "_insn_i", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1}) */
+  {
+    -1, "insn-s", "_insn_s", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1}) */
+  {
+    -1, "insn-sb-1", "_insn_sb", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13} */
+  {
+    -1, "insn-sb-2", "_insn_sb", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_u ${opcode7},${rd},${uimm32-3120-000000000000} */
+  {
+    -1, "insn-u", "_insn_u", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_uj ${opcode7},${rd},${jmp21} */
+  {
+    -1, "insn-uj", "_insn_uj", 32,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs} */
+  {
+    -1, "insn-ci", "_insn_ci", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62} */
+  {
+    -1, "insn-cr", "_insn_cr", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs} */
+  {
+    -1, "insn-ciw", "_insn_ciw", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9} */
+  {
+    -1, "insn-cb", "_insn_cb", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
+/* _insn_cj ${copcode2},${cfunct3},${cjmp12} */
+  {
+    -1, "insn-cj", "_insn_cj", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
 };
 
 #undef OP

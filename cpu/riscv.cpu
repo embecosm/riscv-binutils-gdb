@@ -2670,57 +2670,57 @@
   (index f-c-funct4)
 )
 
-;(dni insn-r    ".insn r"   (base-isas NO-DIS)
-;  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
-;  (+ funct7 rs2 rs1 funct3 rd opcode7)
-;  (nop) ())
-;(dni insn-i-1  ".insn i"   (base-isas NO-DIS)
-;  "_insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12}"
-;  (+ imm-lo12 rs1 funct3 rd opcode7)
-;  (nop) ())
-;(dni insn-i-2  ".insn i"   (base-isas NO-DIS)
-;  "_insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
-;  (+ imm-lo12 rs1 funct3 rd opcode7)
-;  (nop) ())
-;(dni insn-s    ".insn s"   (base-isas NO-DIS)
-;  "_insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
-;  (+ imm-lo12 rs1 funct3 rd opcode7)
-;  (nop) ())
-;(dni insn-sb-1 ".insn sb"  (base-isas NO-DIS)
-;  "_insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1})"
-;  (+ store12 rs2 rs1 funct3 opcode7)
-;  (nop) ())
-;(dni insn-sb-2 ".insn sb"  (base-isas NO-DIS)
-;  "_insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13}"
-;  (+ branch13 rs2 rs1 funct3 opcode7)
-;  (nop) ())
-;(dni insn-u    ".insn u"   (base-isas NO-DIS)
-;  "_insn_u ${opcode7},${rd},${uimm32-3120-000000000000}"
-;  (+ uimm32-3120-000000000000 rd opcode7)
-;  (nop) ())
-;(dni insn-uj   ".insn uj"  (base-isas NO-DIS)
-;  "_insn_uj ${opcode7},${rd},${jmp21}"
-;  (+ jmp21 rd opcode7)
-;  (nop) ())
-;
-;(dni insn-ci   ".insn ci"  (base-isas NO-DIS)
-;  "_insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
-;  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
-;  (nop) ())
-;(dni insn-cr   ".insn cr"  (base-isas NO-DIS)
-;  "_insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62}"
-;  (+ cfunct4 c-reg117 c-reg62 copcode2)
-;  (nop) ())
-;(dni insn-ciw  ".insn ciw" (base-isas NO-DIS)
-;  "_insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
-;  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
-;  (nop) ())
-;(dni insn-cb   ".insn cb"  (base-isas NO-DIS)
-;  "_insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9}"
-;  (+ cfunct3 cbranch9 c-reg97 copcode2)
-;  (nop) ())
-;(dni insn-cj   ".insn cj"  (base-isas NO-DIS)
-;  "_insn_cj ${copcode2},${cfunct3},${cjmp12}"
-;  (+ cfunct3 cjmp12 copcode2)
-;  (nop) ())
+(dni insn-r    ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
+  (+ funct7 rs2 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-i-1  ".insn i"   (base-isas NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12}"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-i-2  ".insn i"   (base-isas NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-s    ".insn s"   (base-isas NO-DIS)
+  "_insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-sb-1 ".insn sb"  (base-isas NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1})"
+  (+ store12 rs2 rs1 funct3 opcode7)
+  #f ())
+(dni insn-sb-2 ".insn sb"  (base-isas NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13}"
+  (+ branch13 rs2 rs1 funct3 opcode7)
+  #f ())
+(dni insn-u    ".insn u"   (base-isas NO-DIS)
+  "_insn_u ${opcode7},${rd},${uimm32-3120-000000000000}"
+  (+ uimm32-3120-000000000000 rd opcode7)
+  #f ())
+(dni insn-uj   ".insn uj"  (base-isas NO-DIS)
+  "_insn_uj ${opcode7},${rd},${jmp21}"
+  (+ jmp21 rd opcode7)
+  #f ())
+
+(dni insn-ci   ".insn ci"  (base-isas NO-DIS)
+  "_insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
+  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  #f ())
+(dni insn-cr   ".insn cr"  (base-isas NO-DIS)
+  "_insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62}"
+  (+ cfunct4 c-reg117 c-reg62 copcode2)
+  #f ())
+(dni insn-ciw  ".insn ciw" (base-isas NO-DIS)
+  "_insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
+  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  #f ())
+(dni insn-cb   ".insn cb"  (base-isas NO-DIS)
+  "_insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9}"
+  (+ cfunct3 cbranch9 c-reg97 copcode2)
+  #f ())
+(dni insn-cj   ".insn cj"  (base-isas NO-DIS)
+  "_insn_cj ${copcode2},${cfunct3},${cjmp12}"
+  (+ cfunct3 cjmp12 copcode2)
+  #f ())
 
