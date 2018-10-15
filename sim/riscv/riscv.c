@@ -78,10 +78,45 @@ riscv32bf_store_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
   return len;
 }
 
-int riscv32bf_model_riscv32_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+int riscv32bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                            int unit_num, int referenced)
 {
   return -1;
+}
+int riscv32bf_model_rv32i_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                  int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32ic_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32im_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32imc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                    int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32g_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                  int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32gc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                    int unit_num, int referenced)
+{
+  return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
 
 #elif WANT_CPU_RISCV64BF
@@ -129,10 +164,45 @@ riscv64bf_store_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
   return len;
 }
 
-int riscv64bf_model_riscv64_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+int riscv64bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                            int unit_num, int referenced)
 {
   return -1;
+}
+int riscv64bf_model_rv64i_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                  int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64ic_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64im_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64imc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                    int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64g_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                  int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64gc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                   int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
+}
+int riscv64bf_model_rv64gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
+                                    int unit_num, int referenced)
+{
+  return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
 
 #endif

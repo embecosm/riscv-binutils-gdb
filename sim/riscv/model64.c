@@ -4567,9 +4567,39 @@ riscv64_model_init (SIM_CPU *cpu)
 #define TIMING_DATA(td) 0
 #endif
 
-static const SIM_MODEL riscv_rv64_models[] =
+static const SIM_MODEL rv64i_models[] =
 {
-  { "riscv64", & riscv_rv64_mach, MODEL_RISCV64, TIMING_DATA (& riscv64_timing[0]), riscv64_model_init },
+  { "riscv64", & rv64i_mach, MODEL_RISCV64, TIMING_DATA (& riscv64_timing[0]), riscv64_model_init },
+  { 0 }
+};
+
+static const SIM_MODEL rv64ic_models[] =
+{
+  { 0 }
+};
+
+static const SIM_MODEL rv64im_models[] =
+{
+  { 0 }
+};
+
+static const SIM_MODEL rv64imc_models[] =
+{
+  { 0 }
+};
+
+static const SIM_MODEL rv64g_models[] =
+{
+  { 0 }
+};
+
+static const SIM_MODEL rv64gc_models[] =
+{
+  { 0 }
+};
+
+static const SIM_MODEL rv64gqc_models[] =
+{
   { 0 }
 };
 
@@ -4600,7 +4630,7 @@ riscv64bf_get_idata (SIM_CPU *cpu, int inum)
 }
 
 static void
-riscv_rv64_init_cpu (SIM_CPU *cpu)
+rv64i_init_cpu (SIM_CPU *cpu)
 {
   CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
   CPU_REG_STORE (cpu) = riscv64bf_store_register;
@@ -4617,11 +4647,167 @@ riscv_rv64_init_cpu (SIM_CPU *cpu)
 #endif
 }
 
-const SIM_MACH riscv_rv64_mach =
+const SIM_MACH rv64i_mach =
 {
-  "riscv:rv64", "riscv:rv64", MACH_RISCV_RV64,
-  64, 64, & riscv_rv64_models[0], & riscv64bf_imp_properties,
-  riscv_rv64_init_cpu,
+  "rv64i", "rv64i", MACH_RV64I,
+  64, 64, & rv64i_models[0], & riscv64bf_imp_properties,
+  rv64i_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64ic_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64ic_mach =
+{
+  "rv64ic", "rv64ic", MACH_RV64IC,
+  64, 64, & rv64ic_models[0], & riscv64bf_imp_properties,
+  rv64ic_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64im_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64im_mach =
+{
+  "rv64im", "rv64im", MACH_RV64IM,
+  64, 64, & rv64im_models[0], & riscv64bf_imp_properties,
+  rv64im_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64imc_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64imc_mach =
+{
+  "rv64imc", "rv64imc", MACH_RV64IMC,
+  64, 64, & rv64imc_models[0], & riscv64bf_imp_properties,
+  rv64imc_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64g_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64g_mach =
+{
+  "rv64g", "rv64g", MACH_RV64G,
+  64, 64, & rv64g_models[0], & riscv64bf_imp_properties,
+  rv64g_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64gc_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64gc_mach =
+{
+  "rv64gc", "rv64gc", MACH_RV64GC,
+  64, 64, & rv64gc_models[0], & riscv64bf_imp_properties,
+  rv64gc_init_cpu,
+  riscv64bf_prepare_run
+};
+
+static void
+rv64gqc_init_cpu (SIM_CPU *cpu)
+{
+  CPU_REG_FETCH (cpu) = riscv64bf_fetch_register;
+  CPU_REG_STORE (cpu) = riscv64bf_store_register;
+  CPU_PC_FETCH (cpu) = riscv64bf_h_pc_get;
+  CPU_PC_STORE (cpu) = riscv64bf_h_pc_set;
+  CPU_GET_IDATA (cpu) = riscv64bf_get_idata;
+  CPU_MAX_INSNS (cpu) = RISCV64BF_RV64_INSN__MAX;
+  CPU_INSN_NAME (cpu) = cgen_insn_name;
+  CPU_FULL_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#if WITH_FAST
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_fast;
+#else
+  CPU_FAST_ENGINE_FN (cpu) = riscv64bf_rv64_engine_run_full;
+#endif
+}
+
+const SIM_MACH rv64gqc_mach =
+{
+  "rv64gqc", "riscv:rv64", MACH_RV64GQC,
+  64, 64, & rv64gqc_models[0], & riscv64bf_imp_properties,
+  rv64gqc_init_cpu,
   riscv64bf_prepare_run
 };
 

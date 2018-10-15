@@ -27,22 +27,22 @@ This file is part of the GNU simulators.
 
 #define TARGET_BIG_ENDIAN 1
 
-#define WI  DI
-#define UWI UDI
-#define AI  UDI
+#define WI  SI
+#define UWI USI
+#define AI  USI
 
-#define IAI UDI
+#define IAI USI
 
 /* Enum declaration for model types.  */
 typedef enum model_type {
-  MODEL_RISCV64, MODEL_MAX
+  MODEL_MAX
 } MODEL_TYPE;
 
 #define MAX_MODELS ((int) MODEL_MAX)
 
 /* Enum declaration for unit types.  */
 typedef enum unit_type {
-  UNIT_NONE, UNIT_RISCV64_U_EXEC, UNIT_MAX
+  UNIT_NONE, UNIT_MAX
 } UNIT_TYPE;
 
 #define MAX_UNITS (1)

@@ -146,7 +146,31 @@ extern CPUREG_STORE_FN riscv32bf_store_register;
 
 typedef struct {
   int empty;
-} MODEL_RISCV32_DATA;
+} MODEL_RV32I_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32IC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32IM_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32IMC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32G_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32GC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV32GQC_DATA;
 
 /* Instruction argument buffer.  */
 

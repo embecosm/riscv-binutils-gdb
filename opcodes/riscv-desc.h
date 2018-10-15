@@ -65,7 +65,10 @@ extern "C" {
 
 /* Enum declaration for machine type selection.  */
 typedef enum mach_attr {
-  MACH_BASE, MACH_RISCV_RV32, MACH_RISCV_RV64, MACH_MAX
+  MACH_BASE, MACH_RV32I, MACH_RV32IC, MACH_RV32IM
+ , MACH_RV32IMC, MACH_RV32G, MACH_RV32GC, MACH_RV32GQC
+ , MACH_RV64I, MACH_RV64IC, MACH_RV64IM, MACH_RV64IMC
+ , MACH_RV64G, MACH_RV64GC, MACH_RV64GQC, MACH_MAX
 } MACH_ATTR;
 
 /* Enum declaration for instruction set selection.  */

@@ -35,14 +35,17 @@ This file is part of the GNU simulators.
 
 /* Enum declaration for model types.  */
 typedef enum model_type {
-  MODEL_RISCV32, MODEL_MAX
+  MODEL_RV32I, MODEL_RV32IC, MODEL_RV32IM, MODEL_RV32IMC
+ , MODEL_RV32G, MODEL_RV32GC, MODEL_RV32GQC, MODEL_MAX
 } MODEL_TYPE;
 
 #define MAX_MODELS ((int) MODEL_MAX)
 
 /* Enum declaration for unit types.  */
 typedef enum unit_type {
-  UNIT_NONE, UNIT_RISCV32_U_EXEC, UNIT_MAX
+  UNIT_NONE, UNIT_RV32I_U_EXEC, UNIT_RV32IC_U_EXEC, UNIT_RV32IM_U_EXEC
+ , UNIT_RV32IMC_U_EXEC, UNIT_RV32G_U_EXEC, UNIT_RV32GC_U_EXEC, UNIT_RV32GQC_U_EXEC
+ , UNIT_MAX
 } UNIT_TYPE;
 
 #define MAX_UNITS (1)

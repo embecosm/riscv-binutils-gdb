@@ -92,7 +92,13 @@ typedef enum riscv32bf_rv32_sfmt_type {
 
 /* Function unit handlers (user written).  */
 
-extern int riscv32bf_model_riscv32_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32i_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32ic_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32im_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32imc_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32g_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32gc_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
+extern int riscv32bf_model_rv32gqc_u_exec (SIM_CPU *, const IDESC *, int /*unit_num*/, int /*referenced*/);
 
 /* Profiling before/after handlers (user written) */
 

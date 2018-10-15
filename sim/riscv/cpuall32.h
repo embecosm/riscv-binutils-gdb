@@ -33,7 +33,13 @@ This file is part of the GNU simulators.
 #include "decode32.h"
 #endif
 
-extern const SIM_MACH riscv_rv32_mach;
+extern const SIM_MACH rv32i_mach;
+extern const SIM_MACH rv32ic_mach;
+extern const SIM_MACH rv32im_mach;
+extern const SIM_MACH rv32imc_mach;
+extern const SIM_MACH rv32g_mach;
+extern const SIM_MACH rv32gc_mach;
+extern const SIM_MACH rv32gqc_mach;
 
 #ifndef WANT_CPU
 /* The ARGBUF struct.  */

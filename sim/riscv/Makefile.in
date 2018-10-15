@@ -45,6 +45,8 @@ SIM_EXTRA_DEPS = \
 	$(CGEN_INCLUDE_DEPS) \
 	arch.h \
 	cpuall.h \
+	arch$(XLEN).h \
+	cpuall$(XLEN).h \
 	riscv-sim.h \
 	$(srcdir)/../../opcodes/riscv-desc.h
 
@@ -58,8 +60,9 @@ arch = riscv
 
 sim-if.o: sim-if.c $(SIM_MAIN_DEPS) $(srcdir)/../common/sim-core.h
 
-arch%.o: arch%.c $(SIM_MAIN_DEPS)
-traps.o: traps.c $(SIM_MAIN_DEPS)
+arch32.o: arch32.c $(SIM_MAIN_DEPS)
+arch64.o: arch64.c $(SIM_MAIN_DEPS)
+traps.o:  traps.c  $(SIM_MAIN_DEPS)
 
 # RISCV objects
 
@@ -70,25 +73,40 @@ RISCV_INCLUDE_DEPS = \
 	decode$(XLEN).h \
 	eng$(XLEN).h
 
-riscv.o:  riscv.c  $(RISCV_INCLUDE_DEPS)
 
-mloop%.c: stamp-loop%  ; @true
-eng%.h:   stamp-mloop% ; @true
-stamp-mloop%: $(srcdir)/../common/genmloop.sh mloop.in Makefile
+riscv.o:  riscv.c $(RISCV_INCLUDE_DEPS)
+
+eng32.h mloop32.c: stamp-mloop32 ;
+stamp-mloop32: $(srcdir)/../common/genmloop.sh $(srcdir)/mloop.in Makefile
 	$(SHELL) $(srccom)/genmloop.sh -shell $(SHELL) \
 	  -mono -no-fast -scache \
-		-prefix riscv$*bf_rv$* \
-	  -cpu riscv$*bf -infile $(srcdir)/mloop.in \
-		-outfile-suffix $*
-	$(SHELL) $(srcroot)/move-if-change eng$*.hin eng$*.h
-	$(SHELL) $(srcroot)/move-if-change mloop$*.cin mloop$*.c
-	touch stamp-mloop$*
+		-prefix riscv32bf_rv32 \
+	  -cpu riscv32bf -infile $(srcdir)/mloop.in \
+		-outfile-suffix 32
+	$(SHELL) $(srcroot)/move-if-change eng32.hin eng32.h
+	$(SHELL) $(srcroot)/move-if-change mloop32.cin mloop32.c
+	touch stamp-mloop32
+mloop32.o:  mloop32.c  $(RISCV_INCLUDE_DEPS)
+cpu32.o:    cpu32.c    $(RISCV_INCLUDE_DEPS)
+decode32.o: decode32.c $(RISCV_INCLUDE_DEPS)
+sem32.o:    sem32.c    $(RISCV_INCLUDE_DEPS)
+model32.o:  model32.c  $(RISCV_INCLUDE_DEPS)
 
-mloop%.o:  mloop%.c  $(RISCV_INCLUDE_DEPS)
-cpu%.o:    cpu%.c    $(RISCV_INCLUDE_DEPS)
-decode%.o: decode%.c $(RISCV_INCLUDE_DEPS)
-sem%.o:    sem%.c    $(RISCV_INCLUDE_DEPS)
-model%.o:  model%.c  $(RISCV_INCLUDE_DEPS)
+eng64.h mloop64.c: stamp-mloop64 ;
+stamp-mloop64: $(srcdir)/../common/genmloop.sh $(srcdir)/mloop.in Makefile
+	$(SHELL) $(srccom)/genmloop.sh -shell $(SHELL) \
+	  -mono -no-fast -scache \
+		-prefix riscv64bf_rv64 \
+	  -cpu riscv64bf -infile $(srcdir)/mloop.in \
+		-outfile-suffix 64
+	$(SHELL) $(srcroot)/move-if-change eng64.hin eng64.h
+	$(SHELL) $(srcroot)/move-if-change mloop64.cin mloop64.c
+	touch stamp-mloop64
+mloop64.o:  mloop64.c  $(RISCV_INCLUDE_DEPS)
+cpu64.o:    cpu64.c    $(RISCV_INCLUDE_DEPS)
+decode64.o: decode64.c $(RISCV_INCLUDE_DEPS)
+sem64.o:    sem64.c    $(RISCV_INCLUDE_DEPS)
+model64.o:  model64.c  $(RISCV_INCLUDE_DEPS)
 
 
 # cgen support, enable with --enable-cgen-maint
@@ -101,43 +119,60 @@ riscv-clean:
 	rm -f tmp-*
 	rm -f stamp-arch* stamp-cpu*
 
-stamp-arch%: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
-	mv $(srcdir)/cpuall.h $(srcdir)/save-cpuall.h
-	mv $(srcdir)/arch.h   $(srcdir)/save-arch.h
+stamp-arch32: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+	mv $(srcdir)/cpuall.h $(srcdir)/tmp-cpuall.h
+	mv $(srcdir)/arch.h   $(srcdir)/tmp-arch.h
 	$(MAKE) cgen-arch $(CGEN_FLAGS_TO_PASS) \
 	  archfile=$(srcdir)/../../cpu/riscv.cpu \
-	  isa=rv$* mach=riscv:rv$* cpu=riscv$*bf SUFFIX=$* \
+	  isa=rv32 cpu=riscv32bf \
+		mach=rv32i,rv32ic,rv32im,rv32imc,rv32g,rv32gc,rv32gqc \
 	  FLAGS="with-scache"
-	mv $(srcdir)/cpuall.h $(srcdir)/cpuall$*.h
-	mv $(srcdir)/arch.h   $(srcdir)/arch$*.h
-	mv $(srcdir)/arch.c   $(srcdir)/arch$*.c
-	mv $(srcdir)/save-cpuall.h $(srcdir)/cpuall.h
-	mv $(srcdir)/save-arch.h   $(srcdir)/arch.h
+	mv $(srcdir)/cpuall.h $(srcdir)/cpuall32.h
+	mv $(srcdir)/arch.h   $(srcdir)/arch32.h
+	mv $(srcdir)/arch.c   $(srcdir)/arch32.c
+	mv $(srcdir)/tmp-cpuall.h $(srcdir)/cpuall.h
+	mv $(srcdir)/tmp-arch.h   $(srcdir)/arch.h
 	touch stamp-arch
-$(srcdir)/arch%.h: $(CGEN_MAINT) stamp-arch%
-	@true
-$(srcdir)/arch%.c: $(CGEN_MAINT) stamp-arch%
-	@true
-$(srcdir)/cpuall%.h: $(CGEN_MAINT) stamp-arch%
+$(srcdir)/arch32.h $(srcdir)/arch32.c $(srcdir)/cpuall32.h: $(CGEN_MAINT) stamp-arch32
 	@true
 
-stamp-cpu%: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+stamp-arch64: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+	mv $(srcdir)/cpuall.h $(srcdir)/tmp-cpuall.h
+	mv $(srcdir)/arch.h   $(srcdir)/tmp-arch.h
+	$(MAKE) cgen-arch $(CGEN_FLAGS_TO_PASS) \
+	  archfile=$(srcdir)/../../cpu/riscv.cpu \
+	  isa=rv64 cpu=riscv64bf \
+		mach=rv64i,rv64ic,rv64im,rv64imc,rv64g,rv64gc,rv64gqc \
+	  FLAGS="with-scache"
+	mv $(srcdir)/cpuall.h $(srcdir)/cpuall64.h
+	mv $(srcdir)/arch.h   $(srcdir)/arch64.h
+	mv $(srcdir)/arch.c   $(srcdir)/arch64.c
+	mv $(srcdir)/tmp-cpuall.h $(srcdir)/cpuall.h
+	mv $(srcdir)/tmp-arch.h   $(srcdir)/arch.h
+	touch stamp-arch
+$(srcdir)/arch64.h $(srcdir)/arch64.c $(srcdir)/cpuall64.h: $(CGEN_MAINT) stamp-arch64
+	@true
+
+
+stamp-cpu32: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
 	$(MAKE) cgen-cpu-decode $(CGEN_FLAGS_TO_PASS) \
 	  archfile=$(srcdir)/../../cpu/riscv.cpu \
-	  isa=rv$* mach=riscv:rv$* cpu=riscv$*bf SUFFIX=$* \
+	  isa=rv32 cpu=riscv32bf SUFFIX=32 \
+		mach=rv32i,rv32ic,rv32im,rv32imc,rv32g,rv32gc,rv32gqc \
 	  FLAGS="with-scache" \
 		EXTRAFILES="$(CGEN_CPU_SEM)"
 	touch stamp-cpu
-$(srcdir)/cpu%.h: $(CGEN_MAINT) stamp-cpu%
+$(srcdir)/cpu32.h $(srcdir)/cpu32.c $(srcdir)/sem32.c $(srcdir)/model32.c $(srcdir)/decode32.c $(srcdir)/decode32.h: $(CGEN_MAINT) stamp-cpu32
 	@true
-$(srcdir)/cpu%.c: $(CGEN_MAINT) stamp-cpu%
-	@true
-$(srcdir)/sem%.c: $(CGEN_MAINT) stamp-cpu%
-	@true
-$(srcdir)/model%.c: $(CGEN_MAINT) stamp-cpu%
-	@true
-$(srcdir)/decode%.c: $(CGEN_MAINT) stamp-cpu%
-	@true
-$(srcdir)/decode%.h: $(CGEN_MAINT) stamp-cpu%
+
+stamp-cpu64: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+	$(MAKE) cgen-cpu-decode $(CGEN_FLAGS_TO_PASS) \
+	  archfile=$(srcdir)/../../cpu/riscv.cpu \
+	  isa=rv64 cpu=riscv64bf SUFFIX=64 \
+		mach=rv64i,rv64ic,rv64im,rv64imc,rv64g,rv64gc,rv64gqc \
+	  FLAGS="with-scache" \
+		EXTRAFILES="$(CGEN_CPU_SEM)"
+	touch stamp-cpu
+$(srcdir)/cpu64.h $(srcdir)/cpu64.c $(srcdir)/sem64.c $(srcdir)/model64.c $(srcdir)/decode64.c $(srcdir)/decode64.h: $(CGEN_MAINT) stamp-cpu64
 	@true
 
