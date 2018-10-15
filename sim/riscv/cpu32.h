@@ -179,10 +179,38 @@ union sem_fields {
     int empty;
   } sfmt_empty;
   struct { /*  */
+    DI f_imm21_311_198_201_3010_0;
+    UINT f_rd;
+  } sfmt_jal;
+  struct { /*  */
+    DI f_uimm32_3120_000000000000;
+    UINT f_rd;
+  } sfmt_lui;
+  struct { /*  */
     UINT f_rd;
     UINT f_rs1;
     UINT f_rs2;
   } sfmt_add;
+  struct { /*  */
+    UDI f_uimm5_245;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_slli_shift5;
+  struct { /*  */
+    DI f_imm12_317_115;
+    UINT f_rs1;
+    UINT f_rs2;
+  } sfmt_sb;
+  struct { /*  */
+    DI f_imm13_311_71_306_114_0;
+    UINT f_rs1;
+    UINT f_rs2;
+  } sfmt_beq;
+  struct { /*  */
+    DI f_imm12_3112;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_jalr;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {

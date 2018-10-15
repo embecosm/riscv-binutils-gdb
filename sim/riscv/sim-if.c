@@ -65,8 +65,12 @@ sim_open (kind, callback, abfd, argv)
       return 0;
     }
 
-  /* No memory will be allocated unless it is specifically requested by
-     the user.  */
+  /* Allocate core managed memory if none specified by the user.
+     Use address 4 here in case the user wanted address 0 unmapped.  */
+  if (sim_core_read_buffer (sd, NULL, read_map, &c, 4, 1) == 0)
+    {
+      sim_do_commandf (sd, "memory region 0,0x%x", RISCV_DEFAULT_MEM_SIZE);
+    }
 
   /* check for/establish the reference program image */
   if (sim_analyze_program (sd,

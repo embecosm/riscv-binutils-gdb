@@ -1606,146 +1606,146 @@
 ; |31            0|
 ; | <instruction> |
 ; +---------------+
-(define-pmacro (rv-format-raw mnemonic attr instr)
+(define-pmacro (rv-format-raw mnemonic attr instr sem)
   (dni mnemonic mnemonic attr
     mnemonic
     (+ (f-uimm32-3132 instr))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format R-type
 ; +--------+-----+-----+--------+----+--------+
 ; |31    25|24 20|19 15|14    12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +--------+-----+-----+--------+----+--------+
-(define-pmacro (rv-format-r mnemonic attr funct7 funct3 opcode)
+(define-pmacro (rv-format-r mnemonic attr funct7 funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${rs1},${rs2}")
     (+ (f-funct7 funct7) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format I-type
 ; +-----------+-----+--------+----+--------+
 ; |31       20|19 15|14    12|11 7|6      0|
 ; |<imm[11:0]>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +-----------+-----+--------+----+--------+
-(define-pmacro (rv-format-i mnemonic attr asm funct3 opcode)
+(define-pmacro (rv-format-i mnemonic attr asm funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic asm)
     (+ imm-lo12 rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; Assembly variant 1 - "mnemonic rd,rs1,imm[11:0]"
-(define-pmacro (rv-format-i-1 mnemonic attr funct3 opcode)
-  (rv-format-i mnemonic attr " ${rd},${rs1},${imm-lo12}"  funct3 opcode))
+(define-pmacro (rv-format-i-1 mnemonic attr funct3 opcode sem)
+  (rv-format-i mnemonic attr " ${rd},${rs1},${imm-lo12}"  funct3 opcode sem))
 ; Assembly variant 2 - "mnemonic rd,imm[11:0](rs1)"
-(define-pmacro (rv-format-i-2 mnemonic attr funct3 opcode)
-  (rv-format-i mnemonic attr " ${rd},${imm-lo12}(${rs1})" funct3 opcode))
+(define-pmacro (rv-format-i-2 mnemonic attr funct3 opcode sem)
+  (rv-format-i mnemonic attr " ${rd},${imm-lo12}(${rs1})" funct3 opcode sem))
 
 ; Shift5/Shift6 - Shifts by a 5 or 6-bit immediate value
 ; +-------+-------+-----+--------+----+--------+
 ; |31   25|24   20|19 15|14    12|11 7|6      0|
 ; |<func7>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +-------+-------+-----+--------+----+--------+
-(define-pmacro (rv-format-shift5 mnemonic attr funct7 funct3 opcode)
+(define-pmacro (rv-format-shift5 mnemonic attr funct7 funct3 opcode sem)
   (dni (.str mnemonic "-shift5") mnemonic attr
     (.str mnemonic " ${rd},${rs1},${uimm5-245}")
     (+ (f-funct7 funct7) uimm5-245 rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +-------+-------+-----+--------+----+--------+
 ; |31   26|25   20|19 15|14    12|11 7|6      0|
 ; |<func6>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +-------+-------+-----+--------+----+--------+
-(define-pmacro (rv-format-shift6 mnemonic attr funct6 funct3 opcode)
+(define-pmacro (rv-format-shift6 mnemonic attr funct6 funct3 opcode sem)
   (dni (.str mnemonic "-shift6") mnemonic attr
     (.str mnemonic " ${rd},${rs1},${uimm6-256}")
     (+ (f-funct6 funct6) uimm6-256 rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format S-type
 ; +-----------+-----+-----+--------+----------+--------+
 ; |31       25|24 20|19 15|14    12|11       7|6      0|
 ; |<imm[11:5]>|<rs2>|<rs1>|<funct3>|<imm[4:0]>|<opcode>|
 ; +-----------+-----+-----+--------+----------+--------+
-(define-pmacro (rv-format-s mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-s mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rs2},${store12}(${rs1})")
     (+ store12 rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format B-type
 ; +---------+-----------+-----+-----+--------+----------+---------+--------+
 ; |    31   |30       25|24 20|19 15|14    12|11       8|    7    |6      0|
 ; |<imm[12]>|<imm[10:5]>|<rs2>|<rs1>|<funct3>|<imm[4:1]>|<imm[11]>|<opcode>|
 ; +---------+-----------+-----+-----+--------+----------+---------+--------+
-(define-pmacro (rv-format-b mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-b mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic (.splice (.unsplice attr) RELAXABLE)
     (.str mnemonic " ${rs1},${rs2},${branch13}")
     (+ branch13 rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format U-type
 ; +------------+----+--------+
 ; |31        12|11 7|6      0|
 ; |<imm[31:12]>|<rd>|<opcode>|
 ; +------------+----+--------+
-(define-pmacro (rv-format-u mnemonic attr opcode)
+(define-pmacro (rv-format-u mnemonic attr opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${uimm32-3120-000000000000}")
     (+ uimm32-3120-000000000000 rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Base Instruction Format J-type
 ; +---------+-----------+---------+------------+----+--------+
 ; |    31   |30       21|    20   |19        12|11 7|6      0|
 ; |<imm[20]>|<imm[10:1]>|<imm[11]>|<imm[19:12]>|<rd>|<opcode>|
 ; +---------+-----------+---------+------------+----+--------+
-(define-pmacro (rv-format-j mnemonic attr opcode)
+(define-pmacro (rv-format-j mnemonic attr opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${jmp21}")
     (+ jmp21 rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; CSR reading/writing instructions using a register
 ; +-----+-----+--------+----+--------+
 ; |31 20|19 15|14    12|11 7|6      0|
 ; |<csr>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +-----+-----+--------+----+--------+
-(define-pmacro (rv-format-csr-reg mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-csr-reg mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${csr},${rs1}")
     (+ csr rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; CSR reading/writing instructions using an unsigned 5-bit immediate
 ; +-----+-----------+--------+----+--------+
 ; |31 20|19       15|14    12|11 7|6      0|
 ; |<csr>|<uimm[4:0]>|<funct3>|<rd>|<opcode>|
 ; +-----+-----------+--------+----+--------+
-(define-pmacro (rv-format-csr-imm mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-csr-imm mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${csr},${uimm5}")
     (+ csr uimm5 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ; Fence/SFence instruction
 ; +--------------+------+------+-------------+
 ; |31          28|27  24|23  20|19          0|
 ; |<instr[31:28]>|<pred>|<succ>|<instr[19:0]>|
 ; +--------------+------+------+-------------+
-(define-pmacro (rv-format-fence mnemonic attr instr3128 instr190)
+(define-pmacro (rv-format-fence mnemonic attr instr3128 instr190 sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${succ},${pred}")
     (+ (f-uimm4-314 instr3128) pred succ (f-uimm20-1920 instr190))
-    (nop) ()))
-(define-pmacro (rv-format-sfence-vm mnemonic attr instr3120 instr140)
+    sem ()))
+(define-pmacro (rv-format-sfence-vm mnemonic attr instr3120 instr140 sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rs1}")
     (+ (f-uimm12-3112 instr3120) rs1 (f-uimm15-1415 instr140))
-    (nop) ()))
-(define-pmacro (rv-format-sfence-vma mnemonic attr instr3125 instr140)
+    sem ()))
+(define-pmacro (rv-format-sfence-vma mnemonic attr instr3125 instr140 sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rs1},${rs2}")
     (+ (f-uimm7-317 instr3125) rs1 rs2 (f-uimm15-1415 instr140))
-    (nop) ()))
+    sem ()))
 
 ; Multiplication instruction
 ; +--------+------+-----+--------+----+--------+
@@ -1937,50 +1937,67 @@
 
 ;===------------------------- 'I' Base instructions -------------------------===
 
-(rv-format-u       "lui"     (base-isas all-machs) #b0110111)
-(rv-format-u       "auipc"   (base-isas all-machs) #b0010111)
-(rv-format-j       "jal"     (base-isas all-machs) #b1101111)
-(rv-format-i-1     "jalr"    (base-isas all-machs) #b000 #b1100111)
+(rv-format-u       "lui"     (base-isas all-machs) #b0110111
+  (set rd (ext (trunc SI uimm32-3120-000000000000))))
+(rv-format-u       "auipc"   (base-isas all-machs) #b0010111
+  (set rd (add pc (ext (trunc SI uimm32-3120-000000000000)))))
+(rv-format-j       "jal"     (base-isas all-machs) #b1101111
+  (sequence ()
+    (set rd (add pc 4))
+    (set pc (add pc (sra (sll DI jmp21 43) 43)))
+  )
+)
+(rv-format-i-1     "jalr"    (base-isas all-machs) #b000 #b1100111
+  (sequence ((WI src-reg))
+    (set src-reg rs1)
+    (set rd (add pc 4))
+    (set pc (add src-reg imm-lo12))
+  )
+)
+
 ; Branches
-(rv-format-b       "beq"     (base-isas all-machs) #b000 #b1100011)
-(rv-format-b       "bne"     (base-isas all-machs) #b001 #b1100011)
-(rv-format-b       "blt"     (base-isas all-machs) #b100 #b1100011)
-(rv-format-b       "bge"     (base-isas all-machs) #b101 #b1100011)
-(rv-format-b       "bltu"    (base-isas all-machs) #b110 #b1100011)
-(rv-format-b       "bgeu"    (base-isas all-machs) #b111 #b1100011)
+(define-pmacro (rv-branch mnemonic attr funct3 opcode cc)
+  (rv-format-b mnemonic attr funct3 opcode
+    (if (cc rs1 rs2) (set pc (add pc (sra (sll DI branch13 51) 51)))) ))
+(rv-branch "beq"  (base-isas all-machs) #b000 #b1100011 eq)
+(rv-branch "bne"  (base-isas all-machs) #b001 #b1100011 ne)
+(rv-branch "blt"  (base-isas all-machs) #b100 #b1100011 lt)
+(rv-branch "bge"  (base-isas all-machs) #b101 #b1100011 ge)
+(rv-branch "bltu" (base-isas all-machs) #b110 #b1100011 ltu)
+(rv-branch "bgeu" (base-isas all-machs) #b111 #b1100011 geu)
 ; Loads/Stores
-(rv-format-i-2     "lb"      (base-isas all-machs) #b000 #b0000011)
-(rv-format-i-2     "lh"      (base-isas all-machs) #b001 #b0000011)
-(rv-format-i-2     "lw"      (base-isas all-machs) #b010 #b0000011)
-(rv-format-i-2     "lbu"     (base-isas all-machs) #b100 #b0000011)
-(rv-format-i-2     "lhu"     (base-isas all-machs) #b101 #b0000011)
-(rv-format-s       "sb"      (base-isas all-machs) #b000 #b0100011)
-(rv-format-s       "sh"      (base-isas all-machs) #b001 #b0100011)
-(rv-format-s       "sw"      (base-isas all-machs) #b010 #b0100011)
+(rv-format-i-2 "lb"  (base-isas all-machs) #b000 #b0000011 (set rd (mem QI (add rs1 imm-lo12))))
+(rv-format-i-2 "lh"  (base-isas all-machs) #b001 #b0000011 (set rd (mem HI (add rs1 imm-lo12))))
+(rv-format-i-2 "lw"  (base-isas all-machs) #b010 #b0000011 (set rd (mem SI (add rs1 imm-lo12))))
+(rv-format-i-2 "lbu" (base-isas all-machs) #b100 #b0000011 (set rd (mem UQI (add rs1 imm-lo12))))
+(rv-format-i-2 "lhu" (base-isas all-machs) #b101 #b0000011 (set rd (mem UHI (add rs1 imm-lo12))))
+(rv-format-s   "sb"  (base-isas all-machs) #b000 #b0100011 (set (mem UQI (add rs1 store12)) rs2))
+(rv-format-s   "sh"  (base-isas all-machs) #b001 #b0100011 (set (mem UHI (add rs1 store12)) rs2))
+(rv-format-s   "sw"  (base-isas all-machs) #b010 #b0100011 (set (mem USI (add rs1 store12)) rs2))
 ; Arithmetic
-(rv-format-i-1     "addi"    (base-isas all-machs) #b000 #b0010011)
-(rv-format-i-1     "slti"    (base-isas all-machs) #b010 #b0010011)
-(rv-format-i-1     "sltiu"   (base-isas all-machs) #b011 #b0010011)
-(rv-format-i-1     "xori"    (base-isas all-machs) #b100 #b0010011)
-(rv-format-i-1     "ori"     (base-isas all-machs) #b110 #b0010011)
-(rv-format-i-1     "andi"    (base-isas all-machs) #b111 #b0010011)
-(rv-format-shift5  "slli"    (base-isas all-machs) #b0000000 #b001 #b0010011)
-(rv-format-shift5  "srli"    (base-isas all-machs) #b0000000 #b101 #b0010011)
-(rv-format-shift5  "srai"    (base-isas all-machs) #b0100000 #b101 #b0010011)
+(rv-format-i-1 "addi"  (base-isas all-machs) #b000 #b0010011 (set rd (add rs1 imm-lo12)))
+(rv-format-i-1 "slti"  (base-isas all-machs) #b010 #b0010011 (set rd (lt  rs1 imm-lo12)))
+(rv-format-i-1 "sltiu" (base-isas all-machs) #b011 #b0010011 (set rd (ltu rs1 imm-lo12)))
+(rv-format-i-1 "xori"  (base-isas all-machs) #b100 #b0010011 (set rd (xor rs1 imm-lo12)))
+(rv-format-i-1 "ori"   (base-isas all-machs) #b110 #b0010011 (set rd (or  rs1 imm-lo12)))
+(rv-format-i-1 "andi"  (base-isas all-machs) #b111 #b0010011 (set rd (and rs1 imm-lo12)))
+(rv-format-shift5 "slli" (base-isas all-machs) #b0000000 #b001 #b0010011 (set rd (sll rs1 uimm5-245)))
+(rv-format-shift5 "srli" (base-isas all-machs) #b0000000 #b101 #b0010011 (set rd (srl rs1 uimm5-245)))
+(rv-format-shift5 "srai" (base-isas all-machs) #b0100000 #b101 #b0010011 (set rd (sra rs1 uimm5-245)))
 (dni add "add" (base-isas all-machs)
   "add ${rd},${rs1},${rs2},${tprel_add}"
   (+ (f-funct7 #b0000000) rs2 rs1 (f-funct3 #b000) rd (f-opcode #b0110011))
-  (set WI rd (add WI rs1 rs2))
+  (set rd (add rs1 rs2))
   ())
-(rv-format-r       "sub"     (base-isas all-machs) #b0100000 #b000 #b0110011)
-(rv-format-r       "sll"     (base-isas all-machs) #b0000000 #b001 #b0110011)
-(rv-format-r       "slt"     (base-isas all-machs) #b0000000 #b010 #b0110011)
-(rv-format-r       "sltu"    (base-isas all-machs) #b0000000 #b011 #b0110011)
-(rv-format-r       "xor"     (base-isas all-machs) #b0000000 #b100 #b0110011)
-(rv-format-r       "srl"     (base-isas all-machs) #b0000000 #b101 #b0110011)
-(rv-format-r       "sra"     (base-isas all-machs) #b0100000 #b101 #b0110011)
-(rv-format-r       "or"      (base-isas all-machs) #b0000000 #b110 #b0110011)
-(rv-format-r       "and"     (base-isas all-machs) #b0000000 #b111 #b0110011)
+(rv-format-r "sub"  (base-isas all-machs) #b0100000 #b000 #b0110011 (set rd (sub rs1 rs2)))
+(rv-format-r "sll"  (base-isas all-machs) #b0000000 #b001 #b0110011 (set rd (sll rs1 rs2)))
+(rv-format-r "slt"  (base-isas all-machs) #b0000000 #b010 #b0110011 (set rd (lt  rs1 rs2)))
+(rv-format-r "sltu" (base-isas all-machs) #b0000000 #b011 #b0110011 (set rd (ltu rs1 rs2)))
+(rv-format-r "xor"  (base-isas all-machs) #b0000000 #b100 #b0110011 (set rd (xor rs1 rs2)))
+(rv-format-r "srl"  (base-isas all-machs) #b0000000 #b101 #b0110011 (set rd (srl rs1 rs2)))
+(rv-format-r "sra"  (base-isas all-machs) #b0100000 #b101 #b0110011 (set rd (sra rs1 rs2)))
+(rv-format-r "or"   (base-isas all-machs) #b0000000 #b110 #b0110011 (set rd (or  rs1 rs2)))
+(rv-format-r "and"  (base-isas all-machs) #b0000000 #b111 #b0110011 (set rd (and rs1 rs2)))
 ; Misc
 (dni fence "fence" (base-isas all-machs)
   "fence ${succ},${pred}"
@@ -1994,39 +2011,39 @@
   "sfence.vma ${rs1},${rs2}"
   (+ (f-uimm7-317 #b0001001) rs1 rs2 (f-uimm15-1415 #b000000001110011))
   (nop) ())
-(rv-format-raw     "fence.i" (base-isas all-machs) #b00000000000000000001000000001111)
-(rv-format-raw     "ecall"   (base-isas all-machs) #b00000000000000000000000001110011)
-(rv-format-raw     "ebreak"  (base-isas all-machs) #b00000000000100000000000001110011)
-(rv-format-csr-reg "csrrw"   (all-isas  all-machs) #b001 #b1110011)
-(rv-format-csr-reg "csrrs"   (all-isas  all-machs) #b010 #b1110011)
-(rv-format-csr-reg "csrrc"   (base-isas all-machs) #b011 #b1110011)
-(rv-format-csr-imm "csrrwi"  (all-isas  all-machs) #b101 #b1110011)
-(rv-format-csr-imm "csrrsi"  (base-isas all-machs) #b110 #b1110011)
-(rv-format-csr-imm "csrrci"  (base-isas all-machs) #b111 #b1110011)
-(rv-format-raw     "uret"    (base-isas all-machs) #b00000000001000000000000001110011)
-(rv-format-raw     "sret"    (base-isas all-machs) #b00010000001000000000000001110011)
-(rv-format-raw     "hret"    (base-isas all-machs) #b00100000001000000000000001110011)
-(rv-format-raw     "mret"    (base-isas all-machs) #b00110000001000000000000001110011)
-(rv-format-raw     "dret"    (base-isas all-machs) #b01111011001000000000000001110011)
-(rv-format-raw     "wfi"     (base-isas all-machs) #b00010000010100000000000001110011)
+(rv-format-raw     "fence.i" (base-isas all-machs) #b00000000000000000001000000001111 (nop))
+(rv-format-raw     "ecall"   (base-isas all-machs) #b00000000000000000000000001110011 (nop))
+(rv-format-raw     "ebreak"  (base-isas all-machs) #b00000000000100000000000001110011 (nop))
+(rv-format-csr-reg "csrrw"   (all-isas  all-machs) #b001 #b1110011 (nop))
+(rv-format-csr-reg "csrrs"   (all-isas  all-machs) #b010 #b1110011 (nop))
+(rv-format-csr-reg "csrrc"   (base-isas all-machs) #b011 #b1110011 (nop))
+(rv-format-csr-imm "csrrwi"  (all-isas  all-machs) #b101 #b1110011 (nop))
+(rv-format-csr-imm "csrrsi"  (base-isas all-machs) #b110 #b1110011 (nop))
+(rv-format-csr-imm "csrrci"  (base-isas all-machs) #b111 #b1110011 (nop))
+(rv-format-raw     "uret"    (base-isas all-machs) #b00000000001000000000000001110011 (nop))
+(rv-format-raw     "sret"    (base-isas all-machs) #b00010000001000000000000001110011 (nop))
+(rv-format-raw     "hret"    (base-isas all-machs) #b00100000001000000000000001110011 (nop))
+(rv-format-raw     "mret"    (base-isas all-machs) #b00110000001000000000000001110011 (nop))
+(rv-format-raw     "dret"    (base-isas all-machs) #b01111011001000000000000001110011 (nop))
+(rv-format-raw     "wfi"     (base-isas all-machs) #b00010000010100000000000001110011 (nop))
 
 ; RV64I
 ; Loads and stores
-(rv-format-i-2     "lwu"   ((ISA rv64) rv64d-machs) #b110 #b0000011)
-(rv-format-i-2     "ld"    ((ISA rv64) rv64d-machs) #b011 #b0000011)
-(rv-format-s       "sd"    ((ISA rv64) rv64d-machs) #b011 #b0100011)
-(rv-format-shift6  "slli"  ((ISA rv64) rv64d-machs) #b000000 #b001 #b0010011)
-(rv-format-shift6  "srli"  ((ISA rv64) rv64d-machs) #b000000 #b101 #b0010011)
-(rv-format-shift6  "srai"  ((ISA rv64) rv64d-machs) #b010000 #b101 #b0010011)
-(rv-format-i-1     "addiw" ((ISA rv64) rv64d-machs) #b000 #b0011011)
-(rv-format-shift5  "slliw" ((ISA rv64) rv64d-machs) #b0000000 #b001 #b0011011)
-(rv-format-shift5  "srliw" ((ISA rv64) rv64d-machs) #b0000000 #b101 #b0011011)
-(rv-format-shift5  "sraiw" ((ISA rv64) rv64d-machs) #b0100000 #b101 #b0011011)
-(rv-format-r       "addw"  ((ISA rv64) rv64d-machs) #b0000000 #b000 #b0111011)
-(rv-format-r       "subw"  ((ISA rv64) rv64d-machs) #b0100000 #b000 #b0111011)
-(rv-format-r       "sllw"  ((ISA rv64) rv64d-machs) #b0000000 #b001 #b0111011)
-(rv-format-r       "srlw"  ((ISA rv64) rv64d-machs) #b0000000 #b101 #b0111011)
-(rv-format-r       "sraw"  ((ISA rv64) rv64d-machs) #b0100000 #b101 #b0111011)
+(rv-format-i-2     "lwu"   ((ISA rv64) rv64d-machs) #b110 #b0000011 (set rd (mem USI (add rs1 imm-lo12))))
+(rv-format-i-2     "ld"    ((ISA rv64) rv64d-machs) #b011 #b0000011 (set rd (mem UDI (add rs1 imm-lo12))))
+(rv-format-s       "sd"    ((ISA rv64) rv64d-machs) #b011 #b0100011 (set (mem UDI (add rs1 store12)) rs2))
+(rv-format-shift6  "slli"  ((ISA rv64) rv64d-machs) #b000000 #b001 #b0010011  (set rd (sll rs1 uimm6-256)))
+(rv-format-shift6  "srli"  ((ISA rv64) rv64d-machs) #b000000 #b101 #b0010011  (set rd (srl rs1 uimm6-256)))
+(rv-format-shift6  "srai"  ((ISA rv64) rv64d-machs) #b010000 #b101 #b0010011  (set rd (sra rs1 uimm6-256)))
+(rv-format-i-1     "addiw" ((ISA rv64) rv64d-machs) #b000 #b0011011           (set rd (ext (add SI rs1 imm-lo12))))
+(rv-format-shift5  "slliw" ((ISA rv64) rv64d-machs) #b0000000 #b001 #b0011011 (set rd (ext (sll SI rs1 uimm5-245))))
+(rv-format-shift5  "srliw" ((ISA rv64) rv64d-machs) #b0000000 #b101 #b0011011 (set rd (ext (srl SI rs1 uimm5-245))))
+(rv-format-shift5  "sraiw" ((ISA rv64) rv64d-machs) #b0100000 #b101 #b0011011 (set rd (ext (sra SI rs1 uimm5-245))))
+(rv-format-r       "addw"  ((ISA rv64) rv64d-machs) #b0000000 #b000 #b0111011 (set rd (ext (add SI rs1 rs2))))
+(rv-format-r       "subw"  ((ISA rv64) rv64d-machs) #b0100000 #b000 #b0111011 (set rd (ext (sub SI rs1 rs2))))
+(rv-format-r       "sllw"  ((ISA rv64) rv64d-machs) #b0000000 #b001 #b0111011 (set rd (ext (sll SI rs1 rs2))))
+(rv-format-r       "srlw"  ((ISA rv64) rv64d-machs) #b0000000 #b101 #b0111011 (set rd (ext (srl SI rs1 rs2))))
+(rv-format-r       "sraw"  ((ISA rv64) rv64d-machs) #b0100000 #b101 #b0111011 (set rd (ext (sra SI rs1 rs2))))
 
 ;===-------------------- 'M' extension instructions -------------------------===
 
