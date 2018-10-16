@@ -74,6 +74,25 @@
   (name rv32)
   (default-insn-word-bitsize 32)
   (default-insn-bitsize 32)
+
+  ; The documentation implies that this should be the minimum size of
+  ; an instruction, however when sanitizing the instructions an error
+  ; will be emitted ("Instruction has opcode bits outside of its mask.")
+  ; if any opcode (fixed) bits are set outside the bottom <base-insn-bitsize>
+  ; bits (which is the case for most of the 32-bit instructions). If this error
+  ; is turned off, then you end up causing a different error because the
+  ; decoder only ends up considering the bottom <base-insn-bitsize> bits and
+  ; ends up with unresolved ambiguities.
+  ;
+  ; To make matters worse, setting <base-insn-bitsize> to 32 here causes
+  ; a different error, as the generated decoder will try and use bits 16-32
+  ; when decoding a 16-bit instruction and triggers an assertion
+  ; (assert (< bitnum word-bitsize)) when it accesses a bit outside the
+  ; instruction mask.
+  ;
+  ; The solution has been to patch cgen to avoid tripping this last error,
+  ; restricting the decoder to use only bits 0-15 until it has read more
+  ; of the instruction in.
   (base-insn-bitsize 32)
 )
 (define-isa
@@ -1875,10 +1894,10 @@
 
 ;===-------------------- 'C' extension instructions -------------------------===
 
-;(dni c.addi16sp "c.addi16sp" (c-extension)
-;  "c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}"
-;  (+ (f-c-funct3 #b011) nzimm10-121-42-51-21-61-0000-abs (f-uimm5-115 #b00010) (f-c-opcode #b01))
-;  (nop) ())
+(dni c.addi16sp "c.addi16sp" (c-extension)
+  "c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}"
+  (+ (f-c-funct3 #b011) nzimm10-121-42-51-21-61-0000-abs (f-uimm5-115 #b00010) (f-c-opcode #b01))
+  (nop) ())
 ;(dni c.addi4spn "c.addi4spn" (c-extension)
 ;  "c.addi4spn ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"
 ;  (+ (f-c-funct3 #b000) nzuimm10-104-122-51-61-00-abs c-reg42 (f-c-opcode #b00))

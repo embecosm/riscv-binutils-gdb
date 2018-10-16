@@ -146,7 +146,31 @@ extern CPUREG_STORE_FN riscv64bf_store_register;
 
 typedef struct {
   int empty;
-} MODEL_RISCV64_DATA;
+} MODEL_RV64I_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64IC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64IM_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64IMC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64G_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64GC_DATA;
+
+typedef struct {
+  int empty;
+} MODEL_RV64GQC_DATA;
 
 /* Instruction argument buffer.  */
 
@@ -155,10 +179,43 @@ union sem_fields {
     int empty;
   } sfmt_empty;
   struct { /*  */
+    DI f_imm21_311_198_201_3010_0;
+    UINT f_rd;
+  } sfmt_jal;
+  struct { /*  */
+    DI f_uimm32_3120_000000000000;
+    UINT f_rd;
+  } sfmt_lui;
+  struct { /*  */
+    UDI f_uimm6_256;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_slli_shift6;
+  struct { /*  */
     UINT f_rd;
     UINT f_rs1;
     UINT f_rs2;
   } sfmt_add;
+  struct { /*  */
+    UDI f_uimm5_245;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_slli_shift5;
+  struct { /*  */
+    DI f_imm12_317_115;
+    UINT f_rs1;
+    UINT f_rs2;
+  } sfmt_sb;
+  struct { /*  */
+    DI f_imm13_311_71_306_114_0;
+    UINT f_rs1;
+    UINT f_rs2;
+  } sfmt_beq;
+  struct { /*  */
+    DI f_imm12_3112;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_jalr;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {
@@ -218,6 +275,32 @@ struct scache {
   unsigned int length;
 #define EXTRACT_IFMT_EMPTY_CODE \
   length = 0; \
+
+#define EXTRACT_IFMT_C_ADDI16SP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  DI f_imm1_121; \
+  UDI f_uimm2_42; \
+  UDI f_uimm1_51; \
+  UDI f_uimm1_21; \
+  UDI f_uimm1_61; \
+  DI f_imm10_121_42_51_21_61_0000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ADDI16SP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm2_42 = EXTRACT_LSB0_UINT (insn, 16, 4, 2); \
+  f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1); \
+  f_uimm1_21 = EXTRACT_LSB0_UINT (insn, 16, 2, 1); \
+  f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1); \
+{\
+  f_imm10_121_42_51_21_61_0000 = ((((((((f_imm1_121) << (5))) | (((f_uimm2_42) << (3))))) | (((((f_uimm1_51) << (2))) | (((f_uimm1_21) << (1))))))) | (f_uimm1_61));\
+}\
+  f_imm10_121_42_51_21_61_0000 = ((f_imm10_121_42_51_21_61_0000) << (4));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
 
 #define EXTRACT_IFMT_LUI_VARS \
   DI f_uimm32_3120_000000000000; \

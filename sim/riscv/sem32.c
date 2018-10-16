@@ -197,6 +197,23 @@ SEM_FN_NAME (riscv32bf_rv32,x_begin) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
+/* c.addi16sp: c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs} */
+
+static SEM_PC
+SEM_FN_NAME (riscv32bf_rv32,c_addi16sp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
 /* lui: lui ${rd},${uimm32-3120-000000000000} */
 
 static SEM_PC
@@ -3589,6 +3606,7 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV32BF_RV32_INSN_X_CTI_CHAIN, SEM_FN_NAME (riscv32bf_rv32,x_cti_chain) },
   { RISCV32BF_RV32_INSN_X_CHAIN, SEM_FN_NAME (riscv32bf_rv32,x_chain) },
   { RISCV32BF_RV32_INSN_X_BEGIN, SEM_FN_NAME (riscv32bf_rv32,x_begin) },
+  { RISCV32BF_RV32_INSN_C_ADDI16SP, SEM_FN_NAME (riscv32bf_rv32,c_addi16sp) },
   { RISCV32BF_RV32_INSN_LUI, SEM_FN_NAME (riscv32bf_rv32,lui) },
   { RISCV32BF_RV32_INSN_AUIPC, SEM_FN_NAME (riscv32bf_rv32,auipc) },
   { RISCV32BF_RV32_INSN_JAL, SEM_FN_NAME (riscv32bf_rv32,jal) },

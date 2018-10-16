@@ -27,6 +27,19 @@ This file is part of the GNU simulators.
 
 /* Include files for each cpu family.  */
 
+#ifdef WANT_CPU_RISCV64BF
+#include "eng64.h"
+#include "cpu64.h"
+#include "decode64.h"
+#endif
+
+extern const SIM_MACH rv64i_mach;
+extern const SIM_MACH rv64ic_mach;
+extern const SIM_MACH rv64im_mach;
+extern const SIM_MACH rv64imc_mach;
+extern const SIM_MACH rv64g_mach;
+extern const SIM_MACH rv64gc_mach;
+extern const SIM_MACH rv64gqc_mach;
 
 #ifndef WANT_CPU
 /* The ARGBUF struct.  */

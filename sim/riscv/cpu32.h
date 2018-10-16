@@ -271,6 +271,32 @@ struct scache {
 #define EXTRACT_IFMT_EMPTY_CODE \
   length = 0; \
 
+#define EXTRACT_IFMT_C_ADDI16SP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  DI f_imm1_121; \
+  UDI f_uimm2_42; \
+  UDI f_uimm1_51; \
+  UDI f_uimm1_21; \
+  UDI f_uimm1_61; \
+  DI f_imm10_121_42_51_21_61_0000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ADDI16SP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm2_42 = EXTRACT_LSB0_UINT (insn, 16, 4, 2); \
+  f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1); \
+  f_uimm1_21 = EXTRACT_LSB0_UINT (insn, 16, 2, 1); \
+  f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1); \
+{\
+  f_imm10_121_42_51_21_61_0000 = ((((((((f_imm1_121) << (5))) | (((f_uimm2_42) << (3))))) | (((((f_uimm1_51) << (2))) | (((f_uimm1_21) << (1))))))) | (f_uimm1_61));\
+}\
+  f_imm10_121_42_51_21_61_0000 = ((f_imm10_121_42_51_21_61_0000) << (4));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
 #define EXTRACT_IFMT_LUI_VARS \
   DI f_uimm32_3120_000000000000; \
   UINT f_rd; \

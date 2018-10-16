@@ -56,6 +56,10 @@ static const CGEN_IFMT ifmt_empty ATTRIBUTE_UNUSED = {
   0, 0, 0x0, { { 0 } }
 };
 
+static const CGEN_IFMT ifmt_c_addi16sp ATTRIBUTE_UNUSED = {
+  16, 16, 0xef83, { { F (F_C_FUNCT3) }, { F (F_UIMM5_115) }, { F (F_IMM10_121_42_51_21_61_0000) }, { F (F_C_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_lui ATTRIBUTE_UNUSED = {
   32, 32, 0x7f, { { F (F_UIMM32_3120_000000000000) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -223,6 +227,12 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
      A `num' value of zero is thus invalid.
      Also, the special `invalid' insn resides here.  */
   { { 0, 0, 0, 0 }, {{0}}, 0, {0}},
+/* c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (SP_REG), ',', OP (NZIMM10_121_42_51_21_61_0000_ABS), 0 } },
+    & ifmt_c_addi16sp, { 0x6101 }
+  },
 /* lui ${rd},${uimm32-3120-000000000000} */
   {
     { 0, 0, 0, 0 },

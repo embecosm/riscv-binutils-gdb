@@ -43,7 +43,7 @@ extern "C" {
 #define CGEN_INSN_LSB0_P 1
 
 /* Minimum size of any insn (in bytes).  */
-#define CGEN_MIN_INSN_SIZE 4
+#define CGEN_MIN_INSN_SIZE 2
 
 /* Maximum size of any insn (in bytes).  */
 #define CGEN_MAX_INSN_SIZE 4

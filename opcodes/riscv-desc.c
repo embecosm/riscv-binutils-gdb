@@ -154,8 +154,8 @@ const CGEN_ATTR_TABLE riscv_cgen_insn_attr_table[] =
 /* Instruction set variants.  */
 
 static const CGEN_ISA riscv_cgen_isa_table[] = {
-  { "rv32", 32, 32, 32, 32 },
-  { "rv64", 32, 32, 32, 32 },
+  { "rv32", 32, 32, 16, 32 },
+  { "rv64", 32, 32, 16, 32 },
   { 0, 0, 0, 0, 0 }
 };
 
@@ -1377,6 +1377,11 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
      A `num' value of zero is thus invalid.
      Also, the special `invalid' insn resides here.  */
   { 0, 0, 0, 0, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RVNONE), 0 } } } } },
+/* c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs} */
+  {
+    RISCV_INSN_C_ADDI16SP, "c.addi16sp", "c.addi16sp", 16,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RVNONE), 0 } } } }
+  },
 /* lui ${rd},${uimm32-3120-000000000000} */
   {
     RISCV_INSN_LUI, "lui", "lui", 32,
