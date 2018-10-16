@@ -190,7 +190,7 @@ riscv32bf_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
 
 /* Get the value of h-opcode7.  */
 
-DI
+SI
 riscv32bf_h_opcode7_get (SIM_CPU *current_cpu)
 {
   return GET_H_OPCODE7 ();
@@ -199,14 +199,14 @@ riscv32bf_h_opcode7_get (SIM_CPU *current_cpu)
 /* Set a value for h-opcode7.  */
 
 void
-riscv32bf_h_opcode7_set (SIM_CPU *current_cpu, DI newval)
+riscv32bf_h_opcode7_set (SIM_CPU *current_cpu, SI newval)
 {
   SET_H_OPCODE7 (newval);
 }
 
 /* Get the value of h-copcode2.  */
 
-DI
+SI
 riscv32bf_h_copcode2_get (SIM_CPU *current_cpu)
 {
   return GET_H_COPCODE2 ();
@@ -215,7 +215,7 @@ riscv32bf_h_copcode2_get (SIM_CPU *current_cpu)
 /* Set a value for h-copcode2.  */
 
 void
-riscv32bf_h_copcode2_set (SIM_CPU *current_cpu, DI newval)
+riscv32bf_h_copcode2_set (SIM_CPU *current_cpu, SI newval)
 {
   SET_H_COPCODE2 (newval);
 }

@@ -179,6 +179,12 @@ union sem_fields {
     int empty;
   } sfmt_empty;
   struct { /*  */
+    DI f_imm12_121_81_102_61_71_21_111_53_0;
+  } sfmt_c_j;
+  struct { /*  */
+    DI f_imm10_121_42_51_21_61_0000;
+  } sfmt_c_addi16sp;
+  struct { /*  */
     DI f_imm21_311_198_201_3010_0;
     UINT f_rd;
   } sfmt_jal;
@@ -186,6 +192,54 @@ union sem_fields {
     DI f_uimm32_3120_000000000000;
     UINT f_rd;
   } sfmt_lui;
+  struct { /*  */
+    DI f_uimm9_93_123_000;
+    UDI f_uimm5_65;
+  } sfmt_c_sdsp;
+  struct { /*  */
+    DI f_uimm9_43_121_62_000;
+    UDI f_uimm5_115;
+  } sfmt_c_ldsp;
+  struct { /*  */
+    DI f_imm9_121_62_21_112_42_0;
+    UDI f_uimm3_93;
+  } sfmt_c_beqz;
+  struct { /*  */
+    DI f_imm6_121_65;
+    UDI f_uimm3_93;
+  } sfmt_c_andi;
+  struct { /*  */
+    UDI f_uimm3_93;
+    UDI f_uimm6_121_65;
+  } sfmt_c_srli;
+  struct { /*  */
+    DI f_uimm8_82_124_00;
+    UDI f_uimm5_65;
+  } sfmt_c_swsp;
+  struct { /*  */
+    DI f_uimm8_32_121_63_00;
+    UDI f_uimm5_115;
+  } sfmt_c_lwsp;
+  struct { /*  */
+    UDI f_uimm5_115;
+    UDI f_uimm6_121_65;
+  } sfmt_c_slli;
+  struct { /*  */
+    DI f_uimm18_121_65_000000000000;
+    UDI f_uimm5_115;
+  } sfmt_c_lui;
+  struct { /*  */
+    DI f_imm6_121_65;
+    UDI f_uimm5_115;
+  } sfmt_c_li;
+  struct { /*  */
+    UDI f_uimm5_115;
+    UDI f_uimm5_65;
+  } sfmt_c_mv;
+  struct { /*  */
+    DI f_uimm10_104_122_51_61_00;
+    UDI f_uimm3_43;
+  } sfmt_c_addi4spn;
   struct { /*  */
     UDI f_uimm6_256;
     UINT f_rd;
@@ -216,6 +270,16 @@ union sem_fields {
     UINT f_rd;
     UINT f_rs1;
   } sfmt_jalr;
+  struct { /*  */
+    DI f_uimm8_62_123_000;
+    UDI f_uimm3_43;
+    UDI f_uimm3_93;
+  } sfmt_c_ld;
+  struct { /*  */
+    DI f_uimm7_51_123_61_00;
+    UDI f_uimm3_43;
+    UDI f_uimm3_93;
+  } sfmt_c_lw;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {
@@ -300,6 +364,447 @@ struct scache {
   f_imm10_121_42_51_21_61_0000 = ((((((((f_imm1_121) << (5))) | (((f_uimm2_42) << (3))))) | (((((f_uimm1_51) << (2))) | (((f_uimm1_21) << (1))))))) | (f_uimm1_61));\
 }\
   f_imm10_121_42_51_21_61_0000 = ((f_imm10_121_42_51_21_61_0000) << (4));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_ADDI4SPN_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm4_104; \
+  UDI f_uimm2_122; \
+  UDI f_uimm1_51; \
+  UDI f_uimm1_61; \
+  DI f_uimm10_104_122_51_61_00; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ADDI4SPN_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm4_104 = EXTRACT_LSB0_UINT (insn, 16, 10, 4); \
+  f_uimm2_122 = EXTRACT_LSB0_UINT (insn, 16, 12, 2); \
+  f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1); \
+  f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1); \
+{\
+  f_uimm10_104_122_51_61_00 = ((((((f_uimm4_104) << (4))) | (((f_uimm2_122) << (2))))) | (((((f_uimm1_51) << (1))) | (f_uimm1_61))));\
+}\
+  f_uimm10_104_122_51_61_00 = ((f_uimm10_104_122_51_61_00) << (2));\
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_NOP_VARS \
+  UDI f_uimm16_1516; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_NOP_CODE \
+  length = 2; \
+  f_uimm16_1516 = EXTRACT_LSB0_UINT (insn, 16, 15, 16); \
+
+#define EXTRACT_IFMT_C_JR_VARS \
+  UINT f_c_funct4; \
+  UDI f_uimm5_115; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_JR_CODE \
+  length = 2; \
+  f_c_funct4 = EXTRACT_LSB0_UINT (insn, 16, 15, 4); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_MV_VARS \
+  UINT f_c_funct4; \
+  UDI f_uimm5_115; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_MV_CODE \
+  length = 2; \
+  f_c_funct4 = EXTRACT_LSB0_UINT (insn, 16, 15, 4); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_AND_VARS \
+  UINT f_c_funct6; \
+  UDI f_uimm3_93; \
+  UDI f_uimm2_62; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_AND_CODE \
+  length = 2; \
+  f_c_funct6 = EXTRACT_LSB0_UINT (insn, 16, 15, 6); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  DI f_imm1_121; \
+  UDI f_uimm5_65; \
+  DI f_imm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_imm6_121_65 = ((((f_imm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LUI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  UDI f_uimm1_121; \
+  UDI f_uimm5_65; \
+  DI f_uimm18_121_65_000000000000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LUI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_uimm18_121_65_000000000000 = ((((f_uimm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_uimm18_121_65_000000000000 = ((f_uimm18_121_65_000000000000) << (12));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_ADDI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  DI f_imm1_121; \
+  UDI f_uimm5_65; \
+  DI f_imm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ADDI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_imm6_121_65 = ((((f_imm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SLLI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  UDI f_uimm1_121; \
+  UDI f_uimm5_65; \
+  UDI f_uimm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SLLI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_uimm6_121_65 = ((((f_uimm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LWSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  UDI f_uimm2_32; \
+  UDI f_uimm1_121; \
+  UDI f_uimm3_63; \
+  DI f_uimm8_32_121_63_00; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LWSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm2_32 = EXTRACT_LSB0_UINT (insn, 16, 3, 2); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm3_63 = EXTRACT_LSB0_UINT (insn, 16, 6, 3); \
+{\
+  f_uimm8_32_121_63_00 = ((((((f_uimm2_32) << (4))) | (((f_uimm1_121) << (3))))) | (f_uimm3_63));\
+}\
+  f_uimm8_32_121_63_00 = ((f_uimm8_32_121_63_00) << (2));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SWSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm2_82; \
+  UDI f_uimm4_124; \
+  DI f_uimm8_82_124_00; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SWSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm2_82 = EXTRACT_LSB0_UINT (insn, 16, 8, 2); \
+  f_uimm4_124 = EXTRACT_LSB0_UINT (insn, 16, 12, 4); \
+{\
+  f_uimm8_82_124_00 = ((((f_uimm2_82) << (4))) | (f_uimm4_124));\
+}\
+  f_uimm8_82_124_00 = ((f_uimm8_82_124_00) << (2));\
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LW_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm1_51; \
+  UDI f_uimm3_123; \
+  UDI f_uimm1_61; \
+  DI f_uimm7_51_123_61_00; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LW_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+  f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1); \
+{\
+  f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));\
+}\
+  f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));\
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SRLI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm2_112; \
+  UDI f_uimm3_93; \
+  UDI f_uimm1_121; \
+  UDI f_uimm5_65; \
+  UDI f_uimm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SRLI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm2_112 = EXTRACT_LSB0_UINT (insn, 16, 11, 2); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_uimm6_121_65 = ((((f_uimm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_ANDI_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm2_112; \
+  UDI f_uimm3_93; \
+  DI f_imm1_121; \
+  UDI f_uimm5_65; \
+  DI f_imm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ANDI_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm2_112 = EXTRACT_LSB0_UINT (insn, 16, 11, 2); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_imm6_121_65 = ((((f_imm1_121) << (5))) | (f_uimm5_65));\
+}\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_BEQZ_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  DI f_imm1_121; \
+  UDI f_uimm2_62; \
+  UDI f_uimm1_21; \
+  UDI f_uimm2_112; \
+  UDI f_uimm2_42; \
+  DI f_imm9_121_62_21_112_42_0; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_BEQZ_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+  f_uimm1_21 = EXTRACT_LSB0_UINT (insn, 16, 2, 1); \
+  f_uimm2_112 = EXTRACT_LSB0_UINT (insn, 16, 11, 2); \
+  f_uimm2_42 = EXTRACT_LSB0_UINT (insn, 16, 4, 2); \
+{\
+  f_imm9_121_62_21_112_42_0 = ((((((((f_imm1_121) << (7))) | (((f_uimm2_62) << (5))))) | (((((f_uimm1_21) << (4))) | (((f_uimm2_112) << (2))))))) | (f_uimm2_42));\
+}\
+  f_imm9_121_62_21_112_42_0 = ((f_imm9_121_62_21_112_42_0) << (1));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_J_VARS \
+  UINT f_c_funct3; \
+  DI f_imm1_121; \
+  UDI f_uimm1_81; \
+  UDI f_uimm2_102; \
+  UDI f_uimm1_61; \
+  UDI f_uimm1_71; \
+  UDI f_uimm1_21; \
+  UDI f_uimm1_111; \
+  UDI f_uimm3_53; \
+  DI f_imm12_121_81_102_61_71_21_111_53_0; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_J_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm1_81 = EXTRACT_LSB0_UINT (insn, 16, 8, 1); \
+  f_uimm2_102 = EXTRACT_LSB0_UINT (insn, 16, 10, 2); \
+  f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1); \
+  f_uimm1_71 = EXTRACT_LSB0_UINT (insn, 16, 7, 1); \
+  f_uimm1_21 = EXTRACT_LSB0_UINT (insn, 16, 2, 1); \
+  f_uimm1_111 = EXTRACT_LSB0_UINT (insn, 16, 11, 1); \
+  f_uimm3_53 = EXTRACT_LSB0_UINT (insn, 16, 5, 3); \
+{\
+  f_imm12_121_81_102_61_71_21_111_53_0 = ((((((((f_imm1_121) << (10))) | (((f_uimm1_81) << (9))))) | (((((f_uimm2_102) << (7))) | (((f_uimm1_61) << (6))))))) | (((((((f_uimm1_71) << (5))) | (((f_uimm1_21) << (4))))) | (((((f_uimm1_111) << (3))) | (f_uimm3_53))))));\
+}\
+  f_imm12_121_81_102_61_71_21_111_53_0 = ((f_imm12_121_81_102_61_71_21_111_53_0) << (1));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LDSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  UDI f_uimm3_43; \
+  UDI f_uimm1_121; \
+  UDI f_uimm2_62; \
+  DI f_uimm9_43_121_62_000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+{\
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));\
+}\
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SDSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm3_123; \
+  DI f_uimm9_93_123_000; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm9_93_123_000 = ((((f_uimm3_93) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm9_93_123_000 = ((f_uimm9_93_123_000) << (3));\
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_LD_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm2_62; \
+  UDI f_uimm3_123; \
+  DI f_uimm8_62_123_000; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_LD_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm8_62_123_000 = ((((f_uimm2_62) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm8_62_123_000 = ((f_uimm8_62_123_000) << (3));\
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FLDSP_VARS \
+  UINT f_c_funct3; \
+  UINT f_rd; \
+  UDI f_uimm3_43; \
+  UDI f_uimm1_121; \
+  UDI f_uimm2_62; \
+  DI f_uimm9_43_121_62_000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FLDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+{\
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));\
+}\
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FSDSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm3_123; \
+  DI f_uimm9_93_123_000; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FSDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm9_93_123_000 = ((((f_uimm3_93) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm9_93_123_000 = ((f_uimm9_93_123_000) << (3));\
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FSD_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm2_62; \
+  UDI f_uimm3_123; \
+  DI f_uimm8_62_123_000; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FSD_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm8_62_123_000 = ((((f_uimm2_62) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm8_62_123_000 = ((f_uimm8_62_123_000) << (3));\
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
   f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
 
 #define EXTRACT_IFMT_LUI_VARS \
