@@ -1,5 +1,10 @@
 2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.cpu: Allow disassembly to rdcycleh, rdtimeh and rdinstreth
+	macro instructions.
+
+2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.cpu: Add missing registers from priv spec 1.9.1.
 
 2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>

@@ -2361,9 +2361,9 @@
 (rv-macro p-sbreak       "sbreak"     (base-isas NO-DIS) "" (emit ebreak))
 
 ; RV32I
-(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
-(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
-(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32i) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
+(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32i)) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32i)) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32i)) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
 ; RV64I
 (rv-macro p-addw         "addw"       ((ISA rv64i) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))

@@ -3845,17 +3845,17 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* rdinstreth ${rd} */
   {
     -1, "p-rdinstreth", "rdinstreth", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
   },
 /* rdcycleh ${rd} */
   {
     -1, "p-rdcycleh", "rdcycleh", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
   },
 /* rdtimeh ${rd} */
   {
     -1, "p-rdtimeh", "rdtimeh", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x80\x0" } } } }
   },
 /* addw ${rd},${rs1},${imm-lo12-abs} */
   {

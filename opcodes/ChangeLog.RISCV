@@ -4,6 +4,10 @@
 
 2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv-desc.c: Regenerated.
+
+2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv-opc.c: Regenerated.
 
 2018-10-09  Edward Jones  <ed.jones@embecosm.com>
