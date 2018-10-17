@@ -61,6 +61,13 @@ extern "C" {
 /* Maximum number of fields in an instruction.  */
 #define CGEN_ACTUAL_MAX_IFMT_OPERANDS 8
 
+/* Enums.  */
+
+/* Enum declaration for Exception numbers.  */
+typedef enum except_numbers {
+  EXCEPT_NONE, EXCEPT_EBREAK
+} EXCEPT_NUMBERS;
+
 /* Attributes.  */
 
 /* Enum declaration for machine type selection.  */

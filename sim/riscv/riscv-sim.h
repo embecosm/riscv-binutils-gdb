@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Custom hardware handlers */
 #if XLEN == 32
+void riscv32bf_exception (sim_cpu *current_cpu, USI pc, USI exnum);
+
 DI   riscv32bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
 void riscv32bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
 UDI  riscv32bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
@@ -28,6 +30,8 @@ void riscv32bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
 #endif
 
 #if XLEN == 64
+void riscv64bf_exception (sim_cpu *current_cpu, UDI pc, USI exnum);
+
 DI   riscv64bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
 void riscv64bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
 UDI  riscv64bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);

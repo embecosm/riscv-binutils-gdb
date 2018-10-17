@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#if XLEN ==32
+#if XLEN == 32
 #define WANT_CPU riscv32bf
 #define WANT_CPU_RISCV32BF
 #elif XLEN == 64
@@ -35,5 +35,39 @@
 SEM_PC
 sim_engine_invalid_insn (SIM_CPU * current_cpu, IADDR cia, SEM_PC pc)
 {
+  SIM_DESC sd = CPU_STATE (current_cpu);
+  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGILL);
   return 0;
 }
+
+
+#if XLEN == 32
+
+void
+riscv32bf_exception (sim_cpu *current_cpu, USI pc, USI exnum)
+{
+  SIM_DESC sd = CPU_STATE (current_cpu);
+  if (exnum == EXCEPT_EBREAK)
+    {
+      /* ebreak, used for breakpoints, sends control back to gdb breakpoint
+         handling.  */
+      sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
+    }
+}
+
+#elif XLEN == 64
+
+void
+riscv64bf_exception (sim_cpu *current_cpu, UDI pc, USI exnum)
+{
+  SIM_DESC sd = CPU_STATE (current_cpu);
+  if (exnum == EXCEPT_EBREAK)
+    {
+      /* ebreak, used for breakpoints, sends control back to gdb breakpoint
+         handling.  */
+      sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
+    }
+}
+
+#endif
+

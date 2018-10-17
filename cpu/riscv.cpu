@@ -261,6 +261,17 @@
   )
 )
 
+(define-normal-enum
+  except-numbers
+  "Exception numbers"
+  ()
+  EXCEPT-
+  (("NONE"   #x00)
+   ("EBREAK" #x01))
+)
+(define-pmacro (raise-exception exnum)
+  (c-call VOID "@cpu@_exception" pc exnum))
+
 (define-hardware
   (name h-pc)
   (comment "program counter")
@@ -1905,7 +1916,10 @@
   (set c-reg42 (add (reg h-gpr 2) nzuimm10-104-122-51-61-00-abs))
   ())
 (rv-format-craw  "c.nop"    (c-extension c-machs) #b0000000000000001 (nop))
-(rv-format-craw  "c.ebreak" (c-extension c-machs) #b1001000000000010 (nop))
+(rv-format-craw  "c.ebreak" (c-extension c-machs) #b1001000000000010
+  ; Do exception entry handling in C function
+  (raise-exception EXCEPT-EBREAK)
+)
 (rv-format-craw  "c.unimp"  (c-extension c-machs) #b0000000000000000 (nop))
 (rv-format-cr-1  "c.jr"     (c-extension c-machs) #b1000 #b00000 #b10 (set pc c-reg117-ne0))
 (rv-format-cr-1  "c.jalr"   (c-extension c-machs) #b1001 #b00000 #b10
@@ -2049,7 +2063,10 @@
   (nop) ())
 (rv-format-raw     "fence.i" (base-isas all-machs) #b00000000000000000001000000001111 (nop))
 (rv-format-raw     "ecall"   (base-isas all-machs) #b00000000000000000000000001110011 (nop))
-(rv-format-raw     "ebreak"  (base-isas all-machs) #b00000000000100000000000001110011 (nop))
+(rv-format-raw     "ebreak"  (base-isas all-machs) #b00000000000100000000000001110011
+  ; Do exception entry handling in C function
+  (raise-exception EXCEPT-EBREAK)
+)
 (rv-format-csr-reg "csrrw"   (all-isas  all-machs) #b001 #b1110011 (nop))
 (rv-format-csr-reg "csrrs"   (all-isas  all-machs) #b010 #b1110011 (nop))
 (rv-format-csr-reg "csrrc"   (base-isas all-machs) #b011 #b1110011 (nop))

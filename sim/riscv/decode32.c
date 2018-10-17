@@ -49,7 +49,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_C_ADDI16SP, RISCV32BF_RV32_INSN_C_ADDI16SP, RISCV32BF_RV32_SFMT_C_ADDI16SP },
   { RISCV_INSN_C_ADDI4SPN, RISCV32BF_RV32_INSN_C_ADDI4SPN, RISCV32BF_RV32_SFMT_C_ADDI4SPN },
   { RISCV_INSN_C_NOP, RISCV32BF_RV32_INSN_C_NOP, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_C_EBREAK, RISCV32BF_RV32_INSN_C_EBREAK, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_EBREAK, RISCV32BF_RV32_INSN_C_EBREAK, RISCV32BF_RV32_SFMT_C_EBREAK },
   { RISCV_INSN_C_UNIMP, RISCV32BF_RV32_INSN_C_UNIMP, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_JR, RISCV32BF_RV32_INSN_C_JR, RISCV32BF_RV32_SFMT_C_JR },
   { RISCV_INSN_C_JALR, RISCV32BF_RV32_INSN_C_JALR, RISCV32BF_RV32_SFMT_C_JALR },
@@ -120,7 +120,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_SFENCE_VMA, RISCV32BF_RV32_INSN_SFENCE_VMA, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FENCE_I, RISCV32BF_RV32_INSN_FENCE_I, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_ECALL, RISCV32BF_RV32_INSN_ECALL, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_EBREAK, RISCV32BF_RV32_INSN_EBREAK, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_EBREAK, RISCV32BF_RV32_INSN_EBREAK, RISCV32BF_RV32_SFMT_C_EBREAK },
   { RISCV_INSN_CSRRW, RISCV32BF_RV32_INSN_CSRRW, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_CSRRS, RISCV32BF_RV32_INSN_CSRRS, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_CSRRC, RISCV32BF_RV32_INSN_CSRRC, RISCV32BF_RV32_SFMT_C_NOP },
@@ -1028,7 +1028,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xffffffff) == 0x100073)
-              { itype = RISCV32BF_RV32_INSN_EBREAK; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_EBREAK; goto extract_sfmt_c_ebreak; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xffffffff) == 0x200073)
@@ -2441,7 +2441,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val = (((insn >> 7) & (31 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_C_EBREAK; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_C_EBREAK; goto extract_sfmt_c_ebreak;
           case 1 : /* fall through */
           case 2 : /* fall through */
           case 3 : /* fall through */
@@ -3044,6 +3044,19 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
 
   /* Record the fields for the semantic handler.  */
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_nop", (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_ebreak:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+#define FLD(f) abuf->fields.sfmt_empty.f
+
+
+  /* Record the fields for the semantic handler.  */
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_ebreak", (char *) 0));
 
 #undef FLD
     return idesc;

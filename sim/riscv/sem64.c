@@ -267,7 +267,7 @@ SEM_FN_NAME (riscv64bf_rv64,c_ebreak) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+riscv64bf_exception (current_cpu, pc, EXCEPT_EBREAK);
 
   return vpc;
 #undef FLD
@@ -1923,7 +1923,7 @@ SEM_FN_NAME (riscv64bf_rv64,ebreak) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+riscv64bf_exception (current_cpu, pc, EXCEPT_EBREAK);
 
   return vpc;
 #undef FLD
