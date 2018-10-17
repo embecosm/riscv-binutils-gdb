@@ -327,7 +327,21 @@
     (mhpmcounter25h #xb99) (mhpmcounter26h #xb9a) (mhpmcounter27h #xb9b)
     (mhpmcounter28h #xb9c) (mhpmcounter29h #xb9d) (mhpmcounter30h #xb9e)
     (mhpmcounter31h #xb9f)
-    (mtimecmp #x7c0))
+    (mtimecmp #x7c0)
+
+    ; These registers appear in priv spec 1.9.1 but were renamed in 1.10
+    (ubadaddr #x43)   ; renamed to utval
+    (sbadaddr #x143)  ; renamed to stval
+    (sptbr    #x180)  ; renamed to satp
+    (mbadaddr #x343)  ; renamed to mtval
+
+    ; These registers appear in priv spec 1.9.1 but were dropped in 1.10
+    (hstatus  #x200) (hedeleg #x202) (hideleg #x203) (hie #x204) (htvec #x205)
+    (hscratch #x240) (hepc    #x241) (hcause  #x242) (hbadaddr #x243)
+    (hip      #x244)
+    (mbase   #x380) (mbound  #x381) (mibase      #x382) (mibound #x383)
+    (mdbase  #x384) (mdbound #x385) (mhcounteren #x322))
+
   )
   (get (index) (c-call UDI "@cpu@_h_csr_get_handler" index))
   (set (index newval) (c-call VOID "@cpu@_h_csr_set_handler" index newval))

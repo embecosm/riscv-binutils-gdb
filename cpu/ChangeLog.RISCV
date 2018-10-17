@@ -1,5 +1,9 @@
 2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.cpu: Add missing registers from priv spec 1.9.1.
+
+2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.cpu: Prevent fmv.x.w and fmv.w.x instructions from
 	being disassembled to their old names fmv.x.s and fmv.s.x.
 
