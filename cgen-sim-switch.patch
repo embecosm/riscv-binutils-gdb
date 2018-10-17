@@ -1,0 +1,55 @@
+From 94bf6544a4686582686821f49485c3d28cf9a6b9 Mon Sep 17 00:00:00 2001
+From: Edward Jones <ed.jones@embecosm.com>
+Date: Wed, 17 Oct 2018 11:14:36 +0100
+Subject: [PATCH] cgen: Fix decoder switch when fetching more bits
+
+When the bits decoder so far are not sufficient to differentiate
+the instructions to be decoder more bits must be fetched. Previously
+when these bits were fetched they overwrote the existing
+instruction value, however the generated switch statement is written
+to check bits as though the extra bits were appended to the existing
+instruction.
+
+cgen/ChangeLog:
+
+	* utils-sim.scm (gen-decoder-switch): When fetching more bits,
+	shift the bits into the correct offset (<< 'startbit') in the
+	instruction value.
+---
+ cgen/ChangeLog     | 6 ++++++
+ cgen/utils-sim.scm | 4 ++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/cgen/ChangeLog b/cgen/ChangeLog
+index 1fedf53..0178bad 100644
+--- a/cgen/ChangeLog
++++ b/cgen/ChangeLog
+@@ -1,3 +1,9 @@
++2018-10-07  Edward Jones  <ed.jones@embecosm.com>
++
++	* utils-sim.scm (gen-decoder-switch): When fetching more bits,
++	shift the bits into the correct offset (<< 'startbit') in the
++	instruction value.
++
+ 2018-10-06  Edward Jones  <ed.jones@embecosm.com>
+ 
+ 	* decode.scm (decode-get-best-bits): Remove any bits beyond
+diff --git a/cgen/utils-sim.scm b/cgen/utils-sim.scm
+index 07d776d..d8d5bbf 100644
+--- a/cgen/utils-sim.scm
++++ b/cgen/utils-sim.scm
+@@ -1029,9 +1029,9 @@
+ 	 ;; FIXME: Bits may get fetched again during extraction.
+ 	   (string-append indent "  unsigned int val;\n"
+ 			  indent "  /* Must fetch more bits.  */\n"
+-			  indent "  insn = "
++			  indent "  insn |= "
+ 			  (gen-ifetch "pc" startbit decode-bitsize)
+-			  ";\n"
++			  " << " (number->string startbit) ";\n"
+ 			  indent "  val = "))
+ 	 (string-append indent "  unsigned int val = "))
+      (/gen-decode-bits (dtable-guts-bitnums table-guts)
+-- 
+2.9.5
+

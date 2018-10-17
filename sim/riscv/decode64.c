@@ -728,7 +728,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 29) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -759,7 +759,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 29) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -812,7 +812,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
@@ -833,7 +833,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
@@ -854,7 +854,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
@@ -875,7 +875,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
@@ -889,7 +889,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
@@ -1179,7 +1179,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             {
               unsigned int val;
               /* Must fetch more bits.  */
-              insn = GETIMEMUHI (current_cpu, pc + 2);
+              insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
               val = (((insn >> 23) & (7 << 4)) | ((insn >> 22) & (1 << 3)) | ((insn >> 20) & (7 << 0)));
               switch (val)
               {
@@ -1237,7 +1237,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             {
               unsigned int val;
               /* Must fetch more bits.  */
-              insn = GETIMEMUHI (current_cpu, pc + 2);
+              insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
               val = (((insn >> 25) & (1 << 0)));
               switch (val)
               {
@@ -1376,7 +1376,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -1423,7 +1423,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -1476,7 +1476,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
@@ -1906,7 +1906,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
@@ -1973,7 +1973,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -1992,7 +1992,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
@@ -2187,7 +2187,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
@@ -2254,7 +2254,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -2277,7 +2277,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (3 << 5)) | ((insn >> 24) & (15 << 1)) | ((insn >> 20) & (1 << 0)));
           switch (val)
           {
@@ -2748,7 +2748,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -2773,7 +2773,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 30) & (1 << 0)));
           switch (val)
           {
@@ -2816,7 +2816,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 30) & (1 << 0)));
           switch (val)
           {
@@ -2835,7 +2835,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 29) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -2858,7 +2858,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 29) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -3143,7 +3143,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {
@@ -3169,7 +3169,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
         {
           unsigned int val;
           /* Must fetch more bits.  */
-          insn = GETIMEMUHI (current_cpu, pc + 2);
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
           val = (((insn >> 25) & (1 << 0)));
           switch (val)
           {

@@ -47,7 +47,10 @@ static INLINE const IDESC *
 extract (SIM_CPU *current_cpu, PCADDR pc, CGEN_INSN_INT insn,
          ARGBUF *abuf, int fast_p)
 {
-  const IDESC *id = @prefix@_decode (current_cpu, pc, insn, insn, abuf);
+  CGEN_INSN_INT base_insn = insn & 0xffff;
+  CGEN_INSN_INT entire_insn = insn;
+  const IDESC *id = @prefix@_decode (current_cpu, pc, base_insn, entire_insn,
+                                     abuf);
   @prefix@_fill_argbuf (current_cpu, abuf, id, pc, fast_p);
   return id;
 }
