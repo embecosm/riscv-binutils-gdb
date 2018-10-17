@@ -3990,12 +3990,12 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fmv.x.s ${rd},${fl-rs1} */
   {
     -1, "p-fmv.x.s", "fmv.x.s", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
 /* fmv.s.x ${fl-rd},${rs1} */
   {
     -1, "p-fmv.s.x", "fmv.s.x", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 2, "\x0\x60" } } } }
   },
 /* fmadd.s ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3} */
   {
