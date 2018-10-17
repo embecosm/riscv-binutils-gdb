@@ -76,6 +76,7 @@ struct sim_state {
 /* Misc.  */
 
 /* Default memory size.  */
-#define RISCV_DEFAULT_MEM_SIZE 0x2000000 /* 32MB */
+#define RISCV_DEFAULT_MEM_SIZE   0x2000000 /* 32MB */
+#define RISCV_DEFAULT_STACK_SIZE 0x100000  /* 1MB */
 
 #endif /* SIM_MAIN_H */

@@ -21,6 +21,8 @@
 #include "sim-options.h"
 #include "bfd.h"
 
+#include "gdb/sim-riscv.h"
+
 /* Cover function of sim_state_free to free the cpu buffers as well.  */
 
 static void
@@ -71,6 +73,11 @@ sim_open (kind, callback, abfd, argv)
     {
       sim_do_commandf (sd, "memory region 0,0x%x", RISCV_DEFAULT_MEM_SIZE);
     }
+
+  /* Allocate the stack separately at the top of a 32-bit memory space.  */
+  sim_do_commandf (sd, "memory region 0x%x,0x%x",
+                   0xffffffff - RISCV_DEFAULT_STACK_SIZE + 1,
+                   RISCV_DEFAULT_STACK_SIZE);
 
   /* check for/establish the reference program image */
   if (sim_analyze_program (sd,
@@ -141,6 +148,9 @@ sim_create_inferior (sd, abfd, argv, envp)
       freeargv (STATE_PROG_ARGV (sd));
       STATE_PROG_ARGV (sd) = dupargv (argv);
     }
+
+  char buf[4] = { 0xf0, 0xff, 0xff, 0xff };
+  sim_store_register (sd, SIM_RISCV_SP_REGNUM, buf, 4);
 
   return SIM_RC_OK;
 }
