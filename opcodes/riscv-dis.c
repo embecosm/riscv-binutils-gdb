@@ -217,7 +217,7 @@ print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       str = "<invalid>";
     }
 
-  (*info->fprintf_func) (info->stream, str);
+  (*info->fprintf_func) (info->stream, str, "%s");
 }
 
 static void

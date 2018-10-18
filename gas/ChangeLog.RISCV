@@ -1,3 +1,7 @@
+2018-10-18  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* config/tc-riscv.c (s_riscv_insn): Add missing format string.
+
 2018-10-09  Edward Jones  <ed.jones@embecosm.com>
 
 	* config/tc-riscv.c (s_riscv_insn): Added function to

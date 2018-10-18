@@ -1,3 +1,7 @@
+2018-10-18  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* riscv.opc: Add missing format string.
+
 2018-10-17  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.cpu: Allow disassembly to rdcycleh, rdtimeh and rdinstreth

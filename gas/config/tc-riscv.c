@@ -1900,7 +1900,7 @@ s_riscv_insn (int x ATTRIBUTE_UNUSED)
     (gas_cgen_cpu_desc, input_line_pointer, & insn.fields, insn.buffer, & errmsg);
   if (!insn.insn)
     {
-      as_bad (errmsg);
+      as_bad ("%s", errmsg);
       return;
     }
 
