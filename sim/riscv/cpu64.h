@@ -54,7 +54,9 @@ CPU (h_pc) = (x);\
 #define GET_H_GPR(index) CPU (h_gpr[index])
 #define SET_H_GPR(index, x) \
 do { \
+if ((((index)) != (0))) {\
 CPU (h_gpr[(index)]) = (x);\
+}\
 ;} while (0)
   /* CSRs */
   UDI h_csr[4096];

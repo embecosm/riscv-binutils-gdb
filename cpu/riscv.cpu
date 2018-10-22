@@ -307,7 +307,10 @@
   (type register WI (64))
   (indices keyword "" gpr-names)
   (get (index) (raw-reg h-gpr index))
-  (set (index newval) (set (raw-reg h-gpr index) newval))
+  ; x0/zero is tied to zero, so any writes are swallowed
+  (set (index newval)
+    (if (ne index 0)
+      (set (raw-reg h-gpr index) newval)))
 )
 (define-hardware
   (name h-gpr-not-zero)
