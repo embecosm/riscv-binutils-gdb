@@ -593,9 +593,9 @@ parse_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       (*strp)++;
     }
 
-  /* If no character was specified, then it is treated as a 'w' */
+  /* Return an error if none of the above characters were matched.  */
   if (res == 0)
-    res |= 0x1;
+    return ILLEGAL_OPERANDS;
   *valuep = res;
   return NULL;
 }

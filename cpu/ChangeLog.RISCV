@@ -1,5 +1,10 @@
 2018-10-24  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.opc (parse_fence_succ_pred): Return ILLEGAL_OPERANDS if
+	predecessor/successor is empty.
+
+2018-10-24  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.cpu: Add fence.tso instruction.
 
 2018-10-18  Craig Blackmore  <craig.blackmore@embecosm.com>
