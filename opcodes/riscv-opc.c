@@ -831,6 +831,12 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, 0 } },
     & ifmt_fence_i, { 0x100f }
   },
+/* fence.tso */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_fence_i, { 0x8330000f }
+  },
 /* ecall */
   {
     { 0, 0, 0, 0 },

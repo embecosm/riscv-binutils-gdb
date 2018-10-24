@@ -1798,6 +1798,11 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_FENCE_I, "fence.i", "fence.i", 32,
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
   },
+/* fence.tso */
+  {
+    RISCV_INSN_FENCE_TSO, "fence.tso", "fence.tso", 32,
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 2, "\xe0\x0" } } } }
+  },
 /* ecall */
   {
     RISCV_INSN_ECALL, "ecall", "ecall", 32,

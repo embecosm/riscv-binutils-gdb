@@ -1,3 +1,7 @@
+2018-10-24  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* riscv.cpu: Add fence.tso instruction.
+
 2018-10-18  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.opc: Add missing format string.
