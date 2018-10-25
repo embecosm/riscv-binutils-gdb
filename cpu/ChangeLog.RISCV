@@ -1,5 +1,10 @@
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.cpu: Move compressed floating point instructions from
+	rv32c/rv64c ISAs to rv32fc/rv32dc/rv64dc.
+
+2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.opc (parse_float_rounding_mode): Return ILLEGAL_OPERANDS
 	if rounding mode is empty.
 

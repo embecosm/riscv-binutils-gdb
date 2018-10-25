@@ -64,7 +64,7 @@
   (comment "RISCV")
   (insn-lsb0? #t)
   (machs riscv:rv32 riscv:rv64)
-  (isas rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d rv32q rv64q)
+  (isas rv32i rv64i rv32e rv32m rv64m rv32c rv64c rv32a rv64a rv32f rv64f rv32d rv64d rv32q rv64q rv32fc rv32dc rv64dc)
 )
 
 ; Instruction set parameters.
@@ -95,6 +95,9 @@
 (define-riscv-ext rv64d)
 (define-riscv-ext rv32q)
 (define-riscv-ext rv64q)
+(define-riscv-ext rv32fc)
+(define-riscv-ext rv32dc)
+(define-riscv-ext rv64dc)
 
 (define-cpu
   (name riscvbf32)
@@ -145,18 +148,20 @@
     )
 )
 
-(define-pmacro base-isas   () (ISA  rv32i rv64i rv32e))
-(define-pmacro a-extension () (ISA  rv32a rv64a))
-(define-pmacro f-extension () (ISA  rv32f rv64f))
-(define-pmacro d-extension () (ISA  rv32d rv64d))
-(define-pmacro q-extension () (ISA  rv32q rv64q))
-(define-pmacro m-extension () (ISA  rv32m rv64m))
-(define-pmacro c-extension () (ISA  rv32c rv64c))
-(define-pmacro embed-isas  () (ISA  rv32e))
-(define-pmacro all-isas    () (ISA  rv32i rv64i rv32e rv32m rv64m
-                                    rv32c rv64c rv32a rv64a rv32f rv64f
-                                    rv32d rv64d rv32q rv64q))
-(define-pmacro all-machs   () (MACH riscv:rv32 riscv:rv64))
+(define-pmacro base-isas    () (ISA  rv32i  rv64i rv32e))
+(define-pmacro a-extension  () (ISA  rv32a  rv64a))
+(define-pmacro f-extension  () (ISA  rv32f  rv64f))
+(define-pmacro d-extension  () (ISA  rv32d  rv64d))
+(define-pmacro q-extension  () (ISA  rv32q  rv64q))
+(define-pmacro m-extension  () (ISA  rv32m  rv64m))
+(define-pmacro c-extension  () (ISA  rv32c  rv64c))
+(define-pmacro dc-extension () (ISA  rv32dc rv64dc))
+(define-pmacro embed-isas   () (ISA  rv32e))
+(define-pmacro all-isas     () (ISA  rv32i rv64i rv32e rv32m rv64m
+                                     rv32c rv64c rv32a rv64a rv32f  rv64f
+                                     rv32d rv64d rv32q rv64q rv32fc rv32dc
+                                     rv64dc))
+(define-pmacro all-machs    () (MACH riscv:rv32 riscv:rv64))
 
 (define-hardware
   (name h-pc)
@@ -1852,18 +1857,16 @@
 (rv-format-cs-2  "c.sd"     (ISA rv64c) #b111      #b00)
 
 ;RV32FC
-; This should maybe be moved to a separate rv32fc isa
-(rv-format-ci-7   "c.flwsp" (ISA rv32c) #b011 #b10)
-(rv-format-css-3  "c.fswsp" (ISA rv32c) #b111 #b10)
-(rv-format-cs-3   "c.fsw"   (ISA rv32c) #b111 #b00)
-(rv-format-cl-3   "c.flw"   (ISA rv32c) #b011 #b00)
+(rv-format-ci-7   "c.flwsp" (ISA rv32fc) #b011 #b10)
+(rv-format-css-3  "c.fswsp" (ISA rv32fc) #b111 #b10)
+(rv-format-cs-3   "c.fsw"   (ISA rv32fc) #b111 #b00)
+(rv-format-cl-3   "c.flw"   (ISA rv32fc) #b011 #b00)
 
 ;RV32DC/RV64DC
-; These should maybe be moved to a separate rv32/64dc isa
-(rv-format-ci-8   "c.fldsp" c-extension #b001 #b10)
-(rv-format-css-4  "c.fsdsp" c-extension #b101 #b10)
-(rv-format-cs-4   "c.fsd"   c-extension #b101 #b00)
-(rv-format-cl-4   "c.fld"   c-extension #b001 #b00)
+(rv-format-ci-8   "c.fldsp" dc-extension #b001 #b10)
+(rv-format-css-4  "c.fsdsp" dc-extension #b101 #b10)
+(rv-format-cs-4   "c.fsd"   dc-extension #b101 #b00)
+(rv-format-cl-4   "c.fld"   dc-extension #b001 #b00)
 
 ;===------------------------- 'I' Base instructions -------------------------===
 
@@ -2428,16 +2431,16 @@
 (rv-macro p-fcvt.s.lu  "fcvt.s.lu" ((ISA rv64f)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
 
 ;RV32FC
-(rvc-macro p-c-flwsp   "flw"       ((ISA rv32c)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
-(rvc-macro p-c-fswsp   "fsw"       ((ISA rv32c)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
-(rvc-macro p-c-fsw     "fsw"       ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
-(rvc-macro p-c-flw     "flw"       ((ISA rv32c)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-flwsp   "flw"       ((ISA rv32fc)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
+(rvc-macro p-c-fswsp   "fsw"       ((ISA rv32fc)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
+(rvc-macro p-c-fsw     "fsw"       ((ISA rv32fc)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-flw     "flw"       ((ISA rv32fc)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
 
 ;RV64FC
-(rvc-macro p-c-fldsp   "fld"       (c-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
-(rvc-macro p-c-fsdsp   "fsd"       (c-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
-(rvc-macro p-c-fsd     "fsd"       (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
-(rvc-macro p-c-fld     "fld"       (c-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-fldsp   "fld"       (dc-extension) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
+(rvc-macro p-c-fsdsp   "fsd"       (dc-extension) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
+(rvc-macro p-c-fsd     "fsd"       (dc-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-fld     "fld"       (dc-extension) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
 
 ;===----------------- 'D' extension macro instructions ----------------------===
 
