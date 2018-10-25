@@ -633,10 +633,7 @@ parse_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       *strp += strlen ("rmm");
     }
   else
-    {
-      *valuep = 0;
-      return UNKNOWN_ROUNDING_MODE;
-    }
+    return ILLEGAL_OPERANDS;
   *valuep = res;
   return NULL;
 }

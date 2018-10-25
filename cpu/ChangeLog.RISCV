@@ -1,3 +1,8 @@
+2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* riscv.opc (parse_float_rounding_mode): Return ILLEGAL_OPERANDS
+	if rounding mode is empty.
+
 2018-10-24  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.opc (parse_fence_succ_pred): Return ILLEGAL_OPERANDS if

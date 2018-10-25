@@ -774,7 +774,8 @@ assemble_late_pseudos(char * str)
                      local_sym, 0, 0, lo_reloc_info);
       return NULL;
     }
-  else if (str[0] == 'f' && (str[1] == 'm' || str[1] == 'a' || str[1] == 'n'))
+  else if (!strncmp (str, "fmv", 3) || !strncmp (str, "fabs", 4)
+	   || !strncmp (str, "fneg", 4))
     {
       /* looking for fmv.[sdq], fabs.[sdq], fneg.[sdq]  */
       char type_char;
@@ -785,7 +786,6 @@ assemble_late_pseudos(char * str)
 	str += 4;
       if ((is_fneg = !strncmp (str, "fneg", 4)))
 	str += 4;
-      gas_assert (is_fmv || is_fabs || is_fneg);
 
       if (str[0] != '.')
 	return "unknown instruction";
