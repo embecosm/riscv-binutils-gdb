@@ -1,5 +1,9 @@
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.cpu: Allow disassembly to sext.w pseudo-instruction.
+
+2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.cpu: Move compressed floating point instructions from
 	rv32c/rv64c ISAs to rv32fc/rv32dc/rv64dc.
 

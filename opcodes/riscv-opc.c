@@ -3451,7 +3451,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* sext.w ${c-tied-regs117-ne0} */
   {
     -1, "p-c-sext-w", "sext.w", 16,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\x2\x0\x0" } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\x2\x0\x0" } } } }
   },
 /* addiw ${c-tied-regs117-ne0},${imm6-121-65-abs} */
   {

@@ -1,5 +1,9 @@
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv-opc.c: Regenerated.
+
+2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv-desc.c: Regenerated.
 	* riscv-desc.h: Likewise.
 	* riscv-opc.c: Likewise.
