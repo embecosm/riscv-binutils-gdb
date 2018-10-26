@@ -707,6 +707,15 @@ assemble_late_pseudos(char * str)
 	  /* TODO: Check for junk at EOL */
 	}
 
+      /* Assemble la / lla with constant operand.  */
+      if ((is_la || is_lla) && (exp.X_op == O_constant))
+	return load_const (dst_reg, &exp);
+
+      /* Create a BFD_RELOC_RISCV_HI20 fixup from the expression and attach
+         it to the auipc instruction.  */
+      if (exp.X_op != O_symbol)
+	return "illegal operand";
+
       /* Create a new local symbol, this will be the target of the
          BFD_RELOC_RISCV_LO12_I fixup */
       local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
@@ -722,11 +731,6 @@ assemble_late_pseudos(char * str)
       errmsg = assemble_one (instr_buf, &result);
       if (errmsg)
 	return errmsg;
-
-      /* Create a BFD_RELOC_RISCV_HI20 fixup from the expression and attach
-         it to the auipc instruction.  */
-      if (exp.X_op != O_symbol)
-	return "illegal operand";
 
       /* Global PIC symbol */
       int hi_reloc_info =

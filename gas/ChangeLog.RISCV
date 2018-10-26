@@ -1,3 +1,8 @@
+2018-10-26  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): Assemble la/lla
+	pseudo instructions with constant operands.
+
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* config/tc-riscv.c (assemble_late_pseudos): Modify condition
