@@ -1,3 +1,8 @@
+2018-10-29  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): On 64-bit ISAs,
+	check that la/lla offset is a sign-extended 32-bit value.
+
 2018-10-26  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* config/tc-riscv.c (assemble_late_pseudos): Assemble la/lla

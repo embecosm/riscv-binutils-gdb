@@ -707,9 +707,14 @@ assemble_late_pseudos(char * str)
 	  /* TODO: Check for junk at EOL */
 	}
 
-      /* Assemble la / lla with constant operand.  */
-      if ((is_la || is_lla) && (exp.X_op == O_constant))
-	return load_const (dst_reg, &exp);
+      if (is_la || is_lla) {
+	if (xlen > 32 && !IS_SEXT_32BIT_NUM (exp.X_add_number))
+	  as_bad (_("offset too large"));
+
+	/* Assemble la / lla with constant operand.  */
+	if (exp.X_op == O_constant)
+	  return load_const (dst_reg, &exp);
+      }
 
       /* Create a BFD_RELOC_RISCV_HI20 fixup from the expression and attach
          it to the auipc instruction.  */
