@@ -1,3 +1,9 @@
+2018-10-31  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* testsuite/gas/riscv/lla32.d: Match on one or more tabs/spaces
+	rather than a fixed format.
+	* testsuite/gas/riscv/lla64.d: Likewise.
+
 2018-10-29  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* config/tc-riscv.c (assemble_late_pseudos): On 64-bit ISAs,
