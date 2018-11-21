@@ -35,6 +35,12 @@
 
 #ifdef WANT_CPU_RISCV32BF
 
+USI
+riscv32bf_h_xlen_get_handler (SIM_CPU *current_cpu)
+{
+  return 32;
+}
+
 /* The contents of BUF are in target byte order.  */
 int
 riscv32bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
@@ -120,6 +126,12 @@ int riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
 }
 
 #elif WANT_CPU_RISCV64BF
+
+UDI
+riscv64bf_h_xlen_get_handler (SIM_CPU *current_cpu)
+{
+  return 64;
+}
 
 /* The contents of BUF are in target byte order.  */
 int

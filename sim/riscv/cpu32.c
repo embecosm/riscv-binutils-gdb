@@ -44,6 +44,22 @@ riscv32bf_h_pc_set (SIM_CPU *current_cpu, USI newval)
   SET_H_PC (newval);
 }
 
+/* Get the value of h-xlen.  */
+
+SI
+riscv32bf_h_xlen_get (SIM_CPU *current_cpu)
+{
+  return GET_H_XLEN ();
+}
+
+/* Set a value for h-xlen.  */
+
+void
+riscv32bf_h_xlen_set (SIM_CPU *current_cpu, SI newval)
+{
+  SET_H_XLEN (newval);
+}
+
 /* Get the value of h-gpr.  */
 
 SI

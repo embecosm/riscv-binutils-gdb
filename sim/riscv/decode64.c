@@ -154,107 +154,107 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_SLLW, RISCV64BF_RV64_INSN_SLLW, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_SRLW, RISCV64BF_RV64_INSN_SRLW, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_SRAW, RISCV64BF_RV64_INSN_SRAW, RISCV64BF_RV64_SFMT_ADD },
-  { RISCV_INSN_MUL, RISCV64BF_RV64_INSN_MUL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_MULH, RISCV64BF_RV64_INSN_MULH, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_MULHSU, RISCV64BF_RV64_INSN_MULHSU, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_MULHU, RISCV64BF_RV64_INSN_MULHU, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_DIV, RISCV64BF_RV64_INSN_DIV, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_DIVU, RISCV64BF_RV64_INSN_DIVU, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_REM, RISCV64BF_RV64_INSN_REM, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_REMU, RISCV64BF_RV64_INSN_REMU, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_MULW, RISCV64BF_RV64_INSN_MULW, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_DIVW, RISCV64BF_RV64_INSN_DIVW, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_DIVUW, RISCV64BF_RV64_INSN_DIVUW, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_REMW, RISCV64BF_RV64_INSN_REMW, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_REMUW, RISCV64BF_RV64_INSN_REMUW, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_W, RISCV64BF_RV64_INSN_LR_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_W_AQ, RISCV64BF_RV64_INSN_LR_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_W_RL, RISCV64BF_RV64_INSN_LR_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_W_AQRL, RISCV64BF_RV64_INSN_LR_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_W, RISCV64BF_RV64_INSN_SC_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_W_AQ, RISCV64BF_RV64_INSN_SC_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_W_RL, RISCV64BF_RV64_INSN_SC_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_W_AQRL, RISCV64BF_RV64_INSN_SC_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_W, RISCV64BF_RV64_INSN_AMOSWAP_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_W_AQ, RISCV64BF_RV64_INSN_AMOSWAP_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_W_RL, RISCV64BF_RV64_INSN_AMOSWAP_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_W_AQRL, RISCV64BF_RV64_INSN_AMOSWAP_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_W, RISCV64BF_RV64_INSN_AMOADD_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_W_AQ, RISCV64BF_RV64_INSN_AMOADD_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_W_RL, RISCV64BF_RV64_INSN_AMOADD_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_W_AQRL, RISCV64BF_RV64_INSN_AMOADD_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_W, RISCV64BF_RV64_INSN_AMOXOR_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_W_AQ, RISCV64BF_RV64_INSN_AMOXOR_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_W_RL, RISCV64BF_RV64_INSN_AMOXOR_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_W_AQRL, RISCV64BF_RV64_INSN_AMOXOR_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_W, RISCV64BF_RV64_INSN_AMOAND_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_W_AQ, RISCV64BF_RV64_INSN_AMOAND_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_W_RL, RISCV64BF_RV64_INSN_AMOAND_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_W_AQRL, RISCV64BF_RV64_INSN_AMOAND_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_W, RISCV64BF_RV64_INSN_AMOOR_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_W_AQ, RISCV64BF_RV64_INSN_AMOOR_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_W_RL, RISCV64BF_RV64_INSN_AMOOR_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_W_AQRL, RISCV64BF_RV64_INSN_AMOOR_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_W, RISCV64BF_RV64_INSN_AMOMIN_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_W_AQ, RISCV64BF_RV64_INSN_AMOMIN_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_W_RL, RISCV64BF_RV64_INSN_AMOMIN_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_W_AQRL, RISCV64BF_RV64_INSN_AMOMIN_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_W, RISCV64BF_RV64_INSN_AMOMAX_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_W_AQ, RISCV64BF_RV64_INSN_AMOMAX_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_W_RL, RISCV64BF_RV64_INSN_AMOMAX_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_W_AQRL, RISCV64BF_RV64_INSN_AMOMAX_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_W, RISCV64BF_RV64_INSN_AMOMINU_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_W_AQ, RISCV64BF_RV64_INSN_AMOMINU_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_W_RL, RISCV64BF_RV64_INSN_AMOMINU_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_W_AQRL, RISCV64BF_RV64_INSN_AMOMINU_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_W, RISCV64BF_RV64_INSN_AMOMAXU_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_W_AQ, RISCV64BF_RV64_INSN_AMOMAXU_W_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_W_RL, RISCV64BF_RV64_INSN_AMOMAXU_W_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_W_AQRL, RISCV64BF_RV64_INSN_AMOMAXU_W_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_D, RISCV64BF_RV64_INSN_LR_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_D_AQ, RISCV64BF_RV64_INSN_LR_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_D_RL, RISCV64BF_RV64_INSN_LR_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_LR_D_AQRL, RISCV64BF_RV64_INSN_LR_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_D, RISCV64BF_RV64_INSN_SC_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_D_AQ, RISCV64BF_RV64_INSN_SC_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_D_RL, RISCV64BF_RV64_INSN_SC_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_SC_D_AQRL, RISCV64BF_RV64_INSN_SC_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_D, RISCV64BF_RV64_INSN_AMOSWAP_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_D_AQ, RISCV64BF_RV64_INSN_AMOSWAP_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_D_RL, RISCV64BF_RV64_INSN_AMOSWAP_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOSWAP_D_AQRL, RISCV64BF_RV64_INSN_AMOSWAP_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_D, RISCV64BF_RV64_INSN_AMOADD_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_D_AQ, RISCV64BF_RV64_INSN_AMOADD_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_D_RL, RISCV64BF_RV64_INSN_AMOADD_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOADD_D_AQRL, RISCV64BF_RV64_INSN_AMOADD_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_D, RISCV64BF_RV64_INSN_AMOXOR_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_D_AQ, RISCV64BF_RV64_INSN_AMOXOR_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_D_RL, RISCV64BF_RV64_INSN_AMOXOR_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOXOR_D_AQRL, RISCV64BF_RV64_INSN_AMOXOR_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_D, RISCV64BF_RV64_INSN_AMOAND_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_D_AQ, RISCV64BF_RV64_INSN_AMOAND_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_D_RL, RISCV64BF_RV64_INSN_AMOAND_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOAND_D_AQRL, RISCV64BF_RV64_INSN_AMOAND_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_D, RISCV64BF_RV64_INSN_AMOOR_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_D_AQ, RISCV64BF_RV64_INSN_AMOOR_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_D_RL, RISCV64BF_RV64_INSN_AMOOR_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOOR_D_AQRL, RISCV64BF_RV64_INSN_AMOOR_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_D, RISCV64BF_RV64_INSN_AMOMIN_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_D_AQ, RISCV64BF_RV64_INSN_AMOMIN_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_D_RL, RISCV64BF_RV64_INSN_AMOMIN_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMIN_D_AQRL, RISCV64BF_RV64_INSN_AMOMIN_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_D, RISCV64BF_RV64_INSN_AMOMAX_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_D_AQ, RISCV64BF_RV64_INSN_AMOMAX_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_D_RL, RISCV64BF_RV64_INSN_AMOMAX_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAX_D_AQRL, RISCV64BF_RV64_INSN_AMOMAX_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_D, RISCV64BF_RV64_INSN_AMOMINU_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_D_AQ, RISCV64BF_RV64_INSN_AMOMINU_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_D_RL, RISCV64BF_RV64_INSN_AMOMINU_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMINU_D_AQRL, RISCV64BF_RV64_INSN_AMOMINU_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_D, RISCV64BF_RV64_INSN_AMOMAXU_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_D_AQ, RISCV64BF_RV64_INSN_AMOMAXU_D_AQ, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_D_RL, RISCV64BF_RV64_INSN_AMOMAXU_D_RL, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_AMOMAXU_D_AQRL, RISCV64BF_RV64_INSN_AMOMAXU_D_AQRL, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_MUL, RISCV64BF_RV64_INSN_MUL, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_MULH, RISCV64BF_RV64_INSN_MULH, RISCV64BF_RV64_SFMT_MULH },
+  { RISCV_INSN_MULHSU, RISCV64BF_RV64_INSN_MULHSU, RISCV64BF_RV64_SFMT_MULH },
+  { RISCV_INSN_MULHU, RISCV64BF_RV64_INSN_MULHU, RISCV64BF_RV64_SFMT_MULH },
+  { RISCV_INSN_DIV, RISCV64BF_RV64_INSN_DIV, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_DIVU, RISCV64BF_RV64_INSN_DIVU, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_REM, RISCV64BF_RV64_INSN_REM, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_REMU, RISCV64BF_RV64_INSN_REMU, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_MULW, RISCV64BF_RV64_INSN_MULW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_DIVW, RISCV64BF_RV64_INSN_DIVW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_DIVUW, RISCV64BF_RV64_INSN_DIVUW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_REMW, RISCV64BF_RV64_INSN_REMW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_REMUW, RISCV64BF_RV64_INSN_REMUW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_LR_W, RISCV64BF_RV64_INSN_LR_W, RISCV64BF_RV64_SFMT_LR_W },
+  { RISCV_INSN_LR_W_AQ, RISCV64BF_RV64_INSN_LR_W_AQ, RISCV64BF_RV64_SFMT_LR_W },
+  { RISCV_INSN_LR_W_RL, RISCV64BF_RV64_INSN_LR_W_RL, RISCV64BF_RV64_SFMT_LR_W },
+  { RISCV_INSN_LR_W_AQRL, RISCV64BF_RV64_INSN_LR_W_AQRL, RISCV64BF_RV64_SFMT_LR_W },
+  { RISCV_INSN_SC_W, RISCV64BF_RV64_INSN_SC_W, RISCV64BF_RV64_SFMT_SC_W },
+  { RISCV_INSN_SC_W_AQ, RISCV64BF_RV64_INSN_SC_W_AQ, RISCV64BF_RV64_SFMT_SC_W },
+  { RISCV_INSN_SC_W_RL, RISCV64BF_RV64_INSN_SC_W_RL, RISCV64BF_RV64_SFMT_SC_W },
+  { RISCV_INSN_SC_W_AQRL, RISCV64BF_RV64_INSN_SC_W_AQRL, RISCV64BF_RV64_SFMT_SC_W },
+  { RISCV_INSN_AMOSWAP_W, RISCV64BF_RV64_INSN_AMOSWAP_W, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOSWAP_W_AQ, RISCV64BF_RV64_INSN_AMOSWAP_W_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOSWAP_W_RL, RISCV64BF_RV64_INSN_AMOSWAP_W_RL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOSWAP_W_AQRL, RISCV64BF_RV64_INSN_AMOSWAP_W_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOADD_W, RISCV64BF_RV64_INSN_AMOADD_W, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOADD_W_AQ, RISCV64BF_RV64_INSN_AMOADD_W_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOADD_W_RL, RISCV64BF_RV64_INSN_AMOADD_W_RL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOADD_W_AQRL, RISCV64BF_RV64_INSN_AMOADD_W_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOXOR_W, RISCV64BF_RV64_INSN_AMOXOR_W, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOXOR_W_AQ, RISCV64BF_RV64_INSN_AMOXOR_W_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOXOR_W_RL, RISCV64BF_RV64_INSN_AMOXOR_W_RL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOXOR_W_AQRL, RISCV64BF_RV64_INSN_AMOXOR_W_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOAND_W, RISCV64BF_RV64_INSN_AMOAND_W, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOAND_W_AQ, RISCV64BF_RV64_INSN_AMOAND_W_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOAND_W_RL, RISCV64BF_RV64_INSN_AMOAND_W_RL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOAND_W_AQRL, RISCV64BF_RV64_INSN_AMOAND_W_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOOR_W, RISCV64BF_RV64_INSN_AMOOR_W, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOOR_W_AQ, RISCV64BF_RV64_INSN_AMOOR_W_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOOR_W_RL, RISCV64BF_RV64_INSN_AMOOR_W_RL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOOR_W_AQRL, RISCV64BF_RV64_INSN_AMOOR_W_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_W },
+  { RISCV_INSN_AMOMIN_W, RISCV64BF_RV64_INSN_AMOMIN_W, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMIN_W_AQ, RISCV64BF_RV64_INSN_AMOMIN_W_AQ, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMIN_W_RL, RISCV64BF_RV64_INSN_AMOMIN_W_RL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMIN_W_AQRL, RISCV64BF_RV64_INSN_AMOMIN_W_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAX_W, RISCV64BF_RV64_INSN_AMOMAX_W, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAX_W_AQ, RISCV64BF_RV64_INSN_AMOMAX_W_AQ, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAX_W_RL, RISCV64BF_RV64_INSN_AMOMAX_W_RL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAX_W_AQRL, RISCV64BF_RV64_INSN_AMOMAX_W_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMINU_W, RISCV64BF_RV64_INSN_AMOMINU_W, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMINU_W_AQ, RISCV64BF_RV64_INSN_AMOMINU_W_AQ, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMINU_W_RL, RISCV64BF_RV64_INSN_AMOMINU_W_RL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMINU_W_AQRL, RISCV64BF_RV64_INSN_AMOMINU_W_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAXU_W, RISCV64BF_RV64_INSN_AMOMAXU_W, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAXU_W_AQ, RISCV64BF_RV64_INSN_AMOMAXU_W_AQ, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAXU_W_RL, RISCV64BF_RV64_INSN_AMOMAXU_W_RL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_AMOMAXU_W_AQRL, RISCV64BF_RV64_INSN_AMOMAXU_W_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_W },
+  { RISCV_INSN_LR_D, RISCV64BF_RV64_INSN_LR_D, RISCV64BF_RV64_SFMT_LR_D },
+  { RISCV_INSN_LR_D_AQ, RISCV64BF_RV64_INSN_LR_D_AQ, RISCV64BF_RV64_SFMT_LR_D },
+  { RISCV_INSN_LR_D_RL, RISCV64BF_RV64_INSN_LR_D_RL, RISCV64BF_RV64_SFMT_LR_D },
+  { RISCV_INSN_LR_D_AQRL, RISCV64BF_RV64_INSN_LR_D_AQRL, RISCV64BF_RV64_SFMT_LR_D },
+  { RISCV_INSN_SC_D, RISCV64BF_RV64_INSN_SC_D, RISCV64BF_RV64_SFMT_SC_D },
+  { RISCV_INSN_SC_D_AQ, RISCV64BF_RV64_INSN_SC_D_AQ, RISCV64BF_RV64_SFMT_SC_D },
+  { RISCV_INSN_SC_D_RL, RISCV64BF_RV64_INSN_SC_D_RL, RISCV64BF_RV64_SFMT_SC_D },
+  { RISCV_INSN_SC_D_AQRL, RISCV64BF_RV64_INSN_SC_D_AQRL, RISCV64BF_RV64_SFMT_SC_D },
+  { RISCV_INSN_AMOSWAP_D, RISCV64BF_RV64_INSN_AMOSWAP_D, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOSWAP_D_AQ, RISCV64BF_RV64_INSN_AMOSWAP_D_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOSWAP_D_RL, RISCV64BF_RV64_INSN_AMOSWAP_D_RL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOSWAP_D_AQRL, RISCV64BF_RV64_INSN_AMOSWAP_D_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOADD_D, RISCV64BF_RV64_INSN_AMOADD_D, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOADD_D_AQ, RISCV64BF_RV64_INSN_AMOADD_D_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOADD_D_RL, RISCV64BF_RV64_INSN_AMOADD_D_RL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOADD_D_AQRL, RISCV64BF_RV64_INSN_AMOADD_D_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOXOR_D, RISCV64BF_RV64_INSN_AMOXOR_D, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOXOR_D_AQ, RISCV64BF_RV64_INSN_AMOXOR_D_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOXOR_D_RL, RISCV64BF_RV64_INSN_AMOXOR_D_RL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOXOR_D_AQRL, RISCV64BF_RV64_INSN_AMOXOR_D_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOAND_D, RISCV64BF_RV64_INSN_AMOAND_D, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOAND_D_AQ, RISCV64BF_RV64_INSN_AMOAND_D_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOAND_D_RL, RISCV64BF_RV64_INSN_AMOAND_D_RL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOAND_D_AQRL, RISCV64BF_RV64_INSN_AMOAND_D_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOOR_D, RISCV64BF_RV64_INSN_AMOOR_D, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOOR_D_AQ, RISCV64BF_RV64_INSN_AMOOR_D_AQ, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOOR_D_RL, RISCV64BF_RV64_INSN_AMOOR_D_RL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOOR_D_AQRL, RISCV64BF_RV64_INSN_AMOOR_D_AQRL, RISCV64BF_RV64_SFMT_AMOSWAP_D },
+  { RISCV_INSN_AMOMIN_D, RISCV64BF_RV64_INSN_AMOMIN_D, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMIN_D_AQ, RISCV64BF_RV64_INSN_AMOMIN_D_AQ, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMIN_D_RL, RISCV64BF_RV64_INSN_AMOMIN_D_RL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMIN_D_AQRL, RISCV64BF_RV64_INSN_AMOMIN_D_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAX_D, RISCV64BF_RV64_INSN_AMOMAX_D, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAX_D_AQ, RISCV64BF_RV64_INSN_AMOMAX_D_AQ, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAX_D_RL, RISCV64BF_RV64_INSN_AMOMAX_D_RL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAX_D_AQRL, RISCV64BF_RV64_INSN_AMOMAX_D_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMINU_D, RISCV64BF_RV64_INSN_AMOMINU_D, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMINU_D_AQ, RISCV64BF_RV64_INSN_AMOMINU_D_AQ, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMINU_D_RL, RISCV64BF_RV64_INSN_AMOMINU_D_RL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMINU_D_AQRL, RISCV64BF_RV64_INSN_AMOMINU_D_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAXU_D, RISCV64BF_RV64_INSN_AMOMAXU_D, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAXU_D_AQ, RISCV64BF_RV64_INSN_AMOMAXU_D_AQ, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAXU_D_RL, RISCV64BF_RV64_INSN_AMOMAXU_D_RL, RISCV64BF_RV64_SFMT_AMOMIN_D },
+  { RISCV_INSN_AMOMAXU_D_AQRL, RISCV64BF_RV64_INSN_AMOMAXU_D_AQRL, RISCV64BF_RV64_SFMT_AMOMIN_D },
   { RISCV_INSN_FLW, RISCV64BF_RV64_INSN_FLW, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FSW, RISCV64BF_RV64_INSN_FSW, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FMADD_S, RISCV64BF_RV64_INSN_FMADD_S, RISCV64BF_RV64_SFMT_C_NOP },
@@ -738,7 +738,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2000033)
-              { itype = RISCV64BF_RV64_INSN_MUL; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_MUL; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xfe00707f) == 0x40000033)
@@ -769,7 +769,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x200003b)
-              { itype = RISCV64BF_RV64_INSN_MULW; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_MULW; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xfe00707f) == 0x4000003b)
@@ -1433,7 +1433,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2001033)
-              { itype = RISCV64BF_RV64_INSN_MULH; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_MULH; goto extract_sfmt_mulh; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -1910,62 +1910,62 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV64BF_RV64_INSN_AMOADD_W; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV64BF_RV64_INSN_AMOADD_W_RL; goto extract_sfmt_c_nop;
-          case 2 : itype = RISCV64BF_RV64_INSN_AMOADD_W_AQ; goto extract_sfmt_c_nop;
-          case 3 : itype = RISCV64BF_RV64_INSN_AMOADD_W_AQRL; goto extract_sfmt_c_nop;
-          case 4 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W; goto extract_sfmt_c_nop;
-          case 5 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_RL; goto extract_sfmt_c_nop;
-          case 6 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_AQ; goto extract_sfmt_c_nop;
-          case 7 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_AQRL; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV64BF_RV64_INSN_AMOADD_W; goto extract_sfmt_amoswap_w;
+          case 1 : itype = RISCV64BF_RV64_INSN_AMOADD_W_RL; goto extract_sfmt_amoswap_w;
+          case 2 : itype = RISCV64BF_RV64_INSN_AMOADD_W_AQ; goto extract_sfmt_amoswap_w;
+          case 3 : itype = RISCV64BF_RV64_INSN_AMOADD_W_AQRL; goto extract_sfmt_amoswap_w;
+          case 4 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W; goto extract_sfmt_amoswap_w;
+          case 5 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_RL; goto extract_sfmt_amoswap_w;
+          case 6 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_AQ; goto extract_sfmt_amoswap_w;
+          case 7 : itype = RISCV64BF_RV64_INSN_AMOSWAP_W_AQRL; goto extract_sfmt_amoswap_w;
           case 8 :
             if ((entire_insn & 0xfff0707f) == 0x1000202f)
-              { itype = RISCV64BF_RV64_INSN_LR_W; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_W; goto extract_sfmt_lr_w; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 9 :
             if ((entire_insn & 0xfff0707f) == 0x1200202f)
-              { itype = RISCV64BF_RV64_INSN_LR_W_RL; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_W_RL; goto extract_sfmt_lr_w; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 10 :
             if ((entire_insn & 0xfff0707f) == 0x1400202f)
-              { itype = RISCV64BF_RV64_INSN_LR_W_AQ; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_W_AQ; goto extract_sfmt_lr_w; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 11 :
             if ((entire_insn & 0xfff0707f) == 0x1600202f)
-              { itype = RISCV64BF_RV64_INSN_LR_W_AQRL; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_W_AQRL; goto extract_sfmt_lr_w; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
-          case 12 : itype = RISCV64BF_RV64_INSN_SC_W; goto extract_sfmt_c_nop;
-          case 13 : itype = RISCV64BF_RV64_INSN_SC_W_RL; goto extract_sfmt_c_nop;
-          case 14 : itype = RISCV64BF_RV64_INSN_SC_W_AQ; goto extract_sfmt_c_nop;
-          case 15 : itype = RISCV64BF_RV64_INSN_SC_W_AQRL; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV64BF_RV64_INSN_AMOXOR_W; goto extract_sfmt_c_nop;
-          case 17 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_RL; goto extract_sfmt_c_nop;
-          case 18 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_AQ; goto extract_sfmt_c_nop;
-          case 19 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_AQRL; goto extract_sfmt_c_nop;
-          case 32 : itype = RISCV64BF_RV64_INSN_AMOOR_W; goto extract_sfmt_c_nop;
-          case 33 : itype = RISCV64BF_RV64_INSN_AMOOR_W_RL; goto extract_sfmt_c_nop;
-          case 34 : itype = RISCV64BF_RV64_INSN_AMOOR_W_AQ; goto extract_sfmt_c_nop;
-          case 35 : itype = RISCV64BF_RV64_INSN_AMOOR_W_AQRL; goto extract_sfmt_c_nop;
-          case 48 : itype = RISCV64BF_RV64_INSN_AMOAND_W; goto extract_sfmt_c_nop;
-          case 49 : itype = RISCV64BF_RV64_INSN_AMOAND_W_RL; goto extract_sfmt_c_nop;
-          case 50 : itype = RISCV64BF_RV64_INSN_AMOAND_W_AQ; goto extract_sfmt_c_nop;
-          case 51 : itype = RISCV64BF_RV64_INSN_AMOAND_W_AQRL; goto extract_sfmt_c_nop;
-          case 64 : itype = RISCV64BF_RV64_INSN_AMOMIN_W; goto extract_sfmt_c_nop;
-          case 65 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_RL; goto extract_sfmt_c_nop;
-          case 66 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_AQ; goto extract_sfmt_c_nop;
-          case 67 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_AQRL; goto extract_sfmt_c_nop;
-          case 80 : itype = RISCV64BF_RV64_INSN_AMOMAX_W; goto extract_sfmt_c_nop;
-          case 81 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_RL; goto extract_sfmt_c_nop;
-          case 82 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_AQ; goto extract_sfmt_c_nop;
-          case 83 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_AQRL; goto extract_sfmt_c_nop;
-          case 96 : itype = RISCV64BF_RV64_INSN_AMOMINU_W; goto extract_sfmt_c_nop;
-          case 97 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_RL; goto extract_sfmt_c_nop;
-          case 98 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_AQ; goto extract_sfmt_c_nop;
-          case 99 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_AQRL; goto extract_sfmt_c_nop;
-          case 112 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W; goto extract_sfmt_c_nop;
-          case 113 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_RL; goto extract_sfmt_c_nop;
-          case 114 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_AQ; goto extract_sfmt_c_nop;
-          case 115 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_AQRL; goto extract_sfmt_c_nop;
+          case 12 : itype = RISCV64BF_RV64_INSN_SC_W; goto extract_sfmt_sc_w;
+          case 13 : itype = RISCV64BF_RV64_INSN_SC_W_RL; goto extract_sfmt_sc_w;
+          case 14 : itype = RISCV64BF_RV64_INSN_SC_W_AQ; goto extract_sfmt_sc_w;
+          case 15 : itype = RISCV64BF_RV64_INSN_SC_W_AQRL; goto extract_sfmt_sc_w;
+          case 16 : itype = RISCV64BF_RV64_INSN_AMOXOR_W; goto extract_sfmt_amoswap_w;
+          case 17 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_RL; goto extract_sfmt_amoswap_w;
+          case 18 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_AQ; goto extract_sfmt_amoswap_w;
+          case 19 : itype = RISCV64BF_RV64_INSN_AMOXOR_W_AQRL; goto extract_sfmt_amoswap_w;
+          case 32 : itype = RISCV64BF_RV64_INSN_AMOOR_W; goto extract_sfmt_amoswap_w;
+          case 33 : itype = RISCV64BF_RV64_INSN_AMOOR_W_RL; goto extract_sfmt_amoswap_w;
+          case 34 : itype = RISCV64BF_RV64_INSN_AMOOR_W_AQ; goto extract_sfmt_amoswap_w;
+          case 35 : itype = RISCV64BF_RV64_INSN_AMOOR_W_AQRL; goto extract_sfmt_amoswap_w;
+          case 48 : itype = RISCV64BF_RV64_INSN_AMOAND_W; goto extract_sfmt_amoswap_w;
+          case 49 : itype = RISCV64BF_RV64_INSN_AMOAND_W_RL; goto extract_sfmt_amoswap_w;
+          case 50 : itype = RISCV64BF_RV64_INSN_AMOAND_W_AQ; goto extract_sfmt_amoswap_w;
+          case 51 : itype = RISCV64BF_RV64_INSN_AMOAND_W_AQRL; goto extract_sfmt_amoswap_w;
+          case 64 : itype = RISCV64BF_RV64_INSN_AMOMIN_W; goto extract_sfmt_amomin_w;
+          case 65 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_RL; goto extract_sfmt_amomin_w;
+          case 66 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_AQ; goto extract_sfmt_amomin_w;
+          case 67 : itype = RISCV64BF_RV64_INSN_AMOMIN_W_AQRL; goto extract_sfmt_amomin_w;
+          case 80 : itype = RISCV64BF_RV64_INSN_AMOMAX_W; goto extract_sfmt_amomin_w;
+          case 81 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_RL; goto extract_sfmt_amomin_w;
+          case 82 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_AQ; goto extract_sfmt_amomin_w;
+          case 83 : itype = RISCV64BF_RV64_INSN_AMOMAX_W_AQRL; goto extract_sfmt_amomin_w;
+          case 96 : itype = RISCV64BF_RV64_INSN_AMOMINU_W; goto extract_sfmt_amomin_w;
+          case 97 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_RL; goto extract_sfmt_amomin_w;
+          case 98 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_AQ; goto extract_sfmt_amomin_w;
+          case 99 : itype = RISCV64BF_RV64_INSN_AMOMINU_W_AQRL; goto extract_sfmt_amomin_w;
+          case 112 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W; goto extract_sfmt_amomin_w;
+          case 113 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_RL; goto extract_sfmt_amomin_w;
+          case 114 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_AQ; goto extract_sfmt_amomin_w;
+          case 115 : itype = RISCV64BF_RV64_INSN_AMOMAXU_W_AQRL; goto extract_sfmt_amomin_w;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -1983,7 +1983,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2002033)
-              { itype = RISCV64BF_RV64_INSN_MULHSU; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_MULHSU; goto extract_sfmt_mulh; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -2191,62 +2191,62 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV64BF_RV64_INSN_AMOADD_D; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV64BF_RV64_INSN_AMOADD_D_RL; goto extract_sfmt_c_nop;
-          case 2 : itype = RISCV64BF_RV64_INSN_AMOADD_D_AQ; goto extract_sfmt_c_nop;
-          case 3 : itype = RISCV64BF_RV64_INSN_AMOADD_D_AQRL; goto extract_sfmt_c_nop;
-          case 4 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D; goto extract_sfmt_c_nop;
-          case 5 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_RL; goto extract_sfmt_c_nop;
-          case 6 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_AQ; goto extract_sfmt_c_nop;
-          case 7 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_AQRL; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV64BF_RV64_INSN_AMOADD_D; goto extract_sfmt_amoswap_d;
+          case 1 : itype = RISCV64BF_RV64_INSN_AMOADD_D_RL; goto extract_sfmt_amoswap_d;
+          case 2 : itype = RISCV64BF_RV64_INSN_AMOADD_D_AQ; goto extract_sfmt_amoswap_d;
+          case 3 : itype = RISCV64BF_RV64_INSN_AMOADD_D_AQRL; goto extract_sfmt_amoswap_d;
+          case 4 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D; goto extract_sfmt_amoswap_d;
+          case 5 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_RL; goto extract_sfmt_amoswap_d;
+          case 6 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_AQ; goto extract_sfmt_amoswap_d;
+          case 7 : itype = RISCV64BF_RV64_INSN_AMOSWAP_D_AQRL; goto extract_sfmt_amoswap_d;
           case 8 :
             if ((entire_insn & 0xfff0707f) == 0x1000302f)
-              { itype = RISCV64BF_RV64_INSN_LR_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_D; goto extract_sfmt_lr_d; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 9 :
             if ((entire_insn & 0xfff0707f) == 0x1200302f)
-              { itype = RISCV64BF_RV64_INSN_LR_D_RL; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_D_RL; goto extract_sfmt_lr_d; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 10 :
             if ((entire_insn & 0xfff0707f) == 0x1400302f)
-              { itype = RISCV64BF_RV64_INSN_LR_D_AQ; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_D_AQ; goto extract_sfmt_lr_d; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 11 :
             if ((entire_insn & 0xfff0707f) == 0x1600302f)
-              { itype = RISCV64BF_RV64_INSN_LR_D_AQRL; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_LR_D_AQRL; goto extract_sfmt_lr_d; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
-          case 12 : itype = RISCV64BF_RV64_INSN_SC_D; goto extract_sfmt_c_nop;
-          case 13 : itype = RISCV64BF_RV64_INSN_SC_D_RL; goto extract_sfmt_c_nop;
-          case 14 : itype = RISCV64BF_RV64_INSN_SC_D_AQ; goto extract_sfmt_c_nop;
-          case 15 : itype = RISCV64BF_RV64_INSN_SC_D_AQRL; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV64BF_RV64_INSN_AMOXOR_D; goto extract_sfmt_c_nop;
-          case 17 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_RL; goto extract_sfmt_c_nop;
-          case 18 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_AQ; goto extract_sfmt_c_nop;
-          case 19 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_AQRL; goto extract_sfmt_c_nop;
-          case 32 : itype = RISCV64BF_RV64_INSN_AMOOR_D; goto extract_sfmt_c_nop;
-          case 33 : itype = RISCV64BF_RV64_INSN_AMOOR_D_RL; goto extract_sfmt_c_nop;
-          case 34 : itype = RISCV64BF_RV64_INSN_AMOOR_D_AQ; goto extract_sfmt_c_nop;
-          case 35 : itype = RISCV64BF_RV64_INSN_AMOOR_D_AQRL; goto extract_sfmt_c_nop;
-          case 48 : itype = RISCV64BF_RV64_INSN_AMOAND_D; goto extract_sfmt_c_nop;
-          case 49 : itype = RISCV64BF_RV64_INSN_AMOAND_D_RL; goto extract_sfmt_c_nop;
-          case 50 : itype = RISCV64BF_RV64_INSN_AMOAND_D_AQ; goto extract_sfmt_c_nop;
-          case 51 : itype = RISCV64BF_RV64_INSN_AMOAND_D_AQRL; goto extract_sfmt_c_nop;
-          case 64 : itype = RISCV64BF_RV64_INSN_AMOMIN_D; goto extract_sfmt_c_nop;
-          case 65 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_RL; goto extract_sfmt_c_nop;
-          case 66 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_AQ; goto extract_sfmt_c_nop;
-          case 67 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_AQRL; goto extract_sfmt_c_nop;
-          case 80 : itype = RISCV64BF_RV64_INSN_AMOMAX_D; goto extract_sfmt_c_nop;
-          case 81 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_RL; goto extract_sfmt_c_nop;
-          case 82 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_AQ; goto extract_sfmt_c_nop;
-          case 83 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_AQRL; goto extract_sfmt_c_nop;
-          case 96 : itype = RISCV64BF_RV64_INSN_AMOMINU_D; goto extract_sfmt_c_nop;
-          case 97 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_RL; goto extract_sfmt_c_nop;
-          case 98 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_AQ; goto extract_sfmt_c_nop;
-          case 99 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_AQRL; goto extract_sfmt_c_nop;
-          case 112 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D; goto extract_sfmt_c_nop;
-          case 113 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_RL; goto extract_sfmt_c_nop;
-          case 114 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_AQ; goto extract_sfmt_c_nop;
-          case 115 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_AQRL; goto extract_sfmt_c_nop;
+          case 12 : itype = RISCV64BF_RV64_INSN_SC_D; goto extract_sfmt_sc_d;
+          case 13 : itype = RISCV64BF_RV64_INSN_SC_D_RL; goto extract_sfmt_sc_d;
+          case 14 : itype = RISCV64BF_RV64_INSN_SC_D_AQ; goto extract_sfmt_sc_d;
+          case 15 : itype = RISCV64BF_RV64_INSN_SC_D_AQRL; goto extract_sfmt_sc_d;
+          case 16 : itype = RISCV64BF_RV64_INSN_AMOXOR_D; goto extract_sfmt_amoswap_d;
+          case 17 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_RL; goto extract_sfmt_amoswap_d;
+          case 18 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_AQ; goto extract_sfmt_amoswap_d;
+          case 19 : itype = RISCV64BF_RV64_INSN_AMOXOR_D_AQRL; goto extract_sfmt_amoswap_d;
+          case 32 : itype = RISCV64BF_RV64_INSN_AMOOR_D; goto extract_sfmt_amoswap_d;
+          case 33 : itype = RISCV64BF_RV64_INSN_AMOOR_D_RL; goto extract_sfmt_amoswap_d;
+          case 34 : itype = RISCV64BF_RV64_INSN_AMOOR_D_AQ; goto extract_sfmt_amoswap_d;
+          case 35 : itype = RISCV64BF_RV64_INSN_AMOOR_D_AQRL; goto extract_sfmt_amoswap_d;
+          case 48 : itype = RISCV64BF_RV64_INSN_AMOAND_D; goto extract_sfmt_amoswap_d;
+          case 49 : itype = RISCV64BF_RV64_INSN_AMOAND_D_RL; goto extract_sfmt_amoswap_d;
+          case 50 : itype = RISCV64BF_RV64_INSN_AMOAND_D_AQ; goto extract_sfmt_amoswap_d;
+          case 51 : itype = RISCV64BF_RV64_INSN_AMOAND_D_AQRL; goto extract_sfmt_amoswap_d;
+          case 64 : itype = RISCV64BF_RV64_INSN_AMOMIN_D; goto extract_sfmt_amomin_d;
+          case 65 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_RL; goto extract_sfmt_amomin_d;
+          case 66 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_AQ; goto extract_sfmt_amomin_d;
+          case 67 : itype = RISCV64BF_RV64_INSN_AMOMIN_D_AQRL; goto extract_sfmt_amomin_d;
+          case 80 : itype = RISCV64BF_RV64_INSN_AMOMAX_D; goto extract_sfmt_amomin_d;
+          case 81 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_RL; goto extract_sfmt_amomin_d;
+          case 82 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_AQ; goto extract_sfmt_amomin_d;
+          case 83 : itype = RISCV64BF_RV64_INSN_AMOMAX_D_AQRL; goto extract_sfmt_amomin_d;
+          case 96 : itype = RISCV64BF_RV64_INSN_AMOMINU_D; goto extract_sfmt_amomin_d;
+          case 97 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_RL; goto extract_sfmt_amomin_d;
+          case 98 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_AQ; goto extract_sfmt_amomin_d;
+          case 99 : itype = RISCV64BF_RV64_INSN_AMOMINU_D_AQRL; goto extract_sfmt_amomin_d;
+          case 112 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D; goto extract_sfmt_amomin_d;
+          case 113 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_RL; goto extract_sfmt_amomin_d;
+          case 114 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_AQ; goto extract_sfmt_amomin_d;
+          case 115 : itype = RISCV64BF_RV64_INSN_AMOMAXU_D_AQRL; goto extract_sfmt_amomin_d;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -2264,7 +2264,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2003033)
-              { itype = RISCV64BF_RV64_INSN_MULHU; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_MULHU; goto extract_sfmt_mulh; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -2758,14 +2758,14 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2004033)
-              { itype = RISCV64BF_RV64_INSN_DIV; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_DIV; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
       case 571 :
         if ((entire_insn & 0xfe00707f) == 0x200403b)
-          { itype = RISCV64BF_RV64_INSN_DIVW; goto extract_sfmt_c_nop; }
+          { itype = RISCV64BF_RV64_INSN_DIVW; goto extract_sfmt_add; }
         itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
       case 611 : itype = RISCV64BF_RV64_INSN_BLT; goto extract_sfmt_beq;
       case 643 : itype = RISCV64BF_RV64_INSN_LHU; goto extract_sfmt_lhu;
@@ -2845,7 +2845,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2005033)
-              { itype = RISCV64BF_RV64_INSN_DIVU; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_DIVU; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xfe00707f) == 0x40005033)
@@ -2868,7 +2868,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x200503b)
-              { itype = RISCV64BF_RV64_INSN_DIVUW; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_DIVUW; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 :
             if ((entire_insn & 0xfe00707f) == 0x4000503b)
@@ -3153,14 +3153,14 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2006033)
-              { itype = RISCV64BF_RV64_INSN_REM; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_REM; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
       case 827 :
         if ((entire_insn & 0xfe00707f) == 0x200603b)
-          { itype = RISCV64BF_RV64_INSN_REMW; goto extract_sfmt_c_nop; }
+          { itype = RISCV64BF_RV64_INSN_REMW; goto extract_sfmt_add; }
         itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
       case 867 : itype = RISCV64BF_RV64_INSN_BLTU; goto extract_sfmt_beq;
       case 883 : itype = RISCV64BF_RV64_INSN_CSRRSI; goto extract_sfmt_c_nop;
@@ -3179,14 +3179,14 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2007033)
-              { itype = RISCV64BF_RV64_INSN_REMU; goto extract_sfmt_c_nop; }
+              { itype = RISCV64BF_RV64_INSN_REMU; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
       case 955 :
         if ((entire_insn & 0xfe00707f) == 0x200703b)
-          { itype = RISCV64BF_RV64_INSN_REMUW; goto extract_sfmt_c_nop; }
+          { itype = RISCV64BF_RV64_INSN_REMUW; goto extract_sfmt_add; }
         itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
       case 995 : itype = RISCV64BF_RV64_INSN_BGEU; goto extract_sfmt_beq;
       case 1011 : itype = RISCV64BF_RV64_INSN_CSRRCI; goto extract_sfmt_c_nop;
@@ -4367,6 +4367,201 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_uimm6_256) = f_uimm6_256;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_slli_shift6", "f_rs1 0x%x", 'x', f_rs1, "f_uimm6_256 0x%x", 'x', f_uimm6_256, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_mulh:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_mulh", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_lr_w:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_lr_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_sc_w:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sc_w", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_amoswap_w:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amoswap_w", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_amomin_w:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amomin_w", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_lr_d:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_lr_d", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_sc_d:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sc_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_amoswap_d:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amoswap_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_amomin_d:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amomin_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;

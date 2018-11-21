@@ -75,6 +75,11 @@ CPU (h_csr[(index)]) = (x);\
 
 /* Virtual regs.  */
 
+#define GET_H_XLEN() riscv32bf_h_xlen_get_handler (current_cpu)
+#define SET_H_XLEN(x) \
+do { \
+((void) 0); /*nop*/\
+;} while (0)
 #define GET_H_GPR_NOT_ZERO(index) GET_H_GPR (index)
 #define SET_H_GPR_NOT_ZERO(index, x) \
 do { \
@@ -119,6 +124,8 @@ do { \
 /* Cover fns for register access.  */
 USI riscv32bf_h_pc_get (SIM_CPU *);
 void riscv32bf_h_pc_set (SIM_CPU *, USI);
+SI riscv32bf_h_xlen_get (SIM_CPU *);
+void riscv32bf_h_xlen_set (SIM_CPU *, SI);
 SI riscv32bf_h_gpr_get (SIM_CPU *, UINT);
 void riscv32bf_h_gpr_set (SIM_CPU *, UINT, SI);
 SI riscv32bf_h_gpr_not_zero_get (SIM_CPU *, UINT);
