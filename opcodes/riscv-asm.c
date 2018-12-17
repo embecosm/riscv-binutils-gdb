@@ -863,11 +863,17 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_C_REG117 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_uimm5_115);
       break;
+    case RISCV_OPERAND_C_REG117_0 :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_zero, & fields->f_uimm5_115);
+      break;
     case RISCV_OPERAND_C_REG117_NE0 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr_not_zero, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_REG117_NE0_NE2 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr_not_zero_or_sp, & fields->f_uimm5_115);
+      break;
+    case RISCV_OPERAND_C_REG117_NE2 :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr_not_sp, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_REG42 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_c_gpr, & fields->f_uimm3_43);
@@ -883,6 +889,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_C_TIED_REGS117 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_uimm5_115);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117_0_COMMUTATIVE :
+      errmsg = parse_tied_reg_pair_commutative (cd, strp, & riscv_cgen_opval_h_zero, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_TIED_REGS117_NE0 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_gpr_not_zero, & fields->f_uimm5_115);
@@ -1018,6 +1027,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       errmsg = parse_uimm5_abs (cd, strp, RISCV_OPERAND_UIMM5_ABS, (unsigned long *) (& fields->f_uimm5_195));
+      break;
+    case RISCV_OPERAND_UIMM6_121_65_ABS :
+      errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_121_65_ABS, (unsigned long *) (& fields->f_uimm6_121_65));
       break;
     case RISCV_OPERAND_UIMM6_256 :
       errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_256, (unsigned long *) (& fields->f_uimm6_256));

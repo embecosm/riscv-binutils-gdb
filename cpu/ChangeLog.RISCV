@@ -1,3 +1,9 @@
+2018-12-17  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* riscv.cpu: Add/modify instruction format definitions to allow RVC
+	hints. Use macro instructions to prevent RVC hints being expanded to
+	their RVI counterparts.
+
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.cpu: Allow disassembly to sext.w pseudo-instruction.

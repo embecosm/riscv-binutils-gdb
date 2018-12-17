@@ -29,6 +29,7 @@
 ;  c-       : Compressed registers
 ;  c-tied-  : Tied compressed register
 ;  -ne0     : Non zero register
+;  -ne2     : Non two register
 ;  -ne0-ne2 : Non zero or two register
 ;  fc-      : Compressed floating point register
 ;
@@ -205,6 +206,15 @@
   (attrs VIRTUAL all-isas all-machs)
   (type register DI (64))
   (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 0)) gpr-names))
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-gpr-not-sp)
+  (comment "General Purpose Registers (except x2)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register DI (64))
+  (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 2)) gpr-names))
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -852,10 +862,24 @@
   (index f-uimm5-115)
 )
 (define-operand
+  (name c-reg117-0)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-zero)
+  (index f-uimm5-115)
+)
+(define-operand
   (name c-reg117-ne0)
   (comment "register field for compressed (11:7)")
   (attrs all-isas)
   (type h-gpr-not-zero)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg117-ne2)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-gpr-not-sp)
   (index f-uimm5-115)
 )
 (define-operand
@@ -924,6 +948,14 @@
   (type h-gpr-not-zero)
   (index f-uimm5-115)
   (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117-0-commutative)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-zero)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair_commutative") (print "tied_reg_pair"))
 )
 (define-operand
   (name c-tied-regs117-ne0-commutative)
@@ -1233,6 +1265,14 @@
   (handlers (parse "nzuimm6_abs"))
 )
 (define-operand
+  (name uimm6-121-65-abs)
+  (comment "uimm6 [12][6..2] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm6-121-65)
+  (handlers (parse "uimm6_abs"))
+)
+(define-operand
   (name uimm9-43-121-62-000-abs)
   (comment "uimm9 [4..2][12][6..5]000 (absolute)")
   (attrs all-isas)
@@ -1294,8 +1334,8 @@
 ; +--------+----+-----+--------+
 (define-pmacro (rv-format-cr-2 mnemonic attr funct4 opcode)
   (dni mnemonic mnemonic (attr)
-    (.str mnemonic " ${c-reg117-ne0},${c-reg62-ne0}")
-    (+ (f-c-funct4 funct4) c-reg117-ne0 c-reg62-ne0 (f-c-opcode opcode))
+    (.str mnemonic " ${c-reg117},${c-reg62-ne0}")
+    (+ (f-c-funct4 funct4) c-reg117 c-reg62-ne0 (f-c-opcode opcode))
     () ()))
 ; +--------+--------+-----+--------+
 ; |15    12|11     7|6   2|1      0|
@@ -1303,8 +1343,8 @@
 ; +--------+--------+-----+--------+
 (define-pmacro (rv-format-cr-3 mnemonic attr funct4 opcode)
   (dni mnemonic mnemonic (attr)
-    (.str mnemonic " ${c-reg117-ne0},${c-reg62-ne0}")
-    (+ (f-c-funct4 funct4) c-reg117-ne0 c-reg62-ne0 (f-c-opcode opcode))
+    (.str mnemonic " ${c-reg117},${c-reg62-ne0}")
+    (+ (f-c-funct4 funct4) c-reg117 c-reg62-ne0 (f-c-opcode opcode))
     () ()))
 ; +--------+--------+-----+--------+
 ; |15    10|11     7|6   2|1      0|
@@ -1330,7 +1370,7 @@
 ; +--------+--------+--------+----------+--------+
 (define-pmacro (rv-format-ci-2 mnemonic attr funct3 opcode)
   (dni mnemonic mnemonic (attr)
-    (.str mnemonic " ${c-reg117},${nzimm6-121-65-abs}")
+    (.str mnemonic " ${c-reg117},${imm6-121-65-abs}")
     (+ (f-c-funct3 funct3) nzimm6-121-65-abs c-reg117 (f-c-opcode opcode))
     () ()))
 ; +--------+---------+--------+------------+--------+
@@ -1339,8 +1379,8 @@
 ; +--------+---------+--------+------------+--------+
 (define-pmacro (rv-format-ci-3 mnemonic attr funct3 opcode)
   (dni mnemonic mnemonic (attr)
-    (.str mnemonic " ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs}")
-    (+ (f-c-funct3 funct3) nzuimm18-121-65-000000000000-abs c-reg117-ne0-ne2 (f-c-opcode opcode))
+    (.str mnemonic " ${c-reg117-ne2},${nzuimm18-121-65-000000000000-abs}")
+    (+ (f-c-funct3 funct3) nzuimm18-121-65-000000000000-abs c-reg117-ne2 (f-c-opcode opcode))
     () ()))
 ; +--------+---------+--------+-----------+--------+
 ; |15    13|   12    |11     7|6         2|1      0|
@@ -1348,8 +1388,8 @@
 ; +--------+---------+--------+-----------+--------+
 (define-pmacro (rv-format-ci-4 mnemonic attr funct3 opcode)
   (dni mnemonic mnemonic (attr)
-    (.str mnemonic " ${c-reg117-ne0},${nzuimm6-121-65-abs}")
-    (+ (f-c-funct3 funct3) nzuimm6-121-65-abs c-reg117-ne0 (f-c-opcode opcode))
+    (.str mnemonic " ${c-reg117},${nzuimm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) nzuimm6-121-65-abs c-reg117 (f-c-opcode opcode))
     () ()))
 ; +--------+---------+----+----------------+--------+
 ; |15    13|   12    |11 7|6              2|1      0|
@@ -1386,6 +1426,24 @@
   (dni mnemonic mnemonic (attr)
     (.str mnemonic " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})")
     (+ (f-c-funct3 funct3) uimm9-43-121-62-000-abs fl-rd (f-c-opcode opcode))
+    () ()))
+; +--------+--------+----+----------+--------+
+; |15    13|   12   |11 7|6        2|1      0|
+; |<funct3>|<imm[5]>|<rd>|<imm[4:0]>|<opcode>|
+; +--------+--------+----+----------+--------+
+(define-pmacro (rv-format-ci-9 mnemonic attr funct3 opcode)
+  (dni mnemonic mnemonic (attr)
+    (.str mnemonic " ${c-reg117},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) imm6-121-65-abs c-reg117 (f-c-opcode opcode))
+    () ()))
+; +--------+---------+--------+-----------+--------+
+; |15    13|   12    |11     7|6         2|1      0|
+; |<funct3>|<uimm[5]>|<rd/rs1>|<uimm[4:0]>|<opcode>|
+; +--------+---------+--------+-----------+--------+
+(define-pmacro (rv-format-ci-10 mnemonic attr funct3 uimm1 uimm5 opcode)
+  (dni mnemonic mnemonic (attr)
+    (.str mnemonic " ${c-reg117}")
+    (+ (f-c-funct3 funct3) (f-uimm1-121 uimm1) (f-uimm5-65 uimm5) c-reg117 (f-c-opcode opcode))
     () ()))
 ; +--------+----------------+-----+--------+
 ; |15    13|12             7|6   2|1      0|
@@ -1522,6 +1580,15 @@
   (dni mnemonic mnemonic (attr)
     (.str mnemonic " ${c-reg97},${imm6-121-65-abs}")
     (+ (f-c-funct3 funct3) (f-uimm2-112 instr112) imm6-121-65-abs c-reg97 (f-c-opcode opcode))
+    () ()))
+; +--------+----------+-------+--------+-------------+--------+
+; |15    13|    12    |11   10|9      7|6           2|1      0|
+; |<funct3>|<uimm[5]|<instr>|<rs1/rd>|<uimm[4:0]>|<opcode>|
+; +--------+----------+-------+--------+-------------+--------+
+(define-pmacro (rv-format-cb-4 mnemonic attr funct3 uimm1 instr112 uimm5 opcode)
+  (dni mnemonic mnemonic (attr)
+    (.str mnemonic " ${c-reg97}")
+    (+ (f-c-funct3 funct3) (f-uimm1-121 uimm1) (f-uimm2-112 instr112) (f-uimm5-65 uimm5) c-reg97 (f-c-opcode opcode))
     () ()))
 ; +--------+-------------+--------+
 ; |15    13|12          2|1      0|
@@ -1829,7 +1896,7 @@
 (rv-format-cr-4  "c.or"     c-extension #b100011   #b10)
 (rv-format-cr-4  "c.xor"    c-extension #b100011   #b01)
 (rv-format-cr-4  "c.sub"    c-extension #b100011   #b00)
-(rv-format-ci-1  "c.li"     c-extension #b010      #b01)
+(rv-format-ci-9  "c.li"     c-extension #b010      #b01)
 (rv-format-ci-3  "c.lui"    c-extension #b011      #b01)
 (rv-format-ci-2  "c.addi"   c-extension #b000      #b01)
 (rv-format-ci-4  "c.slli"   c-extension #b000      #b10)
@@ -1843,6 +1910,10 @@
 (rv-format-cb-1  "c.beqz"   c-extension #b110 #b01)
 (rv-format-cb-1  "c.bnez"   c-extension #b111 #b01)
 (rv-format-cj    "c.j"      c-extension #b101 #b01)
+;RV32/64C hints (these are instructions in RV128C)
+(rv-format-ci-10 "c.slli64" c-extension #b000      #b0 #b00000 #b10)
+(rv-format-cb-4  "c.srli64" c-extension #b100 #b0 #b00 #b00000 #b01)
+(rv-format-cb-4  "c.srai64" c-extension #b100 #b0 #b01 #b00000 #b01)
 
 ;RV32C
 (rv-format-cj    "c.jal"    (ISA rv32c) #b001 #b01)
@@ -2209,6 +2280,21 @@
   (dnmi macro-name mnemonic attr-list (.str mnemonic asm) expansion)
 )
 
+; RVC hints
+;
+; These are defined first to prevent RVC hints being disassembled to normal
+; RVI instructions
+
+;TODO NOP
+;TODO ADDI
+(rvc-macro p-c-li-hint  "c.li"   (c-extension) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   c-reg117-0 imm6-121-65-abs))
+(rvc-macro p-c-lui-hint "c.lui"  (c-extension) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
+(rvc-macro p-c-mv-hint  "c.mv"   (c-extension) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))
+(rvc-macro p-c-add-hint "c.add"  (c-extension) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  c-reg117-0 c-reg62-ne0))
+
+(rvc-macro p-c-slli-hint "c.slli" (c-extension) " ${c-reg117-0},${nzuimm6-121-65-abs}" (emit c.slli c-reg117-0 nzuimm6-121-65-abs))
+
+; RVC instructions
 (rvc-macro p-c-nop     "nop"    (c-extension) "" (emit c.nop))
 (rvc-macro p-c-ebreak  "ebreak" (c-extension) "" (emit c.ebreak))
 (rvc-macro p-c-unimp   "unimp"  (c-extension) "" (emit c.unimp))

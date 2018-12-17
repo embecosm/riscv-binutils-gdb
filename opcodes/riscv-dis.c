@@ -290,11 +290,17 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_C_REG117 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_115, 0);
       break;
+    case RISCV_OPERAND_C_REG117_0 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_zero, fields->f_uimm5_115, 0);
+      break;
     case RISCV_OPERAND_C_REG117_NE0 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
       break;
     case RISCV_OPERAND_C_REG117_NE0_NE2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero_or_sp, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_REG117_NE2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_sp, fields->f_uimm5_115, 0);
       break;
     case RISCV_OPERAND_C_REG42 :
       print_keyword (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_43, 0);
@@ -310,6 +316,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_C_TIED_REGS117 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_115, 0);
+      break;
+    case RISCV_OPERAND_C_TIED_REGS117_0_COMMUTATIVE :
+      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_zero, fields->f_uimm5_115, 0);
       break;
     case RISCV_OPERAND_C_TIED_REGS117_NE0 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
@@ -445,6 +454,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       print_normal (cd, info, fields->f_uimm5_195, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM6_121_65_ABS :
+      print_normal (cd, info, fields->f_uimm6_121_65, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM6_256 :
       print_normal (cd, info, fields->f_uimm6_256, 0, pc, length);
