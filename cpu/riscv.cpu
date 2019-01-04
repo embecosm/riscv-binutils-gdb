@@ -418,6 +418,7 @@
 (dnf f-csr      "csr"      (all-isas) 31 12)
 (dnf f-succ     "succ"     (all-isas) 27  4)
 (dnf f-pred     "pred"     (all-isas) 23  4)
+(dnf f-funct2   "funct2"   (all-isas) 26  2)
 (dnf f-funct5   "funct5"   (all-isas) 31  5)
 (dnf f-funct6   "funct6"   (all-isas) 31  6)
 (dnf f-funct7   "funct7"   (all-isas) 31  7)
@@ -849,6 +850,14 @@
   (attrs all-isas)
   (type h-gpr)
   (index f-rs2)
+  (handlers (parse "gpr"))
+)
+(define-operand
+  (name rs3)
+  (comment "rs3")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-rs3)
   (handlers (parse "gpr"))
 )
 
@@ -2656,6 +2665,14 @@
   (index f-funct3)
 )
 (define-operand
+  (name funct2)
+  (comment "funct2")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct2)
+)
+(define-operand
   (name cfunct3)
   (comment "cfunct3")
   (attrs all-isas)
@@ -2675,6 +2692,10 @@
 (dni insn-r    ".insn r"   (base-isas NO-DIS)
   "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
   (+ funct7 rs2 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-r4  ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3}"
+  (+ rs3 funct2 rs2 rs1 funct3 rd opcode7)
   () ())
 (dni insn-i-1  ".insn i"   (base-isas NO-DIS)
   "_insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12}"

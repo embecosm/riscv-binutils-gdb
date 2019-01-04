@@ -380,6 +380,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_195, 0);
       break;
+    case RISCV_OPERAND_FUNCT2 :
+      print_normal (cd, info, fields->f_funct2, 0, pc, length);
+      break;
     case RISCV_OPERAND_FUNCT3 :
       print_normal (cd, info, fields->f_funct3, 0, pc, length);
       break;
@@ -430,6 +433,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_RS2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs2, 0);
+      break;
+    case RISCV_OPERAND_RS3 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs3, 0);
       break;
     case RISCV_OPERAND_SP_REG :
       print_sp (cd, info, & riscv_cgen_opval_h_sp, fields->f_dummy, 0);

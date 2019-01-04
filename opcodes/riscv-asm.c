@@ -953,6 +953,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_uimm5_195);
       break;
+    case RISCV_OPERAND_FUNCT2 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT2, (unsigned long *) (& fields->f_funct2));
+      break;
     case RISCV_OPERAND_FUNCT3 :
       errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT3, (unsigned long *) (& fields->f_funct3));
       break;
@@ -1003,6 +1006,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_RS2 :
       errmsg = parse_gpr (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_rs2);
+      break;
+    case RISCV_OPERAND_RS3 :
+      errmsg = parse_gpr (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_rs3);
       break;
     case RISCV_OPERAND_SP_REG :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_sp, & fields->f_dummy);

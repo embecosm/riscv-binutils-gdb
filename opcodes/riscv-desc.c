@@ -967,6 +967,7 @@ const CGEN_IFLD riscv_cgen_ifld_table[] =
   { RISCV_F_CSR, "f-csr", 0, 32, 31, 12, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
   { RISCV_F_SUCC, "f-succ", 0, 32, 27, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
   { RISCV_F_PRED, "f-pred", 0, 32, 23, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
+  { RISCV_F_FUNCT2, "f-funct2", 0, 32, 26, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
   { RISCV_F_FUNCT5, "f-funct5", 0, 32, 31, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
   { RISCV_F_FUNCT6, "f-funct6", 0, 32, 31, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
   { RISCV_F_FUNCT7, "f-funct7", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
@@ -1210,6 +1211,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "rs2", RISCV_OPERAND_RS2, HW_H_GPR, 24, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS2] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
+/* rs3: rs3 */
+  { "rs3", RISCV_OPERAND_RS3, HW_H_GPR, 31, 5,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_RS3] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
 /* c-reg117: register field for compressed (11:7) */
   { "c-reg117", RISCV_OPERAND_C_REG117, HW_H_GPR, 11, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_115] } },
@@ -1445,6 +1450,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
 /* funct3: funct3 */
   { "funct3", RISCV_OPERAND_FUNCT3, HW_H_UINT, 14, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT3] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
+/* funct2: funct2 */
+  { "funct2", RISCV_OPERAND_FUNCT2, HW_H_UINT, 26, 2,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT2] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 3, "\xff\xff\xc0" } } } }  },
 /* cfunct3: cfunct3 */
   { "cfunct3", RISCV_OPERAND_CFUNCT3, HW_H_UINT, 15, 3,
@@ -3037,6 +3046,11 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* _insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2} */
   {
     RISCV_INSN_INSN_R, "insn-r", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3} */
+  {
+    RISCV_INSN_INSN_R4, "insn-r4", "_insn_r", 32,
     { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
   },
 /* _insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12} */

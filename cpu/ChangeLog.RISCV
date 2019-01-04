@@ -1,5 +1,10 @@
 2019-01-04  Craig Blackmore  <craig.blackmore@embecosm.com>
 
+	* riscv.cpu: Add R4-type instruction format for .insn directive.
+	Define funct2 and rs3 operands used by R4-type format.
+
+2019-01-04  Craig Blackmore  <craig.blackmore@embecosm.com>
+
 	* riscv.cpu: Fix typo by changing JAR to JAL.
 
 2018-12-17  Craig Blackmore  <craig.blackmore@embecosm.com>

@@ -288,6 +288,10 @@ static const CGEN_IFMT ifmt_insn_r ATTRIBUTE_UNUSED = {
   32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_insn_r4 ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_RS3) }, { F (F_FUNCT2) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_insn_i_1 ATTRIBUTE_UNUSED = {
   32, 32, 0x0, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -2216,6 +2220,12 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_insn_r, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT2), ',', OP (RD), ',', OP (RS1), ',', OP (RS2), ',', OP (RS3), 0 } },
+    & ifmt_insn_r4, { 0x0 }
   },
 /* _insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12} */
   {
