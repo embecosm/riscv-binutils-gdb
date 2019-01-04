@@ -2602,7 +2602,7 @@
 
     (BRANCH #x63) (JALR #x67)
     ; reserved #x5b
-    (JAR #x6f) (SYSTEM #x73)
+    (JAL #x6f) (SYSTEM #x73)
     ; reserved #x77
     (CUSTOM_3 #x7b))
   )

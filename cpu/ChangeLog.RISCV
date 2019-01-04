@@ -1,3 +1,7 @@
+2019-01-04  Craig Blackmore  <craig.blackmore@embecosm.com>
+
+	* riscv.cpu: Fix typo by changing JAR to JAL.
+
 2018-12-17  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.cpu: Add/modify instruction format definitions to allow RVC
