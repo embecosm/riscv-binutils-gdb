@@ -1408,7 +1408,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 }
 
 void
-md_apply_fix (struct fix *f, valueT *t, segT s ATTRIBUTE_UNUSED)
+md_apply_fix (struct fix *f, valueT *t, segT s)
 {
   unsigned int subtype;
   bfd_byte *buf = (bfd_byte *) (f->fx_frag->fr_literal + f->fx_where);
@@ -1593,9 +1593,42 @@ md_apply_fix (struct fix *f, valueT *t, segT s ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_RISCV_JMP:
+      if (f->fx_addsy)
+        {
+          /* Fill in a tentative value to improve objdump readability.  */
+	  bfd_vma target = S_GET_VALUE (f->fx_addsy) + *t;
+	  bfd_vma delta = target - md_pcrel_from_section (f, s);
+	  bfd_putl32 (bfd_getl32 (buf) | ENCODE_UJTYPE_IMM (delta), buf);
+	}
+      break;
     case BFD_RELOC_12_PCREL:
+      if (f->fx_addsy)
+	{
+	  /* Fill in a tentative value to improve objdump readability.  */
+	  bfd_vma target = S_GET_VALUE (f->fx_addsy) + *t;
+	  bfd_vma delta = target - md_pcrel_from_section (f, s);
+	  bfd_putl32 (bfd_getl32 (buf) | ENCODE_SBTYPE_IMM (delta), buf);
+	}
+      break;
+
     case BFD_RELOC_RISCV_RVC_BRANCH:
+      if (f->fx_addsy)
+	{
+	  /* Fill in a tentative value to improve objdump readability.  */
+	  bfd_vma target = S_GET_VALUE (f->fx_addsy) + *t;
+	  bfd_vma delta = target - md_pcrel_from_section (f, s);
+	  bfd_putl16 (bfd_getl16 (buf) | ENCODE_RVC_B_IMM (delta), buf);
+	}
+      break;
+
     case BFD_RELOC_RISCV_RVC_JUMP:
+      if (f->fx_addsy)
+	{
+	  /* Fill in a tentative value to improve objdump readability.  */
+	  bfd_vma target = S_GET_VALUE (f->fx_addsy) + *t;
+	  bfd_vma delta = target - md_pcrel_from_section (f, s);
+	  bfd_putl16 (bfd_getl16 (buf) | ENCODE_RVC_J_IMM (delta), buf);
+	}
       break;
 
     case BFD_RELOC_RISCV_CALL:
