@@ -210,7 +210,8 @@ riscv_remove_subset (const char *subset)
 static void
 riscv_set_arch (const char *s)
 {
-  const char *all_subsets = "imafdqc";
+  const char * const all_subsets = "imafdqc";
+  const char *remaining_subsets = all_subsets;
   char *extension = NULL;
   const char *p = s;
 
@@ -246,9 +247,9 @@ riscv_set_arch (const char *s)
 
       case 'g':
 	p++;
-	for ( ; *all_subsets != 'q'; all_subsets++)
+	for ( ; *remaining_subsets != 'q'; remaining_subsets++)
 	  {
-	    const char subset[] = {*all_subsets, '\0'};
+	    const char subset[] = {*remaining_subsets, '\0'};
 	    riscv_add_subset (subset);
 	  }
 	break;
@@ -277,14 +278,16 @@ riscv_set_arch (const char *s)
 	}
       else if (*p == '_')
 	p++;
-      else if ((all_subsets = strchr (all_subsets, *p)) != NULL)
+      else if ((remaining_subsets = strchr (remaining_subsets, *p)) != NULL)
 	{
 	  const char subset[] = {*p, 0};
 	  riscv_add_subset (subset);
-	  all_subsets++;
+	  remaining_subsets++;
 	  p++;
 	}
-      else
+      else if (strchr (all_subsets, *p))
+        as_fatal ("-march=%s: ISA string is not in canonical order. `%c'", s, *p);
+      else 
 	as_fatal ("-march=%s: unsupported ISA subset `%c'", s, *p);
     }
 
