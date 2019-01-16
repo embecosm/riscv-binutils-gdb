@@ -45,7 +45,7 @@
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
 static const char * parse_insn_normal
-  (CGEN_CPU_DESC, const CGEN_INSN *, const char **, CGEN_FIELDS *, const char **);
+  (CGEN_CPU_DESC, const CGEN_INSN *, const char **, CGEN_FIELDS *);
 
 /* -- assembler routines inserted here.  */
 
@@ -1225,8 +1225,7 @@ static const char *
 parse_insn_normal (CGEN_CPU_DESC cd,
 		   const CGEN_INSN *insn,
 		   const char **strp,
-		   CGEN_FIELDS *fields,
-                   const char **operanderr)
+		   CGEN_FIELDS *fields)
 {
   /* ??? Runtime added insns not handled yet.  */
   const CGEN_SYNTAX *syntax = CGEN_INSN_SYNTAX (insn);
@@ -1316,7 +1315,6 @@ parse_insn_normal (CGEN_CPU_DESC cd,
       (void) past_opcode_p;
 #endif
       /* We have an operand of some sort.  */
-      *operanderr = str;
       errmsg = cd->parse_operand (cd, CGEN_SYNTAX_FIELD (*syn), &str, fields);
       if (errmsg)
 	return errmsg;
@@ -1376,7 +1374,6 @@ riscv_cgen_assemble_insn (CGEN_CPU_DESC cd,
   const char *start;
   CGEN_INSN_LIST *ilist;
   const char *parse_errmsg = NULL;
-  const char *erroperand = str;
   const char *insert_errmsg = NULL;
   int recognized_mnemonic = 0;
 
@@ -1418,7 +1415,7 @@ riscv_cgen_assemble_insn (CGEN_CPU_DESC cd,
       /* Allow parse/insert handlers to obtain length of insn.  */
       CGEN_FIELDS_BITSIZE (fields) = CGEN_INSN_BITSIZE (insn);
 
-      parse_errmsg = CGEN_PARSE_FN (cd, insn) (cd, insn, & str, fields, & erroperand);
+      parse_errmsg = CGEN_PARSE_FN (cd, insn) (cd, insn, & str, fields);
       if (parse_errmsg != NULL)
 	continue;
 
@@ -1452,15 +1449,12 @@ riscv_cgen_assemble_insn (CGEN_CPU_DESC cd,
 		      _("unrecognized form of instruction") :
 		      _("unrecognized instruction"));
 
-        if (strlen(erroperand) == 0)
-          erroperand = start;
-
 	if (strlen (start) > 50)
 	  /* xgettext:c-format */
-	  sprintf (errbuf, "%s `%.50s...'", tmp_errmsg, erroperand);
+	  sprintf (errbuf, "%s `%.50s...'", tmp_errmsg, start);
 	else
 	  /* xgettext:c-format */
-	  sprintf (errbuf, "%s `%.50s'", tmp_errmsg, erroperand);
+	  sprintf (errbuf, "%s `%.50s'", tmp_errmsg, start);
       }
     else
       {
