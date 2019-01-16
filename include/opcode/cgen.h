@@ -286,7 +286,7 @@ typedef struct {
    The result is NULL if success or an error message.  */
 typedef const char * (cgen_parse_fn)
   (CGEN_CPU_DESC, const CGEN_INSN *insn_,
-   const char **strp_, CGEN_FIELDS *fields_, const char **erroperand);
+   const char **strp_, CGEN_FIELDS *fields_);
 
 /* Insert handler.
    CD is a cpu table descriptor.
