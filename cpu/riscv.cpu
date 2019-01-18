@@ -2407,8 +2407,7 @@
 ; Macro instructions specified in the ISA doc
 (rv-macro p-nop          "nop"        (base-isas)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
 (rv-macro p-li           "li"         (base-isas)   " ${rd},${imm-lo12}"  (emit addi  rd (rs1 0) imm-lo12))
-(rv-macro p-mv           "mv"         (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
-(rv-macro p-move         "move"       (base-isas)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
+(rv-macro p-mv           "mv"         (base-isas NO-DIS)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
 (rv-macro p-not          "not"        (base-isas)   " ${rd},${rs1}"       (emit xori  rd rs1 (imm-lo12 #xfff)))
 (rv-macro p-neg          "neg"        (base-isas)   " ${rd},${rs2}"       (emit sub   rd (rs1 0) rs2))
 (rv-macro p-negw         "negw"       (base-isas)   " ${rd},${rs2}"       (emit subw  rd (rs1 0) rs2))

@@ -2657,10 +2657,6 @@ static const CGEN_IFMT ifmt_p_mv ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_move ATTRIBUTE_UNUSED = {
-  32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
-};
-
 static const CGEN_IFMT ifmt_p_not ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -3691,12 +3687,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* mv ${rd},${rs1} */
   {
     -1, "p-mv", "mv", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
-  },
-/* move ${rd},${rs1} */
-  {
-    -1, "p-move", "move", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
   },
 /* not ${rd},${rs1} */
   {
@@ -4955,12 +4946,6 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
     & ifmt_p_mv, { 0x13 }
-  },
-/* move ${rd},${rs1} */
-  {
-    { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
-    & ifmt_p_move, { 0x13 }
   },
 /* not ${rd},${rs1} */
   {
