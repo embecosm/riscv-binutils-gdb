@@ -2692,6 +2692,37 @@
   "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
   (+ funct7 rs2 rs1 funct3 rd opcode7)
   () ())
+
+;; For floating point values
+(dni insn-r-fff ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 fl-rs1 funct3 fl-rd opcode7)
+  () ())
+(dni insn-r-fgg ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${rs2}"
+  (+ funct7 rs2 rs1 funct3 fl-rd opcode7)
+  () ())
+(dni insn-r-gfg ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${rs2}"
+  (+ funct7 rs2 fl-rs1 funct3 rd opcode7)
+  () ())
+(dni insn-r-ggf ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 rs1 funct3 rd opcode7)
+  () ())
+(dni insn-r-ffg ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${rs2}"
+  (+ funct7 rs2 fl-rs1 funct3 fl-rd opcode7)
+  () ())
+(dni insn-r-fgf ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 rs1 funct3 fl-rd opcode7)
+  () ())
+(dni insn-r-gff ".insn r"   (base-isas NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 fl-rs1 funct3 rd opcode7)
+  () ())
+
 (dni insn-r4  ".insn r"   (base-isas NO-DIS)
   "_insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3}"
   (+ rs3 funct2 rs2 rs1 funct3 rd opcode7)

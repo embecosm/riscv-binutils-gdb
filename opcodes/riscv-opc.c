@@ -288,6 +288,34 @@ static const CGEN_IFMT ifmt_insn_r ATTRIBUTE_UNUSED = {
   32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_insn_r_fff ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_fgg ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_gfg ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_ggf ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_ffg ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_fgf ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_insn_r_gff ATTRIBUTE_UNUSED = {
+  32, 32, 0x0, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_insn_r4 ATTRIBUTE_UNUSED = {
   32, 32, 0x0, { { F (F_RS3) }, { F (F_FUNCT2) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -2220,6 +2248,48 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_insn_r, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (FL_RD), ',', OP (FL_RS1), ',', OP (FL_RS2), 0 } },
+    & ifmt_insn_r_fff, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (FL_RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_insn_r_fgg, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (RD), ',', OP (FL_RS1), ',', OP (RS2), 0 } },
+    & ifmt_insn_r_gfg, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${fl-rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (RD), ',', OP (RS1), ',', OP (FL_RS2), 0 } },
+    & ifmt_insn_r_ggf, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (FL_RD), ',', OP (FL_RS1), ',', OP (RS2), 0 } },
+    & ifmt_insn_r_ffg, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${fl-rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (FL_RD), ',', OP (RS1), ',', OP (FL_RS2), 0 } },
+    & ifmt_insn_r_fgf, { 0x0 }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${fl-rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (OPCODE7), ',', OP (FUNCT3), ',', OP (FUNCT7), ',', OP (RD), ',', OP (FL_RS1), ',', OP (FL_RS2), 0 } },
+    & ifmt_insn_r_gff, { 0x0 }
   },
 /* _insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3} */
   {

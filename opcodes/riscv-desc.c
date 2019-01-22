@@ -3048,6 +3048,41 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_INSN_R, "insn-r", "_insn_r", 32,
     { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
   },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_INSN_R_FFF, "insn-r-fff", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${rs2} */
+  {
+    RISCV_INSN_INSN_R_FGG, "insn-r-fgg", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${rs2} */
+  {
+    RISCV_INSN_INSN_R_GFG, "insn-r-gfg", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${fl-rs2} */
+  {
+    RISCV_INSN_INSN_R_GGF, "insn-r-ggf", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${rs2} */
+  {
+    RISCV_INSN_INSN_R_FFG, "insn-r-ffg", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${fl-rs2} */
+  {
+    RISCV_INSN_INSN_R_FGF, "insn-r-fgf", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
+/* _insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${fl-rs2} */
+  {
+    RISCV_INSN_INSN_R_GFF, "insn-r-gff", "_insn_r", 32,
+    { 0|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 3, "\xe0\x0\x0" } } } }
+  },
 /* _insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3} */
   {
     RISCV_INSN_INSN_R4, "insn-r4", "_insn_r", 32,
