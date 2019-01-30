@@ -69,24 +69,11 @@ disassemble_init_riscv (struct disassemble_info *info)
     info->insn_sets = cgen_bitset_create (ISA_MAX);
   if (info->mach == bfd_mach_riscv32)
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV32I);
-      cgen_bitset_add (info->insn_sets, ISA_RV32E);
-      cgen_bitset_add (info->insn_sets, ISA_RV32M);
-      cgen_bitset_add (info->insn_sets, ISA_RV32C);
-      cgen_bitset_add (info->insn_sets, ISA_RV32A);
-      cgen_bitset_add (info->insn_sets, ISA_RV32F);
-      cgen_bitset_add (info->insn_sets, ISA_RV32D);
-      cgen_bitset_add (info->insn_sets, ISA_RV32Q);
+      cgen_bitset_add (info->insn_sets, ISA_RV32);
     }
   else
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV64I);
-      cgen_bitset_add (info->insn_sets, ISA_RV64M);
-      cgen_bitset_add (info->insn_sets, ISA_RV64C);
-      cgen_bitset_add (info->insn_sets, ISA_RV64A);
-      cgen_bitset_add (info->insn_sets, ISA_RV64F);
-      cgen_bitset_add (info->insn_sets, ISA_RV64D);
-      cgen_bitset_add (info->insn_sets, ISA_RV64Q);
+      cgen_bitset_add (info->insn_sets, ISA_RV64);
     }
 }
 
@@ -299,9 +286,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_C_REG117_NE0_NE2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_zero_or_sp, fields->f_uimm5_115, 0);
       break;
-    case RISCV_OPERAND_C_REG117_NE2 :
-      print_keyword (cd, info, & riscv_cgen_opval_h_gpr_not_sp, fields->f_uimm5_115, 0);
-      break;
     case RISCV_OPERAND_C_REG42 :
       print_keyword (cd, info, & riscv_cgen_opval_h_c_gpr, fields->f_uimm3_43, 0);
       break;
@@ -316,9 +300,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_C_TIED_REGS117 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr, fields->f_uimm5_115, 0);
-      break;
-    case RISCV_OPERAND_C_TIED_REGS117_0_COMMUTATIVE :
-      print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_zero, fields->f_uimm5_115, 0);
       break;
     case RISCV_OPERAND_C_TIED_REGS117_NE0 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_gpr_not_zero, fields->f_uimm5_115, 0);
@@ -380,9 +361,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       print_tied_reg_pair (cd, info, & riscv_cgen_opval_h_fpr, fields->f_uimm5_195, 0);
       break;
-    case RISCV_OPERAND_FUNCT2 :
-      print_normal (cd, info, fields->f_funct2, 0, pc, length);
-      break;
     case RISCV_OPERAND_FUNCT3 :
       print_normal (cd, info, fields->f_funct3, 0, pc, length);
       break;
@@ -434,9 +412,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_RS2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs2, 0);
       break;
-    case RISCV_OPERAND_RS3 :
-      print_keyword (cd, info, & riscv_cgen_opval_h_gpr, fields->f_rs3, 0);
-      break;
     case RISCV_OPERAND_SP_REG :
       print_sp (cd, info, & riscv_cgen_opval_h_sp, fields->f_dummy, 0);
       break;
@@ -460,9 +435,6 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       print_normal (cd, info, fields->f_uimm5_195, 0, pc, length);
-      break;
-    case RISCV_OPERAND_UIMM6_121_65_ABS :
-      print_normal (cd, info, fields->f_uimm6_121_65, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM6_256 :
       print_normal (cd, info, fields->f_uimm6_256, 0, pc, length);

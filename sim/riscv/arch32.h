@@ -1,0 +1,53 @@
+/* Simulator header for riscv.
+
+THIS FILE IS MACHINE GENERATED WITH CGEN.
+
+Copyright (C) 1996-2017 Free Software Foundation, Inc.
+
+This file is part of the GNU simulators.
+
+   This file is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   It is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+   License for more details.
+
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation, Inc.,
+   51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+*/
+
+#ifndef RISCV_ARCH_H
+#define RISCV_ARCH_H
+
+#define TARGET_BIG_ENDIAN 1
+
+#define WI  SI
+#define UWI USI
+#define AI  USI
+
+#define IAI USI
+
+/* Enum declaration for model types.  */
+typedef enum model_type {
+  MODEL_RV32I, MODEL_RV32IC, MODEL_RV32IM, MODEL_RV32IMC
+ , MODEL_RV32G, MODEL_RV32GC, MODEL_RV32GQC, MODEL_MAX
+} MODEL_TYPE;
+
+#define MAX_MODELS ((int) MODEL_MAX)
+
+/* Enum declaration for unit types.  */
+typedef enum unit_type {
+  UNIT_NONE, UNIT_RV32I_U_EXEC, UNIT_RV32IC_U_EXEC, UNIT_RV32IM_U_EXEC
+ , UNIT_RV32IMC_U_EXEC, UNIT_RV32G_U_EXEC, UNIT_RV32GC_U_EXEC, UNIT_RV32GQC_U_EXEC
+ , UNIT_MAX
+} UNIT_TYPE;
+
+#define MAX_UNITS (1)
+
+#endif /* RISCV_ARCH_H */

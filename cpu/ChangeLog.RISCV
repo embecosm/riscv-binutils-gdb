@@ -200,3 +200,149 @@
 	* riscv.cpu: Add CPU definition for RISCV.
 	* riscv.opc: Add implementation for RISCV.
 
+2018-10-09  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add new definitions for hardware, operands, and
+	instructions to supported the special .insn assembler
+	directive.
+	* riscv.opc (parse_opcode7 parse_copcode2): Add handlers to
+	parse enumeration values of opcodes in instructions specified
+	through the .insn assembler directive.
+
+2018-10-08  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Refactor instruction format definitions to make
+	them more readable and shorter. Tidy up instruction definitions
+	and reformat to make them easier to read.
+
+2018-10-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu (define-riscv-ext): Add new macro to simplify
+	declaration of new extensions, use for all existing ISAs, plus
+	the new rv32q and rv64q extensions.
+	(q-extension): Define macro to represent both the 32 and
+	64 bit ISAs associated with the Q extension.
+	(all-isas): Add rv32q and rv64q to list of all ISAs.
+	Define all Q extension instructions and macro instructions.
+	* riscv.opc (disassemble_init_riscv): Depending on the machine
+	being disassembled for, add ISA_RV32Q and ISA_RV64Q to the
+	ISAs which will be initialized.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Move 'C' extension macro instructions to be
+	defined just before macro instructions for the other
+	extensions.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.opc: Mark error strings with calls to gettext.
+
+2018-10-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.opc (disassemble_init_riscv): Added function to set
+	up the supported ISAs based on the machine id.
+	(CGEN_VALIDATE_INSN_SUPPORTED): Define macro so that
+	riscv_cgen_insn_supported will be called to check before
+	disassembling to a specific instruction.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Remove definitions of fmv.[sd], fabs.[sd] and
+	fneg.[sd] macro instructions.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix destination operand for c.flw and c.fld.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix compressed c.flw/c.fsw/c.fld/c.fsd instructions
+	and their accompanying macro instructions to use the correct
+	register operand types. One of the operands was defined to
+	be a floating point register instead of a general purpose 
+	register.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix fcvt.d.w and fcvt.d.wu to not have a
+	configurable rounding mode. Always set rounding mode bits
+	to 0b000.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.opc (parse_imm_lo12): Don't forget to set
+	*valuep when parsing a %tprel_lo reloc type.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix fcvt.d.s to not have a configurable
+	rounding mode. Always set rounding mode bits to 0b000.
+
+2018-09-04  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add special tprel_add operand to parse the
+	%tprel_add modifier on the optional last operand of the
+	add. Redefine 'add' to have this optional argument, and
+	define a new 'add' macro instruction without it.
+	* riscv.opc (parse_tprel_add): Added function to parse
+	the %tprel_add(..) operand. This only takes a symbol
+	of the form %tprel_add(<symbol>)
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix fmv, fabs and fneg assembly syntax.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add f[ls][wd] pseudo instructions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add fgt and fge pseudo instructions for F and D
+	extensions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add pseudo instructions for compressed F and D
+	extensions.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Rearrange instructions, add missing 'F' and 'D'
+	extension instructions. Add versions of floating point instructions
+	with an extra operand to select the rounding mode. Add macros
+	for 'D' extension instructions.
+	(rv-format-f-3-rm rv-format-f-4-rm rv-format-f-5-rm)
+	(rv-format-f-6-rm rv-format-f-7-rm): Add new instruction formats
+	for floating point instructions with selectable floating point
+	rounding modes.
+	(fl-rm): Add operand type to select floating point rounding
+	modes.
+	(fl-tied-regs1915): Rename from fl-tied-regs2419.
+	* riscv.opc (parse_float_rounding_mode): Add function to
+	parse floating point rounding mode operands
+	(print_float_rounding_mode): Add function to print floating
+	point rounding modes.
+
+2018-09-03  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix assembly syntax of 'A' extension instructions.
+
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix flw, fld, fsw, fsd to use the correct operand
+	types for loads and stores. The operands which were being
+	used could not parse or generate appropriate relocations.
+
+2018-08-14  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add rv32d and rv64d isas. Add 'D' extension
+	instructions. Update floating point registers (h-fpr) to be
+	64 bits wide.
+
+2018-08-13  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Add CPU definition for RISCV.
+	* riscv.opc: Add implementation for RISCV.
+

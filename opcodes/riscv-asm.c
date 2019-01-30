@@ -549,8 +549,8 @@ parse_gpr (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   if(errmsg)
     return errmsg;
 
-  if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32E))
-    return ILLEGAL_REGISTER;
+  /*if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32))
+      return ILLEGAL_REGISTER; */
 
   return NULL;
 }
@@ -872,9 +872,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_C_REG117_NE0_NE2 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr_not_zero_or_sp, & fields->f_uimm5_115);
       break;
-    case RISCV_OPERAND_C_REG117_NE2 :
-      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_gpr_not_sp, & fields->f_uimm5_115);
-      break;
     case RISCV_OPERAND_C_REG42 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_c_gpr, & fields->f_uimm3_43);
       break;
@@ -889,9 +886,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_C_TIED_REGS117 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_uimm5_115);
-      break;
-    case RISCV_OPERAND_C_TIED_REGS117_0_COMMUTATIVE :
-      errmsg = parse_tied_reg_pair_commutative (cd, strp, & riscv_cgen_opval_h_zero, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_TIED_REGS117_NE0 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_gpr_not_zero, & fields->f_uimm5_115);
@@ -953,9 +947,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_FL_TIED_REGS1915 :
       errmsg = parse_tied_reg_pair (cd, strp, & riscv_cgen_opval_h_fpr, & fields->f_uimm5_195);
       break;
-    case RISCV_OPERAND_FUNCT2 :
-      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT2, (unsigned long *) (& fields->f_funct2));
-      break;
     case RISCV_OPERAND_FUNCT3 :
       errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_FUNCT3, (unsigned long *) (& fields->f_funct3));
       break;
@@ -1007,9 +998,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_RS2 :
       errmsg = parse_gpr (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_rs2);
       break;
-    case RISCV_OPERAND_RS3 :
-      errmsg = parse_gpr (cd, strp, & riscv_cgen_opval_h_gpr, & fields->f_rs3);
-      break;
     case RISCV_OPERAND_SP_REG :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_sp, & fields->f_dummy);
       break;
@@ -1033,9 +1021,6 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       errmsg = parse_uimm5_abs (cd, strp, RISCV_OPERAND_UIMM5_ABS, (unsigned long *) (& fields->f_uimm5_195));
-      break;
-    case RISCV_OPERAND_UIMM6_121_65_ABS :
-      errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_121_65_ABS, (unsigned long *) (& fields->f_uimm6_121_65));
       break;
     case RISCV_OPERAND_UIMM6_256 :
       errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_256, (unsigned long *) (& fields->f_uimm6_256));
