@@ -170,10 +170,10 @@ typedef enum cgen_hw_attr {
 /* Enum declaration for riscv hardware types.  */
 typedef enum cgen_hw_type {
   HW_H_MEMORY, HW_H_SINT, HW_H_UINT, HW_H_ADDR
- , HW_H_IADDR, HW_H_PC, HW_H_GPR, HW_H_GPR_NOT_ZERO
- , HW_H_GPR_NOT_ZERO_OR_SP, HW_H_ZERO, HW_H_SP, HW_H_C_GPR
- , HW_H_CSR, HW_H_FPR, HW_H_C_FPR, HW_H_OPCODE7
- , HW_H_COPCODE2, HW_MAX
+ , HW_H_IADDR, HW_H_PC, HW_H_XLEN, HW_H_GPR
+ , HW_H_GPR_NOT_ZERO, HW_H_GPR_NOT_ZERO_OR_SP, HW_H_ZERO, HW_H_SP
+ , HW_H_C_GPR, HW_H_CSR, HW_H_FPR, HW_H_C_FPR
+ , HW_H_OPCODE7, HW_H_COPCODE2, HW_MAX
 } CGEN_HW_TYPE;
 
 #define MAX_HW ((int) HW_MAX)

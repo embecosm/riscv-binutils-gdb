@@ -1,3 +1,8 @@
+2019-01-30  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv-desc.c: Regenerated.
+	* riscv-desc.h: Likewise.
+
 2018-10-09  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv-asm.c: Regenerated.
