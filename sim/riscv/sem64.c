@@ -2544,7 +2544,7 @@ SEM_FN_NAME (riscv64bf_rv64,mulhsu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
 if (EQDI (GET_H_XLEN (), 32)) {
   {
-    DI opval = SRLDI (MULDI (GET_H_GPR (FLD (f_rs1)), ZEXTDIDI (GET_H_GPR (FLD (f_rs2)))), 32);
+    DI opval = SRLDI (MULDI (GET_H_GPR (FLD (f_rs1)), ZEXTSIDI (TRUNCDISI (GET_H_GPR (FLD (f_rs2))))), 32);
     SET_H_GPR (FLD (f_rd), opval);
     written |= (1 << 3);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
@@ -2605,7 +2605,7 @@ SEM_FN_NAME (riscv64bf_rv64,mulhu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
 if (EQDI (GET_H_XLEN (), 32)) {
   {
-    DI opval = SRLDI (MULDI (ZEXTDIDI (GET_H_GPR (FLD (f_rs1))), ZEXTDIDI (GET_H_GPR (FLD (f_rs2)))), 32);
+    DI opval = SRLDI (MULDI (ZEXTSIDI (TRUNCDISI (GET_H_GPR (FLD (f_rs1)))), ZEXTSIDI (TRUNCDISI (GET_H_GPR (FLD (f_rs2))))), 32);
     SET_H_GPR (FLD (f_rd), opval);
     written |= (1 << 3);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
