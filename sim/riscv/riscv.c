@@ -125,7 +125,7 @@ int riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
 
-#elif WANT_CPU_RISCV64BF
+#elif defined(WANT_CPU_RISCV64BF)
 
 UDI
 riscv64bf_h_xlen_get_handler (SIM_CPU *current_cpu)
