@@ -104,6 +104,7 @@ static struct riscv_set_options riscv_opts =
 /* The set of ISAs which are supported.  */
 CGEN_BITSET *riscv_isas = NULL;
 
+static void riscv_maybe_restart_frag(bfd_reloc_code_real_type reloc_type);
 static void riscv_add_subset (const char *subset);
 static void riscv_remove_subset (const char *subset);
 
@@ -421,6 +422,25 @@ riscv_record_fixup_exp (fragS *frag, int where, const CGEN_INSN *insn,
   return fixP;
 }
 
+void
+riscv_maybe_restart_frag(bfd_reloc_code_real_type reloc_type)
+{
+  /* We need to start a new frag after any instruction that can be
+     optimized away or compressed by the linker during relaxation, to prevent
+     the assembler from computing static offsets across such an instruction.
+     This is necessary to get correct EH info.  */
+  if (reloc_type == BFD_RELOC_RISCV_CALL
+      || reloc_type == BFD_RELOC_RISCV_CALL_PLT
+      || reloc_type == BFD_RELOC_RISCV_HI20
+      || reloc_type == BFD_RELOC_RISCV_PCREL_HI20
+      || reloc_type == BFD_RELOC_RISCV_TPREL_HI20
+      || reloc_type == BFD_RELOC_RISCV_TPREL_ADD)
+    {
+      frag_wane (frag_now);
+      frag_new (0);
+    }
+}
+
 static char *
 assemble_one (char * str, finished_insnS *result)
 {
@@ -439,6 +459,7 @@ assemble_one (char * str, finished_insnS *result)
   /* Doesn't really matter what we pass for RELAX_P here.  */
   gas_cgen_finish_insn (insn.insn, insn.buffer,
                         CGEN_FIELDS_BITSIZE (& insn.fields), 1, result);
+
   return NULL;
 }
 
@@ -601,6 +622,13 @@ assemble_early_pseudos(char * str)
   return "unknown pseudo";
 }
 
+static symbolS *
+make_internal_label (void)
+{
+  return (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
+					(valueT) frag_now_fix (), frag_now);
+}
+
 static const char *
 assemble_late_pseudos(char * str)
 {
@@ -723,12 +751,7 @@ assemble_late_pseudos(char * str)
          it to the auipc instruction.  */
       if (exp.X_op != O_symbol)
 	return "illegal operand";
-
-      /* Create a new local symbol, this will be the target of the
-         BFD_RELOC_RISCV_LO12_I fixup */
-      local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
-                                                 (valueT) frag_now_fix(),
-                                                 frag_now);
+      
       /* Assemble the auipc that the relocation will be attached to */
       if (is_store)
 	sprintf (instr_buf, "auipc %s,0", src_reg);
@@ -744,6 +767,7 @@ assemble_late_pseudos(char * str)
       int hi_reloc_info =
 	(is_la && riscv_opts.pic) ? BFD_RELOC_RISCV_GOT_HI20
 	                          : BFD_RELOC_RISCV_PCREL_HI20;
+      riscv_maybe_restart_frag(hi_reloc_info);
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &exp, 0, hi_reloc_info);
 
@@ -782,8 +806,14 @@ assemble_late_pseudos(char * str)
          local symbol and attach it to the just created instruction.  */
       int lo_reloc_info = is_store ? BFD_RELOC_RISCV_PCREL_LO12_S
                                    : BFD_RELOC_RISCV_PCREL_LO12_I;
-      riscv_fix_new (frag_now, result.addr - frag_now->fr_literal, 4,
-                     local_sym, 0, 0, lo_reloc_info);
+      expressionS ep2;
+      ep2.X_op = O_symbol;
+      ep2.X_add_symbol = make_internal_label();
+      ep2.X_add_number = 0;
+      
+      riscv_maybe_restart_frag(hi_reloc_info);
+      riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
+                         &ep2, 0, lo_reloc_info);
       return NULL;
     }
   else if (!strncmp (str, "fmv", 3) || !strncmp (str, "fabs", 4)
@@ -1671,6 +1701,41 @@ md_apply_fix (struct fix *f, valueT *t, segT s)
       f->fx_next->fx_r_type = BFD_RELOC_RISCV_RELAX;
     }
 }
+
+/* Because the value of .cfi_remember_state may changed after relaxation,
+   we insert a fix to relocate it again in link-time.  */
+
+void
+riscv_pre_output_hook (void)
+{
+  const frchainS *frch;
+  const asection *s;
+
+  for (s = stdoutput->sections; s; s = s->next)
+    for (frch = seg_info (s)->frchainP; frch; frch = frch->frch_next)
+      {
+	fragS *frag;
+
+	for (frag = frch->frch_root; frag; frag = frag->fr_next)
+	  {
+	    if (frag->fr_type == rs_cfa)
+	      {
+		expressionS exp;
+		expressionS *symval;
+
+		symval = symbol_get_value_expression (frag->fr_symbol);
+		exp.X_op = O_subtract;
+		exp.X_add_symbol = symval->X_add_symbol;
+		exp.X_add_number = 0;
+		exp.X_op_symbol = symval->X_op_symbol;
+
+		fix_new_exp (frag, (int) frag->fr_offset, 1, &exp, 0,
+			     BFD_RELOC_RISCV_CFA);
+	      }
+	  }
+      }
+}
+
 
 /* This structure is used to hold a stack of .option values.  */
 
