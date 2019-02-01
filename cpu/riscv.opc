@@ -36,26 +36,82 @@
 
 /* -- opc.h */
 
+extern int  riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn);
+extern void riscv_cgen_init_riscv_extensions (CGEN_BITSET *exts);
+extern void riscv_cgen_set_rvc (int rvc);
+
 #undef  CGEN_DIS_HASH_SIZE
 #define CGEN_DIS_HASH_SIZE 1
 #undef  CGEN_DIS_HASH
 #define CGEN_DIS_HASH(buffer, value) 0
 
 struct disassemble_info;
-
-extern int riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn);
 extern void disassemble_init_riscv (struct disassemble_info *info);
 
 /* -- */
 
 /* -- opc.c */
 
-int riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn)
+#include <assert.h>
+
+/* Current enabled rvc extension.  */
+static int riscv_cgen_rvc = RVEXT_RVNONE;
+
+/* Supported extensions (excluding 'C' extensions)  */
+static CGEN_BITSET *riscv_cgen_extensions = NULL;
+
+int riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                               const CGEN_INSN *insn)
 {
-  CGEN_BITSET isas = CGEN_INSN_BITSET_ATTR_VALUE (insn, CGEN_INSN_ISA);
-  return cgen_bitset_intersect_p (cd->isas, &isas);
+  if (!riscv_cgen_extensions)
+    return TRUE;
+
+  /* We *should* use CGEN_INSN_BITSET_ATTR_VALUE to access the value of
+     CGEN_INSN_RVEXT as a bitset, however despite the fact that it is declared
+     as `bitset' attribute it's actually stored as a mask.  */
+  int insn_exts = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_RVEXT);
+  if (insn_exts & (1 << riscv_cgen_rvc))
+    return TRUE;
+  for (int i = 0; insn_exts != 0; )
+    {
+      if ((insn_exts & 1) && cgen_bitset_contains (riscv_cgen_extensions, i))
+        return TRUE;
+      insn_exts >>= 1;
+      i++;
+    }
+  return FALSE;
 }
 
+void riscv_cgen_init_riscv_extensions (CGEN_BITSET *exts)
+{
+  assert (riscv_cgen_extensions == NULL &&
+          "Extensions should only be initialized once");
+
+  /* Copy all of the extensions across except the RV32C/RV64C extensions, as
+     these will be toggleable after initialization.  Save the initial 'C'
+     extension if one is enabled.  */
+  if (cgen_bitset_contains (exts, RVEXT_RV32C))
+    riscv_cgen_rvc = RVEXT_RV32C;
+  else if (cgen_bitset_contains (exts, RVEXT_RV64C))
+    riscv_cgen_rvc = RVEXT_RV64C;
+  else
+    riscv_cgen_rvc = RVEXT_RVNONE;
+
+  riscv_cgen_extensions = cgen_bitset_create (RVEXT_RVMAX);
+  for (int i = 0; i < RVEXT_RVMAX; i++)
+    {
+      if (i == RVEXT_RV32C || i == RVEXT_RV64C)
+        continue;
+      if (cgen_bitset_contains (exts, i))
+        cgen_bitset_add (riscv_cgen_extensions, i);
+    }
+}
+
+void riscv_cgen_set_rvc (int rvc)
+{
+  assert (rvc == RVEXT_RVNONE || rvc == RVEXT_RV32C || rvc == RVEXT_RV64C);
+  riscv_cgen_rvc = rvc;
+}
 
 /* -- */
 
@@ -559,8 +615,8 @@ parse_gpr (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   if(errmsg)
     return errmsg;
 
-  if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32E))
-    return ILLEGAL_REGISTER;
+  /*if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32))
+      return ILLEGAL_REGISTER; */
 
   return NULL;
 }
@@ -848,24 +904,11 @@ disassemble_init_riscv (struct disassemble_info *info)
     info->insn_sets = cgen_bitset_create (ISA_MAX);
   if (info->mach == bfd_mach_riscv32)
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV32I);
-      cgen_bitset_add (info->insn_sets, ISA_RV32E);
-      cgen_bitset_add (info->insn_sets, ISA_RV32M);
-      cgen_bitset_add (info->insn_sets, ISA_RV32C);
-      cgen_bitset_add (info->insn_sets, ISA_RV32A);
-      cgen_bitset_add (info->insn_sets, ISA_RV32F);
-      cgen_bitset_add (info->insn_sets, ISA_RV32D);
-      cgen_bitset_add (info->insn_sets, ISA_RV32Q);
+      cgen_bitset_add (info->insn_sets, ISA_RV32);
     }
   else
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV64I);
-      cgen_bitset_add (info->insn_sets, ISA_RV64M);
-      cgen_bitset_add (info->insn_sets, ISA_RV64C);
-      cgen_bitset_add (info->insn_sets, ISA_RV64A);
-      cgen_bitset_add (info->insn_sets, ISA_RV64F);
-      cgen_bitset_add (info->insn_sets, ISA_RV64D);
-      cgen_bitset_add (info->insn_sets, ISA_RV64Q);
+      cgen_bitset_add (info->insn_sets, ISA_RV64);
     }
 }
 
