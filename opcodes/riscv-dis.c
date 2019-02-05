@@ -69,11 +69,24 @@ disassemble_init_riscv (struct disassemble_info *info)
     info->insn_sets = cgen_bitset_create (ISA_MAX);
   if (info->mach == bfd_mach_riscv32)
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV32);
+      cgen_bitset_add (info->insn_sets, ISA_RV32I);
+      cgen_bitset_add (info->insn_sets, ISA_RV32E);
+      cgen_bitset_add (info->insn_sets, ISA_RV32M);
+      cgen_bitset_add (info->insn_sets, ISA_RV32C);
+      cgen_bitset_add (info->insn_sets, ISA_RV32A);
+      cgen_bitset_add (info->insn_sets, ISA_RV32F);
+      cgen_bitset_add (info->insn_sets, ISA_RV32D);
+      cgen_bitset_add (info->insn_sets, ISA_RV32Q);
     }
   else
     {
-      cgen_bitset_add (info->insn_sets, ISA_RV64);
+      cgen_bitset_add (info->insn_sets, ISA_RV64I);
+      cgen_bitset_add (info->insn_sets, ISA_RV64M);
+      cgen_bitset_add (info->insn_sets, ISA_RV64C);
+      cgen_bitset_add (info->insn_sets, ISA_RV64A);
+      cgen_bitset_add (info->insn_sets, ISA_RV64F);
+      cgen_bitset_add (info->insn_sets, ISA_RV64D);
+      cgen_bitset_add (info->insn_sets, ISA_RV64Q);
     }
 }
 

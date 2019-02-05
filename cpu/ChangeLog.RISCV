@@ -13,14 +13,6 @@
 	hints. Use macro instructions to prevent RVC hints being expanded to
 	their RVI counterparts.
 
-2018-11-21  Edward Jones  <ed.jones@embecosm.com>
-
-	* riscv.cpu: Add semantics for all 'M' and 'A' instructions.
-	(h-xlen): Define a hardware register which represents the
-	xlen of the machine. This is used by some 'M' instructions
-	where the semantic implementation differs considerably between
-	the 32-bit and 64-bit machines.
-
 2018-10-25  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.cpu: Allow disassembly to sext.w pseudo-instruction.

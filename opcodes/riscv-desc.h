@@ -33,8 +33,8 @@ This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
 
 /* Selected cpu families.  */
-#define HAVE_CPU_RISCV32BF
-#define HAVE_CPU_RISCV64BF
+#define HAVE_CPU_RISCVBF32
+#define HAVE_CPU_RISCVBF64
 
 #define CGEN_INSN_LSB0_P 1
 
@@ -57,36 +57,21 @@ This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 /* Maximum number of fields in an instruction.  */
 #define CGEN_ACTUAL_MAX_IFMT_OPERANDS 8
 
-/* Enums.  */
-
-/* Enum declaration for Exception numbers.  */
-typedef enum except_numbers {
-  EXCEPT_NONE, EXCEPT_EBREAK
-} EXCEPT_NUMBERS;
-
 /* Attributes.  */
 
 /* Enum declaration for machine type selection.  */
 typedef enum mach_attr {
-  MACH_BASE, MACH_RV32I, MACH_RV32IC, MACH_RV32IM
- , MACH_RV32IMC, MACH_RV32G, MACH_RV32GC, MACH_RV32GQC
- , MACH_RV64I, MACH_RV64IC, MACH_RV64IM, MACH_RV64IMC
- , MACH_RV64G, MACH_RV64GC, MACH_RV64GQC, MACH_MAX
+  MACH_BASE, MACH_RISCV_RV32, MACH_RISCV_RV64, MACH_MAX
 } MACH_ATTR;
 
 /* Enum declaration for instruction set selection.  */
 typedef enum isa_attr {
-  ISA_RV32, ISA_RV64, ISA_MAX
+  ISA_RV32I, ISA_RV64I, ISA_RV32E, ISA_RV32M
+ , ISA_RV64M, ISA_RV32C, ISA_RV64C, ISA_RV32A
+ , ISA_RV64A, ISA_RV32F, ISA_RV64F, ISA_RV32D
+ , ISA_RV64D, ISA_RV32Q, ISA_RV64Q, ISA_RV32FC
+ , ISA_RV32DC, ISA_RV64DC, ISA_MAX
 } ISA_ATTR;
-
-/* Enum declaration for RISC-V Extensions.  */
-typedef enum rvext_attr {
-  RVEXT_RVNONE, RVEXT_RV32I, RVEXT_RV64I, RVEXT_RV32E
- , RVEXT_RV32M, RVEXT_RV64M, RVEXT_RV32C, RVEXT_RV64C
- , RVEXT_RV32A, RVEXT_RV64A, RVEXT_RV32F, RVEXT_RV64F
- , RVEXT_RV32D, RVEXT_RV64D, RVEXT_RV32Q, RVEXT_RV64Q
- , RVEXT_RVMAX
-} RVEXT_ATTR;
 
 /* Number of architecture variants.  */
 #define MAX_ISAS  ((int) ISA_MAX)
@@ -166,10 +151,10 @@ typedef enum cgen_hw_attr {
 /* Enum declaration for riscv hardware types.  */
 typedef enum cgen_hw_type {
   HW_H_MEMORY, HW_H_SINT, HW_H_UINT, HW_H_ADDR
- , HW_H_IADDR, HW_H_PC, HW_H_XLEN, HW_H_GPR
- , HW_H_GPR_NOT_ZERO, HW_H_GPR_NOT_SP, HW_H_GPR_NOT_ZERO_OR_SP, HW_H_ZERO
- , HW_H_SP, HW_H_C_GPR, HW_H_CSR, HW_H_FPR
- , HW_H_C_FPR, HW_H_OPCODE7, HW_H_COPCODE2, HW_MAX
+ , HW_H_IADDR, HW_H_PC, HW_H_GPR, HW_H_GPR_NOT_ZERO
+ , HW_H_GPR_NOT_SP, HW_H_GPR_NOT_ZERO_OR_SP, HW_H_ZERO, HW_H_SP
+ , HW_H_C_GPR, HW_H_CSR, HW_H_FPR, HW_H_C_FPR
+ , HW_H_OPCODE7, HW_H_COPCODE2, HW_MAX
 } CGEN_HW_TYPE;
 
 #define MAX_HW ((int) HW_MAX)
@@ -234,7 +219,7 @@ typedef enum cgen_insn_attr {
   CGEN_INSN_ALIAS, CGEN_INSN_VIRTUAL, CGEN_INSN_UNCOND_CTI, CGEN_INSN_COND_CTI
  , CGEN_INSN_SKIP_CTI, CGEN_INSN_DELAY_SLOT, CGEN_INSN_RELAXABLE, CGEN_INSN_RELAXED
  , CGEN_INSN_NO_DIS, CGEN_INSN_PBB, CGEN_INSN_END_BOOLS, CGEN_INSN_START_NBOOLS = 31
- , CGEN_INSN_MACH, CGEN_INSN_ISA, CGEN_INSN_RVEXT, CGEN_INSN_END_NBOOLS
+ , CGEN_INSN_MACH, CGEN_INSN_ISA, CGEN_INSN_END_NBOOLS
 } CGEN_INSN_ATTR;
 
 /* Number of non-boolean elements in cgen_insn_attr.  */
@@ -243,7 +228,6 @@ typedef enum cgen_insn_attr {
 /* cgen_insn attribute accessor macros.  */
 #define CGEN_ATTR_CGEN_INSN_MACH_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_MACH-CGEN_INSN_START_NBOOLS-1].nonbitset)
 #define CGEN_ATTR_CGEN_INSN_ISA_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_ISA-CGEN_INSN_START_NBOOLS-1].bitset)
-#define CGEN_ATTR_CGEN_INSN_RVEXT_VALUE(attrs) ((attrs)->nonbool[CGEN_INSN_RVEXT-CGEN_INSN_START_NBOOLS-1].nonbitset)
 #define CGEN_ATTR_CGEN_INSN_ALIAS_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_ALIAS)) != 0)
 #define CGEN_ATTR_CGEN_INSN_VIRTUAL_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_VIRTUAL)) != 0)
 #define CGEN_ATTR_CGEN_INSN_UNCOND_CTI_VALUE(attrs) (((attrs)->bool_ & (1 << CGEN_INSN_UNCOND_CTI)) != 0)

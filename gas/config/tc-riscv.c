@@ -79,7 +79,6 @@ typedef struct
 #define DEFAULT_ARCH "riscv64"
 #endif
 
-static void riscv_maybe_restart_frag(bfd_reloc_code_real_type reloc_type);
 static const char default_arch[] = DEFAULT_ARCH;
 
 static unsigned xlen = 0; /* width of an x-register */
@@ -92,8 +91,7 @@ static unsigned elf_flags = 0;
 
 struct riscv_set_options
 {
-  int pic;   /* Generate position-independent code.  */
-  int rvc;   /* Generate RVC code.  */
+  int pic; /* Generate position-independent code.  */
   int relax; /* Emit relocs the linker is allowed to relax.  */
 };
 
@@ -101,78 +99,114 @@ static struct riscv_set_options riscv_opts =
 {
   0,	/* pic */
   1,	/* relax */
-  0,	/* rvc */
 };
 
-/* The set of extensions which are supported.  */
-static CGEN_BITSET *riscv_exts = NULL;
+/* The set of ISAs which are supported.  */
+CGEN_BITSET *riscv_isas = NULL;
 
-static int
-riscv_ext_for_subset (const char *subset)
-{
-  if (!strcmp(subset, "i"))
-    return (xlen == 64) ? RVEXT_RV64I : RVEXT_RV32I;
-  else if (!strcmp(subset, "e"))
-    {
-      return RVEXT_RV32E;
-    }
-  else if (!strcmp(subset, "m"))
-    return (xlen == 64) ? RVEXT_RV64M : RVEXT_RV32M;
-  else if (!strcmp(subset, "c"))
-    return (xlen == 64) ? RVEXT_RV64C : RVEXT_RV32C;
-  else if (!strcmp(subset, "a"))
-    return (xlen == 64) ? RVEXT_RV64A : RVEXT_RV32A;
-  else if (!strcmp(subset, "f"))
-    return (xlen == 64) ? RVEXT_RV64F : RVEXT_RV32F;
-  else if (!strcmp(subset, "d"))
-    return (xlen == 64) ? RVEXT_RV64D : RVEXT_RV32D;
-  else if (!strcmp(subset, "q"))
-    return (xlen == 64) ? RVEXT_RV64Q : RVEXT_RV32Q;
-  else
-    as_fatal ("Extension not yet supported");
-}
+static void riscv_maybe_restart_frag(bfd_reloc_code_real_type reloc_type);
+static void riscv_add_subset (const char *subset);
+static void riscv_remove_subset (const char *subset);
 
-static void riscv_set_rvc (bfd_boolean rvc_value)
+static void
+riscv_set_rvc (bfd_boolean rvc_value)
 {
   if (rvc_value)
     elf_flags |= EF_RISCV_RVC;
 
-  riscv_opts.rvc = rvc_value;
   if (rvc_value)
-    riscv_cgen_set_rvc (riscv_ext_for_subset ("c"));
+    riscv_add_subset ("c");
   else
-    riscv_cgen_set_rvc (RVEXT_RVNONE);
+    riscv_remove_subset ("c");
 }
 
-static bfd_boolean riscv_subset_supports (const char *feature)
+static int
+riscv_isa_for_subset (const char *subset)
+{
+  if (!strcmp(subset, "i"))
+    return (xlen == 64) ? ISA_RV64I : ISA_RV32I;
+  else if (!strcmp(subset, "e"))
+    {
+      return ISA_RV32E;
+    }
+  else if (!strcmp(subset, "m"))
+    return (xlen == 64) ? ISA_RV64M : ISA_RV32M;
+  else if (!strcmp(subset, "c"))
+    return (xlen == 64) ? ISA_RV64C : ISA_RV32C;
+  else if (!strcmp(subset, "a"))
+    return (xlen == 64) ? ISA_RV64A : ISA_RV32A;
+  else if (!strcmp(subset, "f"))
+    return (xlen == 64) ? ISA_RV64F : ISA_RV32F;
+  else if (!strcmp(subset, "d"))
+    return (xlen == 64) ? ISA_RV64D : ISA_RV32D;
+  else if (!strcmp(subset, "q"))
+    return (xlen == 64) ? ISA_RV64Q : ISA_RV32Q;
+  else
+    as_fatal ("ISA not yet supported");
+}
+
+static bfd_boolean
+riscv_subset_supports (const char *feature)
 {
   char *p;
   unsigned xlen_required = strtoul (feature, &p, 10);
 
-  int ext = riscv_ext_for_subset (feature);
+  int isa = riscv_isa_for_subset (feature);
   if (xlen_required && xlen != xlen_required)
     return FALSE;
 
-  if (!riscv_exts)
+  if (!riscv_isas)
     return FALSE;
-  return cgen_bitset_contains (riscv_exts, ext);
+  return cgen_bitset_contains (riscv_isas, isa);
 }
 
-static void riscv_clear_subsets (void)
+static void
+riscv_clear_subsets (void)
 {
-  if (!riscv_exts)
+  if (!riscv_isas)
     return;
-  cgen_bitset_clear (riscv_exts);
+  cgen_bitset_clear (riscv_isas);
 }
 
-static void riscv_add_subset (const char *subset)
+static void
+riscv_add_subset (const char *subset)
 {
-  if (!riscv_exts)
-    riscv_exts = cgen_bitset_create (RVEXT_RVMAX);
-  cgen_bitset_add (riscv_exts, riscv_ext_for_subset(subset));
+  if (!riscv_isas)
+    riscv_isas = cgen_bitset_create (MAX_ISAS);
+  cgen_bitset_add (riscv_isas, riscv_isa_for_subset(subset));
 }
 
-/* Set which extensions are available.  */
+static void
+riscv_remove_subset (const char *subset)
+{
+  static CGEN_BITSET *tmp_mask = NULL;
+  if (!tmp_mask)
+    tmp_mask = cgen_bitset_create (MAX_ISAS);
+
+  if (!riscv_isas)
+    riscv_isas = cgen_bitset_create (MAX_ISAS);
+
+  /* copy the current bitmask. Except for the bit being cleared.  */
+  int isa = riscv_isa_for_subset (subset);
+
+  cgen_bitset_clear (tmp_mask);
+  int i;
+  for (i = 0; i < MAX_ISAS; i++) {
+    if (i == isa)
+      continue;
+    if (cgen_bitset_contains (riscv_isas, i))
+      cgen_bitset_add (tmp_mask, i);
+  }
+
+  /* copy the temporary mask back (with the now-cleared bit).  */
+  cgen_bitset_clear (riscv_isas);
+  for (i = 0; i < MAX_ISAS; i++) {
+    if (cgen_bitset_contains (tmp_mask, i))
+      cgen_bitset_add (riscv_isas, i);
+  }
+}
+
+/* Set which ISA and extensions are available.  */
 
 static void
 riscv_set_arch (const char *s)
@@ -324,18 +358,26 @@ md_begin (void)
   /* Initialize the `cgen' interface.  */
 
   /* Set the machine number and endian.  */
-  CGEN_BITSET *riscv_isa = cgen_bitset_create (MAX_ISAS);
-  cgen_bitset_add (riscv_isa, (xlen == 32) ? ISA_RV32 : ISA_RV64);
 
-  gas_cgen_cpu_desc = riscv_cgen_cpu_open (CGEN_CPU_OPEN_ISAS, riscv_isa,
+  /* NOTE: Even though we provide the CGEN_CPU_OPEN_ISAS option here,
+     the created cgen assembler will include instructions from every
+     ISA. It is only by defining the hooks CGEN_VALIDATE_INSN_SUPPORTED
+     and riscv_cgen_insn_supported() that unsupported instructions
+     are rejected */
+  gas_cgen_cpu_desc = riscv_cgen_cpu_open (CGEN_CPU_OPEN_ISAS, riscv_isas,
                                            CGEN_CPU_OPEN_MACHS, 0,
                                            CGEN_CPU_OPEN_ENDIAN,
                                            CGEN_ENDIAN_LITTLE,
                                            CGEN_CPU_OPEN_END);
+  /* riscv_cgen_cpu_open creates a copy of the isa bitset. Copy it back
+     so we can update the supported isa at runtime.
+
+     NOTE: This makes the dangerous assumption that
+     gas_cgen_cpu_desc->isas will remain valid for the lifetime of
+     the assembler. This is not guaranteed to be the case.  */
+  riscv_isas = gas_cgen_cpu_desc->isas;
+
   riscv_cgen_init_asm (gas_cgen_cpu_desc);
-  riscv_cgen_init_riscv_extensions (riscv_exts);
-  if (riscv_subset_supports ("c"))
-    elf_flags |= EF_RISCV_RVC;
 
   /* This is a callback from cgen to gas to parse operands.  */
   cgen_set_parse_operand_fn (gas_cgen_cpu_desc, gas_cgen_parse_operand);
@@ -734,8 +776,8 @@ assemble_late_pseudos(char * str)
          We must temporarily disable the 'C' extension here, otherwise we
          will assemble to a compressed instruction which we cannot apply
          a relocation to.  */
-      bfd_boolean c_was_enabled = riscv_opts.rvc;
-      riscv_set_rvc (FALSE);
+      int c_was_enabled = riscv_subset_supports ("c");
+      riscv_remove_subset ("c");
       {
 	if (is_la && riscv_opts.pic)
 	  {
@@ -756,7 +798,7 @@ assemble_late_pseudos(char * str)
 	errmsg = assemble_one (instr_buf, &result);
       }
       if (c_was_enabled)
-	riscv_set_rvc (TRUE);
+	riscv_add_subset ("c");
       if (errmsg)
 	return errmsg;
 
@@ -902,8 +944,8 @@ assemble_late_pseudos(char * str)
          We must temporarily disable the 'C' extension here, otherwise we
          will assemble to a compressed instruction which we cannot apply
          a relocation to.  */
-      int c_was_enabled = riscv_opts.rvc;
-      riscv_set_rvc (FALSE);
+      int c_was_enabled = riscv_subset_supports ("c");
+      riscv_remove_subset ("c");
       {
 	sprintf (instr_buf, "f%c%c %s,0(%s)", type_char, mem_op_char, dst_reg,
 	         src_reg);
@@ -911,7 +953,7 @@ assemble_late_pseudos(char * str)
 	errmsg = assemble_one (instr_buf, &result);
       }
       if (c_was_enabled)
-	riscv_set_rvc (TRUE);
+	riscv_add_subset ("c");
       if (errmsg)
 	return errmsg;
 
@@ -1065,7 +1107,7 @@ riscv_after_parse_args (void)
 	as_bad ("unknown default architecture `%s'", default_arch);
     }
 
-  if (riscv_exts == NULL)
+  if (riscv_isas == NULL)
     riscv_set_arch (xlen == 64 ? "rv64g" : "rv32g");
 
   /* Infer ABI from ISA if not specified on command line.  */
