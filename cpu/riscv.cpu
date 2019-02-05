@@ -2790,9 +2790,9 @@
 (rv-macro p-sbreak       "sbreak"     (all-isas i-ext NO-DIS) "" (emit ebreak))
 
 ; RV32I
-(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
-(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
-(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
+(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32) (RVEXT RV32I) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32) (RVEXT RV32I) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32) (RVEXT RV32I) NO-DIS) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
 ; RV64I
 (rv-macro p-sll-2 "sll"    ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm6-256}"    (emit slli-shift6 rd rs1 uimm6-256))
