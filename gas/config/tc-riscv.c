@@ -107,20 +107,20 @@ static struct riscv_set_options riscv_opts =
 CGEN_BITSET *riscv_isas = NULL;
 
 static void riscv_maybe_restart_frag(bfd_reloc_code_real_type reloc_type);
-static void riscv_add_subset (const char *subset);
-static void riscv_remove_subset (const char *subset);
+/* static void riscv_add_subset (const char *subset); */
+/* static void riscv_remove_subset (const char *subset); */
 
-static void
-riscv_set_rvc (bfd_boolean rvc_value)
-{
-  if (rvc_value)
-    elf_flags |= EF_RISCV_RVC;
+/* static void */
+/* riscv_set_rvc (bfd_boolean rvc_value) */
+/* { */
+/*   if (rvc_value) */
+/*     elf_flags |= EF_RISCV_RVC; */
 
-  if (rvc_value)
-    riscv_add_subset ("c");
-  else
-    riscv_remove_subset ("c");
-}
+/*   if (rvc_value) */
+/*     riscv_add_subset ("c"); */
+/*   else */
+/*     riscv_remove_subset ("c"); */
+/* } */
 
 /* The set of extensions which are supported.  */
 static CGEN_BITSET *riscv_exts = NULL;
