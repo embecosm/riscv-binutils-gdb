@@ -3612,17 +3612,17 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* sd ${c-reg42},(${c-reg97}) */
   {
     -1, "p-c-sd-3", "sd", 16,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
   },
 /* sd ${c-reg62},(${sp-reg}) */
   {
     -1, "p-c-sd-4", "sd", 16,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
   },
 /* sext.w ${c-tied-regs117-ne0} */
   {
     -1, "p-c-sext-w", "sext.w", 16,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x40" } }, { { (1<<RVEXT_RV64C), 0 } } } }
   },
 /* addiw ${c-tied-regs117-ne0},${imm6-121-65-abs} */
   {
