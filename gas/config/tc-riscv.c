@@ -99,8 +99,8 @@ struct riscv_set_options
 static struct riscv_set_options riscv_opts =
 {
   0,	/* pic */
-  1,	/* relax */
   0,	/* rvc */
+  1,	/* relax */
 };
 
 /* The set of ISAs which are supported.  */
