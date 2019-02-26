@@ -2901,7 +2901,6 @@
 (rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  c-reg117-0 c-reg62-ne0))
 (rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}" (emit c.slli c-reg117-0 nzuimm6-121-65-abs))
 (rvc-macro p-c-addiw-hint "c.addiw" (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                (emit c.addiw c-reg117-0 imm6-121-65-abs))
-(rvc-macro p-c-jr-hint "c.jr" (all-isas c-ext) " ${c-reg117-0}" (emit c.jr c-reg117))
 
 ; RVC instructions
 (rvc-macro p-c-nop     "nop"    (all-isas c-ext) "" (emit c.nop))
