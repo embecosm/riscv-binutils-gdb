@@ -2451,6 +2451,10 @@ static const CGEN_IFMT ifmt_p_c_addiw_hint ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_IMM6_121_65) }, { F (F_UIMM5_115) }, { F (F_C_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_p_c_jr_hint ATTRIBUTE_UNUSED = {
+  16, 16, 0xf07f, { { F (F_C_FUNCT4) }, { F (F_UIMM5_115) }, { F (F_UIMM5_65) }, { F (F_C_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_c_nop ATTRIBUTE_UNUSED = {
   16, 16, 0xffff, { { F (F_UIMM16_1516) }, { 0 } }
 };
@@ -3376,6 +3380,11 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* c.addiw ${c-reg117-0},${imm6-121-65-abs} */
   {
     -1, "p-c-addiw-hint", "c.addiw", 16,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
+  },
+/* c.jr ${c-reg117-0} */
+  {
+    -1, "p-c-jr-hint", "c.jr", 16,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
   },
 /* nop */
@@ -4524,6 +4533,12 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (C_REG117_0), ',', OP (IMM6_121_65_ABS), 0 } },
     & ifmt_p_c_addiw_hint, { 0x2001 }
+  },
+/* c.jr ${c-reg117-0} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (C_REG117_0), 0 } },
+    & ifmt_p_c_jr_hint, { 0x8002 }
   },
 /* nop */
   {
