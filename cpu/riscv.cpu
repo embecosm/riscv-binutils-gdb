@@ -1302,7 +1302,7 @@
   (type h-sint)
   (index f-imm6-121-65)
   (handlers (parse "imm6_abs"))
-)
+  )
 (define-operand
   (name nzuimm18-121-65-000000000000-abs)
   (comment "nzuimm18 [12][6..2]000000000000 (absolute)")
@@ -2899,8 +2899,8 @@
 (rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
 (rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))
 (rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  c-reg117-0 c-reg62-ne0))
-
 (rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}" (emit c.slli c-reg117-0 nzuimm6-121-65-abs))
+(rvc-macro p-c-addiw-hint "c.addiw" (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                (emit c.addiw c-reg117-0 imm6-121-65-abs))
 
 ; RVC instructions
 (rvc-macro p-c-nop     "nop"    (all-isas c-ext) "" (emit c.nop))
