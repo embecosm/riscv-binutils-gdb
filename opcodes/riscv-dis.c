@@ -238,6 +238,20 @@ print_nzuimm18_hi6 (CGEN_CPU_DESC cd,
   print_normal (cd, dis_info, value, attrs, pc, length);
 }
 
+static void
+print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                void * dis_info,
+                unsigned long value,
+                unsigned int attrs ATTRIBUTE_UNUSED,
+                bfd_vma pc ATTRIBUTE_UNUSED,
+                int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  /* We should print the number in decimal, like upstream does. */
+  (*info->fprintf_func) (info->stream, "%lu", value);
+}
+
 /* -- ibd.h */
 
 void riscv_cgen_print_operand
@@ -461,16 +475,16 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       print_normal (cd, info, fields->f_uimm8_32_121_63_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM8_62_123_000_ABS :
-      print_normal (cd, info, fields->f_uimm8_62_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      print_ldst_uimm (cd, info, fields->f_uimm8_62_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM8_82_124_00_ABS :
       print_normal (cd, info, fields->f_uimm8_82_124_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM9_43_121_62_000_ABS :
-      print_normal (cd, info, fields->f_uimm9_43_121_62_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      print_ldst_uimm (cd, info, fields->f_uimm9_43_121_62_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_UIMM9_93_123_000_ABS :
-      print_normal (cd, info, fields->f_uimm9_93_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      print_ldst_uimm (cd, info, fields->f_uimm9_93_123_000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
 
     default :

@@ -1073,6 +1073,20 @@ print_nzuimm18_hi6 (CGEN_CPU_DESC cd,
   print_normal (cd, dis_info, value, attrs, pc, length);
 }
 
+static void
+print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                void * dis_info,
+                unsigned long value,
+                unsigned int attrs ATTRIBUTE_UNUSED,
+                bfd_vma pc ATTRIBUTE_UNUSED,
+                int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  /* We should print the number in decimal, like upstream does. */
+  (*info->fprintf_func) (info->stream, "%lu", value);
+}
+
 /* -- ibd.h */
 
 /* -- */
