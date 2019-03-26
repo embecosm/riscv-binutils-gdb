@@ -2893,7 +2893,8 @@
 ; These are defined first to prevent RVC hints being disassembled to normal
 ; RVI instructions
 
-;TODO NOP
+(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"
+	   (emit c.nop))
 (rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   c-reg117-0 imm6-121-65-abs))
 (rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
 (rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))

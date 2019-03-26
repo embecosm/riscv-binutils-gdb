@@ -2423,6 +2423,10 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
 /* Formats for ALIAS macro-insns.  */
 
 #define F(f) & riscv_cgen_ifld_table[RISCV_##f]
+static const CGEN_IFMT ifmt_p_c_nop_hint ATTRIBUTE_UNUSED = {
+  16, 16, 0xffff, { { F (F_UIMM16_1516) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_c_li_hint ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_IMM6_121_65) }, { F (F_UIMM5_115) }, { F (F_C_OPCODE) }, { 0 } }
 };
@@ -3344,6 +3348,11 @@ static const CGEN_IFMT ifmt_p_fcvt_q_lu ATTRIBUTE_UNUSED = {
 
 static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 {
+/* c.nop ${nzuimm6-121-65-abs} */
+  {
+    -1, "p-c-nop-hint", "c.nop", 16,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
+  },
 /* c.li ${c-reg117-0},${imm6-121-65-abs} */
   {
     -1, "p-c-li-hint", "c.li", 16,
@@ -4485,6 +4494,12 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 
 static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
 {
+/* c.nop ${nzuimm6-121-65-abs} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (NZUIMM6_121_65_ABS), 0 } },
+    & ifmt_p_c_nop_hint, { 0x1 }
+  },
 /* c.li ${c-reg117-0},${imm6-121-65-abs} */
   {
     { 0, 0, 0, 0 },
