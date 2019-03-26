@@ -1501,8 +1501,8 @@
 ; +--------+--------+--------+----------+--------+
 (define-pmacro (rv-format-ci-2 mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
-    (.str mnemonic " ${c-reg117},${nzimm6-121-65-abs}")
-    (+ (f-c-funct3 funct3) nzimm6-121-65-abs c-reg117 (f-c-opcode opcode))
+    (.str mnemonic " ${c-reg117},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) imm6-121-65-abs c-reg117 (f-c-opcode opcode))
     sem ()))
 ; +--------+---------+--------+------------+--------+
 ; |15    13|   12    |11     7|6          2|1      0|
@@ -2065,7 +2065,7 @@
 (rv-format-cr-4  "c.sub"  (all-isas c-ext c-machs)
   #b100011 #b00
   (set c-reg97 (sub c-reg97 c-reg42)))
-(rv-format-ci-9  "c.li"   (all-isas c-ext c-machs)
+(rv-format-ci-9  "c.li"   (all-isas c-ext c-machs NO-DIS)
   #b010 #b01
   (set c-reg117-ne0 imm6-121-65-abs))
 (rv-format-ci-3  "c.lui"  (all-isas c-ext c-machs)
@@ -2073,7 +2073,7 @@
   (set c-reg117-ne0-ne2 (sra (sll SI nzuimm18-121-65-000000000000-abs 14) 14)))
 (rv-format-ci-2  "c.addi" (all-isas c-ext c-machs)
   #b000 #b01
-  (set c-reg117 (add c-reg117 nzimm6-121-65-abs)))
+  (set c-reg117 (add c-reg117 imm6-121-65-abs)))
 (rv-format-ci-4  "c.slli" (all-isas c-ext c-machs)
   #b000 #b10
   (set c-reg117-ne0 (sll c-reg117-ne0 nzuimm6-121-65-abs)))
@@ -2894,13 +2894,13 @@
 ; RVI instructions
 
 ;TODO NOP
-;TODO ADDI
 (rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   c-reg117-0 imm6-121-65-abs))
 (rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
 (rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))
 (rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  c-reg117-0 c-reg62-ne0))
 
 (rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}" (emit c.slli c-reg117-0 nzuimm6-121-65-abs))
+(rvc-macro p-c-addi-hint "c.addi" (all-isas c-ext NO-DIS) " ${c-tied-regs117},${imm-zero}"                  (emit c.addi (c-reg117 c-tied-regs117) imm6-121-65-abs))
 
 ; RVC instructions
 (rvc-macro p-c-nop     "nop"    (all-isas c-ext) "" (emit c.nop))

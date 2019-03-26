@@ -1567,14 +1567,14 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* c.li ${c-reg117},${imm6-121-65-abs} */
   {
     RISCV_INSN_C_LI, "c.li", "c.li", 16,
-    { 0, { { { (1<<MACH_RV32IC)|(1<<MACH_RV32IMC)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64IC)|(1<<MACH_RV64IMC)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
+    { 0|A(NO_DIS), { { { (1<<MACH_RV32IC)|(1<<MACH_RV32IMC)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64IC)|(1<<MACH_RV64IMC)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
   },
 /* c.lui ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs} */
   {
     RISCV_INSN_C_LUI, "c.lui", "c.lui", 16,
     { 0, { { { (1<<MACH_RV32IC)|(1<<MACH_RV32IMC)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64IC)|(1<<MACH_RV64IMC)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
   },
-/* c.addi ${c-reg117},${nzimm6-121-65-abs} */
+/* c.addi ${c-reg117},${imm6-121-65-abs} */
   {
     RISCV_INSN_C_ADDI, "c.addi", "c.addi", 16,
     { 0, { { { (1<<MACH_RV32IC)|(1<<MACH_RV32IMC)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64IC)|(1<<MACH_RV64IMC)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }

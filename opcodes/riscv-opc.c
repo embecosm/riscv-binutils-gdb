@@ -142,10 +142,6 @@ static const CGEN_IFMT ifmt_c_lui ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_UIMM5_115) }, { F (F_UIMM18_121_65_000000000000) }, { F (F_C_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_c_addi ATTRIBUTE_UNUSED = {
-  16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_UIMM5_115) }, { F (F_IMM6_121_65) }, { F (F_C_OPCODE) }, { 0 } }
-};
-
 static const CGEN_IFMT ifmt_c_slli ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_UIMM5_115) }, { F (F_UIMM6_121_65) }, { F (F_C_OPCODE) }, { 0 } }
 };
@@ -515,11 +511,11 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (C_REG117_NE0_NE2), ',', OP (NZUIMM18_121_65_000000000000_ABS), 0 } },
     & ifmt_c_lui, { 0x6001 }
   },
-/* c.addi ${c-reg117},${nzimm6-121-65-abs} */
+/* c.addi ${c-reg117},${imm6-121-65-abs} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (C_REG117), ',', OP (NZIMM6_121_65_ABS), 0 } },
-    & ifmt_c_addi, { 0x1 }
+    { { MNEM, ' ', OP (C_REG117), ',', OP (IMM6_121_65_ABS), 0 } },
+    & ifmt_c_li, { 0x1 }
   },
 /* c.slli ${c-reg117-ne0},${nzuimm6-121-65-abs} */
   {
@@ -2447,6 +2443,10 @@ static const CGEN_IFMT ifmt_p_c_slli_hint ATTRIBUTE_UNUSED = {
   16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_UIMM6_121_65) }, { F (F_UIMM5_115) }, { F (F_C_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_p_c_addi_hint ATTRIBUTE_UNUSED = {
+  16, 16, 0xe003, { { F (F_C_FUNCT3) }, { F (F_IMM6_121_65) }, { F (F_UIMM5_115) }, { F (F_C_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_c_nop ATTRIBUTE_UNUSED = {
   16, 16, 0xffff, { { F (F_UIMM16_1516) }, { 0 } }
 };
@@ -3368,6 +3368,11 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
   {
     -1, "p-c-slli-hint", "c.slli", 16,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
+  },
+/* c.addi ${c-tied-regs117},${imm-zero} */
+  {
+    -1, "p-c-addi-hint", "c.addi", 16,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
   },
 /* nop */
   {
@@ -4509,6 +4514,12 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (C_REG117_0), ',', OP (NZUIMM6_121_65_ABS), 0 } },
     & ifmt_p_c_slli_hint, { 0x2 }
+  },
+/* c.addi ${c-tied-regs117},${imm-zero} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (C_TIED_REGS117), ',', OP (IMM_ZERO), 0 } },
+    & ifmt_p_c_addi_hint, { 0x1 }
   },
 /* nop */
   {
