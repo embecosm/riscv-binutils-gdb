@@ -1377,7 +1377,7 @@
   (attrs all-isas)
   (type h-uint)
   (index f-uimm8-82-124-00)
-  (handlers (parse "uimm8_mask2_abs"))
+  (handlers (parse "uimm8_mask2_abs") (print "ldst_uimm"))
 )
 (define-operand
   (name nzuimm10-104-122-51-61-00-abs)
@@ -1417,7 +1417,7 @@
   (attrs all-isas)
   (type h-uint)
   (index f-uimm8-32-121-63-00)
-  (handlers (parse "uimm8_mask2_abs"))
+  (handlers (parse "uimm8_mask2_abs") (print "ldst_uimm"))
 )
 (define-operand
   (name uimm7-51-123-61-00-abs)
@@ -1425,7 +1425,7 @@
   (attrs all-isas)
   (type h-uint)
   (index f-uimm7-51-123-61-00)
-  (handlers (parse "uimm7_mask2_abs"))
+  (handlers (parse "uimm7_mask2_abs") (print "ldst_uimm"))
 )
 (define-operand
   (name uimm8-62-123-000-abs)
