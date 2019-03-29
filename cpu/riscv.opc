@@ -1087,6 +1087,36 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   (*info->fprintf_func) (info->stream, "%lu", value);
 }
 
-/* -- ibd.h */
+/* -- */
+
+/* -- ibld.c */
+
+static int
+extract_zero (CGEN_CPU_DESC cd,
+              CGEN_EXTRACT_INFO *ex_info,
+              CGEN_INSN_INT insn_value,
+              unsigned int attrs,
+              unsigned int word_offset,
+              unsigned int start,
+              unsigned int length,
+              unsigned int word_length,
+              unsigned int total_length,
+              bfd_vma pc,
+              long *valuep)
+{
+  int ret = extract_normal(cd, ex_info, insn_value,
+                           attrs, word_offset, start,
+                           length, word_length, total_length, pc,
+                           valuep);
+
+  if (*valuep != 0)
+    return -1;
+
+  return ret;
+}
+
+/* -- */
+
+/* -- ibld.h */
 
 /* -- */

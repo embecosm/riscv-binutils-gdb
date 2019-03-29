@@ -252,7 +252,7 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   (*info->fprintf_func) (info->stream, "%lu", value);
 }
 
-/* -- ibd.h */
+/* -- */
 
 void riscv_cgen_print_operand
   (CGEN_CPU_DESC, int, PTR, CGEN_FIELDS *, void const *, bfd_vma, int);

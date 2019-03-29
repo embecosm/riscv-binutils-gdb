@@ -998,6 +998,7 @@
   (attrs all-isas)
   (type h-zero)
   (index f-uimm5-115)
+  (handlers (extract "zero"))
 )
 (define-operand
   (name c-reg117-ne0)

@@ -544,6 +544,34 @@ extract_insn_normal (CGEN_CPU_DESC cd,
 
 /* Machine generated code added here.  */
 
+/* -- ibld.c */
+
+static int
+extract_zero (CGEN_CPU_DESC cd,
+              CGEN_EXTRACT_INFO *ex_info,
+              CGEN_INSN_INT insn_value,
+              unsigned int attrs,
+              unsigned int word_offset,
+              unsigned int start,
+              unsigned int length,
+              unsigned int word_length,
+              unsigned int total_length,
+              bfd_vma pc,
+              long *valuep)
+{
+  int ret = extract_normal(cd, ex_info, insn_value,
+                           attrs, word_offset, start,
+                           length, word_length, total_length, pc,
+                           valuep);
+
+  if (*valuep != 0)
+    return -1;
+
+  return ret;
+}
+
+/* -- */
+
 const char * riscv_cgen_insert_operand
   (CGEN_CPU_DESC, int, CGEN_FIELDS *, CGEN_INSN_BYTES_PTR, bfd_vma);
 
@@ -1134,7 +1162,7 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_REG117_0 :
-      length = extract_normal (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_uimm5_115);
+      length = extract_zero (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_uimm5_115);
       break;
     case RISCV_OPERAND_C_REG117_NE0 :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 11, 5, 32, total_length, pc, & fields->f_uimm5_115);
