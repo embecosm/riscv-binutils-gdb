@@ -727,6 +727,12 @@ assemble_late_pseudos(char * str)
          it to the auipc instruction.  */
       if (exp.X_op != O_symbol)
 	return "illegal operand";
+
+      /* Create a new local symbol, this will be the target of the
+         BFD_RELOC_RISCV_LO12_I fixup */
+      local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
+                                                 (valueT) frag_now_fix(),
+                                                 frag_now);
       
       /* Assemble the auipc that the relocation will be attached to */
       if (is_store)
@@ -743,7 +749,7 @@ assemble_late_pseudos(char * str)
       int hi_reloc_info =
 	(is_la && riscv_opts.pic) ? BFD_RELOC_RISCV_GOT_HI20
 	                          : BFD_RELOC_RISCV_PCREL_HI20;
-      riscv_maybe_restart_frag(hi_reloc_info);
+      /*riscv_maybe_restart_frag(hi_reloc_info);*/
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &exp, 0, hi_reloc_info);
 
@@ -782,14 +788,16 @@ assemble_late_pseudos(char * str)
          local symbol and attach it to the just created instruction.  */
       int lo_reloc_info = is_store ? BFD_RELOC_RISCV_PCREL_LO12_S
                                    : BFD_RELOC_RISCV_PCREL_LO12_I;
-      expressionS ep2;
+      riscv_fix_new (frag_now, result.addr - frag_now->fr_literal, 4,
+                     local_sym, 0, 0, lo_reloc_info);
+      /*expressionS ep2;
       ep2.X_op = O_symbol;
       ep2.X_add_symbol = make_internal_label();
       ep2.X_add_number = 0;
       
       riscv_maybe_restart_frag(hi_reloc_info);
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
-                         &ep2, 0, lo_reloc_info);
+      &ep2, 0, lo_reloc_info);*/
       return NULL;
     }
   else if (!strncmp (str, "fmv", 3) || !strncmp (str, "fabs", 4)

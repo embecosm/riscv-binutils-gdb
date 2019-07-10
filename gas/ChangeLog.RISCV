@@ -1,3 +1,9 @@
+2019-07-09  Mary Bennett     <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): Tried to fix
+	objdump output by commenting output riscv_maybe_restart_frag.
+	May have broken EH relocs.
+
 2018-10-31  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* testsuite/gas/riscv/lla32.d: Match on one or more tabs/spaces
