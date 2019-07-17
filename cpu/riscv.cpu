@@ -2893,8 +2893,7 @@
 ; These are defined first to prevent RVC hints being disassembled to normal
 ; RVI instructions
 
-(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"
-	   (emit c.nop))
+;(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"                            (emit c.nop))
 (rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   c-reg117-0 imm6-121-65-abs))
 (rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
 (rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))
@@ -2919,7 +2918,7 @@
 (rvc-macro p-c-li      "li"     (all-isas c-ext) " ${c-reg117-ne0},${imm6-121-65-abs}"                      (emit c.li  c-reg117-ne0     imm6-121-65-abs))
 (rvc-macro p-c-mv      "mv"     (all-isas c-ext) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
 (rvc-macro p-c-move    "move"   (all-isas c-ext) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
-(rvc-macro p-c-andi    "andi"   (all-isas c-ext) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
+(rvc-macro p-c-andi    "andi"   (all-isas c-ext) " ${c-tied-regs97},${imm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) (nzimm6-121-65-abs imm6-12-65-abs)))
 (rvc-macro p-c-and-1   "and"    (all-isas c-ext) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
 (rvc-macro p-c-and-2   "and"    (all-isas c-ext) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.and  (c-reg97 c-tied-regs97-commutative) c-reg42))
 (rvc-macro p-c-addi-1  "addi"   (all-isas c-ext) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
