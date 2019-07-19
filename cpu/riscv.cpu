@@ -545,6 +545,7 @@
 (dnf f-funct6   "funct6"   (all-isas) 31  6)
 (dnf f-funct7   "funct7"   (all-isas) 31  7)
 (dnf f-funct3   "funct3"   (all-isas) 14  3)
+(dnf f-c-funct2 "c.funct2" (all-isas)  6  2)
 (dnf f-c-funct3 "c.funct3" (all-isas) 15  3)
 (dnf f-c-funct4 "c.funct4" (all-isas) 15  4)
 (dnf f-c-funct6 "c.funct6" (all-isas) 15  6)
@@ -576,6 +577,7 @@
 (df f-uimm2-122   "uimm2  [12..11]" (all-isas) 12  2 UDI #f #f)
 (df f-uimm3-123   "uimm3  [12..10]" (all-isas) 12  3 UDI #f #f)
 (df f-uimm4-124   "uimm4  [12..9]"  (all-isas) 12  4 UDI #f #f)
+(df f-uimm8-128   "uimm8  [12..5]"  (all-isas) 12  8 UDI #f #f)
 (df f-uimm15-1415 "uimm15 [14..0]"  (all-isas) 14 15 UDI #f #f)
 (df f-uimm16-1516 "uimm16 [15..0]"  (all-isas) 15 16 UDI #f #f)
 (df f-uimm5-195   "uimm5  [19..15]" (all-isas) 19  5 UDI #f #f)
@@ -1240,6 +1242,13 @@
   (mode UDI)
   (index f-uimm5-195)
   (handlers (parse "uimm5_abs"))
+  )
+(define-operand
+  (name uimm8-128)
+  (comment "uimm8 [12..5]")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm8-128)
 )
 (define-operand
   (name imm-lo12)
@@ -2893,14 +2902,13 @@
 ; These are defined first to prevent RVC hints being disassembled to normal
 ; RVI instructions
 
-;(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"                            (emit c.nop))
-(rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   c-reg117-0 imm6-121-65-abs))
-(rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  c-reg117-0 nzuimm18-121-65-000000000000-abs))
-(rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.mv   c-reg117-0 c-reg62-ne0))
-(rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  c-reg117-0 c-reg62-ne0))
-
-(rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}" (emit c.slli c-reg117-0 nzuimm6-121-65-abs))
-(rvc-macro p-c-addi-hint "c.addi" (all-isas c-ext NO-DIS) " ${c-tied-regs117},${imm-zero}"                  (emit c.addi (c-reg117 c-tied-regs117) imm6-121-65-abs))
+(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"                             (emit c.nop))
+(rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   (c-reg117 c-reg117-0) imm6-121-65-abs))
+(rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  (c-reg117-ne0-ne2 c-reg117-0) nzuimm18-121-65-000000000000-abs))
+(rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117},${c-reg62-ne0}"                        (emit c.mv   (c-reg117-ne0 c-reg117) c-reg62-ne0))
+(rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  (c-reg117-ne0 c-reg117-0) c-reg62-ne0))
+(rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}"              (emit c.slli (c-reg117-ne0 c-reg117-0) nzuimm6-121-65-abs))
+(rvc-macro p-c-addi-hint "c.addi" (all-isas c-ext NO-DIS) " ${c-tied-regs117},${imm-zero}"             (emit c.addi (c-reg117 c-tied-regs117) (imm6-121-65-abs imm-zero)))
 
 ; RVC instructions
 (rvc-macro p-c-nop     "nop"    (all-isas c-ext) "" (emit c.nop))
@@ -3277,6 +3285,14 @@
   (index f-funct2)
 )
 (define-operand
+  (name cfunct2)
+  (comment "cfunct2")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct2)
+)
+(define-operand
   (name cfunct3)
   (comment "cfunct3")
   (attrs all-isas)
@@ -3291,6 +3307,14 @@
   (type h-uint)
   (mode UDI)
   (index f-c-funct4)
+)
+(define-operand
+  (name cfunct6)
+  (comment "cfunct6")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct6)
 )
 
 ;; For floating point values
@@ -3367,12 +3391,16 @@
   (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
   #f ())
 (dni insn-cr   ".insn cr"  (all-isas i-ext NO-DIS)
-  "_insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62}"
+  "_insn_cr ${copcode2},${cfunct4},${c-reg117-ne0},${c-reg62-ne0}"
   (+ cfunct4 c-reg117 c-reg62 copcode2)
   #f ())
 (dni insn-ciw  ".insn ciw" (all-isas i-ext NO-DIS)
-  "_insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
-  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  "_insn_ciw ${copcode2},${cfunct3},${c-reg42},${uimm8-128}"
+  (+ cfunct3 uimm8-128 c-reg42 copcode2)
+  #f ())
+(dni insn-ca   ".insn ca"  (all-isas i-ext NO-DIS)
+  "_insn_ca ${copcode2},${cfunct6},${cfunct2},${c-reg97},${c-reg42}"
+  (+ cfunct6 c-reg97 cfunct2 c-reg42 copcode2)
   #f ())
 (dni insn-cb   ".insn cb"  (all-isas i-ext NO-DIS)
   "_insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9}"

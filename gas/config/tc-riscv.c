@@ -261,6 +261,10 @@ riscv_set_arch (const char *s)
 	  riscv_add_subset (subset);
 	  p += strlen (subset);
 	}
+      else if (*p == 's')
+	as_fatal ("-march=%s: supervisor mode not yet supported", s);
+      else if (*p == '2')
+	as_fatal ("-march=%s: version numbers not yet supported", s);
       else if (*p == '_')
 	p++;
       else if ((remaining_subsets = strchr (remaining_subsets, *p)) != NULL)
