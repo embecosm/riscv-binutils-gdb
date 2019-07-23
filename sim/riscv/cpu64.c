@@ -92,6 +92,22 @@ riscv64bf_h_gpr_not_zero_set (SIM_CPU *current_cpu, UINT regno, DI newval)
   SET_H_GPR_NOT_ZERO (regno, newval);
 }
 
+/* Get the value of h-gpr-not-sp.  */
+
+DI
+riscv64bf_h_gpr_not_sp_get (SIM_CPU *current_cpu, UINT regno)
+{
+  return GET_H_GPR_NOT_SP (regno);
+}
+
+/* Set a value for h-gpr-not-sp.  */
+
+void
+riscv64bf_h_gpr_not_sp_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+{
+  SET_H_GPR_NOT_SP (regno, newval);
+}
+
 /* Get the value of h-gpr-not-zero-or-sp.  */
 
 DI

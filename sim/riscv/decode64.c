@@ -73,6 +73,9 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_C_BEQZ, RISCV64BF_RV64_INSN_C_BEQZ, RISCV64BF_RV64_SFMT_C_BEQZ },
   { RISCV_INSN_C_BNEZ, RISCV64BF_RV64_INSN_C_BNEZ, RISCV64BF_RV64_SFMT_C_BEQZ },
   { RISCV_INSN_C_J, RISCV64BF_RV64_INSN_C_J, RISCV64BF_RV64_SFMT_C_J },
+  { RISCV_INSN_C_SLLI64, RISCV64BF_RV64_INSN_C_SLLI64, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_C_SRLI64, RISCV64BF_RV64_INSN_C_SRLI64, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_C_SRAI64, RISCV64BF_RV64_INSN_C_SRAI64, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_C_ADDW, RISCV64BF_RV64_INSN_C_ADDW, RISCV64BF_RV64_SFMT_C_AND },
   { RISCV_INSN_C_SUBW, RISCV64BF_RV64_INSN_C_SUBW, RISCV64BF_RV64_SFMT_C_AND },
   { RISCV_INSN_C_ADDIW, RISCV64BF_RV64_INSN_C_ADDIW, RISCV64BF_RV64_SFMT_C_ADDIW },
@@ -519,7 +522,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 36 : /* fall through */
           case 37 : /* fall through */
           case 38 : /* fall through */
-          case 39 : itype = RISCV64BF_RV64_INSN_C_SRLI; goto extract_sfmt_c_srli;
+          case 39 : itype = RISCV64BF_RV64_INSN_C_SRLI64; goto extract_sfmt_c_nop;
           case 40 : /* fall through */
           case 41 : /* fall through */
           case 42 : /* fall through */
@@ -527,7 +530,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 44 : /* fall through */
           case 45 : /* fall through */
           case 46 : /* fall through */
-          case 47 : itype = RISCV64BF_RV64_INSN_C_SRAI; goto extract_sfmt_c_srli;
+          case 47 : itype = RISCV64BF_RV64_INSN_C_SRAI64; goto extract_sfmt_c_nop;
           case 48 : /* fall through */
           case 49 : /* fall through */
           case 50 : /* fall through */
@@ -552,7 +555,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val = (((insn >> 15) & (1 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV64BF_RV64_INSN_C_SLLI; goto extract_sfmt_c_slli;
+          case 0 : itype = RISCV64BF_RV64_INSN_C_SLLI64; goto extract_sfmt_c_nop;
           case 1 : itype = RISCV64BF_RV64_INSN_C_JR; goto extract_sfmt_c_jr;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }

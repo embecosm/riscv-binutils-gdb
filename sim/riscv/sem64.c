@@ -471,7 +471,7 @@ SEM_FN_NAME (riscv64bf_rv64,c_sub) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* c.li: c.li ${c-reg117-ne0},${imm6-121-65-abs} */
+/* c.li: c.li ${c-reg117},${imm6-121-65-abs} */
 
 static SEM_PC
 SEM_FN_NAME (riscv64bf_rv64,c_li) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
@@ -513,7 +513,7 @@ SEM_FN_NAME (riscv64bf_rv64,c_lui) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* c.addi: c.addi ${c-reg117},${nzimm6-121-65-abs} */
+/* c.addi: c.addi ${c-reg117},${imm6-121-65-abs} */
 
 static SEM_PC
 SEM_FN_NAME (riscv64bf_rv64,c_addi) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
@@ -775,6 +775,57 @@ SEM_FN_NAME (riscv64bf_rv64,c_j) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   }
 
   SEM_BRANCH_FINI (vpc);
+  return vpc;
+#undef FLD
+}
+
+/* c.slli64: c.slli64 ${c-reg117} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,c_slli64) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
+/* c.srli64: c.srli64 ${c-reg97} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,c_srli64) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
+/* c.srai64: c.srai64 ${c-reg97} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,c_srai64) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
   return vpc;
 #undef FLD
 }
@@ -7323,6 +7374,9 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV64BF_RV64_INSN_C_BEQZ, SEM_FN_NAME (riscv64bf_rv64,c_beqz) },
   { RISCV64BF_RV64_INSN_C_BNEZ, SEM_FN_NAME (riscv64bf_rv64,c_bnez) },
   { RISCV64BF_RV64_INSN_C_J, SEM_FN_NAME (riscv64bf_rv64,c_j) },
+  { RISCV64BF_RV64_INSN_C_SLLI64, SEM_FN_NAME (riscv64bf_rv64,c_slli64) },
+  { RISCV64BF_RV64_INSN_C_SRLI64, SEM_FN_NAME (riscv64bf_rv64,c_srli64) },
+  { RISCV64BF_RV64_INSN_C_SRAI64, SEM_FN_NAME (riscv64bf_rv64,c_srai64) },
   { RISCV64BF_RV64_INSN_C_ADDW, SEM_FN_NAME (riscv64bf_rv64,c_addw) },
   { RISCV64BF_RV64_INSN_C_SUBW, SEM_FN_NAME (riscv64bf_rv64,c_subw) },
   { RISCV64BF_RV64_INSN_C_ADDIW, SEM_FN_NAME (riscv64bf_rv64,c_addiw) },

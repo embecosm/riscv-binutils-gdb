@@ -85,6 +85,11 @@ do { \
 do { \
 SET_H_GPR ((index), (x));\
 ;} while (0)
+#define GET_H_GPR_NOT_SP(index) GET_H_GPR (index)
+#define SET_H_GPR_NOT_SP(index, x) \
+do { \
+SET_H_GPR ((index), (x));\
+;} while (0)
 #define GET_H_GPR_NOT_ZERO_OR_SP(index) GET_H_GPR (index)
 #define SET_H_GPR_NOT_ZERO_OR_SP(index, x) \
 do { \
@@ -130,6 +135,8 @@ DI riscv64bf_h_gpr_get (SIM_CPU *, UINT);
 void riscv64bf_h_gpr_set (SIM_CPU *, UINT, DI);
 DI riscv64bf_h_gpr_not_zero_get (SIM_CPU *, UINT);
 void riscv64bf_h_gpr_not_zero_set (SIM_CPU *, UINT, DI);
+DI riscv64bf_h_gpr_not_sp_get (SIM_CPU *, UINT);
+void riscv64bf_h_gpr_not_sp_set (SIM_CPU *, UINT, DI);
 DI riscv64bf_h_gpr_not_zero_or_sp_get (SIM_CPU *, UINT);
 void riscv64bf_h_gpr_not_zero_or_sp_set (SIM_CPU *, UINT, DI);
 DI riscv64bf_h_zero_get (SIM_CPU *, UINT);
@@ -486,25 +493,6 @@ struct scache {
   f_uimm18_121_65_000000000000 = ((f_uimm18_121_65_000000000000) << (12));\
   f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
 
-#define EXTRACT_IFMT_C_ADDI_VARS \
-  UINT f_c_funct3; \
-  UDI f_uimm5_115; \
-  DI f_imm1_121; \
-  UDI f_uimm5_65; \
-  DI f_imm6_121_65; \
-  UINT f_c_opcode; \
-  unsigned int length;
-#define EXTRACT_IFMT_C_ADDI_CODE \
-  length = 2; \
-  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
-  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
-  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
-  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
-{\
-  f_imm6_121_65 = ((((f_imm1_121) << (5))) | (f_uimm5_65));\
-}\
-  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
-
 #define EXTRACT_IFMT_C_SLLI_VARS \
   UINT f_c_funct3; \
   UDI f_uimm5_115; \
@@ -686,6 +674,57 @@ struct scache {
   f_imm12_121_81_102_61_71_21_111_53_0 = ((((((((f_imm1_121) << (10))) | (((f_uimm1_81) << (9))))) | (((((f_uimm2_102) << (7))) | (((f_uimm1_61) << (6))))))) | (((((((f_uimm1_71) << (5))) | (((f_uimm1_21) << (4))))) | (((((f_uimm1_111) << (3))) | (f_uimm3_53))))));\
 }\
   f_imm12_121_81_102_61_71_21_111_53_0 = ((f_imm12_121_81_102_61_71_21_111_53_0) << (1));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SLLI64_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm1_121; \
+  UDI f_uimm5_115; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SLLI64_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_SRLI64_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm1_121; \
+  UDI f_uimm2_112; \
+  UDI f_uimm3_93; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_SRLI64_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm2_112 = EXTRACT_LSB0_UINT (insn, 16, 11, 2); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_ADDIW_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm5_115; \
+  DI f_imm1_121; \
+  UDI f_uimm5_65; \
+  DI f_imm6_121_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_ADDIW_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_imm1_121 = EXTRACT_LSB0_SINT (insn, 16, 12, 1); \
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+{\
+  f_imm6_121_65 = ((((f_imm1_121) << (5))) | (f_uimm5_65));\
+}\
   f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
 
 #define EXTRACT_IFMT_C_LDSP_VARS \

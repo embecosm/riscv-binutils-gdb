@@ -73,6 +73,9 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_C_BEQZ, RISCV32BF_RV32_INSN_C_BEQZ, RISCV32BF_RV32_SFMT_C_BEQZ },
   { RISCV_INSN_C_BNEZ, RISCV32BF_RV32_INSN_C_BNEZ, RISCV32BF_RV32_SFMT_C_BEQZ },
   { RISCV_INSN_C_J, RISCV32BF_RV32_INSN_C_J, RISCV32BF_RV32_SFMT_C_J },
+  { RISCV_INSN_C_SLLI64, RISCV32BF_RV32_INSN_C_SLLI64, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_SRLI64, RISCV32BF_RV32_INSN_C_SRLI64, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_SRAI64, RISCV32BF_RV32_INSN_C_SRAI64, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_JAL, RISCV32BF_RV32_INSN_C_JAL, RISCV32BF_RV32_SFMT_C_JAL },
   { RISCV_INSN_C_FLWSP, RISCV32BF_RV32_INSN_C_FLWSP, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_FSWSP, RISCV32BF_RV32_INSN_C_FSWSP, RISCV32BF_RV32_SFMT_C_NOP },
@@ -425,70 +428,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
-      case 2 : /* fall through */
-      case 6 : /* fall through */
-      case 10 : /* fall through */
-      case 14 : /* fall through */
-      case 18 : /* fall through */
-      case 22 : /* fall through */
-      case 26 : /* fall through */
-      case 30 : /* fall through */
-      case 34 : /* fall through */
-      case 38 : /* fall through */
-      case 42 : /* fall through */
-      case 46 : /* fall through */
-      case 50 : /* fall through */
-      case 54 : /* fall through */
-      case 58 : /* fall through */
-      case 62 : /* fall through */
-      case 66 : /* fall through */
-      case 70 : /* fall through */
-      case 74 : /* fall through */
-      case 78 : /* fall through */
-      case 82 : /* fall through */
-      case 86 : /* fall through */
-      case 90 : /* fall through */
-      case 94 : /* fall through */
-      case 98 : /* fall through */
-      case 102 : /* fall through */
-      case 106 : /* fall through */
-      case 110 : /* fall through */
-      case 114 : /* fall through */
-      case 118 : /* fall through */
-      case 122 : /* fall through */
-      case 126 : /* fall through */
-      case 130 : /* fall through */
-      case 134 : /* fall through */
-      case 138 : /* fall through */
-      case 142 : /* fall through */
-      case 146 : /* fall through */
-      case 150 : /* fall through */
-      case 154 : /* fall through */
-      case 158 : /* fall through */
-      case 162 : /* fall through */
-      case 166 : /* fall through */
-      case 170 : /* fall through */
-      case 174 : /* fall through */
-      case 178 : /* fall through */
-      case 182 : /* fall through */
-      case 186 : /* fall through */
-      case 190 : /* fall through */
-      case 194 : /* fall through */
-      case 198 : /* fall through */
-      case 202 : /* fall through */
-      case 206 : /* fall through */
-      case 210 : /* fall through */
-      case 214 : /* fall through */
-      case 218 : /* fall through */
-      case 222 : /* fall through */
-      case 226 : /* fall through */
-      case 230 : /* fall through */
-      case 234 : /* fall through */
-      case 238 : /* fall through */
-      case 242 : /* fall through */
-      case 246 : /* fall through */
-      case 250 : /* fall through */
-      case 254 : itype = RISCV32BF_RV32_INSN_C_SLLI; goto extract_sfmt_c_slli;
+      case 2 : itype = RISCV32BF_RV32_INSN_C_SLLI64; goto extract_sfmt_c_nop;
       case 3 : /* fall through */
       case 1027 : itype = RISCV32BF_RV32_INSN_LB; goto extract_sfmt_lb;
       case 4 : /* fall through */
@@ -617,6 +557,69 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 245 : /* fall through */
       case 249 : /* fall through */
       case 253 : itype = RISCV32BF_RV32_INSN_C_ADDI; goto extract_sfmt_c_addi;
+      case 6 : /* fall through */
+      case 10 : /* fall through */
+      case 14 : /* fall through */
+      case 18 : /* fall through */
+      case 22 : /* fall through */
+      case 26 : /* fall through */
+      case 30 : /* fall through */
+      case 34 : /* fall through */
+      case 38 : /* fall through */
+      case 42 : /* fall through */
+      case 46 : /* fall through */
+      case 50 : /* fall through */
+      case 54 : /* fall through */
+      case 58 : /* fall through */
+      case 62 : /* fall through */
+      case 66 : /* fall through */
+      case 70 : /* fall through */
+      case 74 : /* fall through */
+      case 78 : /* fall through */
+      case 82 : /* fall through */
+      case 86 : /* fall through */
+      case 90 : /* fall through */
+      case 94 : /* fall through */
+      case 98 : /* fall through */
+      case 102 : /* fall through */
+      case 106 : /* fall through */
+      case 110 : /* fall through */
+      case 114 : /* fall through */
+      case 118 : /* fall through */
+      case 122 : /* fall through */
+      case 126 : /* fall through */
+      case 130 : /* fall through */
+      case 134 : /* fall through */
+      case 138 : /* fall through */
+      case 142 : /* fall through */
+      case 146 : /* fall through */
+      case 150 : /* fall through */
+      case 154 : /* fall through */
+      case 158 : /* fall through */
+      case 162 : /* fall through */
+      case 166 : /* fall through */
+      case 170 : /* fall through */
+      case 174 : /* fall through */
+      case 178 : /* fall through */
+      case 182 : /* fall through */
+      case 186 : /* fall through */
+      case 190 : /* fall through */
+      case 194 : /* fall through */
+      case 198 : /* fall through */
+      case 202 : /* fall through */
+      case 206 : /* fall through */
+      case 210 : /* fall through */
+      case 214 : /* fall through */
+      case 218 : /* fall through */
+      case 222 : /* fall through */
+      case 226 : /* fall through */
+      case 230 : /* fall through */
+      case 234 : /* fall through */
+      case 238 : /* fall through */
+      case 242 : /* fall through */
+      case 246 : /* fall through */
+      case 250 : /* fall through */
+      case 254 : itype = RISCV32BF_RV32_INSN_C_SLLI; goto extract_sfmt_c_slli;
       case 15 :
         if ((entire_insn & 0xf00fffff) == 0xf)
           { itype = RISCV32BF_RV32_INSN_FENCE; goto extract_sfmt_c_nop; }
@@ -2267,7 +2270,19 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 2019 : itype = RISCV32BF_RV32_INSN_BGEU; goto extract_sfmt_beq;
       case 1011 : /* fall through */
       case 2035 : itype = RISCV32BF_RV32_INSN_CSRRCI; goto extract_sfmt_c_nop;
-      case 1025 : /* fall through */
+      case 1025 :
+        {
+          unsigned int val = (((insn >> 10) & (3 << 0)));
+          switch (val)
+          {
+          case 0 : itype = RISCV32BF_RV32_INSN_C_SRLI64; goto extract_sfmt_c_nop;
+          case 1 : itype = RISCV32BF_RV32_INSN_C_SRAI64; goto extract_sfmt_c_nop;
+          case 2 : itype = RISCV32BF_RV32_INSN_C_ANDI; goto extract_sfmt_c_andi;
+          case 3 : itype = RISCV32BF_RV32_INSN_C_SUB; goto extract_sfmt_c_and;
+          default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
+      case 1026 : itype = RISCV32BF_RV32_INSN_C_JR; goto extract_sfmt_c_jr;
       case 1029 : /* fall through */
       case 1033 : /* fall through */
       case 1037 : /* fall through */
@@ -2286,7 +2301,6 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
-      case 1026 : itype = RISCV32BF_RV32_INSN_C_JR; goto extract_sfmt_c_jr;
       case 1030 : /* fall through */
       case 1034 : /* fall through */
       case 1038 : /* fall through */
