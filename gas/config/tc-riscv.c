@@ -799,8 +799,12 @@ assemble_late_pseudos(char * str)
       ep2.X_add_symbol = make_internal_label();
       ep2.X_add_number = 0;
       
+      // NOTE: calling riscv_maybe_restart_frag may change the result of
+      //       frag_now, so cache the old fragment for creating a valid fixup.
+      // FIXME? This seems fishy... we need to talk and think this through further.
+      fragS *myfrag = frag_now;
       riscv_maybe_restart_frag(hi_reloc_info);
-      riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
+      riscv_fix_new_exp (myfrag, result.addr - myfrag->fr_literal, 4,
                          &ep2, 0, lo_reloc_info);
       return NULL;
     }
