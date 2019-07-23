@@ -1,3 +1,7 @@
+2019-07-23  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Fix bfd names for machs.
+
 2019-01-04  Craig Blackmore  <craig.blackmore@embecosm.com>
 
 	* riscv.cpu: Add R4-type instruction format for .insn directive.
