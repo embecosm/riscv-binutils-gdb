@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright 1996-2010 Free Software Foundation, Inc.
+Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -25,6 +25,10 @@ This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
 #ifndef RISCV_OPC_H
 #define RISCV_OPC_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* -- opc.h */
 
@@ -125,8 +129,8 @@ typedef enum cgen_insn_type {
  , RISCV_INSN_INSN_R_FFG, RISCV_INSN_INSN_R_FGF, RISCV_INSN_INSN_R_GFF, RISCV_INSN_INSN_R4
  , RISCV_INSN_INSN_R, RISCV_INSN_INSN_I_1, RISCV_INSN_INSN_I_2, RISCV_INSN_INSN_S
  , RISCV_INSN_INSN_SB_1, RISCV_INSN_INSN_SB_2, RISCV_INSN_INSN_U, RISCV_INSN_INSN_UJ
- , RISCV_INSN_INSN_CI, RISCV_INSN_INSN_CR, RISCV_INSN_INSN_CIW, RISCV_INSN_INSN_CB
- , RISCV_INSN_INSN_CJ
+ , RISCV_INSN_INSN_CI, RISCV_INSN_INSN_CR, RISCV_INSN_INSN_CIW, RISCV_INSN_INSN_CA
+ , RISCV_INSN_INSN_CB, RISCV_INSN_INSN_CJ
 } CGEN_INSN_TYPE;
 
 /* Index of `invalid' insn place holder.  */
@@ -156,6 +160,7 @@ struct cgen_fields
   long f_funct6;
   long f_funct7;
   long f_funct3;
+  long f_c_funct2;
   long f_c_funct3;
   long f_c_funct4;
   long f_c_funct6;
@@ -186,6 +191,7 @@ struct cgen_fields
   long f_uimm2_122;
   long f_uimm3_123;
   long f_uimm4_124;
+  long f_uimm8_128;
   long f_uimm15_1415;
   long f_uimm16_1516;
   long f_uimm5_195;
@@ -236,5 +242,9 @@ struct cgen_fields
 {\
 }
 
+
+   #ifdef __cplusplus
+   }
+   #endif
 
 #endif /* RISCV_OPC_H */

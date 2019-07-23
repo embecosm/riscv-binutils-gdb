@@ -911,11 +911,17 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CBRANCH9 :
       errmsg = parse_cbranch9 (cd, strp, RISCV_OPERAND_CBRANCH9, (long *) (& fields->f_imm9_121_62_21_112_42_0));
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT2, (unsigned long *) (& fields->f_c_funct2));
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT3, (unsigned long *) (& fields->f_c_funct3));
       break;
     case RISCV_OPERAND_CFUNCT4 :
       errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT4, (unsigned long *) (& fields->f_c_funct4));
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_CFUNCT6, (unsigned long *) (& fields->f_c_funct6));
       break;
     case RISCV_OPERAND_CJMP12 :
       errmsg = parse_cjmp12 (cd, strp, RISCV_OPERAND_CJMP12, (long *) (& fields->f_imm12_121_81_102_61_71_21_111_53_0));
@@ -1042,6 +1048,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       errmsg = parse_uimm7_mask2_abs (cd, strp, RISCV_OPERAND_UIMM7_51_123_61_00_ABS, (unsigned long *) (& fields->f_uimm7_51_123_61_00));
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_UIMM8_128, (unsigned long *) (& fields->f_uimm8_128));
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       errmsg = parse_uimm8_mask2_abs (cd, strp, RISCV_OPERAND_UIMM8_32_121_63_00_ABS, (unsigned long *) (& fields->f_uimm8_32_121_63_00));

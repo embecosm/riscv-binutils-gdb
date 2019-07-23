@@ -339,11 +339,17 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CBRANCH9 :
       print_normal (cd, info, fields->f_imm9_121_62_21_112_42_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      print_normal (cd, info, fields->f_c_funct2, 0, pc, length);
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       print_normal (cd, info, fields->f_c_funct3, 0, pc, length);
       break;
     case RISCV_OPERAND_CFUNCT4 :
       print_normal (cd, info, fields->f_c_funct4, 0, pc, length);
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      print_normal (cd, info, fields->f_c_funct6, 0, pc, length);
       break;
     case RISCV_OPERAND_CJMP12 :
       print_normal (cd, info, fields->f_imm12_121_81_102_61_71_21_111_53_0, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_RELAX)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
@@ -470,6 +476,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       print_ldst_uimm (cd, info, fields->f_uimm7_51_123_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      print_normal (cd, info, fields->f_uimm8_128, 0, pc, length);
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       print_ldst_uimm (cd, info, fields->f_uimm8_32_121_63_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);

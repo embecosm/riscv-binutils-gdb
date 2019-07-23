@@ -671,11 +671,17 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
           break;
       }
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      errmsg = insert_normal (cd, fields->f_c_funct2, 0, 0, 6, 2, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       errmsg = insert_normal (cd, fields->f_c_funct3, 0, 0, 15, 3, 32, total_length, buffer);
       break;
     case RISCV_OPERAND_CFUNCT4 :
       errmsg = insert_normal (cd, fields->f_c_funct4, 0, 0, 15, 4, 32, total_length, buffer);
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      errmsg = insert_normal (cd, fields->f_c_funct6, 0, 0, 15, 6, 32, total_length, buffer);
       break;
     case RISCV_OPERAND_CJMP12 :
       {
@@ -990,6 +996,9 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
           break;
       }
       break;
+    case RISCV_OPERAND_UIMM8_128 :
+      errmsg = insert_normal (cd, fields->f_uimm8_128, 0, 0, 12, 8, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       {
         fields->f_uimm8_32_121_63_00 = ((UDI) (fields->f_uimm8_32_121_63_00) >> (2));
@@ -1196,11 +1205,17 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
         fields->f_imm9_121_62_21_112_42_0 = ((fields->f_imm9_121_62_21_112_42_0) << (1));
       }
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 6, 2, 32, total_length, pc, & fields->f_c_funct2);
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 15, 3, 32, total_length, pc, & fields->f_c_funct3);
       break;
     case RISCV_OPERAND_CFUNCT4 :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 15, 4, 32, total_length, pc, & fields->f_c_funct4);
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 15, 6, 32, total_length, pc, & fields->f_c_funct6);
       break;
     case RISCV_OPERAND_CJMP12 :
       {
@@ -1453,6 +1468,9 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
         fields->f_uimm7_51_123_61_00 = ((fields->f_uimm7_51_123_61_00) << (2));
       }
       break;
+    case RISCV_OPERAND_UIMM8_128 :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 12, 8, 32, total_length, pc, & fields->f_uimm8_128);
+      break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       {
         length = extract_normal (cd, ex_info, insn_value, 0, 0, 3, 2, 32, total_length, pc, & fields->f_uimm2_32);
@@ -1609,11 +1627,17 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_CBRANCH9 :
       value = fields->f_imm9_121_62_21_112_42_0;
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      value = fields->f_c_funct2;
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       value = fields->f_c_funct3;
       break;
     case RISCV_OPERAND_CFUNCT4 :
       value = fields->f_c_funct4;
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      value = fields->f_c_funct6;
       break;
     case RISCV_OPERAND_CJMP12 :
       value = fields->f_imm12_121_81_102_61_71_21_111_53_0;
@@ -1740,6 +1764,9 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       value = fields->f_uimm7_51_123_61_00;
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      value = fields->f_uimm8_128;
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       value = fields->f_uimm8_32_121_63_00;
@@ -1830,11 +1857,17 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_CBRANCH9 :
       value = fields->f_imm9_121_62_21_112_42_0;
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      value = fields->f_c_funct2;
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       value = fields->f_c_funct3;
       break;
     case RISCV_OPERAND_CFUNCT4 :
       value = fields->f_c_funct4;
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      value = fields->f_c_funct6;
       break;
     case RISCV_OPERAND_CJMP12 :
       value = fields->f_imm12_121_81_102_61_71_21_111_53_0;
@@ -1961,6 +1994,9 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       value = fields->f_uimm7_51_123_61_00;
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      value = fields->f_uimm8_128;
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       value = fields->f_uimm8_32_121_63_00;
@@ -2058,11 +2094,17 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_CBRANCH9 :
       fields->f_imm9_121_62_21_112_42_0 = value;
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      fields->f_c_funct2 = value;
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       fields->f_c_funct3 = value;
       break;
     case RISCV_OPERAND_CFUNCT4 :
       fields->f_c_funct4 = value;
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      fields->f_c_funct6 = value;
       break;
     case RISCV_OPERAND_CJMP12 :
       fields->f_imm12_121_81_102_61_71_21_111_53_0 = value;
@@ -2189,6 +2231,9 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       fields->f_uimm7_51_123_61_00 = value;
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      fields->f_uimm8_128 = value;
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       fields->f_uimm8_32_121_63_00 = value;
@@ -2276,11 +2321,17 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_CBRANCH9 :
       fields->f_imm9_121_62_21_112_42_0 = value;
       break;
+    case RISCV_OPERAND_CFUNCT2 :
+      fields->f_c_funct2 = value;
+      break;
     case RISCV_OPERAND_CFUNCT3 :
       fields->f_c_funct3 = value;
       break;
     case RISCV_OPERAND_CFUNCT4 :
       fields->f_c_funct4 = value;
+      break;
+    case RISCV_OPERAND_CFUNCT6 :
+      fields->f_c_funct6 = value;
       break;
     case RISCV_OPERAND_CJMP12 :
       fields->f_imm12_121_81_102_61_71_21_111_53_0 = value;
@@ -2407,6 +2458,9 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       fields->f_uimm7_51_123_61_00 = value;
+      break;
+    case RISCV_OPERAND_UIMM8_128 :
+      fields->f_uimm8_128 = value;
       break;
     case RISCV_OPERAND_UIMM8_32_121_63_00_ABS :
       fields->f_uimm8_32_121_63_00 = value;

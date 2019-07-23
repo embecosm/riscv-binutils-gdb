@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright 1996-2010 Free Software Foundation, Inc.
+Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -163,19 +163,19 @@ static const CGEN_ISA riscv_cgen_isa_table[] = {
 /* Machine variants.  */
 
 static const CGEN_MACH riscv_cgen_mach_table[] = {
-  { "rv32i", "rv32i", MACH_RV32I, 0 },
-  { "rv32ic", "rv32ic", MACH_RV32IC, 0 },
-  { "rv32im", "rv32im", MACH_RV32IM, 0 },
-  { "rv32imc", "rv32imc", MACH_RV32IMC, 0 },
-  { "rv32g", "rv32g", MACH_RV32G, 0 },
-  { "rv32gc", "rv32gc", MACH_RV32GC, 0 },
+  { "rv32i", "riscv:rv32", MACH_RV32I, 0 },
+  { "rv32ic", "riscv:rv32", MACH_RV32IC, 0 },
+  { "rv32im", "riscv:rv32", MACH_RV32IM, 0 },
+  { "rv32imc", "riscv:rv32", MACH_RV32IMC, 0 },
+  { "rv32g", "riscv:rv32", MACH_RV32G, 0 },
+  { "rv32gc", "riscv:rv32", MACH_RV32GC, 0 },
   { "rv32gqc", "riscv:rv32", MACH_RV32GQC, 0 },
-  { "rv64i", "rv64i", MACH_RV64I, 0 },
-  { "rv64ic", "rv64ic", MACH_RV64IC, 0 },
-  { "rv64im", "rv64im", MACH_RV64IM, 0 },
-  { "rv64imc", "rv64imc", MACH_RV64IMC, 0 },
-  { "rv64g", "rv64g", MACH_RV64G, 0 },
-  { "rv64gc", "rv64gc", MACH_RV64GC, 0 },
+  { "rv64i", "riscv:rv64", MACH_RV64I, 0 },
+  { "rv64ic", "riscv:rv64", MACH_RV64IC, 0 },
+  { "rv64im", "riscv:rv64", MACH_RV64IM, 0 },
+  { "rv64imc", "riscv:rv64", MACH_RV64IMC, 0 },
+  { "rv64g", "riscv:rv64", MACH_RV64G, 0 },
+  { "rv64gc", "riscv:rv64", MACH_RV64GC, 0 },
   { "rv64gqc", "riscv:rv64", MACH_RV64GQC, 0 },
   { 0, 0, 0, 0 }
 };
@@ -988,6 +988,7 @@ const CGEN_IFLD riscv_cgen_ifld_table[] =
   { RISCV_F_FUNCT6, "f-funct6", 0, 32, 31, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_FUNCT7, "f-funct7", 0, 32, 31, 7, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_FUNCT3, "f-funct3", 0, 32, 14, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+  { RISCV_F_C_FUNCT2, "f-c-funct2", 0, 32, 6, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_C_FUNCT3, "f-c-funct3", 0, 32, 15, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_C_FUNCT4, "f-c-funct4", 0, 32, 15, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_C_FUNCT6, "f-c-funct6", 0, 32, 15, 6, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
@@ -1018,6 +1019,7 @@ const CGEN_IFLD riscv_cgen_ifld_table[] =
   { RISCV_F_UIMM2_122, "f-uimm2-122", 0, 32, 12, 2, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_UIMM3_123, "f-uimm3-123", 0, 32, 12, 3, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_UIMM4_124, "f-uimm4-124", 0, 32, 12, 4, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+  { RISCV_F_UIMM8_128, "f-uimm8-128", 0, 32, 12, 8, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_UIMM15_1415, "f-uimm15-1415", 0, 32, 14, 15, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_UIMM16_1516, "f-uimm16-1516", 0, 32, 15, 16, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
   { RISCV_F_UIMM5_195, "f-uimm5-195", 0, 32, 19, 5, { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
@@ -1359,6 +1361,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "uimm5-abs", RISCV_OPERAND_UIMM5_ABS, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+/* uimm8-128: uimm8 [12..5] */
+  { "uimm8-128", RISCV_OPERAND_UIMM8_128, HW_H_UINT, 12, 8,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM8_128] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* imm-lo12: Low 12-bits of a 32-bit uimmediate */
   { "imm-lo12", RISCV_OPERAND_IMM_LO12, HW_H_SINT, 31, 12,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_IMM12_3112] } },
@@ -1471,6 +1477,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "funct2", RISCV_OPERAND_FUNCT2, HW_H_UINT, 26, 2,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_FUNCT2] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+/* cfunct2: cfunct2 */
+  { "cfunct2", RISCV_OPERAND_CFUNCT2, HW_H_UINT, 6, 2,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT2] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* cfunct3: cfunct3 */
   { "cfunct3", RISCV_OPERAND_CFUNCT3, HW_H_UINT, 15, 3,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT3] } },
@@ -1478,6 +1488,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
 /* cfunct4: cfunct4 */
   { "cfunct4", RISCV_OPERAND_CFUNCT4, HW_H_UINT, 15, 4,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT4] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+/* cfunct6: cfunct6 */
+  { "cfunct6", RISCV_OPERAND_CFUNCT6, HW_H_UINT, 15, 6,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_C_FUNCT6] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* sentinel */
   { 0, 0, 0, 0, 0,
@@ -3139,14 +3153,19 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     -1, "insn-ci", "_insn_ci", 16,
     { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
-/* _insn_cr ${copcode2},${cfunct4},${c-reg117},${c-reg62} */
+/* _insn_cr ${copcode2},${cfunct4},${c-reg117-ne0},${c-reg62-ne0} */
   {
     -1, "insn-cr", "_insn_cr", 16,
     { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
-/* _insn_ciw ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs} */
+/* _insn_ciw ${copcode2},${cfunct3},${c-reg42},${uimm8-128} */
   {
     -1, "insn-ciw", "_insn_ciw", 16,
+    { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
+/* _insn_ca ${copcode2},${cfunct6},${cfunct2},${c-reg97},${c-reg42} */
+  {
+    -1, "insn-ca", "_insn_ca", 16,
     { 0|A(ALIAS)|A(NO_DIS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* _insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9} */
@@ -3189,7 +3208,7 @@ lookup_mach_via_bfd_name (const CGEN_MACH *table, const char *name)
 	return table;
       ++table;
     }
-  abort ();
+  return NULL;
 }
 
 /* Subroutine of riscv_cgen_cpu_open to build the hardware table.  */
@@ -3403,7 +3422,8 @@ riscv_cgen_cpu_open (enum cgen_cpu_open_arg arg_type, ...)
 	    const CGEN_MACH *mach =
 	      lookup_mach_via_bfd_name (riscv_cgen_mach_table, name);
 
-	    machs |= 1 << mach->num;
+	    if (mach != NULL)
+	      machs |= 1 << mach->num;
 	    break;
 	  }
 	case CGEN_CPU_OPEN_ENDIAN :
