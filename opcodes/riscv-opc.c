@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright 1996-2010 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -944,6 +944,12 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_sfence_vma, { 0x12000073 }
+  },
+/* fence.tso ${succ},${pred} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (SUCC), ',', OP (PRED), 0 } },
+    & ifmt_fence, { 0x8000000f }
   },
 /* fence.i */
   {
@@ -2781,7 +2787,11 @@ static const CGEN_IFMT ifmt_p_sw ATTRIBUTE_UNUSED = {
   32, 32, 0xfe007fff, { { F (F_IMM12_317_115) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_nop ATTRIBUTE_UNUSED = {
+static const CGEN_IFMT ifmt_p_nop_1 ATTRIBUTE_UNUSED = {
+  16, 16, 0xffff, { { F (F_UIMM16_1516) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_nop_2 ATTRIBUTE_UNUSED = {
   32, 32, 0xffffffff, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -2823,6 +2833,10 @@ static const CGEN_IFMT ifmt_p_sltz ATTRIBUTE_UNUSED = {
 
 static const CGEN_IFMT ifmt_p_sgtz ATTRIBUTE_UNUSED = {
   32, 32, 0xfe0ff07f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_bge ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM13_311_71_306_114_0) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_OPCODE) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_p_beqz ATTRIBUTE_UNUSED = {
@@ -2910,6 +2924,10 @@ static const CGEN_IFMT ifmt_p_unimp ATTRIBUTE_UNUSED = {
 };
 
 static const CGEN_IFMT ifmt_p_fence ATTRIBUTE_UNUSED = {
+  32, 32, 0xffffffff, { { F (F_UIMM4_314) }, { F (F_PRED) }, { F (F_SUCC) }, { F (F_UIMM20_1920) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_fence_tso ATTRIBUTE_UNUSED = {
   32, 32, 0xffffffff, { { F (F_UIMM4_314) }, { F (F_PRED) }, { F (F_SUCC) }, { F (F_UIMM20_1920) }, { 0 } }
 };
 
@@ -3367,7 +3385,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-c-nop-hint", "c.nop", 16,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
   },
-/* c.li ${c-reg117-0},${imm6-121-65-abs} */
+/* c.li ${c-reg117},${imm6-121-65-abs} */
   {
     -1, "p-c-li-hint", "c.li", 16,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32C)|(1<<RVEXT_RV64C), 0 } } } }
@@ -3792,9 +3810,14 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-sw", "sw", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
+/* addi x0,x0,0 */
+  {
+    -1, "p-nop-1", "addi", 16,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
 /* nop */
   {
-    -1, "p-nop", "nop", 32,
+    -1, "p-nop-2", "nop", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* li ${rd},${imm-lo12} */
@@ -3846,6 +3869,11 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
   {
     -1, "p-sgtz", "sgtz", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
+/* bge ${rs2},${rs1},0 <${branch13}> */
+  {
+    -1, "p-bge", "bge", 32,
+    { 0|A(NO_DIS)|A(RELAXABLE)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* beqz ${rs1},${branch13} */
   {
@@ -3955,6 +3983,11 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fence */
   {
     -1, "p-fence", "fence", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
+/* fence.tso */
+  {
+    -1, "p-fence-tso", "fence.tso", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* rdinstret ${rd} */
@@ -4165,7 +4198,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fsrmi ${uimm5} */
   {
     -1, "p-fsrmi-2", "fsrmi", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
   },
 /* frflags ${rd} */
   {
@@ -4185,7 +4218,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fsflagsi ${rd},${uimm5} */
   {
     -1, "p-fsflagsi-1", "fsflagsi", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
   },
 /* fsflagsi ${uimm5} */
   {
@@ -4514,10 +4547,10 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (NZUIMM6_121_65_ABS), 0 } },
     & ifmt_p_c_nop_hint, { 0x1 }
   },
-/* c.li ${c-reg117-0},${imm6-121-65-abs} */
+/* c.li ${c-reg117},${imm6-121-65-abs} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (C_REG117_0), ',', OP (IMM6_121_65_ABS), 0 } },
+    { { MNEM, ' ', OP (C_REG117), ',', OP (IMM6_121_65_ABS), 0 } },
     & ifmt_p_c_li_hint, { 0x4001 }
   },
 /* c.lui ${c-reg117-0},${nzuimm18-121-65-000000000000-abs} */
@@ -5024,11 +5057,17 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RS2), ',', '(', OP (RS1), ')', 0 } },
     & ifmt_p_sw, { 0x2023 }
   },
+/* addi x0,x0,0 */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', 'x', '0', ',', 'x', '0', ',', '0', 0 } },
+    & ifmt_p_nop_1, { 0x1 }
+  },
 /* nop */
   {
     { 0, 0, 0, 0 },
     { { MNEM, 0 } },
-    & ifmt_p_nop, { 0x13 }
+    & ifmt_p_nop_2, { 0x13 }
   },
 /* li ${rd},${imm-lo12} */
   {
@@ -5089,6 +5128,12 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS2), 0 } },
     & ifmt_p_sgtz, { 0x2033 }
+  },
+/* bge ${rs2},${rs1},0 <${branch13}> */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RS2), ',', OP (RS1), ',', '0', ' ', '<', OP (BRANCH13), '>', 0 } },
+    & ifmt_p_bge, { 0x5063 }
   },
 /* beqz ${rs1},${branch13} */
   {
@@ -5221,6 +5266,12 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, 0 } },
     & ifmt_p_fence, { 0xff0000f }
+  },
+/* fence.tso */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, 0 } },
+    & ifmt_p_fence_tso, { 0x8330000f }
   },
 /* rdinstret ${rd} */
   {
@@ -5895,13 +5946,15 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
    Targets are free to override CGEN_{ASM,DIS}_HASH_P in the .opc file.  */
 
 static int
-asm_hash_insn_p (const CGEN_INSN *insn ATTRIBUTE_UNUSED)
+asm_hash_insn_p (insn)
+     const CGEN_INSN *insn ATTRIBUTE_UNUSED;
 {
   return CGEN_ASM_HASH_P (insn);
 }
 
 static int
-dis_hash_insn_p (const CGEN_INSN *insn)
+dis_hash_insn_p (insn)
+     const CGEN_INSN *insn;
 {
   /* If building the hash table and the NO-DIS attribute is present,
      ignore.  */
@@ -5933,7 +5986,8 @@ dis_hash_insn_p (const CGEN_INSN *insn)
    Targets are free to override CGEN_{ASM,DIS}_HASH in the .opc file.  */
 
 static unsigned int
-asm_hash_insn (const char *mnem)
+asm_hash_insn (mnem)
+     const char * mnem;
 {
   return CGEN_ASM_HASH (mnem);
 }
@@ -5942,8 +5996,9 @@ asm_hash_insn (const char *mnem)
    VALUE is the first base_insn_bitsize bits as an int in host order.  */
 
 static unsigned int
-dis_hash_insn (const char *buf ATTRIBUTE_UNUSED,
-		     CGEN_INSN_INT value ATTRIBUTE_UNUSED)
+dis_hash_insn (buf, value)
+     const char * buf ATTRIBUTE_UNUSED;
+     CGEN_INSN_INT value ATTRIBUTE_UNUSED;
 {
   return CGEN_DIS_HASH (buf, value);
 }

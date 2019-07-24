@@ -1,2 +1,2 @@
 .*: Assembler messages:
-.*: Error: illegal operands `c.addi16sp x1,0'
+.*: Error: unrecognized keyword/register name `c.addi16sp x1,0'

@@ -1,2 +1,2 @@
 Assembler messages:
-Fatal error: -march=rv32icx2p: Expect number after `2p'.
+Fatal error: -march=rv32icx2p: Version numbers not yet supported.

@@ -251,7 +251,13 @@ riscv_set_arch (const char *s)
 	  char *q = subset;
 
 	  while (*++q != '\0' && *q != '_')
-	    ;
+	    {
+	      if (*q == '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9')
+		as_fatal ("-march=%s: Version numbers not yet supported.", s);
+	      else if (*q == 'p' && *++q != '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9')
+	        as_fatal ("-march=%s: Expect number after version.", s);
+	    }
+
 	  *q = '\0';
 
 	  if (extension)
@@ -262,9 +268,9 @@ riscv_set_arch (const char *s)
 	  p += strlen (subset);
 	}
       else if (*p == 's')
-	as_fatal ("-march=%s: supervisor mode not yet supported", s);
+	as_fatal ("-march=%s: Supervisor mode not yet supported.", s);
       else if (*p == '2')
-	as_fatal ("-march=%s: version numbers not yet supported", s);
+	as_fatal ("-march=%s: Version numbers not yet supported.", s);
       else if (*p == '_')
 	p++;
       else if ((remaining_subsets = strchr (remaining_subsets, *p)) != NULL)
@@ -753,7 +759,6 @@ assemble_late_pseudos(char * str)
       int hi_reloc_info =
 	(is_la && riscv_opts.pic) ? BFD_RELOC_RISCV_GOT_HI20
 	                          : BFD_RELOC_RISCV_PCREL_HI20;
-      /*riscv_maybe_restart_frag(hi_reloc_info);*/
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &exp, 0, hi_reloc_info);
 
@@ -803,7 +808,7 @@ assemble_late_pseudos(char * str)
       ep2.X_op = O_symbol;
       ep2.X_add_symbol = make_internal_label();
       ep2.X_add_number = 0;
-      
+
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &ep2, 0, lo_reloc_info);
       return NULL;

@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright 1996-2010 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -1943,6 +1943,11 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_SFENCE_VMA, "sfence.vma", "sfence.vma", 32,
     { 0, { { { (1<<MACH_RV32I)|(1<<MACH_RV32IC)|(1<<MACH_RV32IM)|(1<<MACH_RV32IMC)|(1<<MACH_RV32G)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64I)|(1<<MACH_RV64IC)|(1<<MACH_RV64IM)|(1<<MACH_RV64IMC)|(1<<MACH_RV64G)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
+/* fence.tso ${succ},${pred} */
+  {
+    RISCV_INSN_FENCE_TSO, "fence.tso", "fence.tso", 32,
+    { 0, { { { (1<<MACH_RV32I)|(1<<MACH_RV32IC)|(1<<MACH_RV32IM)|(1<<MACH_RV32IMC)|(1<<MACH_RV32G)|(1<<MACH_RV32GC)|(1<<MACH_RV32GQC)|(1<<MACH_RV64I)|(1<<MACH_RV64IC)|(1<<MACH_RV64IM)|(1<<MACH_RV64IMC)|(1<<MACH_RV64G)|(1<<MACH_RV64GC)|(1<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
 /* fence.i */
   {
     RISCV_INSN_FENCE_I, "fence.i", "fence.i", 32,
@@ -3208,7 +3213,7 @@ lookup_mach_via_bfd_name (const CGEN_MACH *table, const char *name)
 	return table;
       ++table;
     }
-  return NULL;
+  abort ();
 }
 
 /* Subroutine of riscv_cgen_cpu_open to build the hardware table.  */
@@ -3422,8 +3427,7 @@ riscv_cgen_cpu_open (enum cgen_cpu_open_arg arg_type, ...)
 	    const CGEN_MACH *mach =
 	      lookup_mach_via_bfd_name (riscv_cgen_mach_table, name);
 
-	    if (mach != NULL)
-	      machs |= 1 << mach->num;
+	    machs |= 1 << mach->num;
 	    break;
 	  }
 	case CGEN_CPU_OPEN_ENDIAN :

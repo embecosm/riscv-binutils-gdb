@@ -2319,6 +2319,10 @@
   "sfence.vma ${rs1},${rs2}"
   (+ (f-uimm7-317 #b0001001) rs1 rs2 (f-uimm15-1415 #b000000001110011))
   (nop) ())
+(dni fence.tso "fence.tso" (all-isas i-ext all-machs)
+  "fence.tso ${succ},${pred}"
+  (+ (f-uimm4-314 #b1000) pred succ (f-uimm20-1920 #b00000000000000001111))
+  (nop) ())
 
 (rv-format-raw     "fence.i" (all-isas i-ext all-machs)
   #b00000000000000000001000000001111
@@ -2903,7 +2907,7 @@
 ; RVI instructions
 
 (rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"                             (emit c.nop))
-(rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117-0},${imm6-121-65-abs}"                  (emit c.li   (c-reg117 c-reg117-0) imm6-121-65-abs))
+(rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117},${imm6-121-65-abs}"                    (emit c.li   c-reg117 imm6-121-65-abs))
 (rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  (c-reg117-ne0-ne2 c-reg117-0) nzuimm18-121-65-000000000000-abs))
 (rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117},${c-reg62-ne0}"                        (emit c.mv   (c-reg117-ne0 c-reg117) c-reg62-ne0))
 (rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  (c-reg117-ne0 c-reg117-0) c-reg62-ne0))
@@ -3012,7 +3016,8 @@
 (rv-macro p-sh           "sh"         (all-isas i-ext NO-DIS) " ${rs2},($rs1)" (emit sh rs2 rs1 (store12 0)))
 (rv-macro p-sw           "sw"         (all-isas i-ext NO-DIS) " ${rs2},($rs1)" (emit sw rs2 rs1 (store12 0)))
 ; Macro instructions specified in the ISA doc
-(rv-macro p-nop          "nop"        (all-isas i-ext)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
+(rv-macro p-nop-1        "addi"       (all-isas i-ext NO-DIS) " x0,x0,0"  (emit c.nop))
+(rv-macro p-nop-2        "nop"        (all-isas i-ext)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
 (rv-macro p-li           "li"         (all-isas i-ext)   " ${rd},${imm-lo12}"  (emit addi  rd (rs1 0) imm-lo12))
 (rv-macro p-mv           "mv"         (all-isas i-ext)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
 (rv-macro p-move         "move"       (all-isas i-ext NO-DIS)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
@@ -3023,6 +3028,7 @@
 (rv-macro p-snez         "snez"       (all-isas i-ext)   " ${rd},${rs2}"       (emit sltu  rd (rs1 0) rs2))
 (rv-macro p-sltz         "sltz"       (all-isas i-ext)   " ${rd},${rs1}"       (emit slt   rd rs1 (rs2 0)))
 (rv-macro p-sgtz         "sgtz"       (all-isas i-ext)   " ${rd},${rs2}"       (emit slt   rd (rs1 0) rs2))
+(rv-macro p-bge          "bge"        (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},0 <${branch13}>" (emit bge   rs1 rs2 branch13))
 (rv-macro p-beqz         "beqz"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit beq rs1 (rs2 0) branch13))
 (rv-macro p-bnez         "bnez"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit bne rs1 (rs2 0) branch13))
 (rv-macro p-blez         "blez"       (all-isas i-ext RELAXABLE) " ${rs2},${branch13}" (emit bge (rs1 0) rs2 branch13))
@@ -3033,6 +3039,7 @@
 (rv-macro p-ble          "ble"        (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bge   rs1 rs2 branch13))
 (rv-macro p-bgtu         "bgtu"       (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bltu  rs1 rs2 branch13))
 (rv-macro p-bleu         "bleu"       (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bgeu  rs1 rs2 branch13))
+
 (rv-macro p-j            "j"          (all-isas i-ext)        " ${jmp21}"            (emit jal  (rd 0) jmp21))
 (rv-macro p-jal          "jal"        (all-isas i-ext NO-DIS) " ${jmp21}"            (emit jal  (rd 1) jmp21))
 (rv-macro p-jr-1         "jr"         (all-isas i-ext)        " ${rs1}"              (emit jalr (rd 0) rs1 (imm-lo12 0)))
@@ -3047,6 +3054,7 @@
 ; Misc
 (rv-macro p-unimp        "unimp"      (all-isas i-ext) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
 (rv-macro p-fence        "fence"      (all-isas i-ext) "" (emit fence (succ 15) (pred 15)))
+(rv-macro p-fence-tso    "fence.tso"  (all-isas i-ext) "" (emit fence.tso (succ 3) (pred 3)))
 (rv-macro p-rdinstret    "rdinstret"  (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
 (rv-macro p-rdcycle      "rdcycle"    (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
 (rv-macro p-rdtime       "rdtime"     (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
@@ -3107,11 +3115,11 @@
 (rv-macro p-fsrm-1     "fsrm"      (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x02) rs1))
 (rv-macro p-fsrm-2     "fsrm"      (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x02) rs1))
 (rv-macro p-fsrmi-1    "fsrmi"     (all-isas f-ext) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x02) uimm5))
-(rv-macro p-fsrmi-2    "fsrmi"     (all-isas f-ext) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x02) uimm5))
+(rv-macro p-fsrmi-2    "fsrmi"     (all-isas f-ext NO-DIS) " ${uimm5}"      (emit csrrwi (rd 0)(csr #x02) uimm5))
 (rv-macro p-frflags    "frflags"   (all-isas f-ext) " ${rd}"          (emit csrrs rd     (csr #x01) (rs1 0)))
 (rv-macro p-fsflags-1  "fsflags"   (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x01) rs1))
 (rv-macro p-fsflags-2  "fsflags"   (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x01) rs1))
-(rv-macro p-fsflagsi-1 "fsflagsi"  (all-isas f-ext NO-DIS) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
+(rv-macro p-fsflagsi-1 "fsflagsi"  (all-isas f-ext) " ${rd},${uimm5}" (emit csrrwi rd    (csr #x01) uimm5))
 (rv-macro p-fsflagsi-2 "fsflagsi"  (all-isas f-ext NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
 (rv-macro p-fmv.x.s    "fmv.x.s"   (all-isas f-ext NO-DIS) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
 (rv-macro p-fmv.s.x    "fmv.s.x"   (all-isas f-ext NO-DIS) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))

@@ -1,2 +1,2 @@
 .*: Assembler messages:
-.*: Error: unknown CSR `nonexistent'
+.*: Error: unknown CSR `csrr a0,nonexistent'
