@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright 1996-2010 Free Software Foundation, Inc.
+Copyright (C) 1996-2017 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -25,6 +25,10 @@ This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
 #ifndef RISCV_CPU_H
 #define RISCV_CPU_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CGEN_ARCH riscv
 
@@ -285,5 +289,9 @@ extern CGEN_KEYWORD riscv_cgen_opval_h_copcode2;
 extern const CGEN_HW_ENTRY riscv_cgen_hw_table[];
 
 
+
+   #ifdef __cplusplus
+   }
+   #endif
 
 #endif /* RISCV_CPU_H */
