@@ -757,6 +757,12 @@ assemble_late_pseudos(char * str)
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &exp, 0, hi_reloc_info);
 
+      /* Divide auipc & addi frag up so that the relaxation is at the end
+	 of the frag. Need to do this before assmbleing addi otherwise the 
+	 relocation will be in negative memory. 
+	 (i.e. result.addr - frag_now->fr_literal will be negative) */
+      riscv_maybe_restart_frag(hi_reloc_info);
+
       /* Assemble the subsequent addi, l{b/h/w/d}, l{b/h/w}u, s{b/h/w/d}
 
          We must temporarily disable the 'C' extension here, otherwise we
@@ -792,19 +798,13 @@ assemble_late_pseudos(char * str)
          local symbol and attach it to the just created instruction.  */
       int lo_reloc_info = is_store ? BFD_RELOC_RISCV_PCREL_LO12_S
                                    : BFD_RELOC_RISCV_PCREL_LO12_I;
-      //riscv_fix_new (frag_now, result.addr - frag_now->fr_literal, 4,
-      //               local_sym, 0, 0, lo_reloc_info);
+
       expressionS ep2;
       ep2.X_op = O_symbol;
       ep2.X_add_symbol = make_internal_label();
       ep2.X_add_number = 0;
       
-      // NOTE: calling riscv_maybe_restart_frag may change the result of
-      //       frag_now, so cache the old fragment for creating a valid fixup.
-      // FIXME? This seems fishy... we need to talk and think this through further.
-      fragS *myfrag = frag_now;
-      riscv_maybe_restart_frag(hi_reloc_info);
-      riscv_fix_new_exp (myfrag, result.addr - myfrag->fr_literal, 4,
+      riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
                          &ep2, 0, lo_reloc_info);
       return NULL;
     }
