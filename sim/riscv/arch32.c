@@ -28,6 +28,9 @@ This file is part of the GNU simulators.
 const SIM_MACH *sim_machs[] =
 {
 #ifdef HAVE_CPU_RISCV32BF
+  & rv32gc_mach,
+#endif
+#ifdef HAVE_CPU_RISCV32BF
   & rv32i_mach,
 #endif
 #ifdef HAVE_CPU_RISCV32BF
@@ -41,9 +44,6 @@ const SIM_MACH *sim_machs[] =
 #endif
 #ifdef HAVE_CPU_RISCV32BF
   & rv32g_mach,
-#endif
-#ifdef HAVE_CPU_RISCV32BF
-  & rv32gc_mach,
 #endif
 #ifdef HAVE_CPU_RISCV32BF
   & rv32gqc_mach,

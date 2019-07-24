@@ -127,6 +127,7 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_FENCE, RISCV64BF_RV64_INSN_FENCE, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_SFENCE_VM, RISCV64BF_RV64_INSN_SFENCE_VM, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_SFENCE_VMA, RISCV64BF_RV64_INSN_SFENCE_VMA, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_FENCE_TSO, RISCV64BF_RV64_INSN_FENCE_TSO, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FENCE_I, RISCV64BF_RV64_INSN_FENCE_I, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_ECALL, RISCV64BF_RV64_INSN_ECALL, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_EBREAK, RISCV64BF_RV64_INSN_EBREAK, RISCV64BF_RV64_SFMT_C_EBREAK },
@@ -690,9 +691,24 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           }
         }
       case 15 :
-        if ((entire_insn & 0xf00fffff) == 0xf)
-          { itype = RISCV64BF_RV64_INSN_FENCE; goto extract_sfmt_c_nop; }
-        itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+        {
+          unsigned int val;
+          /* Must fetch more bits.  */
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
+          val = (((insn >> 31) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf00fffff) == 0xf)
+              { itype = RISCV64BF_RV64_INSN_FENCE; goto extract_sfmt_c_nop; }
+            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf00fffff) == 0x8000000f)
+              { itype = RISCV64BF_RV64_INSN_FENCE_TSO; goto extract_sfmt_c_nop; }
+            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
       case 19 : itype = RISCV64BF_RV64_INSN_ADDI; goto extract_sfmt_addi;
       case 23 : /* fall through */
       case 151 : /* fall through */

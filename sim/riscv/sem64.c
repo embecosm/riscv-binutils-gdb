@@ -1929,6 +1929,23 @@ SEM_FN_NAME (riscv64bf_rv64,sfence_vma) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
+/* fence.tso: fence.tso ${succ},${pred} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,fence_tso) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
 /* fence.i: fence.i */
 
 static SEM_PC
@@ -7428,6 +7445,7 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV64BF_RV64_INSN_FENCE, SEM_FN_NAME (riscv64bf_rv64,fence) },
   { RISCV64BF_RV64_INSN_SFENCE_VM, SEM_FN_NAME (riscv64bf_rv64,sfence_vm) },
   { RISCV64BF_RV64_INSN_SFENCE_VMA, SEM_FN_NAME (riscv64bf_rv64,sfence_vma) },
+  { RISCV64BF_RV64_INSN_FENCE_TSO, SEM_FN_NAME (riscv64bf_rv64,fence_tso) },
   { RISCV64BF_RV64_INSN_FENCE_I, SEM_FN_NAME (riscv64bf_rv64,fence_i) },
   { RISCV64BF_RV64_INSN_ECALL, SEM_FN_NAME (riscv64bf_rv64,ecall) },
   { RISCV64BF_RV64_INSN_EBREAK, SEM_FN_NAME (riscv64bf_rv64,ebreak) },

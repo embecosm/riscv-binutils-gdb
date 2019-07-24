@@ -162,6 +162,10 @@ extern CPUREG_STORE_FN riscv32bf_store_register;
 
 typedef struct {
   int empty;
+} MODEL_RV32GC_DATA;
+
+typedef struct {
+  int empty;
 } MODEL_RV32I_DATA;
 
 typedef struct {
@@ -179,10 +183,6 @@ typedef struct {
 typedef struct {
   int empty;
 } MODEL_RV32G_DATA;
-
-typedef struct {
-  int empty;
-} MODEL_RV32GC_DATA;
 
 typedef struct {
   int empty;

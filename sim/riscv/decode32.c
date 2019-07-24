@@ -121,6 +121,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FENCE, RISCV32BF_RV32_INSN_FENCE, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_SFENCE_VM, RISCV32BF_RV32_INSN_SFENCE_VM, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_SFENCE_VMA, RISCV32BF_RV32_INSN_SFENCE_VMA, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_FENCE_TSO, RISCV32BF_RV32_INSN_FENCE_TSO, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FENCE_I, RISCV32BF_RV32_INSN_FENCE_I, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_ECALL, RISCV32BF_RV32_INSN_ECALL, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_EBREAK, RISCV32BF_RV32_INSN_EBREAK, RISCV32BF_RV32_SFMT_C_EBREAK },
@@ -621,9 +622,24 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 250 : /* fall through */
       case 254 : itype = RISCV32BF_RV32_INSN_C_SLLI; goto extract_sfmt_c_slli;
       case 15 :
-        if ((entire_insn & 0xf00fffff) == 0xf)
-          { itype = RISCV32BF_RV32_INSN_FENCE; goto extract_sfmt_c_nop; }
-        itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+        {
+          unsigned int val;
+          /* Must fetch more bits.  */
+          insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
+          val = (((insn >> 31) & (1 << 0)));
+          switch (val)
+          {
+          case 0 :
+            if ((entire_insn & 0xf00fffff) == 0xf)
+              { itype = RISCV32BF_RV32_INSN_FENCE; goto extract_sfmt_c_nop; }
+            itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 1 :
+            if ((entire_insn & 0xf00fffff) == 0x8000000f)
+              { itype = RISCV32BF_RV32_INSN_FENCE_TSO; goto extract_sfmt_c_nop; }
+            itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
       case 19 : /* fall through */
       case 1043 : itype = RISCV32BF_RV32_INSN_ADDI; goto extract_sfmt_addi;
       case 23 : /* fall through */
