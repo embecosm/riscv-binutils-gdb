@@ -1,3 +1,8 @@
+2019-07-24  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Reorder lists of machs so that rv32gc and rv64gc
+	are specified first
+
 2019-07-23  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Fix bfd names for machs.

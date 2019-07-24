@@ -201,12 +201,15 @@
         )
       )
     )
+    ; The first mach in this list is used as the default machine for the
+    ; architecture. We use rv32gc as a good default.
+    (riscv32bf-simple-mach rv32gc  "Generic rv32gc")
+
     (riscv32bf-simple-mach rv32i   "Generic rv32i")
     (riscv32bf-simple-mach rv32ic  "Generic rv32ic")
     (riscv32bf-simple-mach rv32im  "Generic rv32im")
     (riscv32bf-simple-mach rv32imc "Generic rv32imc")
     (riscv32bf-simple-mach rv32g   "Generic rv32g")
-    (riscv32bf-simple-mach rv32gc  "Generic rv32gc")
     (riscv32bf-simple-mach rv32gqc "Generic rv32gqc")
   )
 )
@@ -242,12 +245,15 @@
         )
       )
     )
+    ; The first mach in this list is used as the default machine for the
+    ; architecture. We use rv64gc as a good default.
+    (riscv64bf-simple-mach rv64gc  "Generic rv64gc")
+
     (riscv64bf-simple-mach rv64i   "Generic rv64i")
     (riscv64bf-simple-mach rv64ic  "Generic rv64ic")
     (riscv64bf-simple-mach rv64im  "Generic rv64im")
     (riscv64bf-simple-mach rv64imc "Generic rv64imc")
     (riscv64bf-simple-mach rv64g   "Generic rv64g")
-    (riscv64bf-simple-mach rv64gc  "Generic rv64gc")
     (riscv64bf-simple-mach rv64gqc "Generic rv64gqc")
     (define-model
       (name riscv64)
