@@ -740,9 +740,9 @@ assemble_late_pseudos(char * str)
 
       /* Create a new local symbol, this will be the target of the
          BFD_RELOC_RISCV_LO12_I fixup */
-      local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
+      local_sym = make_internal_label();/*(symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
                                                  (valueT) frag_now_fix(),
-                                                 frag_now);
+                                                 frag_now);*/
       
       /* Assemble the auipc that the relocation will be attached to */
       if (is_store)
@@ -806,7 +806,7 @@ assemble_late_pseudos(char * str)
 
       expressionS ep2;
       ep2.X_op = O_symbol;
-      ep2.X_add_symbol = make_internal_label();
+      ep2.X_add_symbol = local_sym;
       ep2.X_add_number = 0;
 
       riscv_fix_new_exp (frag_now, result.addr - frag_now->fr_literal, 4,
@@ -917,9 +917,9 @@ assemble_late_pseudos(char * str)
 
       /* Create a new local symbol, this will be the target of the
          BFD_RELOC_RISCV_LO12_I fixup */
-      local_sym = (symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
+      local_sym = make_internal_label();/*(symbolS *) local_symbol_make (FAKE_LABEL_NAME, now_seg,
                                                  (valueT) frag_now_fix(),
-                                                 frag_now);
+                                                 frag_now);*/
       /* Assemble the auipc that the relocation will be attached to */
       sprintf (instr_buf, "auipc %s,0", src_reg);
 
