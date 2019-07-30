@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright 1996-2010 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -2763,7 +2763,11 @@ static const CGEN_IFMT ifmt_p_lh ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_lw ATTRIBUTE_UNUSED = {
+static const CGEN_IFMT ifmt_p_lw_1 ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_lw_2 ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -2795,7 +2799,7 @@ static const CGEN_IFMT ifmt_p_nop_2 ATTRIBUTE_UNUSED = {
   32, 32, 0xffffffff, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
-static const CGEN_IFMT ifmt_p_li ATTRIBUTE_UNUSED = {
+static const CGEN_IFMT ifmt_p_li_1 ATTRIBUTE_UNUSED = {
   32, 32, 0xff07f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
@@ -2803,8 +2807,16 @@ static const CGEN_IFMT ifmt_p_mv ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_p_li_2 ATTRIBUTE_UNUSED = {
+  32, 32, 0xfffff07f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_move ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_p_addi ATTRIBUTE_UNUSED = {
+  32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
 static const CGEN_IFMT ifmt_p_not ATTRIBUTE_UNUSED = {
@@ -3780,9 +3792,14 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-lh", "lh", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
+/* lw ${rd},${imm-lo12}($rs1) # ${imm-lo12} .* */
+  {
+    -1, "p-lw-1", "lw", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
 /* lw ${rd},($rs1) */
   {
-    -1, "p-lw", "lw", 32,
+    -1, "p-lw-2", "lw", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* lbu ${rd},($rs1) */
@@ -3822,7 +3839,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
   },
 /* li ${rd},${imm-lo12} */
   {
-    -1, "p-li", "li", 32,
+    -1, "p-li-1", "li", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* mv ${rd},${rs1} */
@@ -3830,10 +3847,20 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-mv", "mv", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
+/* li ${rd},${imm-lo12} */
+  {
+    -1, "p-li-2", "li", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
 /* move ${rd},${rs1} */
   {
     -1, "p-move", "move", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+  },
+/* addi ${rd},${rs1},${imm-lo12} # ${imm-lo12-hex} */
+  {
+    -1, "p-addi", "addi", 32,
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
   },
 /* not ${rd},${rs1} */
   {
@@ -5021,11 +5048,17 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RD), ',', '(', OP (RS1), ')', 0 } },
     & ifmt_p_lh, { 0x1003 }
   },
+/* lw ${rd},${imm-lo12}($rs1) # ${imm-lo12} .* */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (IMM_LO12), '(', OP (RS1), ')', ' ', '#', ' ', OP (IMM_LO12), ' ', '.', '*', 0 } },
+    & ifmt_p_lw_1, { 0x2003 }
+  },
 /* lw ${rd},($rs1) */
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', '(', OP (RS1), ')', 0 } },
-    & ifmt_p_lw, { 0x2003 }
+    & ifmt_p_lw_2, { 0x2003 }
   },
 /* lbu ${rd},($rs1) */
   {
@@ -5073,7 +5106,7 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (IMM_LO12), 0 } },
-    & ifmt_p_li, { 0x13 }
+    & ifmt_p_li_1, { 0x13 }
   },
 /* mv ${rd},${rs1} */
   {
@@ -5081,11 +5114,23 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
     & ifmt_p_mv, { 0x13 }
   },
+/* li ${rd},${imm-lo12} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (IMM_LO12), 0 } },
+    & ifmt_p_li_2, { 0x13 }
+  },
 /* move ${rd},${rs1} */
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
     & ifmt_p_move, { 0x13 }
+  },
+/* addi ${rd},${rs1},${imm-lo12} # ${imm-lo12-hex} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (IMM_LO12), ' ', '#', ' ', OP (IMM_LO12_HEX), 0 } },
+    & ifmt_p_addi, { 0x13 }
   },
 /* not ${rd},${rs1} */
   {
@@ -5946,13 +5991,15 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
    Targets are free to override CGEN_{ASM,DIS}_HASH_P in the .opc file.  */
 
 static int
-asm_hash_insn_p (const CGEN_INSN *insn ATTRIBUTE_UNUSED)
+asm_hash_insn_p (insn)
+     const CGEN_INSN *insn ATTRIBUTE_UNUSED;
 {
   return CGEN_ASM_HASH_P (insn);
 }
 
 static int
-dis_hash_insn_p (const CGEN_INSN *insn)
+dis_hash_insn_p (insn)
+     const CGEN_INSN *insn;
 {
   /* If building the hash table and the NO-DIS attribute is present,
      ignore.  */
@@ -5984,7 +6031,8 @@ dis_hash_insn_p (const CGEN_INSN *insn)
    Targets are free to override CGEN_{ASM,DIS}_HASH in the .opc file.  */
 
 static unsigned int
-asm_hash_insn (const char *mnem)
+asm_hash_insn (mnem)
+     const char * mnem;
 {
   return CGEN_ASM_HASH (mnem);
 }
@@ -5993,8 +6041,9 @@ asm_hash_insn (const char *mnem)
    VALUE is the first base_insn_bitsize bits as an int in host order.  */
 
 static unsigned int
-dis_hash_insn (const char *buf ATTRIBUTE_UNUSED,
-		     CGEN_INSN_INT value ATTRIBUTE_UNUSED)
+dis_hash_insn (buf, value)
+     const char * buf ATTRIBUTE_UNUSED;
+     CGEN_INSN_INT value ATTRIBUTE_UNUSED;
 {
   return CGEN_DIS_HASH (buf, value);
 }

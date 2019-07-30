@@ -3,7 +3,7 @@
 
 THIS FILE IS MACHINE GENERATED WITH CGEN.
 
-Copyright (C) 1996-2017 Free Software Foundation, Inc.
+Copyright 1996-2010 Free Software Foundation, Inc.
 
 This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 
@@ -1367,6 +1367,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* imm-lo12: Low 12-bits of a 32-bit uimmediate */
   { "imm-lo12", RISCV_OPERAND_IMM_LO12, HW_H_SINT, 31, 12,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_IMM12_3112] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+/* imm-lo12-hex: Low 12-bits of a 32-bit uimmediate */
+  { "imm-lo12-hex", RISCV_OPERAND_IMM_LO12_HEX, HW_H_SINT, 31, 12,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_IMM12_3112] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* imm-lo12-abs: Low 12-bits of a 32-bit uimmediate (absolute) */
@@ -3213,7 +3217,7 @@ lookup_mach_via_bfd_name (const CGEN_MACH *table, const char *name)
 	return table;
       ++table;
     }
-  return NULL;
+  abort ();
 }
 
 /* Subroutine of riscv_cgen_cpu_open to build the hardware table.  */
@@ -3427,8 +3431,7 @@ riscv_cgen_cpu_open (enum cgen_cpu_open_arg arg_type, ...)
 	    const CGEN_MACH *mach =
 	      lookup_mach_via_bfd_name (riscv_cgen_mach_table, name);
 
-	    if (mach != NULL)
-	      machs |= 1 << mach->num;
+	    machs |= 1 << mach->num;
 	    break;
 	  }
 	case CGEN_CPU_OPEN_ENDIAN :

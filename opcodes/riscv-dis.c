@@ -252,6 +252,19 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   (*info->fprintf_func) (info->stream, "%lu", value);
 }
 
+static void
+print_imm_lo12 (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                void * dis_info,
+                unsigned long value,
+                unsigned int attrs ATTRIBUTE_UNUSED,
+                bfd_vma pc ATTRIBUTE_UNUSED,
+                int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  (*info->fprintf_func) (info->stream, "%#010x", value);
+}
+
 /* -- ibd.h */
 
 void riscv_cgen_print_operand
@@ -401,6 +414,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_IMM_LO12_ABS :
       print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
+      print_imm_lo12 (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
       break;
     case RISCV_OPERAND_IMM_ZERO :
       print_normal (cd, info, fields->f_dummy, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);

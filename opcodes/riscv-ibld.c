@@ -770,6 +770,9 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_IMM_LO12_ABS :
       errmsg = insert_normal (cd, fields->f_imm12_3112, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, buffer);
       break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
+      errmsg = insert_normal (cd, fields->f_imm12_3112, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_IMM_ZERO :
       errmsg = insert_normal (cd, fields->f_dummy, 0, 0, 0, 0, 32, total_length, buffer);
       break;
@@ -1289,6 +1292,9 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_IMM_LO12_ABS :
       length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, pc, & fields->f_imm12_3112);
       break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
+      length = extract_normal (cd, ex_info, insn_value, 0|(1<<CGEN_IFLD_SIGNED), 0, 31, 12, 32, total_length, pc, & fields->f_imm12_3112);
+      break;
     case RISCV_OPERAND_IMM_ZERO :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 0, 0, 32, total_length, pc, & fields->f_dummy);
       break;
@@ -1690,6 +1696,9 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_IMM_LO12_ABS :
       value = fields->f_imm12_3112;
       break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
+      value = fields->f_imm12_3112;
+      break;
     case RISCV_OPERAND_IMM_ZERO :
       value = fields->f_dummy;
       break;
@@ -1918,6 +1927,9 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       value = fields->f_imm12_3112;
       break;
     case RISCV_OPERAND_IMM_LO12_ABS :
+      value = fields->f_imm12_3112;
+      break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
       value = fields->f_imm12_3112;
       break;
     case RISCV_OPERAND_IMM_ZERO :
@@ -2157,6 +2169,9 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_IMM_LO12_ABS :
       fields->f_imm12_3112 = value;
       break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
+      fields->f_imm12_3112 = value;
+      break;
     case RISCV_OPERAND_IMM_ZERO :
       fields->f_dummy = value;
       break;
@@ -2382,6 +2397,9 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       fields->f_imm12_3112 = value;
       break;
     case RISCV_OPERAND_IMM_LO12_ABS :
+      fields->f_imm12_3112 = value;
+      break;
+    case RISCV_OPERAND_IMM_LO12_HEX :
       fields->f_imm12_3112 = value;
       break;
     case RISCV_OPERAND_IMM_ZERO :
