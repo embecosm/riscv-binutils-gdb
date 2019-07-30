@@ -3,6 +3,62 @@
 	* config/tc-riscv.c (assemble_late_pseudos): Fixed low symbol
 	label offset.
 
+2019-07-24  Mary Bennett    <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c: Added support for version control.
+	* testsuite/gas/riscv/bad-csr.l: Changed error message.
+	* testsuite/gas/riscv/c-addi16sp-fail.l: Changed error message.
+	* testsuite/gas/riscv/c-addi4spn-fail.l: Changed error message.
+	* testsuite/gas/riscv/c-fld-fsd-fail.l: Changed error message.
+	* testsuite/gas/riscv/c-nonzero-reg.l: Changed error message.
+	* testsuite/gas/riscv/march-fail-rv32icx2p.l: Changed error
+	message.
+	* testsuite/gas/riscv/tprel-add.l: Changed error message.
+	* testsuite/gas/riscv/insn.d: Changed mv to c.mv.
+	* testsuite/gas/riscv/fsxxi.d: Changed immediates to
+	hexidecimal values.
+	* testsuite/gas/riscv/c-zero-imm.d: Changed nop to c.nop 0x0.
+	* testsuite/gas/riscv/no-relax-align-2.d: Changed nop to c.nop 0x0.
+	* testsuite/gas/riscv/march-ok-g2-p1.d: Added error output.
+	* testsuite/gas/riscv/march-ok-g2-p1.l: Added error message.
+	* testsuite/gas/riscv/march-ok-g2.d: Added error output.
+	* testsuite/gas/riscv/march-ok-g2.l: Added error message.
+	* testsuite/gas/riscv/march-ok-g2p0.d: Added error output.
+	* testsuite/gas/riscv/march-ok-g2p0.l: Added error message.
+	* testsuite/gas/riscv/march-ok-i2p0.d: Added error output.
+	* testsuite/gas/riscv/march-ok-i2p0.l: Added error message.
+	* testsuite/gas/riscv/march-ok-i2p0m2_a2f2.d: Added error output.
+	* testsuite/gas/riscv/march-ok-i2p0m2_a2f2.l: Added error message.
+	* testsuite/gas/riscv/march-ok-nse-with-version.d: Added error output.
+	* testsuite/gas/riscv/march-ok-nse-with-version.l: Added error message.
+	* testsuite/gas/riscv/march-ok-s-with-version.d: Added error output.
+	* testsuite/gas/riscv/march-ok-s-with-version.l: Added error message.
+	* testsuite/gas/riscv/march-ok-s.d: Added error output.
+	* testsuite/gas/riscv/march-ok-s.l: Added error message.
+	* testsuite/gas/riscv/march-ok-sx.d: Added error output.
+	* testsuite/gas/riscv/march-ok-sx.l: Added error message.
+	* testsuite/gas/riscv/march-ok-two-nse.d: Added error output.
+	* testsuite/gas/riscv/march-ok-two-nse.l: Added error message.
+
+2019-07-24  Mary Bennett     <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): Fixed
+	riscv_maybe_restart_frag placement.
+
+2019-07-23  Simon Cook       <simon.cook@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): Attempt to fix
+	riscv_maybe_restart_frag problem.
+
+2019-07-19  Mary Bennett     <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c: Added check for supervisor mode & versions.
+
+2019-07-17  Mary Bennett     <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c (assemble_late_pseudos): Stopped the linker
+	seg faulting.
+
 2019-07-09  Mary Bennett     <mary.bennett@embecosm.com>
 
 	* config/tc-riscv.c (assemble_late_pseudos): Tried to fix

@@ -9,9 +9,21 @@
 	* riscv.cpu: Reorder lists of machs so that rv32gc and rv64gc
 	are specified first
 
+2019-07-24  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Added new instruction.
+
 2019-07-23  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Fix bfd names for machs.
+
+2019-07-19  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Fixed .insn ciw encoding and added .insn cr.
+
+2019-07-17  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Fixed ANDI pseudo encoding.
 
 2019-01-04  Craig Blackmore  <craig.blackmore@embecosm.com>
 
