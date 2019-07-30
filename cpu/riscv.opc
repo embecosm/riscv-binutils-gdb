@@ -1087,6 +1087,19 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   (*info->fprintf_func) (info->stream, "%lu", value);
 }
 
+static void
+print_imm_lo12 (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                void * dis_info,
+                unsigned long value,
+                unsigned int attrs ATTRIBUTE_UNUSED,
+                bfd_vma pc ATTRIBUTE_UNUSED,
+                int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  (*info->fprintf_func) (info->stream, "%#010x", value);
+}
+
 /* -- ibd.h */
 
 /* -- */
