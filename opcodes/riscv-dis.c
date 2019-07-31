@@ -490,6 +490,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_UIMM6_256 :
       print_normal (cd, info, fields->f_uimm6_256, 0, pc, length);
       break;
+    case RISCV_OPERAND_UIMM7_267 :
+      print_normal (cd, info, fields->f_uimm7_267, 0, pc, length);
+      break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       print_ldst_uimm (cd, info, fields->f_uimm7_51_123_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;

@@ -286,6 +286,22 @@ static const CGEN_IFMT ifmt_sc_w ATTRIBUTE_UNUSED = {
   32, 32, 0xfe00707f, { { F (F_FUNCT5) }, { F (F_AQ) }, { F (F_RL) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_grevi ATTRIBUTE_UNUSED = {
+  32, 32, 0xf800707f, { { F (F_FUNCT5) }, { F (F_UIMM7_267) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_cmix ATTRIBUTE_UNUSED = {
+  32, 32, 0x600707f, { { F (F_RS3) }, { F (F_FUNCT2) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_fsri ATTRIBUTE_UNUSED = {
+  32, 32, 0x400707f, { { F (F_RS3) }, { F (F_FUNCT1) }, { F (F_UIMM6_256) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
+static const CGEN_IFMT ifmt_clz ATTRIBUTE_UNUSED = {
+  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_UIMM5_245) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_flw ATTRIBUTE_UNUSED = {
   32, 32, 0x707f, { { F (F_IMM12_3112) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -1736,6 +1752,540 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS2), ',', OP (IMM_ZERO), '(', OP (RS1), ')', 0 } },
     & ifmt_sc_w, { 0xe600302f }
+  },
+/* andn ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x40007033 }
+  },
+/* orn ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x40006033 }
+  },
+/* xnor ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x40004033 }
+  },
+/* grev ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x40001033 }
+  },
+/* slo ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x20001033 }
+  },
+/* sro ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x20005033 }
+  },
+/* rol ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x60001033 }
+  },
+/* ror ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x60005033 }
+  },
+/* sbset ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x28001033 }
+  },
+/* sbclr ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x48001033 }
+  },
+/* sbinv ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x68001033 }
+  },
+/* sbext ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x48005033 }
+  },
+/* grevi ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x40001013 }
+  },
+/* sloi ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x20001013 }
+  },
+/* sroi ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x20005013 }
+  },
+/* rori ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x60005013 }
+  },
+/* sbseti ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x28001013 }
+  },
+/* sbclri ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x48001013 }
+  },
+/* sbinvi ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x68001013 }
+  },
+/* sbexti ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x48005013 }
+  },
+/* cmix ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x6001033 }
+  },
+/* cmov ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x6005033 }
+  },
+/* fsl ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x4001033 }
+  },
+/* fsr ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x4005033 }
+  },
+/* fsri ${rd},${rs1},${rs3},${uimm6-256} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (UIMM6_256), 0 } },
+    & ifmt_fsri, { 0x4005013 }
+  },
+/* clz ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60001013 }
+  },
+/* ctz ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60101013 }
+  },
+/* pcnt ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60201013 }
+  },
+/* bmatflip ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60301013 }
+  },
+/* CRC32.B ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61001013 }
+  },
+/* CRC32.H ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61101013 }
+  },
+/* CRC32.W ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61201013 }
+  },
+/* CRC32.D ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61301013 }
+  },
+/* CRC32C.B ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61801013 }
+  },
+/* CRC32C.H ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61901013 }
+  },
+/* CRC32C.W ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61a01013 }
+  },
+/* CRC32C.D ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x61b01013 }
+  },
+/* clmul ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa001033 }
+  },
+/* clmulr ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa002033 }
+  },
+/* clmulh ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa003033 }
+  },
+/* min ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa004033 }
+  },
+/* max ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa005033 }
+  },
+/* minu ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa006033 }
+  },
+/* maxu ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa007033 }
+  },
+/* shfl ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8001033 }
+  },
+/* unshfl ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8005033 }
+  },
+/* bdep ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8002033 }
+  },
+/* bext ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8006033 }
+  },
+/* pack ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8004033 }
+  },
+/* bmator ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8003033 }
+  },
+/* bmatxor ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8007033 }
+  },
+/* shfli ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x10001013 }
+  },
+/* unshfli ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x10005013 }
+  },
+/* addiwu ${rd},${rs1},${imm-lo12} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (IMM_LO12), 0 } },
+    & ifmt_jalr, { 0x401b }
+  },
+/* slliu.w ${rd},${rs1},${uimm7-267} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (UIMM7_267), 0 } },
+    & ifmt_grevi, { 0x800101b }
+  },
+/* addwu ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa00003b }
+  },
+/* subwu ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4a00003b }
+  },
+/* addu.w ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800003b }
+  },
+/* subu.w ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4800003b }
+  },
+/* grevw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4000103b }
+  },
+/* slow ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2000103b }
+  },
+/* srow ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2000503b }
+  },
+/* rolw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6000103b }
+  },
+/* rorw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6000503b }
+  },
+/* sbsetw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2800103b }
+  },
+/* sbclrw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4800103b }
+  },
+/* sbinvw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6800103b }
+  },
+/* greviw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4000101b }
+  },
+/* sloiw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2000101b }
+  },
+/* sroiw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2000501b }
+  },
+/* roliw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6000101b }
+  },
+/* roriw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6000501b }
+  },
+/* sbsetiw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x2800101b }
+  },
+/* sbclriw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4800101b }
+  },
+/* sbinviw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x6800101b }
+  },
+/* fslw ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x400103b }
+  },
+/* fsrw ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x400503b }
+  },
+/* fsriw ${rd},${rs1},${rs3},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS3), ',', OP (RS2), 0 } },
+    & ifmt_cmix, { 0x400501b }
+  },
+/* clzw ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x6000101b }
+  },
+/* ctzw ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x6010101b }
+  },
+/* pcntw ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x6020101b }
+  },
+/* clmulw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa00103b }
+  },
+/* clmulrw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa00203b }
+  },
+/* clmulhw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0xa00303b }
+  },
+/* shflw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800103b }
+  },
+/* unshflw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800503b }
+  },
+/* bdepw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800203b }
+  },
+/* bextw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800603b }
+  },
+/* packw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x800403b }
   },
 /* flw ${fl-rd},${imm-lo12}(${rs1}) */
   {

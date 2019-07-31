@@ -148,6 +148,7 @@ DEF_PARSE_UIMM_FN(nzuimm6_abs,         1, 0, 63,     0x0)
 DEF_PARSE_UIMM_FN(nzuimm10_mask2_abs,  0, 1, 1023,   0x3)
 DEF_PARSE_UIMM_FN(uimm5_abs,           0, 0, 31,     0x0)
 DEF_PARSE_UIMM_FN(uimm6_abs,           0, 0, 63,     0x0)
+DEF_PARSE_UIMM_FN(uimm7_abs,           0, 0, 127,    0x0)
 DEF_PARSE_UIMM_FN(uimm7_mask2_abs,     0, 0, 127,    0x3)
 DEF_PARSE_UIMM_FN(uimm8_mask2_abs,     0, 0, 255,    0x3)
 DEF_PARSE_UIMM_FN(uimm8_mask3_abs,     0, 0, 255,    0x7)
@@ -1048,6 +1049,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM6_256 :
       errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_256, (unsigned long *) (& fields->f_uimm6_256));
+      break;
+    case RISCV_OPERAND_UIMM7_267 :
+      errmsg = parse_uimm7_abs (cd, strp, RISCV_OPERAND_UIMM7_267, (unsigned long *) (& fields->f_uimm7_267));
       break;
     case RISCV_OPERAND_UIMM7_51_123_61_00_ABS :
       errmsg = parse_uimm7_mask2_abs (cd, strp, RISCV_OPERAND_UIMM7_51_123_61_00_ABS, (unsigned long *) (& fields->f_uimm7_51_123_61_00));
