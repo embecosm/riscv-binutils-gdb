@@ -1,5 +1,9 @@
 2019-07-31  Mary Bennett  <mary.bennett@embecosm.com>
 
+	* riscv.cpu: Changed xorn to xnor.
+
+2019-07-31  Mary Bennett  <mary.bennett@embecosm.com>
+
 	* riscv.cpu: Added missing B-extension encodings & fixed
 	uimm7-267.
 

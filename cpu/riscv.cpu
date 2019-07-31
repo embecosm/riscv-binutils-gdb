@@ -2844,7 +2844,7 @@
 ;===-------------------- 'B' extension instructions -------------------------===
 (rv-format-r "andn"  (all-isas b-ext b-machs)  #b0100000 #b111 #b0110011  (set rd (and rs1 rs2)))
 (rv-format-r "orn"   (all-isas b-ext b-machs)  #b0100000 #b110 #b0110011  (set rd (or  rs1 rs2)))
-(rv-format-r "xorn"  (all-isas b-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 rs2)))
+(rv-format-r "xnor"  (all-isas b-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 rs2)))
 (rv-format-r "grev"  (all-isas b-ext b-machs)  #b0100000 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
 (rv-format-r "slo"   (all-isas b-ext b-machs)  #b0010000 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
 (rv-format-r "sro"   (all-isas b-ext b-machs)  #b0010000 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
