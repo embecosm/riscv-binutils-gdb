@@ -1,3 +1,9 @@
+2019-07-31  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Added B-extension encodings without proper attr
+	or sem.
+	* riscv.opc: Added handler for immediate.
+
 2019-07-30  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv.cpu: Added missing pseudo instruction encodings.

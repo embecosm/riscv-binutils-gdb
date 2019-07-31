@@ -117,6 +117,7 @@
           RV32M RV64M
           RV32C RV64C
           RV32A RV64A
+          RV32B RV64B
           RV32F RV64F
           RV32D RV64D
           RV32Q RV64Q
@@ -125,6 +126,7 @@
 )
 (define-pmacro i-ext (RVEXT RV32I RV64I))
 (define-pmacro a-ext (RVEXT RV32A RV64A))
+(define-pmacro b-ext (RVEXT RV32B RV64B))
 (define-pmacro f-ext (RVEXT RV32F RV64F))
 (define-pmacro d-ext (RVEXT RV32D RV64D))
 (define-pmacro q-ext (RVEXT RV32Q RV64Q))
@@ -150,6 +152,10 @@
 (define-pmacro rv32a-machs (MACH rv32g rv32gc rv32gqc))
 (define-pmacro rv64a-machs (MACH rv64g rv64gc rv64gqc))
 (define-pmacro a-machs     (MACH rv32g rv32gc rv32gqc rv64g rv64gc rv64gqc))
+
+(define-pmacro rv32b-machs (MACH rv32g rv32gc rv32gqc))
+(define-pmacro rv64b-machs (MACH rv64g rv64gc rv64gqc))
+(define-pmacro b-machs     (MACH rv32g rv32gc rv32gqc rv64g rv64gc rv64gqc))
 
 (define-pmacro rv32f-machs (MACH rv32g rv32gc rv32gqc))
 (define-pmacro rv64f-machs (MACH rv64g rv64gc rv64gqc))
@@ -546,6 +552,7 @@
 (dnf f-csr      "csr"      (all-isas) 31 12)
 (dnf f-succ     "succ"     (all-isas) 27  4)
 (dnf f-pred     "pred"     (all-isas) 23  4)
+(dnf f-funct1   "funct1"   (all-isas) 26  1)
 (dnf f-funct2   "funct2"   (all-isas) 26  2)
 (dnf f-funct5   "funct5"   (all-isas) 31  5)
 (dnf f-funct6   "funct6"   (all-isas) 31  6)
@@ -592,6 +599,7 @@
 (df f-uimm1-201   "uimm1  [20]"     (all-isas) 20  1 UDI #f #f)
 (df f-uimm5-245   "uimm5  [24..20]" (all-isas) 24  5 UDI #f #f)
 (df f-uimm6-256   "uimm6  [25..20]" (all-isas) 25  6 UDI #f #f)
+(df f-uimm7-267   "uimm7  [26..20]" (all-isas) 26  6 UDI #f #f)
 (df f-uimm6-306   "uimm6  [30..25]" (all-isas) 30  6 UDI #f #f)
 (df f-uimm10-3010 "uimm10 [30..21]" (all-isas) 30 10 UDI #f #f)
 (df f-uimm4-314   "uimm4  [31..28]" (all-isas) 31  4 UDI #f #f)
@@ -1386,6 +1394,15 @@
   (mode UDI)
   (index f-uimm6-256)
   (handlers (parse "uimm6_abs"))
+  )
+(define-operand
+  (name uimm7-267)
+  (comment "uimm7 [26..20] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm7-267)
+  (handlers (parse "uimm7_abs"))
 )
 (define-operand
   (name uimm9-93-123-000-abs)
@@ -1797,7 +1814,7 @@
 (define-pmacro (rv-format-i-2 mnemonic attr funct3 opcode sem)
   (rv-format-i mnemonic attr " ${rd},${imm-lo12}(${rs1})" funct3 opcode sem))
 
-; Shift5/Shift6 - Shifts by a 5 or 6-bit immediate value
+; Shift5/Shift6/Shift7 - Shifts by a 5, 6 or 7-bit immediate value
 ; +-------+-------+-----+--------+----+--------+
 ; |31   25|24   20|19 15|14    12|11 7|6      0|
 ; |<func7>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
@@ -1815,6 +1832,15 @@
   (dni (.str mnemonic "-shift6") mnemonic attr
     (.str mnemonic " ${rd},${rs1},${uimm6-256}")
     (+ (f-funct6 funct6) uimm6-256 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+; +-------+-------+-----+--------+----+--------+
+; |31   26|25   20|19 15|14    12|11 7|6      0|
+; |<func5>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-------+-------+-----+--------+----+--------+
+(define-pmacro (rv-format-shift7 mnemonic attr funct5 funct3 opcode sem)
+  (dni (.str mnemonic "-shift7") mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${uimm7-267}")
+    (+ (f-funct5 funct5) uimm7-267 rs1 (f-funct3 funct3) rd (f-opcode opcode))
     sem ()))
 
 ; Base Instruction Format S-type
@@ -1933,6 +1959,37 @@
     (.str mnemonic " ${rd},${rs2},${imm-zero}(${rs1})")
     (+ (f-funct5 funct5) (f-aq aq) (f-rl rl) rs2 rs1 (f-funct3 funct3) rd (f-opcode #b0101111))
     sem ()))
+
+; Bitmanip instruction formats
+; +--------+-----+-----+--------+----+--------+
+; |31    25|24 20|19 15|14    12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-1 mnemonic attr funct7 uimm funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${rs1}")
+    (+ (f-funct7 funct7) (f-uimm5-245 uimm) rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+; +-----+---+-----+-----+--------+----+--------+
+; |31 27|26 |25 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<1>|<imm>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+---+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-2 mnemonic attr funct1 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs1},${rs3},${uimm6-256}")
+     (+ rs3 (f-funct1 funct1) uimm6-256 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
+
+; +-----+--------+-----+-----+--------+----+--------+
+; |31 27|26    25|24 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<funct2>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-4 mnemonic attr funct2 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs1},${rs2},${rs3}")
+     (+ rs3 (f-funct2 funct2) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
 
 ; Floating point instruction formats
 ; +-----------+-----+-----+----+--------+
@@ -2780,6 +2837,99 @@
 (rv-format-a-2 "amomaxu.d.rl"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b0 #b1 amomaxu.d-sem)
 (rv-format-a-2 "amomaxu.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b1 #b1 amomaxu.d-sem)
 
+;===-------------------- 'B' extension instructions -------------------------===
+(rv-format-r "andn"  (all-isas b-ext b-machs)  #b0100000 #b111 #b0110011  (set rd (and rs1 rs2)))
+(rv-format-r "orn"   (all-isas b-ext b-machs)  #b0100000 #b110 #b0110011  (set rd (or  rs1 rs2)))
+(rv-format-r "xorn"  (all-isas b-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 rs2)))
+(rv-format-r "grev"  (all-isas b-ext b-machs)  #b0100000 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "slo"   (all-isas b-ext b-machs)  #b0010000 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sro"   (all-isas b-ext b-machs)  #b0010000 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "rol"   (all-isas b-ext b-machs)  #b0110000 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "ror"   (all-isas b-ext b-machs)  #b0110000 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbset" (all-isas b-ext b-machs)  #b0010100 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbclr" (all-isas b-ext b-machs)  #b0100100 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbinv" (all-isas b-ext b-machs)  #b0110100 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbext" (all-isas b-ext b-machs)  #b0100100 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+
+(rv-format-shift7 "grevi"  (all-isas b-ext b-machs) #b01000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sloi"   (all-isas b-ext b-machs) #b00100 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sroi"   (all-isas b-ext b-machs) #b00100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "rori"   (all-isas b-ext b-machs) #b01100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbseti" (all-isas b-ext b-machs) #b00101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbclri" (all-isas b-ext b-machs) #b01001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbinvi" (all-isas b-ext b-machs) #b01101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbexti" (all-isas b-ext b-machs) #b01001 #b101 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-r-4 "cmix" (all-isas b-ext b-machs) #b11 #b001 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-4 "cmov" (all-isas b-ext b-machs) #b11 #b101 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsl"  (all-isas b-ext b-machs) #b10 #b001 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsr"  (all-isas b-ext b-machs) #b10 #b101 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-2 "fsri" (all-isas b-ext b-machs) #b1  #b101 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-r-1 "clz"      (all-isas b-ext b-machs) #b0110000 #b00000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "ctz"      (all-isas b-ext b-machs) #b0110000 #b00001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "pcnt"     (all-isas b-ext b-machs) #b0110000 #b00010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "bmatflip" (all-isas b-ext b-machs) #b0110000 #b00011 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32.B"  (all-isas b-ext b-machs) #b0110000 #b10000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32.H"  (all-isas b-ext b-machs) #b0110000 #b10001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32.W"  (all-isas b-ext b-machs) #b0110000 #b10010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32.D"  (all-isas b-ext b-machs) #b0110000 #b10011 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32C.B" (all-isas b-ext b-machs) #b0110000 #b11000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32C.H" (all-isas b-ext b-machs) #b0110000 #b11001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32C.W" (all-isas b-ext b-machs) #b0110000 #b11010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "CRC32C.D" (all-isas b-ext b-machs) #b0110000 #b11011 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-r "clmul"  (all-isas b-ext b-machs)  #b0000101 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "clmulr" (all-isas b-ext b-machs)  #b0000101 #b010 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "clmulh" (all-isas b-ext b-machs)  #b0000101 #b011 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "min"    (all-isas b-ext b-machs)  #b0000101 #b100 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "max"    (all-isas b-ext b-machs)  #b0000101 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "minu"   (all-isas b-ext b-machs)  #b0000101 #b110 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "maxu"   (all-isas b-ext b-machs)  #b0000101 #b111 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+
+(rv-format-r "shfl"    (all-isas b-ext b-machs)  #b0000100 #b001 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "unshfl"  (all-isas b-ext b-machs)  #b0000100 #b101 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "bdep"    (all-isas b-ext b-machs)  #b0000100 #b010 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "bext"    (all-isas b-ext b-machs)  #b0000100 #b110 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "pack"    (all-isas b-ext b-machs)  #b0000100 #b100 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "bmator"  (all-isas b-ext b-machs)  #b0000100 #b011 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "bmatxor" (all-isas b-ext b-machs)  #b0000100 #b111 #b0110011  (set rd (and rs1 rs2))) ;FIXME: sem
+
+(rv-format-shift7 "shfli"   (all-isas b-ext b-machs) #b00010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "unshfli" (all-isas b-ext b-machs) #b00010 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-i-1    "addiwu"  (all-isas b-ext b-machs)         #b100 #b0011011 (nop))  ;FIXME: encoding?
+(rv-format-shift7 "slliu.w" (all-isas b-ext b-machs) #b00001 #b001 #b0011011 (nop))  ;FIXME: sem
+
+(rv-format-r "addwu"   (all-isas b-ext b-machs)  #b0000101 #b000 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "subwu"   (all-isas b-ext b-machs)  #b0100101 #b000 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "addwu.w" (all-isas b-ext b-machs)  #b0000100 #b000 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "subwu.w" (all-isas b-ext b-machs)  #b0100100 #b000 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+
+(rv-format-r "grevw"  (all-isas b-ext b-machs)  #b0100000 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "slow"   (all-isas b-ext b-machs)  #b0010000 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "srow"   (all-isas b-ext b-machs)  #b0010000 #b101 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "rolw"   (all-isas b-ext b-machs)  #b0110000 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "rorw"   (all-isas b-ext b-machs)  #b0110000 #b101 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbsetw" (all-isas b-ext b-machs)  #b0010100 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbclrw" (all-isas b-ext b-machs)  #b0100100 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r "sbinvw" (all-isas b-ext b-machs)  #b0110100 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+
+(rv-format-r-4 "fslw"    (all-isas b-ext b-machs) #b10 #b001 #b0111011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsrw"    (all-isas b-ext b-machs) #b10 #b101 #b0111011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsriw"   (all-isas b-ext b-machs) #b10 #b101 #b0011011 (nop))  ;FIXME: sem
+(rv-format-r-1 "clzw"    (all-isas b-ext b-machs) #b0110000 #b00000 #b001 #b0011011 (nop))  ;FIXME: sem
+(rv-format-r-1 "ctzw"    (all-isas b-ext b-machs) #b0110000 #b00001 #b001 #b0011011 (nop))  ;FIXME: sem
+(rv-format-r-1 "pcntw"   (all-isas b-ext b-machs) #b0110000 #b00010 #b001 #b0011011 (nop))  ;FIXME: sem
+
+(rv-format-r   "clmulw"  (all-isas b-ext b-machs) #b0000101 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "clmulrw" (all-isas b-ext b-machs) #b0000101 #b010 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "clmulhw" (all-isas b-ext b-machs) #b0000101 #b011 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "shflw"   (all-isas b-ext b-machs) #b0000100 #b001 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "unshflw" (all-isas b-ext b-machs) #b0000100 #b101 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "bdepw"   (all-isas b-ext b-machs) #b0000100 #b010 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "bextw"   (all-isas b-ext b-machs) #b0000100 #b110 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+(rv-format-r   "packw"   (all-isas b-ext b-machs) #b0000100 #b100 #b0111011  (set rd (and rs1 rs2))) ;FIXME: sem
+
 ;===-------------------- 'F' extension instructions -------------------------===
 
 (rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111)
@@ -3117,6 +3267,9 @@
 
 
 ;===----------------- 'A' extension macro instructions ----------------------===
+
+
+;===----------------- 'B' extension macro instructions ----------------------===
 
 
 ;===----------------- 'F' extension macro instructions ----------------------===
