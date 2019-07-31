@@ -1,5 +1,12 @@
 2019-07-31  Mary Bennett     <mary.bennett@embecosm.com>
 
+	* testsuite/gas/riscv/b-insn.d: Added tests for 3 B-extension
+	instructions.
+	* testsuite/gas/riscv/b-insn.s: Added tests for 3 B-extension
+	instructions.
+
+2019-07-31  Mary Bennett     <mary.bennett@embecosm.com>
+
 	* config/tc-riscv.c: Added 'b' and 'v' extensions.
 
 2019-07-30  Mary Bennett     <mary.bennett@embecosm.com>
