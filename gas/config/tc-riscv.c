@@ -140,6 +140,10 @@ riscv_ext_for_subset (const char *subset)
     return (xlen == 64) ? RVEXT_RV64C : RVEXT_RV32C;
   else if (!strcmp(subset, "a"))
     return (xlen == 64) ? RVEXT_RV64A : RVEXT_RV32A;
+  else if (!strcmp(subset, "b"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "v"))
+    return (xlen == 64) ? RVEXT_RV64V : RVEXT_RV32V;
   else if (!strcmp(subset, "f"))
     return (xlen == 64) ? RVEXT_RV64F : RVEXT_RV32F;
   else if (!strcmp(subset, "d"))
@@ -195,7 +199,7 @@ static void riscv_add_subset (const char *subset)
 static void
 riscv_set_arch (const char *s)
 {
-  const char * const all_subsets = "imafdqc";
+  const char * const all_subsets = "imafdqbvc";
   const char *remaining_subsets = all_subsets;
   char *extension = NULL;
   const char *p = s;
