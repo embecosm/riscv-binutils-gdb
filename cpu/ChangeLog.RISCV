@@ -1,5 +1,10 @@
 2019-07-31  Mary Bennett  <mary.bennett@embecosm.com>
 
+	* riscv.cpu: Added missing B-extension encodings & fixed
+	uimm7-267.
+
+2019-07-31  Mary Bennett  <mary.bennett@embecosm.com>
+
 	* riscv.cpu: Added B-extension encodings without proper attr
 	or sem.
 	* riscv.opc: Added handler for immediate.
