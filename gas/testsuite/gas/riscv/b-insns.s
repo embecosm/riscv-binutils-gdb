@@ -2,3 +2,51 @@ target:
 	andn a5,a5,a5
 	orn a5,a5,a5
 	xnor a5,a5,a5
+	grev a5,a5,a5
+	slo a5,a5,a5
+	sro a5,a5,a5
+	rol a5,a5,a5
+	ror a5,a5,a5
+	sbset a5,a5,a5
+	sbclr a5,a5,a5
+	sbinv a5,a5,a5
+	sbext a5,a5,a5
+	clmul a5,a5,a5
+	clmulr a5,a5,a5
+	clmulh a5,a5,a5
+	min a5,a5,a5
+	max a5,a5,a5
+	minu a5,a5,a5
+	maxu a5,a5,a5
+	shfl a5,a5,a5
+	unshfl a5,a5,a5
+	bdep a5,a5,a5
+	bext a5,a5,a5
+	pack a5,a5,a5
+
+	grevi a5,a5,5
+	sloi a5,a5,5
+	sroi a5,a5,5
+	rori a5,a5,5
+	sbseti a5,a5,5
+	sbclri a5,a5,5
+	sbinvi a5,a5,5
+	sbexti a5,a5,5
+	shfli a5,a5,5
+	unshfli a5,a5,5
+
+	cmix a5,a5,a5,a5
+	cmov a5,a5,a5,a5
+	fsl a5,a5,a5,a5
+	fsr a5,a5,a5,a5
+	fsri a5,a5,a5,5
+
+	clz a5,a5
+	ctz a5,a5
+	pcnt a5,a5
+	crc32.b a5,a5
+	crc32.h a5,a5
+	crc32.w a5,a5
+	crc32c.b a5,a5
+	crc32c.h a5,a5
+	crc32c.w a5,a5

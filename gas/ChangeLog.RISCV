@@ -1,8 +1,25 @@
+2019-08-01  Mary Bennett     <mary.bennett@embecosm.com>
+
+	* testsuite/gas/riscv/b-insns.d: Added more tests for B-extension
+	instructions.
+	* testsuite/gas/riscv/b-insns.s: Added more tests for B-extension
+	instructions.
+	* testsuite/gas/riscv/b-insns64.d: Added tests for RV64 B-extension
+	instructions from riscv-bitmanip.
+	* testsuite/gas/riscv/b-insns64.s: Added tests for RV64 B-extension
+	instructions from riscv-bitmanip.
+	* testsuite/gas/riscv/b-pseudo.d: Added tests for pseudo B-extension
+	instructions from riscv-bitmanip.
+	* testsuite/gas/riscv/b-pseudo.s: Added tests for pseudo B-extension
+	instructions from riscv-bitmanip.
+	* testsuite/gas/riscv/binutils-demo.d: Added tests from riscv-bitmanip.
+	* testsuite/gas/riscv/binutils-demo.s: Added tests from riscv-bitmanip.
+
 2019-07-31  Mary Bennett     <mary.bennett@embecosm.com>
 
-	* testsuite/gas/riscv/b-insn.d: Added tests for 3 B-extension
+	* testsuite/gas/riscv/b-insns.d: Added tests for 3 B-extension
 	instructions.
-	* testsuite/gas/riscv/b-insn.s: Added tests for 3 B-extension
+	* testsuite/gas/riscv/b-insns.s: Added tests for 3 B-extension
 	instructions.
 
 2019-07-31  Mary Bennett     <mary.bennett@embecosm.com>
