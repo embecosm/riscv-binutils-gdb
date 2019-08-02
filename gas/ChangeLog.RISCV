@@ -1,5 +1,18 @@
 2019-08-01  Mary Bennett     <mary.bennett@embecosm.com>
 
+	* config/tc-riscv.c (riscv_set_arch): Added support for Z
+	extensions and the B extension.
+	* testsuite/gas/riscv/march-fail-rv32izab.d: New file.
+	* testsuite/gas/riscv/march-fail-rv32izab.l: New file.
+	* testsuite/gas/riscv/march-fail-rv32izba.d: New file.
+	* testsuite/gas/riscv/march-fail-rv32izba.l: New file.
+	* testsuite/gas/riscv/march-ok-b.d: New file.
+	* testsuite/gas/riscv/march-ok-zbb.d: New file.
+	* testsuite/gas/riscv/march-ok-zbbzbszbpzbmzbtzbfzbrzbczbe.d: New
+	file.
+
+2019-08-01  Mary Bennett     <mary.bennett@embecosm.com>
+
 	* testsuite/gas/riscv/b-insns.d: Added more tests for B-extension
 	instructions.
 	* testsuite/gas/riscv/b-insns.s: Added more tests for B-extension

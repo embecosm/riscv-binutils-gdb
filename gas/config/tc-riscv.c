@@ -140,16 +140,34 @@ riscv_ext_for_subset (const char *subset)
     return (xlen == 64) ? RVEXT_RV64C : RVEXT_RV32C;
   else if (!strcmp(subset, "a"))
     return (xlen == 64) ? RVEXT_RV64A : RVEXT_RV32A;
-  else if (!strcmp(subset, "b"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "v"))
-    return (xlen == 64) ? RVEXT_RV64V : RVEXT_RV32V;
   else if (!strcmp(subset, "f"))
     return (xlen == 64) ? RVEXT_RV64F : RVEXT_RV32F;
   else if (!strcmp(subset, "d"))
     return (xlen == 64) ? RVEXT_RV64D : RVEXT_RV32D;
   else if (!strcmp(subset, "q"))
     return (xlen == 64) ? RVEXT_RV64Q : RVEXT_RV32Q;
+  else if (!strcmp(subset, "v"))
+    return (xlen == 64) ? RVEXT_RV64V : RVEXT_RV32V;
+  else if (!strcmp(subset, "b"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbb"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbs"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbp"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbm"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbt"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbf"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbr"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbc"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "zbe"))
+    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
   else
     as_fatal ("Extension not yet supported");
 }
@@ -200,6 +218,8 @@ static void
 riscv_set_arch (const char *s)
 {
   const char * const all_subsets = "imafdqbvc";
+  const char * const b_subsets   = "bspmtfrce";
+  const char *remaining_b_subsets = b_subsets;
   const char *remaining_subsets = all_subsets;
   char *extension = NULL;
   const char *p = s;
@@ -271,6 +291,23 @@ riscv_set_arch (const char *s)
 	  riscv_add_subset (subset);
 	  p += strlen (subset);
 	}
+        else if (*p == 'z')
+	  {
+	    if (*(++p) == 'b')
+	      {
+		p++;
+		if ((remaining_b_subsets = strchr (remaining_b_subsets, *p)) != NULL)
+		  {
+		    const char subset[] = {'z','b',*remaining_b_subsets, '\0'};
+		    riscv_add_subset (subset);
+		    p++;
+		  }
+		else
+		  as_fatal ("-march=%s: extension not recognised.", s);
+	      }
+	    else
+	      as_fatal ("-march=%s: extension not recognised.", s);
+	  }
       else if (*p == 's')
 	as_fatal ("-march=%s: Supervisor mode not yet supported.", s);
       else if (*p == '2')
@@ -279,10 +316,19 @@ riscv_set_arch (const char *s)
 	p++;
       else if ((remaining_subsets = strchr (remaining_subsets, *p)) != NULL)
 	{
+	  if (*p == 'b')
+	    {
+	      for ( ; *remaining_b_subsets != '\0'; remaining_b_subsets++)
+		{
+		  const char subset[] = {'z','b',*remaining_b_subsets, '\0'};
+		  riscv_add_subset (subset);
+		}
+	    }
 	  const char subset[] = {*p, 0};
 	  riscv_add_subset (subset);
 	  remaining_subsets++;
 	  p++;
+	    
 	}
       else if (strchr (all_subsets, *p))
         as_fatal ("-march=%s: ISA string is not in canonical order. `%c'", s, *p);
