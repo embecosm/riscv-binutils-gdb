@@ -150,24 +150,24 @@ riscv_ext_for_subset (const char *subset)
     return (xlen == 64) ? RVEXT_RV64V : RVEXT_RV32V;
   else if (!strcmp(subset, "b"))
     return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbb"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbs"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbp"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbm"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbt"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbf"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbr"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbc"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
-  else if (!strcmp(subset, "zbe"))
-    return (xlen == 64) ? RVEXT_RV64B : RVEXT_RV32B;
+  else if (!strcmp(subset, "Zbb"))
+    return (xlen == 64) ? RVEXT_RV64ZBB : RVEXT_RV32ZBB;
+  else if (!strcmp(subset, "Zbs"))
+    return (xlen == 64) ? RVEXT_RV64ZBS : RVEXT_RV32ZBS;
+  else if (!strcmp(subset, "Zbp"))
+    return (xlen == 64) ? RVEXT_RV64ZBP : RVEXT_RV32ZBP;
+  else if (!strcmp(subset, "Zbm"))
+    return (xlen == 64) ? RVEXT_RV64ZBM : RVEXT_RV32ZBM;
+  else if (!strcmp(subset, "Zbt"))
+    return (xlen == 64) ? RVEXT_RV64ZBT : RVEXT_RV32ZBT;
+  else if (!strcmp(subset, "Zbf"))
+    return (xlen == 64) ? RVEXT_RV64ZBF : RVEXT_RV32ZBF;
+  else if (!strcmp(subset, "Zbr"))
+    return (xlen == 64) ? RVEXT_RV64ZBR : RVEXT_RV32ZBR;
+  else if (!strcmp(subset, "Zbc"))
+    return (xlen == 64) ? RVEXT_RV64ZBC : RVEXT_RV32ZBC;
+  else if (!strcmp(subset, "Zbe"))
+    return (xlen == 64) ? RVEXT_RV64ZBE : RVEXT_RV32ZBE;
   else
     as_fatal ("Extension not yet supported");
 }
@@ -291,15 +291,16 @@ riscv_set_arch (const char *s)
 	  riscv_add_subset (subset);
 	  p += strlen (subset);
 	}
-        else if (*p == 'z')
+        else if (*p == 'Z')
 	  {
 	    if (*(++p) == 'b')
 	      {
 		p++;
 		if ((remaining_b_subsets = strchr (remaining_b_subsets, *p)) != NULL)
 		  {
-		    const char subset[] = {'z','b',*remaining_b_subsets, '\0'};
+		    const char subset[] = {'Z','b',*remaining_b_subsets, '\0'};
 		    riscv_add_subset (subset);
+		    //remaining_b_subsets = b_subsets;
 		    p++;
 		  }
 		else
@@ -320,7 +321,7 @@ riscv_set_arch (const char *s)
 	    {
 	      for ( ; *remaining_b_subsets != '\0'; remaining_b_subsets++)
 		{
-		  const char subset[] = {'z','b',*remaining_b_subsets, '\0'};
+		  const char subset[] = {'Z','b',*remaining_b_subsets, '\0'};
 		  riscv_add_subset (subset);
 		}
 	    }

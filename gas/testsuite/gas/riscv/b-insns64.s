@@ -62,9 +62,7 @@ target:
 	maxu x1,x2,x3
 
 	shfl x1,x2,x3
-	#shfl x1,x2,5
 	unshfl x1,x2,x3
-	#unshfl x1,x2,5
 
 	shfli x1,x2,5
 	unshfli x1,x2,5

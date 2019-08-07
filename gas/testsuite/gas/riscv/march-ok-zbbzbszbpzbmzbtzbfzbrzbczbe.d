@@ -1,4 +1,4 @@
-#as: -march=rv32izbbzbszbpzbmzbtzbfzbrzbczbe
+#as: -march=rv32iZbbZbsZbpZbmZbtZbfZbrZbcZbe
 #objdump: -dr
 #source: empty.s
 

@@ -1,0 +1,12 @@
+.*: Assembler messages:
+.*: Error: unrecognized form of instruction `slo s0,s1'
+.*: Error: unrecognized form of instruction `sro s0,s1'
+.*: Error: unrecognized form of instruction `sloi s0,s1'
+.*: Error: unrecognized form of instruction `sroi s0,s1'
+.*: Error: junk at end of line `clz s0,s1,s2'
+.*: Error: junk at end of line `ctz s0,s1,s2'
+.*: Error: junk at end of line `pcnt s0,s1,s2'
+.*: Error: unrecognized form of instruction `min s0,s1'
+.*: Error: unrecognized form of instruction `max s0,s1'
+.*: Error: unrecognized form of instruction `minu s0,s1'
+.*: Error: unrecognized form of instruction `maxu s0,s1'

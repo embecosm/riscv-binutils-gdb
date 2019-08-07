@@ -1,4 +1,4 @@
-#as: -march=rv32izba
+#as: -march=rv32iZba
 #objdump: -dr
 #source: empty.s
 #error_output: march-fail-rv32izba.l

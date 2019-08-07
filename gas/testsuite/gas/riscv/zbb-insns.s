@@ -1,0 +1,25 @@
+target:
+	min a5,a5,a5
+	max a5,a5,a5
+	clz a5,a5
+	ctz a5,a5
+	pcnt a5,a5
+	slo a5,a5,a5
+	sro a5,a5,a5
+	sloi a5,a5,5
+	sroi a5,a5,5
+	minu a5,a5,a5
+	maxu a5,a5,a5
+	addiwu x1,x2,1234
+	slliu.w x1,x2,12
+	addwu x1,x2,x3
+	subwu x1,x2,x3
+	addu.w x1,x2,x3
+	subu.w x1,x2,x3
+	andn a5,a5,a5
+	orn a5,a5,a5
+	xnor a5,a5,a5
+	pack a5,a5,a5
+	rol a5,a5,a5
+	ror a5,a5,a5
+	rori a5,a5,5

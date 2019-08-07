@@ -1,4 +1,87 @@
-2019-08-01  Mary Bennett     <mary.bennett@embecosm.com>
+2019-08-07 Mary Bennett     <mary.bennett@embecosm.com>
+
+	* config/tc-riscv.c (riscv_set_arch): Added support for Z
+	extensions and the B extension.
+	* testsuite/gas/riscv/b-insns64.s: Removed commented
+	instructions.
+	* testsuite/gas/riscv/march-fail-rv32izab.d: Changed z to Z.
+	* testsuite/gas/riscv/march-fail-rv32izab.l: Changed z to Z.
+	* testsuite/gas/riscv/march-fail-rv32izba.d: Changed z to Z.
+	* testsuite/gas/riscv/march-fail-rv32izba.l:Changed z to Z.
+	* testsuite/gas/riscv/march-ok-zbb.d: Changed z to Z.
+	* testsuite/gas/riscv/march-ok-zbbzbszbpzbmzbtzbfzbrzbczbe.d:
+	Changed z to Z.
+	* testsuite/gas/riscv/rv32Zbb-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbb-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbb-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbb-valid.d: New file.
+	* testsuite/gas/riscv/rv32Zbb-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbbp-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbbp-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbc-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbc-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbc-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbc-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbe-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbe-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbe-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbe-valid-1.s: New file.
+	* testsuite/gas/riscv/rv32Zbe-valid.d: New file.
+	* testsuite/gas/riscv/rv32Zbe-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbp-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbp-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbp-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbp-valid-1.s: New file.
+	* testsuite/gas/riscv/rv32Zbp-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbr-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbr-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbr-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbr-valid-1.s: New file.
+	* testsuite/gasriscv/rv32Zbr-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbs-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbs-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbs-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbs-valid-1.s: New file.
+	* testsuite/gas/riscv/rv32Zbs-valid.s: New file.
+	* testsuite/gas/riscv/rv32Zbt-invalid.d: New file.
+	* testsuite/gas/riscv/rv32Zbt-invalid.l: New file.
+	* testsuite/gas/riscv/rv32Zbt-invalid.s: New file.
+	* testsuite/gas/riscv/rv32Zbt-valid-1.s: New file.
+	* testsuite/gas/riscv/rv32Zbt-valid.s: New file.
+	* testsuite/gas/riscv/rv32b-aliases-valid.s: New file.
+	* testsuite/gas/riscv/rv32bc-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbb-invalid.d: New file.
+	* testsuite/gas/riscv/rv64Zbb-invalid.l: New file.
+	* testsuite/gas/riscv/rv64Zbb-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbb-valid.d: New file.
+	* testsuite/gas/riscv/rv64Zbb-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbbp-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbbp-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbc-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbc-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbe-invalid.d: New file.
+	* testsuite/gas/riscv/rv64Zbe-invalid.l: New file.
+	* testsuite/gas/riscv/rv64Zbe-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbe-valid.d: New file.
+	* testsuite/gas/riscv/rv64Zbe-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbm-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbm-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbp-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbp-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbr-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbr-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbs-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbs-valid.s: New file.
+	* testsuite/gas/riscv/rv64Zbt-invalid.s: New file.
+	* testsuite/gas/riscv/rv64Zbt-valid.s: New file.
+	* testsuite/gas/riscv/rv64b-aliases-valid.s: New file.
+	* testsuite/gas/riscv/rv64bc-valid.s: New file.
+	* testsuite/gas/riscv/zbb-insns.d: New file.
+	* testsuite/gas/riscv/zbb-insns.s: New file.
+	* testsuite/gas/riscv/zbs-insns.d: New file.
+	* testsuite/gas/riscv/zbs-insns.s: New file.
+
+2019-08-02 Mary Bennett     <mary.bennett@embecosm.com>
 
 	* config/tc-riscv.c (riscv_set_arch): Added support for Z
 	extensions and the B extension.

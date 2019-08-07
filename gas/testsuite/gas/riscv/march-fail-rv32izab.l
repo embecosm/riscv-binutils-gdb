@@ -1,2 +1,2 @@
 Assembler messages:
-Fatal error: -march=rv32izab: extension not recognised.
+Fatal error: -march=rv32iZab: extension not recognised.
