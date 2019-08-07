@@ -275,7 +275,8 @@
   ()
   EXCEPT-
   (("NONE"   #x00)
-   ("EBREAK" #x01))
+   ("EBREAK" #x01)
+   ("ECALL"  #x02))
 )
 (define-pmacro (raise-exception exnum)
   (c-call VOID "@cpu@_exception" pc exnum))
@@ -2353,7 +2354,7 @@
   (nop))
 (rv-format-raw     "ecall"   (all-isas i-ext all-machs)
   #b00000000000000000000000001110011
-  (nop))
+  (raise-exception EXCEPT-ECALL))
 (rv-format-raw     "ebreak"  (all-isas i-ext all-machs)
   #b00000000000100000000000001110011
   ; Do exception entry handling in C function
