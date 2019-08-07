@@ -1,4 +1,5 @@
-/* Main simulator entry points specific to the M32R.
+/* Main simulator entry points specific to the RISCV
+
    Copyright (C) 1996-2017 Free Software Foundation, Inc.
    Contributed by Cygnus Support.
 

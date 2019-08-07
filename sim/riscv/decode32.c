@@ -123,7 +123,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_SFENCE_VMA, RISCV32BF_RV32_INSN_SFENCE_VMA, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FENCE_TSO, RISCV32BF_RV32_INSN_FENCE_TSO, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FENCE_I, RISCV32BF_RV32_INSN_FENCE_I, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_ECALL, RISCV32BF_RV32_INSN_ECALL, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_ECALL, RISCV32BF_RV32_INSN_ECALL, RISCV32BF_RV32_SFMT_C_EBREAK },
   { RISCV_INSN_EBREAK, RISCV32BF_RV32_INSN_EBREAK, RISCV32BF_RV32_SFMT_C_EBREAK },
   { RISCV_INSN_CSRRW, RISCV32BF_RV32_INSN_CSRRW, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_CSRRS, RISCV32BF_RV32_INSN_CSRRS, RISCV32BF_RV32_SFMT_C_NOP },
@@ -1043,7 +1043,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           {
           case 0 :
             if ((entire_insn & 0xffffffff) == 0x73)
-              { itype = RISCV32BF_RV32_INSN_ECALL; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_ECALL; goto extract_sfmt_c_ebreak; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 1 :
             if ((entire_insn & 0xffffffff) == 0x100073)
