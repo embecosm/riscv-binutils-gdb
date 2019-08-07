@@ -19,7 +19,7 @@ Disassembly of section .text:
 [	]+1c: R_RISCV_JAL[	]+target
 [ 	]+20:[ 	]+0511[ 	]+addi[ 	]+a0,a0,4
 [ 	]+22:[ 	]+852e[ 	]+c.mv[ 	]+a0,a1
-[ 	]+24:[ 	]+002c[ 	]+addi[ 	]+a1,sp,0x8
+[ 	]+24:[ 	]+002c[ 	]+addi[ 	]+a1,sp,8
 [ 	]+26:[ 	]+dde9[ 	]+beqz[ 	]+a1,0 \<target\>
 [	]+26: R_RISCV_RVC_BRANCH[	]+target
 [ 	]+28:[ 	]+bfe1[ 	]+j[ 	]+0 \<target\>
@@ -36,7 +36,7 @@ Disassembly of section .text:
 [	]+46: R_RISCV_JAL[	]+target
 [ 	]+4a:[ 	]+0511[ 	]+addi[ 	]+a0,a0,4
 [ 	]+4c:[ 	]+852e[ 	]+c.mv[ 	]+a0,a1
-[ 	]+4e:[ 	]+002c[ 	]+addi[ 	]+a1,sp,0x8
+[ 	]+4e:[ 	]+002c[ 	]+addi[ 	]+a1,sp,8
 [ 	]+50:[ 	]+d9c5[ 	]+beqz[ 	]+a1,0 \<target\>
 [	]+50: R_RISCV_RVC_BRANCH[	]+target
 [ 	]+52:[ 	]+b77d[ 	]+j[ 	]+0 \<target\>

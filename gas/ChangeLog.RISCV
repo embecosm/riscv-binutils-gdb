@@ -1,5 +1,12 @@
 2019-07-30  Mary Bennett     <mary.bennett@embecosm.com>
 
+	* testsuite/gas/riscv/fsxxi.d: Changed test to use upstream
+	immediates.
+	* testsuite/gas/riscv/insn.d: Changed test to use upstream
+	immediates.
+
+2019-07-30  Mary Bennett     <mary.bennett@embecosm.com>
+
 	* config/tc-riscv.c (assemble_late_pseudos): Fixed low symbol
 	label offset.
 
