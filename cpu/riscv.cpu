@@ -122,6 +122,15 @@
           RV32F RV64F
           RV32D RV64D
           RV32Q RV64Q
+          RV32ZBB RV64ZBB
+          RV32ZBS RV64ZBS
+          RV32ZBP RV64ZBP
+          RV32ZBM RV64ZBM
+          RV32ZBT RV64ZBT
+          RV32ZBF RV64ZBF
+          RV32ZBR RV64ZBR
+          RV32ZBC RV64ZBC
+          RV32ZBE RV64ZBE
           RVMAX)
   (default RVNONE)
 )
@@ -134,6 +143,15 @@
 (define-pmacro q-ext (RVEXT RV32Q RV64Q))
 (define-pmacro m-ext (RVEXT RV32M RV64M))
 (define-pmacro c-ext (RVEXT RV32C RV64C))
+(define-pmacro zbb-ext (RVEXT RV32ZBB RV64ZBB))
+(define-pmacro zbs-ext (RVEXT RV32ZBS RV64ZBS))
+(define-pmacro zbp-ext (RVEXT RV32ZBP RV64ZBP))
+(define-pmacro zbm-ext (RVEXT RV32ZBM RV64ZBM))
+(define-pmacro zbt-ext (RVEXT RV32ZBT RV64ZBT))
+(define-pmacro zbf-ext (RVEXT RV32ZBF RV64ZBF))
+(define-pmacro zbr-ext (RVEXT RV32ZBR RV64ZBR))
+(define-pmacro zbc-ext (RVEXT RV32ZBC RV64ZBC))
+(define-pmacro zbe-ext (RVEXT RV32ZBE RV64ZBE))
 
 ; Various macros to specify the machines which support a given extension
 (define-pmacro rv32-machs  (MACH rv32i rv32ic rv32im rv32imc rv32g rv32gc rv32gqc))
@@ -2869,51 +2887,51 @@
 (rv-format-a-2 "amomaxu.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b1 #b1 amomaxu.d-sem)
 
 ;===-------------------- 'B' extension instructions -------------------------===
-(rv-format-r "andn"   (all-isas b-ext b-machs)  #b0100000 #b111 #b0110011  (set rd (and rs1 rs2)))
-(rv-format-r "orn"    (all-isas b-ext b-machs)  #b0100000 #b110 #b0110011  (set rd (or  rs1 rs2)))
-(rv-format-r "xnor"   (all-isas b-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 rs2)))
-(rv-format-r "grev"   (all-isas b-ext b-machs)  #b0100000 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "slo"    (all-isas b-ext b-machs)  #b0010000 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "sro"    (all-isas b-ext b-machs)  #b0010000 #b101 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "rol"    (all-isas b-ext b-machs)  #b0110000 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "ror"    (all-isas b-ext b-machs)  #b0110000 #b101 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "sbset"  (all-isas b-ext b-machs)  #b0010100 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "sbclr"  (all-isas b-ext b-machs)  #b0100100 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "sbinv"  (all-isas b-ext b-machs)  #b0110100 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "sbext"  (all-isas b-ext b-machs)  #b0100100 #b101 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "andn"   (all-isas zbb-ext b-machs)  #b0100000 #b111 #b0110011  (set rd (and rs1 rs2)))
+(rv-format-r "orn"    (all-isas zbb-ext b-machs)  #b0100000 #b110 #b0110011  (set rd (or  rs1 rs2)))
+(rv-format-r "xnor"   (all-isas zbb-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 rs2)))
+(rv-format-r "grev"   (all-isas zbp-ext b-machs)  #b0100000 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "slo"    (all-isas zbb-ext b-machs)  #b0010000 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "sro"    (all-isas zbb-ext b-machs)  #b0010000 #b101 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "rol"    (all-isas zbb-ext b-machs)  #b0110000 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "ror"    (all-isas zbb-ext b-machs)  #b0110000 #b101 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "sbset"  (all-isas zbs-ext b-machs)  #b0010100 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "sbclr"  (all-isas zbs-ext b-machs)  #b0100100 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "sbinv"  (all-isas zbs-ext b-machs)  #b0110100 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "sbext"  (all-isas zbs-ext b-machs)  #b0100100 #b101 #b0110011  (nop)) ;FIXME: sem
 (rv-format-r "clmul"  (all-isas b-ext b-machs)  #b0000101 #b001 #b0110011  (nop)) ;FIXME: sem
 (rv-format-r "clmulr" (all-isas b-ext b-machs)  #b0000101 #b010 #b0110011  (nop)) ;FIXME: sem
 (rv-format-r "clmulh" (all-isas b-ext b-machs)  #b0000101 #b011 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "min"    (all-isas b-ext b-machs)  #b0000101 #b100 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "max"    (all-isas b-ext b-machs)  #b0000101 #b101 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "minu"   (all-isas b-ext b-machs)  #b0000101 #b110 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "maxu"   (all-isas b-ext b-machs)  #b0000101 #b111 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "shfl"   (all-isas b-ext b-machs)  #b0000100 #b001 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "unshfl" (all-isas b-ext b-machs)  #b0000100 #b101 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "bdep"   (all-isas b-ext b-machs)  #b0000100 #b010 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "bext"   (all-isas b-ext b-machs)  #b0000100 #b110 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "pack"   (all-isas b-ext b-machs)  #b0000100 #b100 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "min"    (all-isas zbb-ext b-machs)  #b0000101 #b100 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "max"    (all-isas zbb-ext b-machs)  #b0000101 #b101 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "minu"   (all-isas zbb-ext b-machs)  #b0000101 #b110 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "maxu"   (all-isas zbb-ext b-machs)  #b0000101 #b111 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "shfl"   (all-isas zbp-ext b-machs)  #b0000100 #b001 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "unshfl" (all-isas zbp-ext b-machs)  #b0000100 #b101 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "bdep"   (all-isas zbe-ext b-machs)  #b0000100 #b010 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "bext"   (all-isas zbe-ext b-machs)  #b0000100 #b110 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "pack"   (all-isas zbb-ext b-machs)  #b0000100 #b100 #b0110011  (nop)) ;FIXME: sem
 
-(rv-format-shift7 "grevi"   (all-isas b-ext b-machs) #b01000 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sloi"    (all-isas b-ext b-machs) #b00100 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sroi"    (all-isas b-ext b-machs) #b00100 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "rori"    (all-isas b-ext b-machs) #b01100 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbseti"  (all-isas b-ext b-machs) #b00101 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbclri"  (all-isas b-ext b-machs) #b01001 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbinvi"  (all-isas b-ext b-machs) #b01101 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbexti"  (all-isas b-ext b-machs) #b01001 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift6 "shfli"   (all-isas b-ext b-machs) #b000010 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift6 "unshfli" (all-isas b-ext b-machs) #b000010 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "grevi"   (all-isas zbp-ext b-machs) #b01000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sloi"    (all-isas zbb-ext b-machs) #b00100 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sroi"    (all-isas zbb-ext b-machs) #b00100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "rori"    (all-isas zbb-ext b-machs) #b01100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbseti"  (all-isas zbs-ext b-machs) #b00101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbclri"  (all-isas zbs-ext b-machs) #b01001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbinvi"  (all-isas zbs-ext b-machs) #b01101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift7 "sbexti"  (all-isas zbs-ext b-machs) #b01001 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "shfli"   (all-isas zbp-ext b-machs) #b000010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "unshfli" (all-isas zbp-ext b-machs) #b000010 #b101 #b0010011 (nop))  ;FIXME: sem
 
-(rv-format-r-3 "cmix" (all-isas b-ext b-machs) #b11 #b001 #b0110011 (nop))  ;FIXME: sem
-(rv-format-r-3 "cmov" (all-isas b-ext b-machs) #b11 #b101 #b0110011 (nop))  ;FIXME: sem
-(rv-format-r-4 "fsl"  (all-isas b-ext b-machs) #b10 #b001 #b0110011 (nop))  ;FIXME: sem
-(rv-format-r-4 "fsr"  (all-isas b-ext b-machs) #b10 #b101 #b0110011 (nop))  ;FIXME: sem
-(rv-format-r-2 "fsri" (all-isas b-ext b-machs) #b1  #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-3 "cmix" (all-isas zbt-ext b-machs) #b11 #b001 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-3 "cmov" (all-isas zbt-ext b-machs) #b11 #b101 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsl"  (all-isas zbt-ext b-machs) #b10 #b001 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsr"  (all-isas zbt-ext b-machs) #b10 #b101 #b0110011 (nop))  ;FIXME: sem
+(rv-format-r-2 "fsri" (all-isas zbt-ext b-machs) #b1  #b101 #b0010011 (nop))  ;FIXME: sem
 
-(rv-format-r-1 "clz"      (all-isas b-ext b-machs) #b0110000 #b00000 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-r-1 "ctz"      (all-isas b-ext b-machs) #b0110000 #b00001 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-r-1 "pcnt"     (all-isas b-ext b-machs) #b0110000 #b00010 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "clz"      (all-isas zbb-ext b-machs) #b0110000 #b00000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "ctz"      (all-isas zbb-ext b-machs) #b0110000 #b00001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-r-1 "pcnt"     (all-isas zbb-ext b-machs) #b0110000 #b00010 #b001 #b0010011 (nop))  ;FIXME: sem
 (rv-format-r-1 "crc32.b"  (all-isas b-ext b-machs) #b0110000 #b10000 #b001 #b0010011 (nop))  ;FIXME: sem
 (rv-format-r-1 "crc32.h"  (all-isas b-ext b-machs) #b0110000 #b10001 #b001 #b0010011 (nop))  ;FIXME: sem
 (rv-format-r-1 "crc32.w"  (all-isas b-ext b-machs) #b0110000 #b10010 #b001 #b0010011 (nop))  ;FIXME: sem
@@ -2921,52 +2939,52 @@
 (rv-format-r-1 "crc32c.h" (all-isas b-ext b-machs) #b0110000 #b11001 #b001 #b0010011 (nop))  ;FIXME: sem
 (rv-format-r-1 "crc32c.w" (all-isas b-ext b-machs) #b0110000 #b11010 #b001 #b0010011 (nop))  ;FIXME: sem
 
-(rv-format-r-1 "bmatflip" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b00011 #b001 #b0010011 (nop));FIXME: sem
-(rv-format-r-1 "crc32.d"  ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b10011 #b001 #b0010011 (nop));FIXME: sem
-(rv-format-r-1 "crc32c.d" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b11011 #b001 #b0010011 (nop));FIXME: sem
+(rv-format-r-1 "bmatflip" ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0110000 #b00011 #b001 #b0010011 (nop));FIXME: sem
+(rv-format-r-1 "crc32.d"  ((ISA rv64) (RVEXT RV64ZBR) rv64b-machs) #b0110000 #b10011 #b001 #b0010011 (nop));FIXME: sem
+(rv-format-r-1 "crc32c.d" ((ISA rv64) (RVEXT RV64ZBR) rv64b-machs) #b0110000 #b11011 #b001 #b0010011 (nop));FIXME: sem
 
-(rv-format-i-1    "addiwu"  ((ISA rv64) (RVEXT RV64B) rv64b-machs)         #b100 #b0011011 (nop))  ;FIXME: sem
-(rv-format-shift7 "slliu.w" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b00001 #b001 #b0011011 (nop))  ;FIXME: sem
+(rv-format-i-1    "addiwu"  ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs)         #b100 #b0011011 (nop))  ;FIXME: sem
+(rv-format-shift7 "slliu.w" ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b00001 #b001 #b0011011 (nop))  ;FIXME: sem
 
-(rv-format-r "bmator"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b011 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "bmatxor"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b111 #b0110011  (nop)) ;FIXME: sem
-(rv-format-r "addwu"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000101 #b000 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "subwu"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100101 #b000 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "addu.w"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b000 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "subu.w"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100100 #b000 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100000 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "slow"      ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010000 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "srow"      ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010000 #b101 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "rolw"      ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "rorw"      ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b101 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "sbsetw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010100 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "sbclrw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100100 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "sbinvw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110100 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "sbextw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100100 #b101 #b0111011  (nop)) ;FIXME: sem
-(rv-format-shift "greviw"  ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100000 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "sloiw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010000 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "sroiw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010000 #b101 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "roliw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "roriw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b101 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "sbsetiw" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0010100 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "sbclriw" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0100100 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-shift "sbinviw" ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110100 #b001 #b0011011  (nop)) ;FIXME: sem
-(rv-format-r "clmulw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000101 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "clmulrw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000101 #b010 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "clmulhw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000101 #b011 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "shflw"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b001 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "unshflw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b101 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "bdepw"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b010 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "bextw"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b110 #b0111011  (nop)) ;FIXME: sem
-(rv-format-r "packw"     ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0000100 #b100 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "bmator"    ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0000100 #b011 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "bmatxor"   ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0000100 #b111 #b0110011  (nop)) ;FIXME: sem
+(rv-format-r "addwu"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000101 #b000 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "subwu"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0100101 #b000 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "addu.w"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b000 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "subu.w"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0100100 #b000 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "slow"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "srow"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "rolw"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "rorw"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "sbsetw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "sbclrw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "sbinvw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "sbextw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b101 #b0111011  (nop)) ;FIXME: sem
+(rv-format-shift "greviw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "sloiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "sroiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "roliw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "roriw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "sbsetiw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "sbclriw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-shift "sbinviw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0011011  (nop)) ;FIXME: sem
+(rv-format-r "clmulw"    ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "clmulrw"   ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b010 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "clmulhw"   ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b011 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "shflw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0000100 #b001 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "unshflw"   ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0000100 #b101 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "bdepw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0000100 #b010 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "bextw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0000100 #b110 #b0111011  (nop)) ;FIXME: sem
+(rv-format-r "packw"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b100 #b0111011  (nop)) ;FIXME: sem
 
-(rv-format-r-4 "fslw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b10 #b001 #b0111011 (nop))  ;FIXME: sem
-(rv-format-r-4 "fsrw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b10 #b101 #b0111011 (nop))  ;FIXME: sem
-(rv-format-r-5 "fsriw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b10 #b101 #b0011011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fslw"    ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b001 #b0111011 (nop))  ;FIXME: sem
+(rv-format-r-4 "fsrw"    ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b101 #b0111011 (nop))  ;FIXME: sem
+(rv-format-r-5 "fsriw"   ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b101 #b0011011 (nop))  ;FIXME: sem
 
-(rv-format-r-1 "clzw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b00000 #b001 #b0011011 (nop)) ;FIXME: sem
-(rv-format-r-1 "ctzw"    ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b00001 #b001 #b0011011 (nop)) ;FIXME: sem
-(rv-format-r-1 "pcntw"   ((ISA rv64) (RVEXT RV64B) rv64b-machs) #b0110000 #b00010 #b001 #b0011011 (nop)) ;FIXME: sem
+(rv-format-r-1 "clzw"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00000 #b001 #b0011011 (nop)) ;FIXME: sem
+(rv-format-r-1 "ctzw"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00001 #b001 #b0011011 (nop)) ;FIXME: sem
+(rv-format-r-1 "pcntw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00010 #b001 #b0011011 (nop)) ;FIXME: sem
 
 
 ;===-------------------- 'F' extension instructions -------------------------===
