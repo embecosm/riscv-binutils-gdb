@@ -1,7 +1,7 @@
-/* Lattice Mico32 exception and system call support.
-   Contributed by Jon Beniston <jon@beniston.com>
+/* RISCV exception and system call support.
+   Contributed by Edward Jones  <ed.jones@embecosm.com>
 
-   Copyright (C) 2009-2017 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -29,6 +29,35 @@
 #endif
 
 #include "sim-main.h"
+#include "sim-syscall.h"
+
+
+// Syscall numbers defined in newlib libgloss
+#define TARGET_SYS_close   57
+#define TARGET_SYS_lseek   62
+#define TARGET_SYS_read    63
+#define TARGET_SYS_write   64
+#define TARGET_SYS_fstat   80
+#define TARGET_SYS_exit    93
+#define TARGET_SYS_kill    129
+#define TARGET_SYS_getpid  172
+#define TARGET_SYS_open    1024
+#define TARGET_SYS_unlink  1026
+
+static const CB_TARGET_DEFS_MAP syscall_map[] =
+{
+  { "exit",   CB_SYS_exit,   TARGET_SYS_exit },
+  { "open",   CB_SYS_open,   TARGET_SYS_open },
+  { "close",  CB_SYS_close,  TARGET_SYS_close },
+  { "read",   CB_SYS_read,   TARGET_SYS_read },
+  { "write",  CB_SYS_write,  TARGET_SYS_write },
+  { "lseek",  CB_SYS_lseek,  TARGET_SYS_lseek },
+  { "unlink", CB_SYS_unlink, TARGET_SYS_unlink },
+  { "getpid", CB_SYS_getpid, TARGET_SYS_getpid },
+  { "kill",   CB_SYS_kill,   TARGET_SYS_kill },
+  { "fstat",  CB_SYS_fstat,  TARGET_SYS_fstat },
+};
+
 
 /* Handle invalid instructions.  */
 
@@ -40,34 +69,41 @@ sim_engine_invalid_insn (SIM_CPU * current_cpu, IADDR cia, SEM_PC pc)
   return 0;
 }
 
+/* Handle syscalls */
 
 #if XLEN == 32
-
 void
 riscv32bf_exception (sim_cpu *current_cpu, USI pc, USI exnum)
-{
-  SIM_DESC sd = CPU_STATE (current_cpu);
-  if (exnum == EXCEPT_EBREAK)
-    {
-      /* ebreak, used for breakpoints, sends control back to gdb breakpoint
-         handling.  */
-      sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
-    }
-}
-
 #elif XLEN == 64
-
 void
 riscv64bf_exception (sim_cpu *current_cpu, UDI pc, USI exnum)
+#endif
 {
   SIM_DESC sd = CPU_STATE (current_cpu);
+  host_callback *cb = STATE_CALLBACK (sd);
+  cb->syscall_map = syscall_map;
+
   if (exnum == EXCEPT_EBREAK)
     {
       /* ebreak, used for breakpoints, sends control back to gdb breakpoint
          handling.  */
       sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
     }
+  else if (exnum == EXCEPT_ECALL)
+    {
+      CB_SYSCALL s;
+      CB_SYSCALL_INIT (&s);
+
+      if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
+	{
+	  long result = sim_syscall (current_cpu, GET_H_GPR(17), GET_H_GPR (10),
+	                             GET_H_GPR (11), GET_H_GPR (12),
+	                             GET_H_GPR (13));
+	  SET_H_GPR (10, result);
+	}
+      else
+	{
+	  // TODO: Jump to exception handler
+	}
+    }
 }
-
-#endif
-
