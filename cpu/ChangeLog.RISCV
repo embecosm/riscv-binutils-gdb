@@ -1,3 +1,8 @@
+2019-08-12  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Added some sematic information to floating point
+	extension.
+
 2019-08-07  Edward Jones  <ed.jones@embecosm.com>
 
 	* riscv.cpu: Add ECALL exception type, fix semantics of
