@@ -2918,8 +2918,8 @@
 
 ;===-------------------- 'F' extension instructions -------------------------===
 
-(rv-format-f-1-s    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 (set fl-rd (mem SI (add rs1 imm-lo12))))
-(rv-format-f-2-s    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111 (set (mem USI (add rs1 store12)) fl-rs2))
+(rv-format-f-1-s    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 (set fl-rd (ext DI (mem SI (add DI rs1 imm-lo12)))))
+(rv-format-f-2-s    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111 (set (mem USI (add DI rs1 store12)) (and DI fl-rs2 #xffffffff)))
 (rv-format-f-3-rm-s "fmadd.s"   (all-isas f-ext f-machs) #b00  #b1000011 (set fl-rd (add (mul fl-rs1 fl-rs2) fl-rs3)))
 (rv-format-f-3-rm-s "fmsub.s"   (all-isas f-ext f-machs) #b00  #b1000111 (set fl-rd (sub (mul fl-rs1 fl-rs2) fl-rs3)))
 (rv-format-f-3-rm-s "fnmsub.s"  (all-isas f-ext f-machs) #b00  #b1001011 (set fl-rd (add (mul (neg fl-rs1) fl-rs2) fl-rs3)))
@@ -2928,32 +2928,75 @@
 (rv-format-f-4-rm-s "fsub.s"    (all-isas f-ext f-machs) #b0000100 #b1010011 (set fl-rd (sub fl-rs1 fl-rs2)))
 (rv-format-f-4-rm-s "fmul.s"    (all-isas f-ext f-machs) #b0001000 #b1010011 (set fl-rd (mul fl-rs1 fl-rs2)))
 (rv-format-f-4-rm-s "fdiv.s"    (all-isas f-ext f-machs) #b0001100 #b1010011 (set fl-rd (div fl-rs1 fl-rs2)))
-(rv-format-f-4-s    "fsgnj.s"   (all-isas f-ext f-machs) #b0010000 #b000 #b1010011 (nop))
-(rv-format-f-4-s    "fsgnjn.s"  (all-isas f-ext f-machs) #b0010000 #b001 #b1010011 (nop))
-(rv-format-f-4-s    "fsgnjx.s"  (all-isas f-ext f-machs) #b0010000 #b010 #b1010011 (nop))
+(rv-format-f-4-s    "fsgnj.s"   (all-isas f-ext f-machs) #b0010000 #b000 #b1010011
+  (cond
+    ((and (ge fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd fl-rs1))
+    ((and (ge fl-rs2 0) (lt fl-rs1 0))
+     (set fl-rd (neg fl-rs1)))
+    ((and (lt fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd (neg fl-rs1)))
+    (else
+     (set fl-rd fl-rs1))))
+(rv-format-f-4-s    "fsgnjn.s"  (all-isas f-ext f-machs) #b0010000 #b001 #b1010011
+  (cond
+    ((and (ge fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd (neg fl-rs1)))
+    ((and (ge fl-rs2 0) (lt fl-rs1 0))
+     (set fl-rd fl-rs1))
+    ((and (lt fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd fl-rs1))
+    (else
+     (set fl-rd (neg fl-rs1)))))
+(rv-format-f-4-s    "fsgnjx.s"  (all-isas f-ext f-machs) #b0010000 #b010 #b1010011
+  (cond
+    ((and (ge fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd fl-rs1))
+    ((and (ge fl-rs2 0) (lt fl-rs1 0))
+     (set fl-rd (neg fl-rs1)))
+    ((and (lt fl-rs2 0) (ge fl-rs1 0))
+     (set fl-rd fl-rs1))
+    (else
+     (set fl-rd (neg fl-rs1))))) ;assumed sign bit 0 is positive
 (rv-format-f-4-s    "fmin.s"    (all-isas f-ext f-machs) #b0010100 #b000 #b1010011 (if (lt fl-rs1 fl-rs2) (set fl-rd fl-rs1) (set fl-rd fl-rs2)))
 (rv-format-f-4-s    "fmax.s"    (all-isas f-ext f-machs) #b0010100 #b001 #b1010011 (if (gt fl-rs1 fl-rs2) (set fl-rd fl-rs1) (set fl-rd fl-rs2)))
+
 (rv-format-f-8-s    "feq.s"     (all-isas f-ext f-machs) #b1010000 #b010 #b1010011 (set rd (eq fl-rs1 fl-rs2)))
 (rv-format-f-8-s    "flt.s"     (all-isas f-ext f-machs) #b1010000 #b001 #b1010011 (set rd (lt fl-rs1 fl-rs2)))
 (rv-format-f-8-s    "fle.s"     (all-isas f-ext f-machs) #b1010000 #b000 #b1010011 (set rd (le fl-rs1 fl-rs2)))
 (rv-format-f-5-rm-s "fsqrt.s"   (all-isas f-ext f-machs) #b0101100 #b00000 #b1010011 (nop));set SF fl-rd (sqrt SF fl-rs1)))
-(rv-format-f-7-rm-s "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 (nop))
-(rv-format-f-7-rm-s "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 (nop))
-(rv-format-f-7-s    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011 (nop))
-(rv-format-f-7-s    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011 (nop))
-(rv-format-f-6-rm-s "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 (nop))
-(rv-format-f-6-rm-s "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 (nop))
-(rv-format-f-6-s    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-7-rm-s "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 (set rd fl-rs1))
+(rv-format-f-7-rm-s "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 (set rd fl-rs1))
+(rv-format-f-7-s    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011
+  (sequence ()
+    (if (ne (nflag fl-rs1) 0) (set rd #xffffffffffffffff) (set rd #x0000000000000000)) ; if nflag=1, set all bits to 1 else 0
+    (set (and rd #x00000000ffffffff) fl-rs1))) ;set lower bits
+(rv-format-f-7-s    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011
+  (cond
+   ((and (ne fl-rs1 0) (ne (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffffe) 1)); -infinity: 0
+   ((and (ne (zflag fl-rs1) 0) (ne (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffffd) 1)); -normal: 1
+   ((and (and (ne (zflag fl-rs1) 0) (le fl-rs1 -1)) (ne (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffffb) 1)); -subnormal: 2
+   ((and (eq (zflag fl-rs1) 0) (ne (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffff7) 1)); -0: 3
+   ((and (eq (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xffffffffffffffef) 1)); +0: 4
+   ((and (ne (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xffffffffffffffdf) 1)); +subnormal: 5
+   ((and (ne (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xffffffffffffffbf) 1)); +normal: 6
+   ((and (ne (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xffffffffffffff7f) 1)); +infinity: 7
+   ((and (eq (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffeff) 1)); signal NaN: 8
+   ((and (eq (zflag fl-rs1) 0) (eq (nflag fl-rs1) 0)) (set (and rd #xfffffffffffffdff) 1)); quiet NaN: 9
+  ))
+(rv-format-f-6-rm-s "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 (set fl-rd rs1))
+(rv-format-f-6-rm-s "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 (set fl-rd rs1))
+(rv-format-f-6-s    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 (set fl-rd rs1))
 
 ;RV64F
-(rv-format-f-7-rm-s "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 (nop))
-(rv-format-f-7-rm-s "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 (nop))
-(rv-format-f-6-rm-s "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 (nop))
-(rv-format-f-6-rm-s "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 (nop))
+(rv-format-f-7-rm-s "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 (set rd fl-rs1))
+(rv-format-f-7-rm-s "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 (set rd fl-rs1))
+(rv-format-f-6-rm-s "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 (set fl-rd rs1)) ; FIXME: Rounding error?
+(rv-format-f-6-rm-s "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 (set fl-rd rs1))
 
 ;===-------------------- 'D' extension instructions -------------------------===
 
-(rv-format-f-1-d    "fld"       (all-isas d-ext d-machs) #b011 #b0000111 (set dp-rd (mem DI (add rs1 imm-lo12))))
+(rv-format-f-1-d    "fld"       (all-isas d-ext d-machs) #b011 #b0000111 (set dp-rd (ext DI (mem DI (add rs1 imm-lo12)))))
 (rv-format-f-2-d    "fsd"       (all-isas d-ext d-machs) #b011 #b0100111 (set (mem UDI (add rs1 store12)) dp-rs2))
 (rv-format-f-3-rm-d "fmadd.d"   (all-isas d-ext d-machs) #b01 #b1000011 (set dp-rd (add (mul dp-rs1 dp-rs2) dp-rs3)))
 (rv-format-f-3-rm-d "fmsub.d"   (all-isas d-ext d-machs) #b01 #b1000111 (set dp-rd (sub (mul dp-rs1 dp-rs2) dp-rs3)))
@@ -2963,30 +3006,60 @@
 (rv-format-f-4-rm-d "fsub.d"    (all-isas d-ext d-machs) #b0000101 #b1010011 (set dp-rd (sub dp-rs1 dp-rs2)))
 (rv-format-f-4-rm-d "fmul.d"    (all-isas d-ext d-machs) #b0001001 #b1010011 (set dp-rd (mul dp-rs1 dp-rs2)))
 (rv-format-f-4-rm-d "fdiv.d"    (all-isas d-ext d-machs) #b0001101 #b1010011 (set dp-rd (div dp-rs1 dp-rs2)))
-(rv-format-f-4-d    "fsgnj.d"   (all-isas d-ext d-machs) #b0010001 #b000 #b1010011 (nop))
-(rv-format-f-4-d    "fsgnjn.d"  (all-isas d-ext d-machs) #b0010001 #b001 #b1010011 (nop))
-(rv-format-f-4-d    "fsgnjx.d"  (all-isas d-ext d-machs) #b0010001 #b010 #b1010011 (nop))
+(rv-format-f-4-d    "fsgnj.d"   (all-isas d-ext d-machs) #b0010001 #b000 #b1010011
+  (cond
+    ((and (ge dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd dp-rs1))
+    ((and (ge dp-rs2 0) (lt dp-rs1 0))
+     (set dp-rd (neg dp-rs1)))
+    ((and (lt dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd (neg dp-rs1)))
+    (else
+     (set dp-rd dp-rs1))))
+(rv-format-f-4-d    "fsgnjn.d"  (all-isas d-ext d-machs) #b0010001 #b001 #b1010011 
+  (cond
+    ((and (ge dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd (neg dp-rs1)))
+    ((and (ge dp-rs2 0) (lt dp-rs1 0))
+     (set dp-rd dp-rs1))
+    ((and (lt dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd dp-rs1))
+    (else
+     (set dp-rd (neg dp-rs1)))))
+(rv-format-f-4-d    "fsgnjx.d"  (all-isas d-ext d-machs) #b0010001 #b010 #b1010011 
+  (cond
+    ((and (ge dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd dp-rs1))
+    ((and (ge dp-rs2 0) (lt dp-rs1 0))
+     (set dp-rd (neg dp-rs1)))
+    ((and (lt dp-rs2 0) (ge dp-rs1 0))
+     (set dp-rd dp-rs1))
+    (else
+     (set dp-rd (neg dp-rs1)))))
 (rv-format-f-4-d    "fmin.d"    (all-isas d-ext d-machs) #b0010101 #b000 #b1010011 (if (lt dp-rs1 dp-rs2) (set dp-rd dp-rs1) (set dp-rd dp-rs2)))
 (rv-format-f-4-d    "fmax.d"    (all-isas d-ext d-machs) #b0010101 #b001 #b1010011 (if (gt dp-rs1 dp-rs2) (set dp-rd dp-rs1) (set dp-rd dp-rs2)))
 (rv-format-f-8-d    "feq.d"     (all-isas d-ext d-machs) #b1010001 #b010 #b1010011 (set rd (eq dp-rs1 dp-rs2)))
 (rv-format-f-8-d    "flt.d"     (all-isas d-ext d-machs) #b1010001 #b001 #b1010011 (set rd (lt dp-rs1 dp-rs2)))
 (rv-format-f-8-d    "fle.d"     (all-isas d-ext d-machs) #b1010001 #b000 #b1010011 (set rd (le dp-rs1 dp-rs2)))
 (rv-format-f-5-rm-d "fsqrt.d"   (all-isas d-ext d-machs) #b0101101 #b00000 #b1010011 (nop))
-(rv-format-f-7-rm-d "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 (nop))
-(rv-format-f-7-rm-d "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 (nop))
+(rv-format-f-7-rm-d "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 (set rd dp-rs1))
+(rv-format-f-7-rm-d "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 (set rd dp-rs1))
 (rv-format-f-7-d    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011 (nop))
-(rv-format-f-6-d    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 (nop))
-(rv-format-f-6-d    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 (nop))
-(rv-format-f-5-rm-d "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 (nop))
-(rv-format-f-5-d    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-6-d    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 (set dp-rd rs1))
+(rv-format-f-6-d    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 (set dp-rd rs1))
+(rv-format-f-5-rm-d "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 (set dp-rd dp-rs1))
+(rv-format-f-5-d    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 (set dp-rd dp-rs1))
 
 ;RV64D
-(rv-format-f-7-rm-d "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00010 #b1010011 (nop))
-(rv-format-f-7-rm-d "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00011 #b1010011 (nop))
-(rv-format-f-7-d    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011 (nop))
-(rv-format-f-6-rm-d "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011 (nop))
-(rv-format-f-6-rm-d "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011 (nop))
-(rv-format-f-6-d    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-7-rm-d "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00010 #b1010011 (set rd dp-rs1))
+(rv-format-f-7-rm-d "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00011 #b1010011 (set rd dp-rs1))
+(rv-format-f-7-d    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011
+  (sequence ()
+    (if (ne (nflag dp-rs1) 0) (set rd #xffffffffffffffff) (set rd #x0000000000000000)) ; if nflag=1, set all bits to 1 else 0
+    (set (and rd #x00000000ffffffff) dp-rs1))) ;set lower bits
+(rv-format-f-6-rm-d "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011 (set dp-rd rs1))
+(rv-format-f-6-rm-d "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011 (set dp-rd rs1))
+(rv-format-f-6-d    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011 (set dp-rd rs1))
 
 ;===-------------------- 'Q' extension instructions -------------------------===
 
@@ -3290,8 +3363,8 @@
 (rv-macro p-fcvt.wu.s  "fcvt.wu.s" (all-isas f-ext) " ${rd},${fl-rs1}" (emit fcvt.wu.s rd fl-rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.s.w   "fcvt.s.w"  (all-isas f-ext) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
 (rv-macro p-fcvt.s.wu  "fcvt.s.wu" (all-isas f-ext) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
-(rv-macro p-fgt.s      "fgt.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs2 fl-rs1))
-(rv-macro p-fge.s      "fge.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs2 fl-rs1))
+(rv-macro p-fgt.s      "fgt.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs1 fl-rs2))
+(rv-macro p-fge.s      "fge.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs1 fl-rs2))
 
 ;RV64F
 (rv-macro p-fcvt.l.s   "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
