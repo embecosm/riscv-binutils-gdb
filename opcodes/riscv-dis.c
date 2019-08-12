@@ -253,7 +253,7 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
-print_imm_lo12 (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
                 void * dis_info,
                 unsigned long value,
                 unsigned int attrs ATTRIBUTE_UNUSED,
@@ -263,6 +263,19 @@ print_imm_lo12 (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   disassemble_info *info = dis_info;
 
   (*info->fprintf_func) (info->stream, "%#010x", value);
+}
+
+static void
+print_dec (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+                void * dis_info,
+                unsigned long value,
+                unsigned int attrs ATTRIBUTE_UNUSED,
+                bfd_vma pc ATTRIBUTE_UNUSED,
+                int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  (*info->fprintf_func) (info->stream, "%d", value);
 }
 
 /* -- ibd.h */
@@ -373,6 +386,21 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CSR :
       print_csr (cd, info, & riscv_cgen_opval_h_csr, fields->f_csr, 0);
       break;
+    case RISCV_OPERAND_DP_RD :
+      print_keyword (cd, info, & riscv_cgen_opval_h_dpr, fields->f_rd, 0);
+      break;
+    case RISCV_OPERAND_DP_RM :
+      print_float_rounding_mode (cd, info, fields->f_funct3, 0, pc, length);
+      break;
+    case RISCV_OPERAND_DP_RS1 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_dpr, fields->f_rs1, 0);
+      break;
+    case RISCV_OPERAND_DP_RS2 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_dpr, fields->f_rs2, 0);
+      break;
+    case RISCV_OPERAND_DP_RS3 :
+      print_keyword (cd, info, & riscv_cgen_opval_h_dpr, fields->f_rs3, 0);
+      break;
     case RISCV_OPERAND_FC_RS2 :
       print_keyword (cd, info, & riscv_cgen_opval_h_c_fpr, fields->f_uimm3_43, 0);
       break;
@@ -416,7 +444,7 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       print_normal (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
       break;
     case RISCV_OPERAND_IMM_LO12_HEX :
-      print_imm_lo12 (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
+      print_hexi (cd, info, fields->f_imm12_3112, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
       break;
     case RISCV_OPERAND_IMM_ZERO :
       print_normal (cd, info, fields->f_dummy, 0|(1<<CGEN_OPERAND_SIGNED), pc, length);
@@ -434,7 +462,7 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       print_normal (cd, info, fields->f_imm6_121_65, 0|(1<<CGEN_OPERAND_SIGNED)|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_NZUIMM10_104_122_51_61_00_ABS :
-      print_normal (cd, info, fields->f_uimm10_104_122_51_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
+      print_dec (cd, info, fields->f_uimm10_104_122_51_61_00, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
       break;
     case RISCV_OPERAND_NZUIMM18_121_65_000000000000_ABS :
       print_nzuimm18_hi6 (cd, info, fields->f_uimm18_121_65_000000000000, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);
@@ -483,6 +511,9 @@ riscv_cgen_print_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       print_normal (cd, info, fields->f_uimm5_195, 0, pc, length);
+      break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      print_dec (cd, info, fields->f_uimm5_195, 0, pc, length);
       break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       print_normal (cd, info, fields->f_uimm6_121_65, 0|(1<<CGEN_OPERAND_VIRTUAL), pc, length);

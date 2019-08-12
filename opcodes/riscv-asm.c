@@ -932,6 +932,21 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_CSR :
       errmsg = parse_csr (cd, strp, & riscv_cgen_opval_h_csr, & fields->f_csr);
       break;
+    case RISCV_OPERAND_DP_RD :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_dpr, & fields->f_rd);
+      break;
+    case RISCV_OPERAND_DP_RM :
+      errmsg = parse_float_rounding_mode (cd, strp, RISCV_OPERAND_DP_RM, (unsigned long *) (& fields->f_funct3));
+      break;
+    case RISCV_OPERAND_DP_RS1 :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_dpr, & fields->f_rs1);
+      break;
+    case RISCV_OPERAND_DP_RS2 :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_dpr, & fields->f_rs2);
+      break;
+    case RISCV_OPERAND_DP_RS3 :
+      errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_dpr, & fields->f_rs3);
+      break;
     case RISCV_OPERAND_FC_RS2 :
       errmsg = cgen_parse_keyword (cd, strp, & riscv_cgen_opval_h_c_fpr, & fields->f_uimm3_43);
       break;
@@ -1042,6 +1057,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
       break;
     case RISCV_OPERAND_UIMM5_ABS :
       errmsg = parse_uimm5_abs (cd, strp, RISCV_OPERAND_UIMM5_ABS, (unsigned long *) (& fields->f_uimm5_195));
+      break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_UIMM5_DEC, (unsigned long *) (& fields->f_uimm5_195));
       break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_121_65_ABS, (unsigned long *) (& fields->f_uimm6_121_65));
