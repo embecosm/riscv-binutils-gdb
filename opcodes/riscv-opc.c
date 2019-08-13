@@ -4217,7 +4217,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-fsrm-2", "fsrm", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
   },
-/* fsrmi ${rd},${uimm5} */
+/* fsrmi ${rd},${uimm5-dec} */
   {
     -1, "p-fsrmi-1", "fsrmi", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
@@ -4242,7 +4242,7 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
     -1, "p-fsflags-2", "fsflags", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
   },
-/* fsflagsi ${rd},${uimm5} */
+/* fsflagsi ${rd},${uimm5-dec} */
   {
     -1, "p-fsflagsi-1", "fsflagsi", 32,
     { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32F)|(1<<RVEXT_RV64F), 0 } } } }
@@ -5558,10 +5558,10 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RS1), 0 } },
     & ifmt_p_fsrm_2, { 0x201073 }
   },
-/* fsrmi ${rd},${uimm5} */
+/* fsrmi ${rd},${uimm5-dec} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RD), ',', OP (UIMM5), 0 } },
+    { { MNEM, ' ', OP (RD), ',', OP (UIMM5_DEC), 0 } },
     & ifmt_p_fsrmi_1, { 0x205073 }
   },
 /* fsrmi ${uimm5} */
@@ -5588,10 +5588,10 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { { MNEM, ' ', OP (RS1), 0 } },
     & ifmt_p_fsflags_2, { 0x101073 }
   },
-/* fsflagsi ${rd},${uimm5} */
+/* fsflagsi ${rd},${uimm5-dec} */
   {
     { 0, 0, 0, 0 },
-    { { MNEM, ' ', OP (RD), ',', OP (UIMM5), 0 } },
+    { { MNEM, ' ', OP (RD), ',', OP (UIMM5_DEC), 0 } },
     & ifmt_p_fsflagsi_1, { 0x105073 }
   },
 /* fsflagsi ${uimm5} */

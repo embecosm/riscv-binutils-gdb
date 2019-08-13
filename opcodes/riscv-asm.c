@@ -1043,6 +1043,9 @@ riscv_cgen_parse_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_UIMM5_ABS :
       errmsg = parse_uimm5_abs (cd, strp, RISCV_OPERAND_UIMM5_ABS, (unsigned long *) (& fields->f_uimm5_195));
       break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      errmsg = cgen_parse_unsigned_integer (cd, strp, RISCV_OPERAND_UIMM5_DEC, (unsigned long *) (& fields->f_uimm5_195));
+      break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       errmsg = parse_uimm6_abs (cd, strp, RISCV_OPERAND_UIMM6_121_65_ABS, (unsigned long *) (& fields->f_uimm6_121_65));
       break;
