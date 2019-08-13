@@ -1,5 +1,10 @@
 2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
 
+	* riscv.cpu: Added semantics for c.fldsp, c.fsdsp, fcvt.d.w,
+	fcvt.d.wu.
+
+2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
+
 	* Reset to 3a5fdabb6297af360989aeb284f891c7f49632ea.
 
 2019-08-12  Mary Bennett  <mary.bennett@embecosm.com>

@@ -513,7 +513,7 @@
   (name h-fpr)
   (comment "Floating Point Registers")
   (attrs all-isas f-machs)
-  (type register DI (32))
+  (type register DF (32))
   (indices keyword "" fpr-names)
 )
 
@@ -521,7 +521,7 @@
   (name h-c-fpr)
   (comment "Floating Point RVC Registers")
   (attrs VIRTUAL all-isas f-machs)
-  (type register DI (32))
+  (type register DF (32))
   (indices keyword ""
     ; Filter out registers with a value <8 or >15. Remap register values in the
     ; range [8, 15] to [0, 7]
@@ -2004,11 +2004,11 @@
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-6 mnemonic attr funct7 reg funct3 opcode)
+(define-pmacro (rv-format-f-6 mnemonic attr funct7 reg funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${rs1}")
     (+ (f-funct7 funct7) (f-rs2 reg) rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 (define-pmacro (rv-format-f-6-rm mnemonic attr funct7 reg opcode)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${rs1},${fl-rm}")
@@ -2197,16 +2197,16 @@
 
 ;RV32DC/RV64DC
 ; These should maybe be moved to a separate rv32/64dc isa
-(rv-format-ci-8   "c.fldsp" ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+(rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs)
   #b001 #b10
-  (nop))
-(rv-format-css-4  "c.fsdsp" ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  (set fl-rd (subword DF (or (mem DI (add (reg h-gpr 2) uimm9-43-121-62-000-abs)) #xffffffff00000000) 0)))
+(rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs)
   #b101 #b10
-  (nop))
-(rv-format-cs-4   "c.fsd"   ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  (set (mem DI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (subword DI fc-rs3 0)))
+(rv-format-cs-4   "c.fsd"   (all-isas c-ext c-machs)
   #b101 #b00
   (nop))
-(rv-format-cl-4   "c.fld"   ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+(rv-format-cl-4   "c.fld"   (all-isas c-ext c-machs)
   #b001 #b00
   (nop))
 
@@ -2817,7 +2817,7 @@
 (rv-format-f-7    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011)
 (rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011)
 (rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011)
-(rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011)
+(rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 (nop))
 
 ;RV64F
 (rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011)
@@ -2826,6 +2826,14 @@
 (rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011)
 
 ;===-------------------- 'D' extension instructions -------------------------===
+
+(define-pmacro fcvt.d.w-s-sem
+  (set fl-rd (float DF 0 (trunc SI rs1))) ; SI-> float
+)
+(define-pmacro fcvt.d.wu-s-sem
+  (set fl-rd (ufloat DF 0 (trunc SI rs1))) ; SI-> float
+)
+
 
 (rv-format-f-1    "fld"       (all-isas d-ext d-machs) #b011 #b0000111)
 (rv-format-f-2    "fsd"       (all-isas d-ext d-machs) #b011 #b0100111)
@@ -2849,8 +2857,8 @@
 (rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011)
 (rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011)
 (rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011)
-(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011)
-(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011)
+(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt.d.w-s-sem)
+(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt.d.wu-s-sem)
 (rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011)
 (rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011)
 
@@ -2860,7 +2868,7 @@
 (rv-format-f-7    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011)
 (rv-format-f-6-rm "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011)
 (rv-format-f-6-rm "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011)
-(rv-format-f-6    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011)
+(rv-format-f-6    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011 (nop))
 
 ;===-------------------- 'Q' extension instructions -------------------------===
 
@@ -2886,8 +2894,8 @@
 (rv-format-f-7-rm "fcvt.w.q"  (all-isas q-ext q-machs) #b1100011 #b00000 #b1010011)
 (rv-format-f-7-rm "fcvt.wu.q" (all-isas q-ext q-machs) #b1100011 #b00001 #b1010011)
 (rv-format-f-7    "fclass.q"  (all-isas q-ext q-machs) #b1110011 #b00000 #b001 #b1010011)
-(rv-format-f-6    "fcvt.q.w"  (all-isas q-ext q-machs) #b1101011 #b00000 #b000 #b1010011)
-(rv-format-f-6    "fcvt.q.wu" (all-isas q-ext q-machs) #b1101011 #b00001 #b000 #b1010011)
+(rv-format-f-6    "fcvt.q.w"  (all-isas q-ext q-machs) #b1101011 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-6    "fcvt.q.wu" (all-isas q-ext q-machs) #b1101011 #b00001 #b000 #b1010011 (nop))
 (rv-format-f-5-rm "fcvt.s.q"  (all-isas q-ext q-machs) #b0100000 #b00011 #b1010011)
 (rv-format-f-5-rm "fcvt.d.q"  (all-isas q-ext q-machs) #b0100001 #b00011 #b1010011)
 (rv-format-f-5    "fcvt.q.s"  (all-isas q-ext q-machs) #b0100011 #b00000 #b000 #b1010011)
