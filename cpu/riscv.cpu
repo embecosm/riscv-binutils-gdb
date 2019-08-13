@@ -299,6 +299,15 @@
   (set (newval) (nop))
 )
 
+(define-hardware
+  (name h-flen)
+  (comment "flen")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI)
+  (get () (c-call WI "@cpu@_h_flen_get_handler"))
+  (set (newval) (nop))
+)
+
 (define-pmacro gpr-names (
   ; ABI names
   ; These are first as that appear to cause them to be prioritized
@@ -513,7 +522,7 @@
   (name h-fpr)
   (comment "Floating Point Registers")
   (attrs all-isas f-machs)
-  (type register DI (32))
+  (type register DF (32))
   (indices keyword "" fpr-names)
 )
 
@@ -2791,6 +2800,31 @@
 (rv-format-a-2 "amomaxu.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b1 #b1 amomaxu.d-sem)
 
 ;===-------------------- 'F' extension instructions -------------------------===
+
+  (set rd (mem SI (add rs1 imm-lo12))))
+
+; use subword to reinterpret as float
+
+(define-pmacro flw-sem (set fl-rd (subword DF (ext DI (mem SI (add rs1 imm-lo12))) 0)))
+(define-pmacro fsw-sem (set (mem DF (add rs1 store12)) fl-rs2))
+(define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+  (set lhs (subword SF fl-rs1 0))
+  (set rhs (subword SF fl-rs2 0))
+  (set addend (subword SF fl-rs3 0))
+  (SET_ROUNDING_MODE fl-rm)
+  (set res (add (mul lhs rhs) addend))
+  (RESTORE_ROUNDING_MODE)
+  (set fl-rd (subword DF (ext DI (subword SI res 0)) 0)))
+)
+(define-pmacro fadd-s-sem (sequence ((SF lhs) (SF rhs) (SF res))
+  (SET_ROUNDING_MODE fl-rm)
+  (set lhs (subword SF fl-rs1 0))
+  (set rhs (subword SF fl-rs2 0))
+  (SET_ROUNDING_MODE fl-rm)
+  (set res (add lhs rhs))
+  (RESTORE_ROUNDING_MODE)
+  (set fl-rd (subword DF (ext DI (subword SI res 0)) 0))
+)
 
 (rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111)
 (rv-format-f-2    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111)
