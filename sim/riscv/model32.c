@@ -595,6 +595,70 @@ model_rv32gc_c_flw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
+model_rv32gc_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gc_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gc_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gc_c_fld (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
 model_rv32gc_lui (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_lui.f
@@ -3093,7 +3157,7 @@ model_rv32gc_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32gc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3109,7 +3173,7 @@ model_rv32gc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32gc_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4148,6 +4212,70 @@ model_rv32i_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32i_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32i_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32i_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32i_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32i_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32i_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32i_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32i_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32i_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -6661,7 +6789,7 @@ model_rv32i_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32i_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -6677,7 +6805,7 @@ model_rv32i_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32i_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -7716,6 +7844,70 @@ model_rv32ic_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32ic_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32ic_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32ic_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32ic_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32ic_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32ic_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32ic_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32ic_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32ic_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10229,7 +10421,7 @@ model_rv32ic_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32ic_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10245,7 +10437,7 @@ model_rv32ic_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32ic_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -11284,6 +11476,70 @@ model_rv32im_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32im_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32im_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32im_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32im_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32im_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32im_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32im_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32im_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32im_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -13797,7 +14053,7 @@ model_rv32im_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32im_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13813,7 +14069,7 @@ model_rv32im_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32im_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -14852,6 +15108,70 @@ model_rv32imc_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32imc_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32imc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32imc_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32imc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32imc_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32imc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32imc_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32imc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32imc_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17365,7 +17685,7 @@ model_rv32imc_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32imc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17381,7 +17701,7 @@ model_rv32imc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32imc_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18420,6 +18740,70 @@ model_rv32g_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32g_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32g_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32g_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32g_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32g_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32g_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32g_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32g_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32g_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -20933,7 +21317,7 @@ model_rv32g_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32g_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -20949,7 +21333,7 @@ model_rv32g_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32g_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -21988,6 +22372,70 @@ model_rv32gqc_c_fsw (SIM_CPU *current_cpu, void *sem_arg)
 
 static int
 model_rv32gqc_c_flw (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gqc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gqc_c_fldsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gqc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gqc_c_fsdsp (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gqc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gqc_c_fsd (SIM_CPU *current_cpu, void *sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
+  const IDESC * UNUSED idesc = abuf->idesc;
+  int cycles = 0;
+  {
+    int referenced = 0;
+    int UNUSED insn_referenced = abuf->written;
+    cycles += riscv32bf_model_rv32gqc_u_exec (current_cpu, idesc, 0, referenced);
+  }
+  return cycles;
+#undef FLD
+}
+
+static int
+model_rv32gqc_c_fld (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -24501,7 +24949,7 @@ model_rv32gqc_fclass_d (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32gqc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -24517,7 +24965,7 @@ model_rv32gqc_fcvt_d_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv32gqc_fcvt_d_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -25057,6 +25505,10 @@ static const INSN_TIMING rv32gc_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32gc_c_fswsp, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32gc_c_fsw, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32gc_c_flw, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32gc_c_fldsp, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32gc_c_fsdsp, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32gc_c_fsd, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32gc_c_fld, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32gc_lui, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32gc_auipc, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32gc_jal, { { (int) UNIT_RV32GC_U_EXEC, 1, 1 } } },
@@ -25291,6 +25743,10 @@ static const INSN_TIMING rv32i_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32i_c_fswsp, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32i_c_fsw, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32i_c_flw, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32i_c_fldsp, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32i_c_fsdsp, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32i_c_fsd, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32i_c_fld, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32i_lui, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32i_auipc, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32i_jal, { { (int) UNIT_RV32I_U_EXEC, 1, 1 } } },
@@ -25525,6 +25981,10 @@ static const INSN_TIMING rv32ic_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32ic_c_fswsp, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32ic_c_fsw, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32ic_c_flw, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32ic_c_fldsp, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32ic_c_fsdsp, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32ic_c_fsd, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32ic_c_fld, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32ic_lui, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32ic_auipc, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32ic_jal, { { (int) UNIT_RV32IC_U_EXEC, 1, 1 } } },
@@ -25759,6 +26219,10 @@ static const INSN_TIMING rv32im_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32im_c_fswsp, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32im_c_fsw, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32im_c_flw, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32im_c_fldsp, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32im_c_fsdsp, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32im_c_fsd, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32im_c_fld, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32im_lui, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32im_auipc, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32im_jal, { { (int) UNIT_RV32IM_U_EXEC, 1, 1 } } },
@@ -25993,6 +26457,10 @@ static const INSN_TIMING rv32imc_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32imc_c_fswsp, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32imc_c_fsw, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32imc_c_flw, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32imc_c_fldsp, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32imc_c_fsdsp, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32imc_c_fsd, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32imc_c_fld, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32imc_lui, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32imc_auipc, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32imc_jal, { { (int) UNIT_RV32IMC_U_EXEC, 1, 1 } } },
@@ -26227,6 +26695,10 @@ static const INSN_TIMING rv32g_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32g_c_fswsp, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32g_c_fsw, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32g_c_flw, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32g_c_fldsp, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32g_c_fsdsp, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32g_c_fsd, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32g_c_fld, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32g_lui, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32g_auipc, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32g_jal, { { (int) UNIT_RV32G_U_EXEC, 1, 1 } } },
@@ -26461,6 +26933,10 @@ static const INSN_TIMING rv32gqc_timing[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, model_rv32gqc_c_fswsp, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FSW, model_rv32gqc_c_fsw, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_C_FLW, model_rv32gqc_c_flw, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLDSP, model_rv32gqc_c_fldsp, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSDSP, model_rv32gqc_c_fsdsp, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FSD, model_rv32gqc_c_fsd, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
+  { RISCV32BF_RV32_INSN_C_FLD, model_rv32gqc_c_fld, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_LUI, model_rv32gqc_lui, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_AUIPC, model_rv32gqc_auipc, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },
   { RISCV32BF_RV32_INSN_JAL, model_rv32gqc_jal, { { (int) UNIT_RV32GQC_U_EXEC, 1, 1 } } },

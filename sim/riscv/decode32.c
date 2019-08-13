@@ -81,6 +81,10 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_C_FSWSP, RISCV32BF_RV32_INSN_C_FSWSP, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_FSW, RISCV32BF_RV32_INSN_C_FSW, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_FLW, RISCV32BF_RV32_INSN_C_FLW, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_FLDSP, RISCV32BF_RV32_INSN_C_FLDSP, RISCV32BF_RV32_SFMT_C_FLDSP },
+  { RISCV_INSN_C_FSDSP, RISCV32BF_RV32_INSN_C_FSDSP, RISCV32BF_RV32_SFMT_C_FSDSP },
+  { RISCV_INSN_C_FSD, RISCV32BF_RV32_INSN_C_FSD, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_FLD, RISCV32BF_RV32_INSN_C_FLD, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_LUI, RISCV32BF_RV32_INSN_LUI, RISCV32BF_RV32_SFMT_LUI },
   { RISCV_INSN_AUIPC, RISCV32BF_RV32_INSN_AUIPC, RISCV32BF_RV32_SFMT_AUIPC },
   { RISCV_INSN_JAL, RISCV32BF_RV32_INSN_JAL, RISCV32BF_RV32_SFMT_JAL },
@@ -237,8 +241,8 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FCVT_W_D, RISCV32BF_RV32_INSN_FCVT_W_D, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FCVT_WU_D, RISCV32BF_RV32_INSN_FCVT_WU_D, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FCLASS_D, RISCV32BF_RV32_INSN_FCLASS_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_W, RISCV32BF_RV32_INSN_FCVT_D_W, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_WU, RISCV32BF_RV32_INSN_FCVT_D_WU, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_FCVT_D_W, RISCV32BF_RV32_INSN_FCVT_D_W, RISCV32BF_RV32_SFMT_FCVT_D_W },
+  { RISCV_INSN_FCVT_D_WU, RISCV32BF_RV32_INSN_FCVT_D_WU, RISCV32BF_RV32_SFMT_FCVT_D_W },
   { RISCV_INSN_FCVT_S_D, RISCV32BF_RV32_INSN_FCVT_S_D, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FCVT_D_S, RISCV32BF_RV32_INSN_FCVT_D_S, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FLQ, RISCV32BF_RV32_INSN_FLQ, RISCV32BF_RV32_SFMT_C_NOP },
@@ -977,11 +981,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0707f) == 0xd2000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_D_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_D_W; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0707f) == 0xd2100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_D_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_D_WU; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1269,6 +1273,70 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 1251 : itype = RISCV32BF_RV32_INSN_BNE; goto extract_sfmt_beq;
       case 243 : /* fall through */
       case 1267 : itype = RISCV32BF_RV32_INSN_CSRRW; goto extract_sfmt_c_nop;
+      case 256 : /* fall through */
+      case 260 : /* fall through */
+      case 264 : /* fall through */
+      case 268 : /* fall through */
+      case 272 : /* fall through */
+      case 276 : /* fall through */
+      case 280 : /* fall through */
+      case 284 : /* fall through */
+      case 288 : /* fall through */
+      case 292 : /* fall through */
+      case 296 : /* fall through */
+      case 300 : /* fall through */
+      case 304 : /* fall through */
+      case 308 : /* fall through */
+      case 312 : /* fall through */
+      case 316 : /* fall through */
+      case 320 : /* fall through */
+      case 324 : /* fall through */
+      case 328 : /* fall through */
+      case 332 : /* fall through */
+      case 336 : /* fall through */
+      case 340 : /* fall through */
+      case 344 : /* fall through */
+      case 348 : /* fall through */
+      case 352 : /* fall through */
+      case 356 : /* fall through */
+      case 360 : /* fall through */
+      case 364 : /* fall through */
+      case 368 : /* fall through */
+      case 372 : /* fall through */
+      case 376 : /* fall through */
+      case 380 : /* fall through */
+      case 384 : /* fall through */
+      case 388 : /* fall through */
+      case 392 : /* fall through */
+      case 396 : /* fall through */
+      case 400 : /* fall through */
+      case 404 : /* fall through */
+      case 408 : /* fall through */
+      case 412 : /* fall through */
+      case 416 : /* fall through */
+      case 420 : /* fall through */
+      case 424 : /* fall through */
+      case 428 : /* fall through */
+      case 432 : /* fall through */
+      case 436 : /* fall through */
+      case 440 : /* fall through */
+      case 444 : /* fall through */
+      case 448 : /* fall through */
+      case 452 : /* fall through */
+      case 456 : /* fall through */
+      case 460 : /* fall through */
+      case 464 : /* fall through */
+      case 468 : /* fall through */
+      case 472 : /* fall through */
+      case 476 : /* fall through */
+      case 480 : /* fall through */
+      case 484 : /* fall through */
+      case 488 : /* fall through */
+      case 492 : /* fall through */
+      case 496 : /* fall through */
+      case 500 : /* fall through */
+      case 504 : /* fall through */
+      case 508 : itype = RISCV32BF_RV32_INSN_C_FLD; goto extract_sfmt_c_nop;
       case 257 : /* fall through */
       case 261 : /* fall through */
       case 265 : /* fall through */
@@ -1333,6 +1401,70 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 501 : /* fall through */
       case 505 : /* fall through */
       case 509 : itype = RISCV32BF_RV32_INSN_C_JAL; goto extract_sfmt_c_jal;
+      case 258 : /* fall through */
+      case 262 : /* fall through */
+      case 266 : /* fall through */
+      case 270 : /* fall through */
+      case 274 : /* fall through */
+      case 278 : /* fall through */
+      case 282 : /* fall through */
+      case 286 : /* fall through */
+      case 290 : /* fall through */
+      case 294 : /* fall through */
+      case 298 : /* fall through */
+      case 302 : /* fall through */
+      case 306 : /* fall through */
+      case 310 : /* fall through */
+      case 314 : /* fall through */
+      case 318 : /* fall through */
+      case 322 : /* fall through */
+      case 326 : /* fall through */
+      case 330 : /* fall through */
+      case 334 : /* fall through */
+      case 338 : /* fall through */
+      case 342 : /* fall through */
+      case 346 : /* fall through */
+      case 350 : /* fall through */
+      case 354 : /* fall through */
+      case 358 : /* fall through */
+      case 362 : /* fall through */
+      case 366 : /* fall through */
+      case 370 : /* fall through */
+      case 374 : /* fall through */
+      case 378 : /* fall through */
+      case 382 : /* fall through */
+      case 386 : /* fall through */
+      case 390 : /* fall through */
+      case 394 : /* fall through */
+      case 398 : /* fall through */
+      case 402 : /* fall through */
+      case 406 : /* fall through */
+      case 410 : /* fall through */
+      case 414 : /* fall through */
+      case 418 : /* fall through */
+      case 422 : /* fall through */
+      case 426 : /* fall through */
+      case 430 : /* fall through */
+      case 434 : /* fall through */
+      case 438 : /* fall through */
+      case 442 : /* fall through */
+      case 446 : /* fall through */
+      case 450 : /* fall through */
+      case 454 : /* fall through */
+      case 458 : /* fall through */
+      case 462 : /* fall through */
+      case 466 : /* fall through */
+      case 470 : /* fall through */
+      case 474 : /* fall through */
+      case 478 : /* fall through */
+      case 482 : /* fall through */
+      case 486 : /* fall through */
+      case 490 : /* fall through */
+      case 494 : /* fall through */
+      case 498 : /* fall through */
+      case 502 : /* fall through */
+      case 506 : /* fall through */
+      case 510 : itype = RISCV32BF_RV32_INSN_C_FLDSP; goto extract_sfmt_c_fldsp;
       case 259 : /* fall through */
       case 1283 : itype = RISCV32BF_RV32_INSN_LW; goto extract_sfmt_lw;
       case 263 : /* fall through */
@@ -2537,6 +2669,70 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 1270 : /* fall through */
       case 1274 : /* fall through */
       case 1278 : itype = RISCV32BF_RV32_INSN_C_ADD; goto extract_sfmt_c_add;
+      case 1280 : /* fall through */
+      case 1284 : /* fall through */
+      case 1288 : /* fall through */
+      case 1292 : /* fall through */
+      case 1296 : /* fall through */
+      case 1300 : /* fall through */
+      case 1304 : /* fall through */
+      case 1308 : /* fall through */
+      case 1312 : /* fall through */
+      case 1316 : /* fall through */
+      case 1320 : /* fall through */
+      case 1324 : /* fall through */
+      case 1328 : /* fall through */
+      case 1332 : /* fall through */
+      case 1336 : /* fall through */
+      case 1340 : /* fall through */
+      case 1344 : /* fall through */
+      case 1348 : /* fall through */
+      case 1352 : /* fall through */
+      case 1356 : /* fall through */
+      case 1360 : /* fall through */
+      case 1364 : /* fall through */
+      case 1368 : /* fall through */
+      case 1372 : /* fall through */
+      case 1376 : /* fall through */
+      case 1380 : /* fall through */
+      case 1384 : /* fall through */
+      case 1388 : /* fall through */
+      case 1392 : /* fall through */
+      case 1396 : /* fall through */
+      case 1400 : /* fall through */
+      case 1404 : /* fall through */
+      case 1408 : /* fall through */
+      case 1412 : /* fall through */
+      case 1416 : /* fall through */
+      case 1420 : /* fall through */
+      case 1424 : /* fall through */
+      case 1428 : /* fall through */
+      case 1432 : /* fall through */
+      case 1436 : /* fall through */
+      case 1440 : /* fall through */
+      case 1444 : /* fall through */
+      case 1448 : /* fall through */
+      case 1452 : /* fall through */
+      case 1456 : /* fall through */
+      case 1460 : /* fall through */
+      case 1464 : /* fall through */
+      case 1468 : /* fall through */
+      case 1472 : /* fall through */
+      case 1476 : /* fall through */
+      case 1480 : /* fall through */
+      case 1484 : /* fall through */
+      case 1488 : /* fall through */
+      case 1492 : /* fall through */
+      case 1496 : /* fall through */
+      case 1500 : /* fall through */
+      case 1504 : /* fall through */
+      case 1508 : /* fall through */
+      case 1512 : /* fall through */
+      case 1516 : /* fall through */
+      case 1520 : /* fall through */
+      case 1524 : /* fall through */
+      case 1528 : /* fall through */
+      case 1532 : itype = RISCV32BF_RV32_INSN_C_FSD; goto extract_sfmt_c_nop;
       case 1281 : /* fall through */
       case 1285 : /* fall through */
       case 1289 : /* fall through */
@@ -2601,6 +2797,70 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 1525 : /* fall through */
       case 1529 : /* fall through */
       case 1533 : itype = RISCV32BF_RV32_INSN_C_J; goto extract_sfmt_c_j;
+      case 1282 : /* fall through */
+      case 1286 : /* fall through */
+      case 1290 : /* fall through */
+      case 1294 : /* fall through */
+      case 1298 : /* fall through */
+      case 1302 : /* fall through */
+      case 1306 : /* fall through */
+      case 1310 : /* fall through */
+      case 1314 : /* fall through */
+      case 1318 : /* fall through */
+      case 1322 : /* fall through */
+      case 1326 : /* fall through */
+      case 1330 : /* fall through */
+      case 1334 : /* fall through */
+      case 1338 : /* fall through */
+      case 1342 : /* fall through */
+      case 1346 : /* fall through */
+      case 1350 : /* fall through */
+      case 1354 : /* fall through */
+      case 1358 : /* fall through */
+      case 1362 : /* fall through */
+      case 1366 : /* fall through */
+      case 1370 : /* fall through */
+      case 1374 : /* fall through */
+      case 1378 : /* fall through */
+      case 1382 : /* fall through */
+      case 1386 : /* fall through */
+      case 1390 : /* fall through */
+      case 1394 : /* fall through */
+      case 1398 : /* fall through */
+      case 1402 : /* fall through */
+      case 1406 : /* fall through */
+      case 1410 : /* fall through */
+      case 1414 : /* fall through */
+      case 1418 : /* fall through */
+      case 1422 : /* fall through */
+      case 1426 : /* fall through */
+      case 1430 : /* fall through */
+      case 1434 : /* fall through */
+      case 1438 : /* fall through */
+      case 1442 : /* fall through */
+      case 1446 : /* fall through */
+      case 1450 : /* fall through */
+      case 1454 : /* fall through */
+      case 1458 : /* fall through */
+      case 1462 : /* fall through */
+      case 1466 : /* fall through */
+      case 1470 : /* fall through */
+      case 1474 : /* fall through */
+      case 1478 : /* fall through */
+      case 1482 : /* fall through */
+      case 1486 : /* fall through */
+      case 1490 : /* fall through */
+      case 1494 : /* fall through */
+      case 1498 : /* fall through */
+      case 1502 : /* fall through */
+      case 1506 : /* fall through */
+      case 1510 : /* fall through */
+      case 1514 : /* fall through */
+      case 1518 : /* fall through */
+      case 1522 : /* fall through */
+      case 1526 : /* fall through */
+      case 1530 : /* fall through */
+      case 1534 : itype = RISCV32BF_RV32_INSN_C_FSDSP; goto extract_sfmt_c_fsdsp;
       case 1536 : /* fall through */
       case 1540 : /* fall through */
       case 1544 : /* fall through */
@@ -3568,6 +3828,62 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
+ extract_sfmt_c_fldsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+    UDI f_uimm1_121;
+    UINT f_rd;
+    UDI f_uimm2_62;
+    UDI f_uimm3_43;
+    DI f_uimm9_43_121_62_000;
+
+    f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1);
+    f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5);
+    f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));
+}
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm9_43_121_62_000) = f_uimm9_43_121_62_000;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fldsp", "f_uimm9_43_121_62_000 0x%x", 'x', f_uimm9_43_121_62_000, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fsdsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+    UDI f_uimm4_124;
+    UDI f_uimm2_82;
+    UDI f_uimm5_65;
+    DI f_uimm8_82_124_00;
+
+    f_uimm4_124 = EXTRACT_LSB0_UINT (insn, 16, 12, 4);
+    f_uimm2_82 = EXTRACT_LSB0_UINT (insn, 16, 8, 2);
+    f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5);
+{
+  f_uimm8_82_124_00 = ((((f_uimm2_82) << (4))) | (f_uimm4_124));
+}
+  f_uimm8_82_124_00 = ((f_uimm8_82_124_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm5_65) = f_uimm5_65;
+  FLD (f_uimm8_82_124_00) = f_uimm8_82_124_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fsdsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm8_82_124_00 0x%x", 'x', f_uimm8_82_124_00, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
  extract_sfmt_lui:
   {
     const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
@@ -4067,6 +4383,26 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs2) = f_rs2;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amomin_w", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_d_w:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_add.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_d_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;

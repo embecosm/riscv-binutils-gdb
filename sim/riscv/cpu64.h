@@ -66,7 +66,7 @@ do { \
 CPU (h_csr[(index)]) = (x);\
 ;} while (0)
   /* Floating Point Registers */
-  DI h_fpr[32];
+  DF h_fpr[32];
 #define GET_H_FPR(a1) CPU (h_fpr)[a1]
 #define SET_H_FPR(a1, x) (CPU (h_fpr)[a1] = (x))
   } hardware;
@@ -147,10 +147,10 @@ DI riscv64bf_h_c_gpr_get (SIM_CPU *, UINT);
 void riscv64bf_h_c_gpr_set (SIM_CPU *, UINT, DI);
 UDI riscv64bf_h_csr_get (SIM_CPU *, UINT);
 void riscv64bf_h_csr_set (SIM_CPU *, UINT, UDI);
-DI riscv64bf_h_fpr_get (SIM_CPU *, UINT);
-void riscv64bf_h_fpr_set (SIM_CPU *, UINT, DI);
-DI riscv64bf_h_c_fpr_get (SIM_CPU *, UINT);
-void riscv64bf_h_c_fpr_set (SIM_CPU *, UINT, DI);
+DF riscv64bf_h_fpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_fpr_set (SIM_CPU *, UINT, DF);
+DF riscv64bf_h_c_fpr_get (SIM_CPU *, UINT);
+void riscv64bf_h_c_fpr_set (SIM_CPU *, UINT, DF);
 DI riscv64bf_h_opcode7_get (SIM_CPU *);
 void riscv64bf_h_opcode7_set (SIM_CPU *, DI);
 DI riscv64bf_h_copcode2_get (SIM_CPU *);
@@ -208,6 +208,10 @@ union sem_fields {
     DI f_uimm32_3120_000000000000;
     UINT f_rd;
   } sfmt_lui;
+  struct { /*  */
+    DI f_uimm9_43_121_62_000;
+    UINT f_rd;
+  } sfmt_c_fldsp;
   struct { /*  */
     DI f_uimm9_93_123_000;
     UDI f_uimm5_65;

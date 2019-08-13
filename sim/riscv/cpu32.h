@@ -66,7 +66,7 @@ do { \
 CPU (h_csr[(index)]) = (x);\
 ;} while (0)
   /* Floating Point Registers */
-  DI h_fpr[32];
+  DF h_fpr[32];
 #define GET_H_FPR(a1) CPU (h_fpr)[a1]
 #define SET_H_FPR(a1, x) (CPU (h_fpr)[a1] = (x))
   } hardware;
@@ -147,10 +147,10 @@ SI riscv32bf_h_c_gpr_get (SIM_CPU *, UINT);
 void riscv32bf_h_c_gpr_set (SIM_CPU *, UINT, SI);
 USI riscv32bf_h_csr_get (SIM_CPU *, UINT);
 void riscv32bf_h_csr_set (SIM_CPU *, UINT, USI);
-DI riscv32bf_h_fpr_get (SIM_CPU *, UINT);
-void riscv32bf_h_fpr_set (SIM_CPU *, UINT, DI);
-DI riscv32bf_h_c_fpr_get (SIM_CPU *, UINT);
-void riscv32bf_h_c_fpr_set (SIM_CPU *, UINT, DI);
+DF riscv32bf_h_fpr_get (SIM_CPU *, UINT);
+void riscv32bf_h_fpr_set (SIM_CPU *, UINT, DF);
+DF riscv32bf_h_c_fpr_get (SIM_CPU *, UINT);
+void riscv32bf_h_c_fpr_set (SIM_CPU *, UINT, DF);
 SI riscv32bf_h_opcode7_get (SIM_CPU *);
 void riscv32bf_h_opcode7_set (SIM_CPU *, SI);
 SI riscv32bf_h_copcode2_get (SIM_CPU *);
@@ -208,6 +208,10 @@ union sem_fields {
     DI f_uimm32_3120_000000000000;
     UINT f_rd;
   } sfmt_lui;
+  struct { /*  */
+    DI f_uimm9_43_121_62_000;
+    UINT f_rd;
+  } sfmt_c_fldsp;
   struct { /*  */
     DI f_imm9_121_62_21_112_42_0;
     UDI f_uimm3_93;
@@ -753,6 +757,70 @@ struct scache {
   f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));\
 }\
   f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));\
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FLDSP_VARS \
+  UINT f_c_funct3; \
+  UINT f_rd; \
+  UDI f_uimm3_43; \
+  UDI f_uimm1_121; \
+  UDI f_uimm2_62; \
+  DI f_uimm9_43_121_62_000; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FLDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5); \
+  f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
+  f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+{\
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));\
+}\
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));\
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FSDSP_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm3_123; \
+  DI f_uimm9_93_123_000; \
+  UDI f_uimm5_65; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FSDSP_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm9_93_123_000 = ((((f_uimm3_93) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm9_93_123_000 = ((f_uimm9_93_123_000) << (3));\
+  f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5); \
+  f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
+
+#define EXTRACT_IFMT_C_FSD_VARS \
+  UINT f_c_funct3; \
+  UDI f_uimm3_93; \
+  UDI f_uimm2_62; \
+  UDI f_uimm3_123; \
+  DI f_uimm8_62_123_000; \
+  UDI f_uimm3_43; \
+  UINT f_c_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_C_FSD_CODE \
+  length = 2; \
+  f_c_funct3 = EXTRACT_LSB0_UINT (insn, 16, 15, 3); \
+  f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3); \
+  f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2); \
+  f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3); \
+{\
+  f_uimm8_62_123_000 = ((((f_uimm2_62) << (3))) | (f_uimm3_123));\
+}\
+  f_uimm8_62_123_000 = ((f_uimm8_62_123_000) << (3));\
   f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3); \
   f_c_opcode = EXTRACT_LSB0_UINT (insn, 16, 1, 2); \
 

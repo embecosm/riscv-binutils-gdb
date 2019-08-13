@@ -190,7 +190,7 @@ riscv32bf_h_csr_set (SIM_CPU *current_cpu, UINT regno, USI newval)
 
 /* Get the value of h-fpr.  */
 
-DI
+DF
 riscv32bf_h_fpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return CPU (h_fpr[regno]);
@@ -199,14 +199,14 @@ riscv32bf_h_fpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-fpr.  */
 
 void
-riscv32bf_h_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv32bf_h_fpr_set (SIM_CPU *current_cpu, UINT regno, DF newval)
 {
   CPU (h_fpr[regno]) = newval;
 }
 
 /* Get the value of h-c-fpr.  */
 
-DI
+DF
 riscv32bf_h_c_fpr_get (SIM_CPU *current_cpu, UINT regno)
 {
   return GET_H_C_FPR (regno);
@@ -215,7 +215,7 @@ riscv32bf_h_c_fpr_get (SIM_CPU *current_cpu, UINT regno)
 /* Set a value for h-c-fpr.  */
 
 void
-riscv32bf_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DI newval)
+riscv32bf_h_c_fpr_set (SIM_CPU *current_cpu, UINT regno, DF newval)
 {
   SET_H_C_FPR (regno, newval);
 }

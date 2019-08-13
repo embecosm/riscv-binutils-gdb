@@ -83,8 +83,8 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_C_SDSP, RISCV64BF_RV64_INSN_C_SDSP, RISCV64BF_RV64_SFMT_C_SDSP },
   { RISCV_INSN_C_LD, RISCV64BF_RV64_INSN_C_LD, RISCV64BF_RV64_SFMT_C_LD },
   { RISCV_INSN_C_SD, RISCV64BF_RV64_INSN_C_SD, RISCV64BF_RV64_SFMT_C_SD },
-  { RISCV_INSN_C_FLDSP, RISCV64BF_RV64_INSN_C_FLDSP, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_C_FSDSP, RISCV64BF_RV64_INSN_C_FSDSP, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_C_FLDSP, RISCV64BF_RV64_INSN_C_FLDSP, RISCV64BF_RV64_SFMT_C_FLDSP },
+  { RISCV_INSN_C_FSDSP, RISCV64BF_RV64_INSN_C_FSDSP, RISCV64BF_RV64_SFMT_C_FSDSP },
   { RISCV_INSN_C_FSD, RISCV64BF_RV64_INSN_C_FSD, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_C_FLD, RISCV64BF_RV64_INSN_C_FLD, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_LUI, RISCV64BF_RV64_INSN_LUI, RISCV64BF_RV64_SFMT_LUI },
@@ -311,8 +311,8 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_FCVT_W_D, RISCV64BF_RV64_INSN_FCVT_W_D, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FCVT_WU_D, RISCV64BF_RV64_INSN_FCVT_WU_D, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FCLASS_D, RISCV64BF_RV64_INSN_FCLASS_D, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_W, RISCV64BF_RV64_INSN_FCVT_D_W, RISCV64BF_RV64_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_WU, RISCV64BF_RV64_INSN_FCVT_D_WU, RISCV64BF_RV64_SFMT_C_NOP },
+  { RISCV_INSN_FCVT_D_W, RISCV64BF_RV64_INSN_FCVT_D_W, RISCV64BF_RV64_SFMT_FCVT_D_W },
+  { RISCV_INSN_FCVT_D_WU, RISCV64BF_RV64_INSN_FCVT_D_WU, RISCV64BF_RV64_SFMT_FCVT_D_W },
   { RISCV_INSN_FCVT_S_D, RISCV64BF_RV64_INSN_FCVT_S_D, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FCVT_D_S, RISCV64BF_RV64_INSN_FCVT_D_S, RISCV64BF_RV64_SFMT_C_NOP },
   { RISCV_INSN_FCVT_L_D, RISCV64BF_RV64_INSN_FCVT_L_D, RISCV64BF_RV64_SFMT_C_NOP },
@@ -1096,11 +1096,11 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0707f) == 0xd2000053)
-                  { itype = RISCV64BF_RV64_INSN_FCVT_D_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV64BF_RV64_INSN_FCVT_D_W; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0707f) == 0xd2100053)
-                  { itype = RISCV64BF_RV64_INSN_FCVT_D_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV64BF_RV64_INSN_FCVT_D_WU; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
               case 2 :
                 if ((entire_insn & 0xfff0007f) == 0xd2200053)
@@ -1911,8 +1911,8 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val = (((insn >> 15) & (1 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV64BF_RV64_INSN_C_FLDSP; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV64BF_RV64_INSN_C_FSDSP; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV64BF_RV64_INSN_C_FLDSP; goto extract_sfmt_c_fldsp;
+          case 1 : itype = RISCV64BF_RV64_INSN_C_FSDSP; goto extract_sfmt_c_fsdsp;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -3898,6 +3898,62 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
+ extract_sfmt_c_fldsp:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+    UDI f_uimm1_121;
+    UINT f_rd;
+    UDI f_uimm2_62;
+    UDI f_uimm3_43;
+    DI f_uimm9_43_121_62_000;
+
+    f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1);
+    f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5);
+    f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));
+}
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm9_43_121_62_000) = f_uimm9_43_121_62_000;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fldsp", "f_uimm9_43_121_62_000 0x%x", 'x', f_uimm9_43_121_62_000, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fsdsp:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+    UDI f_uimm4_124;
+    UDI f_uimm2_82;
+    UDI f_uimm5_65;
+    DI f_uimm8_82_124_00;
+
+    f_uimm4_124 = EXTRACT_LSB0_UINT (insn, 16, 12, 4);
+    f_uimm2_82 = EXTRACT_LSB0_UINT (insn, 16, 8, 2);
+    f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5);
+{
+  f_uimm8_82_124_00 = ((((f_uimm2_82) << (4))) | (f_uimm4_124));
+}
+  f_uimm8_82_124_00 = ((f_uimm8_82_124_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm5_65) = f_uimm5_65;
+  FLD (f_uimm8_82_124_00) = f_uimm8_82_124_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fsdsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm8_82_124_00 0x%x", 'x', f_uimm8_82_124_00, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
  extract_sfmt_lui:
   {
     const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
@@ -4581,6 +4637,26 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs2) = f_rs2;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_amomin_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_d_w:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_d_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;

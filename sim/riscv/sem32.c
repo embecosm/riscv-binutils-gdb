@@ -928,6 +928,82 @@ SEM_FN_NAME (riscv32bf_rv32,c_flw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
+/* c.fldsp: c.fldsp ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg}) */
+
+static SEM_PC
+SEM_FN_NAME (riscv32bf_rv32,c_fldsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+  {
+    DF opval = SUBWORDDIDF (ORDI (GETMEMDI (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm9_43_121_62_000))), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+
+  return vpc;
+#undef FLD
+}
+
+/* c.fsdsp: c.fsdsp ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg}) */
+
+static SEM_PC
+SEM_FN_NAME (riscv32bf_rv32,c_fsdsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+  {
+    DI opval = SUBWORDDFDI (CPU (h_fpr[FLD (f_uimm5_65)]));
+    SETMEMDI (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm8_82_124_00)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
+  }
+
+  return vpc;
+#undef FLD
+}
+
+/* c.fsd: c.fsd ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97}) */
+
+static SEM_PC
+SEM_FN_NAME (riscv32bf_rv32,c_fsd) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
+/* c.fld: c.fld ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97}) */
+
+static SEM_PC
+SEM_FN_NAME (riscv32bf_rv32,c_fld) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_empty.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
+
+((void) 0); /*nop*/
+
+  return vpc;
+#undef FLD
+}
+
 /* lui: lui ${rd},${uimm32-3120-000000000000} */
 
 static SEM_PC
@@ -4617,13 +4693,17 @@ SEM_FN_NAME (riscv32bf_rv32,fclass_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_d_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4634,13 +4714,17 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_d_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_d_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_add.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->ufloatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -5200,6 +5284,10 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV32BF_RV32_INSN_C_FSWSP, SEM_FN_NAME (riscv32bf_rv32,c_fswsp) },
   { RISCV32BF_RV32_INSN_C_FSW, SEM_FN_NAME (riscv32bf_rv32,c_fsw) },
   { RISCV32BF_RV32_INSN_C_FLW, SEM_FN_NAME (riscv32bf_rv32,c_flw) },
+  { RISCV32BF_RV32_INSN_C_FLDSP, SEM_FN_NAME (riscv32bf_rv32,c_fldsp) },
+  { RISCV32BF_RV32_INSN_C_FSDSP, SEM_FN_NAME (riscv32bf_rv32,c_fsdsp) },
+  { RISCV32BF_RV32_INSN_C_FSD, SEM_FN_NAME (riscv32bf_rv32,c_fsd) },
+  { RISCV32BF_RV32_INSN_C_FLD, SEM_FN_NAME (riscv32bf_rv32,c_fld) },
   { RISCV32BF_RV32_INSN_LUI, SEM_FN_NAME (riscv32bf_rv32,lui) },
   { RISCV32BF_RV32_INSN_AUIPC, SEM_FN_NAME (riscv32bf_rv32,auipc) },
   { RISCV32BF_RV32_INSN_JAL, SEM_FN_NAME (riscv32bf_rv32,jal) },
