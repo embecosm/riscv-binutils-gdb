@@ -121,6 +121,9 @@ sim_open (kind, callback, abfd, argv)
      Must be done after riscv_cgen_cpu_open.  */
   cgen_init (sd);
 
+  SIM_CPU *current_cpu = STATE_CPU (sd, i);
+  cgen_init_accurate_fpu (current_cpu, CGEN_CPU_FPU (current_cpu), NULL);
+
   return sd;
 }
 

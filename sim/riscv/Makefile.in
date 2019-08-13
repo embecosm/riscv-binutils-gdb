@@ -33,6 +33,8 @@ RISCV_OBJS = \
 
 SIM_OBJS = \
 	$(SIM_NEW_COMMON_OBJS) \
+	cgen-fpu.o \
+	cgen-accfp.o \
 	cgen-utils.o \
 	cgen-trace.o \
 	cgen-scache.o \
