@@ -1,4 +1,8 @@
-2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
+2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Fixed fsgnj (FIXDFDI does not work).
+
+2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv.cpu: Added some semantics for RV32F & RV32D.
 
