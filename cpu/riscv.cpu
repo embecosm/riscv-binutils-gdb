@@ -1949,57 +1949,57 @@
 ; |31       20|19 15|14 12|11 7|6      0|
 ; |<imm[11:0]>|<rs1>| <rm>|<rd>|<opcode>|
 ; +-----------+-----+------+-----+------+
-(define-pmacro (rv-format-f-1 mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-f-1 mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${imm-lo12}(${rs1})")
     (+ imm-lo12 rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +-----------+-----+-----+-----+----------+--------+
 ; |31       25|24 20|19 15|14 12|11       7|6      0|
 ; |<imm[11:5]>|<rs2>|<rs1>| <rm>|<imm[4:0]>|<opcode>|
 ; +-----------+-----+-----+-----+----------+--------+
-(define-pmacro (rv-format-f-2 mnemonic attr funct3 opcode)
+(define-pmacro (rv-format-f-2 mnemonic attr funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rs2},${store12}(${rs1})")
     (+ store12 fl-rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +-----+-----+-----+-----+-----+----+--------+
 ; |31 27|26 25|24 20|19 15|14 12|11 7|6      0|
 ; |<rs3>|<fp2>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +-----+-----+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-3-rm mnemonic attr fp2 opcode)
+(define-pmacro (rv-format-f-3-rm mnemonic attr fp2 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm}")
     (+ fl-rs3 (f-fp2 fp2) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-4 mnemonic attr funct7 funct3 opcode)
+(define-pmacro (rv-format-f-4 mnemonic attr funct7 funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2}")
     (+ (f-funct7 funct7) fl-rs2 fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
-    (nop) ()))
-(define-pmacro (rv-format-f-4-rm mnemonic attr funct7 opcode)
+    sem ()))
+(define-pmacro (rv-format-f-4-rm mnemonic attr funct7 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm}")
     (+ (f-funct7 funct7) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-5 mnemonic attr funct7 reg funct3 opcode)
+(define-pmacro (rv-format-f-5 mnemonic attr funct7 reg funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${fl-rs1}")
     (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
-    (nop) ()))
-(define-pmacro (rv-format-f-5-rm mnemonic attr funct7 reg opcode)
+    sem ()))
+(define-pmacro (rv-format-f-5-rm mnemonic attr funct7 reg opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rm}")
     (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
@@ -2009,34 +2009,34 @@
     (.str mnemonic " ${fl-rd},${rs1}")
     (+ (f-funct7 funct7) (f-rs2 reg) rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
     sem ()))
-(define-pmacro (rv-format-f-6-rm mnemonic attr funct7 reg opcode)
+(define-pmacro (rv-format-f-6-rm mnemonic attr funct7 reg opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${fl-rd},${rs1},${fl-rm}")
     (+ (f-funct7 funct7) (f-rs2 reg) rs1 fl-rm fl-rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-7 mnemonic attr funct7 reg funct3 opcode)
+(define-pmacro (rv-format-f-7 mnemonic attr funct7 reg funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${fl-rs1}")
     (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
-(define-pmacro (rv-format-f-7-rm mnemonic attr funct7 reg opcode)
+    sem ()))
+(define-pmacro (rv-format-f-7-rm mnemonic attr funct7 reg opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${fl-rs1},${fl-rm}")
     (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 ; +--------+-----+-----+-----+----+--------+
 ; |31    25|24 20|19 15|14 12|11 7|6      0|
 ; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
 ; +--------+-----+-----+-----+----+--------+
-(define-pmacro (rv-format-f-8 mnemonic attr funct7 funct3 opcode)
+(define-pmacro (rv-format-f-8 mnemonic attr funct7 funct3 opcode sem)
   (dni mnemonic mnemonic attr
     (.str mnemonic " ${rd},${fl-rs1},${fl-rs2}")
     (+ (f-funct7 funct7) fl-rs2 fl-rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    (nop) ()))
+    sem ()))
 
 ;; Instructions
 ;;
@@ -2184,31 +2184,31 @@
 ; This should maybe be moved to a separate rv32fc isa
 (rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b011 #b10
-  (nop))
+  (set fl-rd (subword DF (or (mem DI (add (reg h-gpr 2) uimm8-32-121-63-00-abs)) #xffffffff00000000) 0)))
 (rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b10
-  (nop))
+  (set (mem SI (add (reg h-gpr 2) uimm7-51-123-61-00-abs)) (subword DI fc-rs3 0)))
 (rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b00
-  (nop))
+  (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (subword DI fc-rs2 0)))
 (rv-format-cl-3   "c.flw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b011 #b00
-  (nop))
+  (set fc-rs2 (subword DF (or (mem DI (add c-reg97 uimm7-51-123-61-00-abs)) #xffffffff00000000) 0)))
 
 ;RV32DC/RV64DC
 ; These should maybe be moved to a separate rv32/64dc isa
-(rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs)
+(rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs) ;Good
   #b001 #b10
   (set fl-rd (subword DF (or (mem DI (add (reg h-gpr 2) uimm9-43-121-62-000-abs)) #xffffffff00000000) 0)))
-(rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs)
+(rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs) ;Good
   #b101 #b10
   (set (mem DI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (subword DI fc-rs3 0)))
 (rv-format-cs-4   "c.fsd"   (all-isas c-ext c-machs)
   #b101 #b00
-  (nop))
+  (set (mem UDI (add c-reg97 uimm8-62-123-000-abs)) (subword DI fc-rs2 0)))
 (rv-format-cl-4   "c.fld"   (all-isas c-ext c-machs)
   #b001 #b00
-  (nop))
+  (set fc-rs2 (subword DF (or (mem UDI (add c-reg97 uimm8-62-123-000-abs)) #xffffffff00000000) 0)))
 
 ;===------------------------- 'I' Base instructions -------------------------===
 
@@ -2792,120 +2792,245 @@
 
 ;===-------------------- 'F' extension instructions -------------------------===
 
-(rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111)
-(rv-format-f-2    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111)
-(rv-format-f-3-rm "fmadd.s"   (all-isas f-ext f-machs) #b00 #b1000011)
-(rv-format-f-3-rm "fmsub.s"   (all-isas f-ext f-machs) #b00 #b1000111)
-(rv-format-f-3-rm "fnmsub.s"  (all-isas f-ext f-machs) #b00 #b1001011)
-(rv-format-f-3-rm "fnmadd.s"  (all-isas f-ext f-machs) #b00 #b1001111)
-(rv-format-f-4-rm "fadd.s"    (all-isas f-ext f-machs) #b0000000 #b1010011)
-(rv-format-f-4-rm "fsub.s"    (all-isas f-ext f-machs) #b0000100 #b1010011)
-(rv-format-f-4-rm "fmul.s"    (all-isas f-ext f-machs) #b0001000 #b1010011)
-(rv-format-f-4-rm "fdiv.s"    (all-isas f-ext f-machs) #b0001100 #b1010011)
-(rv-format-f-4    "fsgnj.s"   (all-isas f-ext f-machs) #b0010000 #b000 #b1010011)
-(rv-format-f-4    "fsgnjn.s"  (all-isas f-ext f-machs) #b0010000 #b001 #b1010011)
-(rv-format-f-4    "fsgnjx.s"  (all-isas f-ext f-machs) #b0010000 #b010 #b1010011)
-(rv-format-f-4    "fmin.s"    (all-isas f-ext f-machs) #b0010100 #b000 #b1010011)
-(rv-format-f-4    "fmax.s"    (all-isas f-ext f-machs) #b0010100 #b001 #b1010011)
-(rv-format-f-8    "feq.s"     (all-isas f-ext f-machs) #b1010000 #b010 #b1010011)
-(rv-format-f-8    "flt.s"     (all-isas f-ext f-machs) #b1010000 #b001 #b1010011)
-(rv-format-f-8    "fle.s"     (all-isas f-ext f-machs) #b1010000 #b000 #b1010011)
-(rv-format-f-5-rm "fsqrt.s"   (all-isas f-ext f-machs) #b0101100 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011)
-(rv-format-f-7    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011)
-(rv-format-f-7    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011)
-(rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011)
-(rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011)
-(rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 (nop))
+(define-pmacro flw-sem (set fl-rd (subword DF (or (zext DI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
+(define-pmacro fsw-sem (set (mem DF (add rs1 store12)) fl-rs2))
+
+(define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF res (add SF (mul SF lhs rhs) addend))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF res (sub SF (mul SF lhs rhs) addend))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fnmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF res (add SF (mul SF (neg lhs) rhs) addend))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fnmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF res (sub SF (mul SF (neg lhs) rhs) addend))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+
+(define-pmacro (fbinop-s-sem binop) (sequence ((SF lhs) (SF rhs) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF res (binop SF lhs rhs))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+
+(define-pmacro fsgnj-s-sem (sequence ((SF lhs) (SF rhs) (SF body) (SF sgn) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF body (float SF 0 (or SI (fix SI 0 lhs) #x80000000))) ;all bits except sign bit
+  (set SF sgn (float SF 0 (or SI (fix SI 0 rhs) #x7fffffff))) ;sign bit
+  (set SF res (float SF 0 (and SI (fix SI 0 sgn) (fix SI 0 body))))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fsgnjn-s-sem (sequence ((SF lhs) (SF rhs) (SF body) (SF sgn) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF body (float SF 0 (or SI (fix SI 0 lhs) #x80000000))) ;all bits except sign bit
+  (set SF sgn (float SF 0 (or SI (inv (fix SI 0 rhs)) #x7fffffff))) ;sign bit (opposite)
+  (set SF res (float SF 0 (and SI (fix SI 0 sgn) (fix SI 0 body))))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fsgnjx-s-sem (sequence ((SF lhs) (SF rhs) (SF body) (SF sgn1) (SF sgn2) (SF sgn) (SF res))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF body (float SF 0 (or SI (fix SI 0 lhs) #x80000000))) ;all bits except sign bit
+  (set SF sgn1 (float SF 0 (or SI (fix SI 0 lhs) #x7fffffff))) ;sign bit rs1
+  (set SF sgn2 (float SF 0 (or SI (fix SI 0 rhs) #x7fffffff))) ;sign bit rs2
+  (set SF sgn (float SF 0 (xor SI (fix SI 0 sgn1) (fix SI 0 sgn2)))) ;sign bit
+  (set SF res (float SF 0 (and SI (fix SI 0 sgn) (fix SI 0 body))))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+
+(define-pmacro (fmin-max-s-sem cond) (sequence ((SF lhs) (SF rhs))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (if (cond lhs rhs)
+      (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))
+      (set fl-rd (subword DF (or DI (zext DI (subword SI rhs 0)) #xffffffff00000000) 0)))))
+
+(define-pmacro (fcond-s-sem cnd) (sequence ((SF lhs) (SF rhs))
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set rd (cnd lhs rhs))))
+
+(define-pmacro fcvt-s-w-s-sem (sequence ((SF lhs)) ; SI -> SF
+  (set lhs (float SF 0 (trunc SI rs1)))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
+(define-pmacro fcvt-s-wu-s-sem (sequence ((SF lhs)) ; USI -> SF
+  (set lhs (ufloat SF 0 (trunc SI rs1)))
+  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
+(define-pmacro fcvt-w-s-s-sem (sequence ((SF lhs)) ; SF -> SI
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set rd (or DI (zext (fix SI 0 lhs) #xffffffff00000000)))))
+(define-pmacro fcvt-wu-s-s-sem (sequence ((SF lhs)) ; SF -> USI
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set rd (or DI (zext (ufix SI 0 lhs) #xffffffff00000000)))))
+
+(define-pmacro fmv-w-x-s-sem (sequence ((SF lhs)) ; SF -> SI?
+  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set rd (or DI (fix SI 0 lhs) #xffffffff00000000))))
+(define-pmacro fmv-x-w-s-sem
+  (set fl-rd (subword DF (or DI (trunc SI rs1) #xffffffff00000000) 0)))
+
+(rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 flw-sem)
+(rv-format-f-2    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111 fsw-sem)
+(rv-format-f-3-rm "fmadd.s"   (all-isas f-ext f-machs) #b00 #b1000011 fmadd-s-sem)
+(rv-format-f-3-rm "fmsub.s"   (all-isas f-ext f-machs) #b00 #b1000111 fmsub-s-sem)
+(rv-format-f-3-rm "fnmsub.s"  (all-isas f-ext f-machs) #b00 #b1001011 fnmsub-s-sem)
+(rv-format-f-3-rm "fnmadd.s"  (all-isas f-ext f-machs) #b00 #b1001111 fnmadd-s-sem)
+(rv-format-f-4-rm "fadd.s"    (all-isas f-ext f-machs) #b0000000 #b1010011 (fbinop-s-sem add))
+(rv-format-f-4-rm "fsub.s"    (all-isas f-ext f-machs) #b0000100 #b1010011 (fbinop-s-sem sub))
+(rv-format-f-4-rm "fmul.s"    (all-isas f-ext f-machs) #b0001000 #b1010011 (fbinop-s-sem mul))
+(rv-format-f-4-rm "fdiv.s"    (all-isas f-ext f-machs) #b0001100 #b1010011 (fbinop-s-sem div))
+(rv-format-f-4    "fsgnj.s"   (all-isas f-ext f-machs) #b0010000 #b000 #b1010011 fsgnj-s-sem)
+(rv-format-f-4    "fsgnjn.s"  (all-isas f-ext f-machs) #b0010000 #b001 #b1010011 fsgnjn-s-sem)
+(rv-format-f-4    "fsgnjx.s"  (all-isas f-ext f-machs) #b0010000 #b010 #b1010011 fsgnjx-s-sem)
+(rv-format-f-4    "fmin.s"    (all-isas f-ext f-machs) #b0010100 #b000 #b1010011 (fmin-max-s-sem lt))
+(rv-format-f-4    "fmax.s"    (all-isas f-ext f-machs) #b0010100 #b001 #b1010011 (fmin-max-s-sem gt))
+(rv-format-f-8    "feq.s"     (all-isas f-ext f-machs) #b1010000 #b010 #b1010011 (fcond-s-sem eq))
+(rv-format-f-8    "flt.s"     (all-isas f-ext f-machs) #b1010000 #b001 #b1010011 (fcond-s-sem lt))
+(rv-format-f-8    "fle.s"     (all-isas f-ext f-machs) #b1010000 #b000 #b1010011 (fcond-s-sem le))
+(rv-format-f-5-rm "fsqrt.s"   (all-isas f-ext f-machs) #b0101100 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 (nop))
+(rv-format-f-7    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-7    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 (nop))
+(rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 fmv-w-x-s-sem)
 
 ;RV64F
-(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011)
-(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011)
-(rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011)
-(rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011)
+(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 (nop))
 
 ;===-------------------- 'D' extension instructions -------------------------===
 
-(define-pmacro fcvt.d.w-s-sem
-  (set fl-rd (float DF 0 (trunc SI rs1))) ; SI-> float
-)
-(define-pmacro fcvt.d.wu-s-sem
-  (set fl-rd (ufloat DF 0 (trunc SI rs1))) ; SI-> float
-)
+(define-pmacro fcvt-d-w-d-sem
+  (set fl-rd (float DF 0 (trunc SI rs1)))) ; SI -> DF
+(define-pmacro fcvt-d-wu-d-sem
+  (set fl-rd (ufloat DF 0 (trunc SI rs1)))) ; USI -> DF
+(define-pmacro fcvt-w-d-d-sem
+  (set rd (trunc SI (fix DI 0 fl-rs1)))) ; DF -> SI
+(define-pmacro fcvt-wu-d-d-sem
+  (set rd (trunc USI (ufix DI 0 fl-rs1)))) ; DF -> USI
+
+(define-pmacro (fmbinop-d-sem binop)
+  (set fl-rd (binop DF (mul DF fl-rs1 fl-rs2) fl-rs3)))
+
+(define-pmacro (fnmsub-d-sem binop)
+  (set fl-rd (binop DF (mul DF (neg fl-rs1) fl-rs2) fl-rs3)))
+
+(define-pmacro (fbinop-d-sem binop) 
+  (set fl-rd  (binop DF fl-rs1 fl-rs2)))
+
+(define-pmacro (fmin-max-d-sem cond) (sequence ()
+  (if (cond fl-rs1 fl-rs2)
+      (set fl-rd (subword DF (or DI (zext DI (subword SI fl-rs1 0)) #xffffffff00000000) 0))
+      (set fl-rd (subword DF (or DI (zext DI (subword SI fl-rs2 0)) #xffffffff00000000) 0)))))
+
+(define-pmacro (fcond-d-sem cnd); FIXME: test for nan
+  (set DI rd (cnd fl-rs1 fl-rs2)))
+
+(define-pmacro fsgnj-d-sem (sequence ((DF body) (DF sgn))
+  (set DF body (float DF 0 (or DI (fix DI 0 fl-rs1) #x8000000000000000))) ;all bits except sign bit
+  (set DF sgn (float DF 0 (or DI (fix DI 0 fl-rs2) #x7fffffffffffffff))) ;sign bit
+  (set fl-rd (float DF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
+
+(define-pmacro fsgnjn-d-sem (sequence ((DF body) (DF sgn))
+  (set DF body (float SF 0 (or DI (fix DI 0 fl-rs1) #x80000000))) ;all bits except sign bit
+  (set DF sgn (float SF 0 (or DI (inv (fix DI 0 fl-rs2)) #x7fffffff))) ;sign bit (opposite)
+  (set fl-rd (float SF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
+
+(define-pmacro fsgnjx-d-sem (sequence ((DF body) (DF sgn1) (DF sgn2) (DF sgn))
+  (set SF body (float DF 0 (or DI (fix DI 0 fl-rs1) #x80000000))) ;all bits except sign bit
+  (set SF sgn1 (float DF 0 (or DI (fix DI 0 fl-rs1) #x7fffffff))) ;sign bit rs1
+  (set SF sgn2 (float DF 0 (or DI (fix DI 0 fl-rs2) #x7fffffff))) ;sign bit rs2
+  (set SF sgn (float DF 0 (xor DI (fix DI 0 sgn1) (fix DI 0 sgn2)))) ;sign bit
+  (set fl-rd (float DF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
 
 
-(rv-format-f-1    "fld"       (all-isas d-ext d-machs) #b011 #b0000111)
-(rv-format-f-2    "fsd"       (all-isas d-ext d-machs) #b011 #b0100111)
-(rv-format-f-3-rm "fmadd.d"   (all-isas d-ext d-machs) #b01 #b1000011)
-(rv-format-f-3-rm "fmsub.d"   (all-isas d-ext d-machs) #b01 #b1000111)
-(rv-format-f-3-rm "fnmsub.d"  (all-isas d-ext d-machs) #b01 #b1001011)
-(rv-format-f-3-rm "fnmadd.d"  (all-isas d-ext d-machs) #b01 #b1001111)
-(rv-format-f-4-rm "fadd.d"    (all-isas d-ext d-machs) #b0000001 #b1010011)
-(rv-format-f-4-rm "fsub.d"    (all-isas d-ext d-machs) #b0000101 #b1010011)
-(rv-format-f-4-rm "fmul.d"    (all-isas d-ext d-machs) #b0001001 #b1010011)
-(rv-format-f-4-rm "fdiv.d"    (all-isas d-ext d-machs) #b0001101 #b1010011)
-(rv-format-f-4    "fsgnj.d"   (all-isas d-ext d-machs) #b0010001 #b000 #b1010011)
-(rv-format-f-4    "fsgnjn.d"  (all-isas d-ext d-machs) #b0010001 #b001 #b1010011)
-(rv-format-f-4    "fsgnjx.d"  (all-isas d-ext d-machs) #b0010001 #b010 #b1010011)
-(rv-format-f-4    "fmin.d"    (all-isas d-ext d-machs) #b0010101 #b000 #b1010011)
-(rv-format-f-4    "fmax.d"    (all-isas d-ext d-machs) #b0010101 #b001 #b1010011)
-(rv-format-f-8    "feq.d"     (all-isas d-ext d-machs) #b1010001 #b010 #b1010011)
-(rv-format-f-8    "flt.d"     (all-isas d-ext d-machs) #b1010001 #b001 #b1010011)
-(rv-format-f-8    "fle.d"     (all-isas d-ext d-machs) #b1010001 #b000 #b1010011)
-(rv-format-f-5-rm "fsqrt.d"   (all-isas d-ext d-machs) #b0101101 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011)
-(rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011)
-(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt.d.w-s-sem)
-(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt.d.wu-s-sem)
-(rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011)
-(rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011)
+(rv-format-f-1    "fld"       (all-isas d-ext d-machs) #b011 #b0000111 flw-sem)
+(rv-format-f-2    "fsd"       (all-isas d-ext d-machs) #b011 #b0100111 fsw-sem)
+(rv-format-f-3-rm "fmadd.d"   (all-isas d-ext d-machs) #b01 #b1000011 (fmbinop-d-sem add))
+(rv-format-f-3-rm "fmsub.d"   (all-isas d-ext d-machs) #b01 #b1000111 (fmbinop-d-sem sub))
+(rv-format-f-3-rm "fnmsub.d"  (all-isas d-ext d-machs) #b01 #b1001011 (fnmsub-d-sem add))
+(rv-format-f-3-rm "fnmadd.d"  (all-isas d-ext d-machs) #b01 #b1001111 (fnmsub-d-sem sub))
+(rv-format-f-4-rm "fadd.d"    (all-isas d-ext d-machs) #b0000001 #b1010011 (fbinop-d-sem add))
+(rv-format-f-4-rm "fsub.d"    (all-isas d-ext d-machs) #b0000101 #b1010011 (fbinop-d-sem sub))
+(rv-format-f-4-rm "fmul.d"    (all-isas d-ext d-machs) #b0001001 #b1010011 (fbinop-d-sem mul))
+(rv-format-f-4-rm "fdiv.d"    (all-isas d-ext d-machs) #b0001101 #b1010011 (fbinop-d-sem div))
+(rv-format-f-4    "fsgnj.d"   (all-isas d-ext d-machs) #b0010001 #b000 #b1010011 fsgnj-d-sem) ;Core dump
+(rv-format-f-4    "fsgnjn.d"  (all-isas d-ext d-machs) #b0010001 #b001 #b1010011 fsgnjn-d-sem)
+(rv-format-f-4    "fsgnjx.d"  (all-isas d-ext d-machs) #b0010001 #b010 #b1010011 fsgnjx-d-sem)
+(rv-format-f-4    "fmin.d"    (all-isas d-ext d-machs) #b0010101 #b000 #b1010011 (fmin-max-d-sem lt))
+(rv-format-f-4    "fmax.d"    (all-isas d-ext d-machs) #b0010101 #b001 #b1010011 (fmin-max-d-sem gt))
+(rv-format-f-8    "feq.d"     (all-isas d-ext d-machs) #b1010001 #b010 #b1010011 (fcond-d-sem eq))
+(rv-format-f-8    "flt.d"     (all-isas d-ext d-machs) #b1010001 #b001 #b1010011 (fcond-d-sem lt))
+(rv-format-f-8    "fle.d"     (all-isas d-ext d-machs) #b1010001 #b000 #b1010011 (fcond-d-sem le))
+(rv-format-f-5-rm "fsqrt.d"   (all-isas d-ext d-machs) #b0101101 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 (nop))
+(rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011 (nop))
+(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt-d-w-d-sem)
+(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt-d-wu-d-sem)
+(rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 (nop))
+(rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 (nop))
 
 ;RV64D
-(rv-format-f-7-rm "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00010 #b1010011)
-(rv-format-f-7-rm "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00011 #b1010011)
-(rv-format-f-7    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011)
-(rv-format-f-6-rm "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011)
-(rv-format-f-6-rm "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011)
+(rv-format-f-7-rm "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00010 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00011 #b1010011 (nop))
+(rv-format-f-7    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011 (nop))
 (rv-format-f-6    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011 (nop))
 
 ;===-------------------- 'Q' extension instructions -------------------------===
 
-(rv-format-f-1    "flq"       (all-isas q-ext q-machs) #b100 #b0000111)
-(rv-format-f-2    "fsq"       (all-isas q-ext q-machs) #b100 #b0100111)
-(rv-format-f-3-rm "fmadd.q"   (all-isas q-ext q-machs) #b11 #b1000011)
-(rv-format-f-3-rm "fmsub.q"   (all-isas q-ext q-machs) #b11 #b1000111)
-(rv-format-f-3-rm "fnmsub.q"  (all-isas q-ext q-machs) #b11 #b1001011)
-(rv-format-f-3-rm "fnmadd.q"  (all-isas q-ext q-machs) #b11 #b1001111)
-(rv-format-f-4-rm "fadd.q"    (all-isas q-ext q-machs) #b0000011 #b1010011)
-(rv-format-f-4-rm "fsub.q"    (all-isas q-ext q-machs) #b0000111 #b1010011)
-(rv-format-f-4-rm "fmul.q"    (all-isas q-ext q-machs) #b0001011 #b1010011)
-(rv-format-f-4-rm "fdiv.q"    (all-isas q-ext q-machs) #b0001111 #b1010011)
-(rv-format-f-4    "fsgnj.q"   (all-isas q-ext q-machs) #b0010011 #b000 #b1010011)
-(rv-format-f-4    "fsgnjn.q"  (all-isas q-ext q-machs) #b0010011 #b001 #b1010011)
-(rv-format-f-4    "fsgnjx.q"  (all-isas q-ext q-machs) #b0010011 #b010 #b1010011)
-(rv-format-f-4    "fmin.q"    (all-isas q-ext q-machs) #b0010111 #b000 #b1010011)
-(rv-format-f-4    "fmax.q"    (all-isas q-ext q-machs) #b0010111 #b001 #b1010011)
-(rv-format-f-8    "feq.q"     (all-isas q-ext q-machs) #b1010011 #b010 #b1010011)
-(rv-format-f-8    "flt.q"     (all-isas q-ext q-machs) #b1010011 #b001 #b1010011)
-(rv-format-f-8    "fle.q"     (all-isas q-ext q-machs) #b1010011 #b000 #b1010011)
-(rv-format-f-5-rm "fsqrt.q"   (all-isas q-ext q-machs) #b0101111 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.w.q"  (all-isas q-ext q-machs) #b1100011 #b00000 #b1010011)
-(rv-format-f-7-rm "fcvt.wu.q" (all-isas q-ext q-machs) #b1100011 #b00001 #b1010011)
-(rv-format-f-7    "fclass.q"  (all-isas q-ext q-machs) #b1110011 #b00000 #b001 #b1010011)
+(rv-format-f-1    "flq"       (all-isas q-ext q-machs) #b100 #b0000111 (nop))
+(rv-format-f-2    "fsq"       (all-isas q-ext q-machs) #b100 #b0100111 (nop))
+(rv-format-f-3-rm "fmadd.q"   (all-isas q-ext q-machs) #b11 #b1000011 (nop))
+(rv-format-f-3-rm "fmsub.q"   (all-isas q-ext q-machs) #b11 #b1000111 (nop))
+(rv-format-f-3-rm "fnmsub.q"  (all-isas q-ext q-machs) #b11 #b1001011 (nop))
+(rv-format-f-3-rm "fnmadd.q"  (all-isas q-ext q-machs) #b11 #b1001111 (nop))
+(rv-format-f-4-rm "fadd.q"    (all-isas q-ext q-machs) #b0000011 #b1010011 (nop))
+(rv-format-f-4-rm "fsub.q"    (all-isas q-ext q-machs) #b0000111 #b1010011 (nop))
+(rv-format-f-4-rm "fmul.q"    (all-isas q-ext q-machs) #b0001011 #b1010011 (nop))
+(rv-format-f-4-rm "fdiv.q"    (all-isas q-ext q-machs) #b0001111 #b1010011 (nop))
+(rv-format-f-4    "fsgnj.q"   (all-isas q-ext q-machs) #b0010011 #b000 #b1010011 (nop))
+(rv-format-f-4    "fsgnjn.q"  (all-isas q-ext q-machs) #b0010011 #b001 #b1010011 (nop))
+(rv-format-f-4    "fsgnjx.q"  (all-isas q-ext q-machs) #b0010011 #b010 #b1010011 (nop))
+(rv-format-f-4    "fmin.q"    (all-isas q-ext q-machs) #b0010111 #b000 #b1010011 (nop))
+(rv-format-f-4    "fmax.q"    (all-isas q-ext q-machs) #b0010111 #b001 #b1010011 (nop))
+(rv-format-f-8    "feq.q"     (all-isas q-ext q-machs) #b1010011 #b010 #b1010011 (nop))
+(rv-format-f-8    "flt.q"     (all-isas q-ext q-machs) #b1010011 #b001 #b1010011 (nop))
+(rv-format-f-8    "fle.q"     (all-isas q-ext q-machs) #b1010011 #b000 #b1010011 (nop))
+(rv-format-f-5-rm "fsqrt.q"   (all-isas q-ext q-machs) #b0101111 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.w.q"  (all-isas q-ext q-machs) #b1100011 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.wu.q" (all-isas q-ext q-machs) #b1100011 #b00001 #b1010011 (nop))
+(rv-format-f-7    "fclass.q"  (all-isas q-ext q-machs) #b1110011 #b00000 #b001 #b1010011 (nop))
 (rv-format-f-6    "fcvt.q.w"  (all-isas q-ext q-machs) #b1101011 #b00000 #b000 #b1010011 (nop))
 (rv-format-f-6    "fcvt.q.wu" (all-isas q-ext q-machs) #b1101011 #b00001 #b000 #b1010011 (nop))
-(rv-format-f-5-rm "fcvt.s.q"  (all-isas q-ext q-machs) #b0100000 #b00011 #b1010011)
-(rv-format-f-5-rm "fcvt.d.q"  (all-isas q-ext q-machs) #b0100001 #b00011 #b1010011)
-(rv-format-f-5    "fcvt.q.s"  (all-isas q-ext q-machs) #b0100011 #b00000 #b000 #b1010011)
-(rv-format-f-5    "fcvt.q.d"  (all-isas q-ext q-machs) #b0100011 #b00001 #b000 #b1010011)
+(rv-format-f-5-rm "fcvt.s.q"  (all-isas q-ext q-machs) #b0100000 #b00011 #b1010011 (nop))
+(rv-format-f-5-rm "fcvt.d.q"  (all-isas q-ext q-machs) #b0100001 #b00011 #b1010011 (nop))
+(rv-format-f-5    "fcvt.q.s"  (all-isas q-ext q-machs) #b0100011 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-5    "fcvt.q.d"  (all-isas q-ext q-machs) #b0100011 #b00001 #b000 #b1010011 (nop))
 
 ;RV64Q
-(rv-format-f-7-rm "fcvt.l.q"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00010 #b1010011)
-(rv-format-f-7-rm "fcvt.lu.q" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00011 #b1010011)
-(rv-format-f-6-rm "fcvt.q.l"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00010 #b1010011)
-(rv-format-f-6-rm "fcvt.q.lu" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00011 #b1010011)
+(rv-format-f-7-rm "fcvt.l.q"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00010 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.lu.q" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00011 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.q.l"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00010 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.q.lu" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00011 #b1010011 (nop))
 
 ;RV128Q (not supported yet)
 ;(rv-format-f-7    "fmv.x.q"  ((ISA rv128) (RVEXT RV128Q) rv128q-machs) #b1110011 #b00000 #b000 #b1010011)
