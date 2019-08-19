@@ -266,11 +266,6 @@ union sem_fields {
     UINT f_rs1;
   } sfmt_slli_shift6;
   struct { /*  */
-    UINT f_rd;
-    UINT f_rs1;
-    UINT f_rs2;
-  } sfmt_add;
-  struct { /*  */
     UDI f_uimm5_245;
     UINT f_rd;
     UINT f_rs1;
@@ -300,6 +295,12 @@ union sem_fields {
     UDI f_uimm3_43;
     UDI f_uimm3_93;
   } sfmt_c_lw;
+  struct { /*  */
+    UINT f_rd;
+    UINT f_rs1;
+    UINT f_rs2;
+    UINT f_rs3;
+  } sfmt_fmadd_s;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {

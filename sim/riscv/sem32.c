@@ -392,7 +392,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_add) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_and) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_c_lw.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -413,7 +413,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_and) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_or) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_c_lw.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -434,7 +434,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_or) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_xor) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_c_lw.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -455,7 +455,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_xor) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_sub) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_c_lw.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -865,13 +865,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_jal) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_flwsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_flwsp.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (GETMEMDI (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm8_32_121_63_00))), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -882,13 +886,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_flwsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_fswsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_fswsp.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    SI opval = SUBWORDDFDI (CPU (h_fpr[FLD (f_uimm5_65)]));
+    SETMEMSI (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm7_51_123_61_00)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'x', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -899,13 +907,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_fswsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_fsw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_lw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    SI opval = SUBWORDDFDI (GET_H_C_FPR (FLD (f_uimm3_43)));
+    SETMEMSI (current_cpu, pc, ADDSI (GET_H_C_GPR (FLD (f_uimm3_93)), FLD (f_uimm7_51_123_61_00)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'x', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -916,13 +928,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_fsw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_flw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_lw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (GETMEMDI (current_cpu, pc, ADDSI (GET_H_C_GPR (FLD (f_uimm3_93)), FLD (f_uimm7_51_123_61_00))), MAKEDI (0xffffffff, 0)));
+    SET_H_C_FPR (FLD (f_uimm3_43), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "c-fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -975,13 +991,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_fsdsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_fsd) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    UDI opval = SUBWORDDFDI (GET_H_C_FPR (FLD (f_uimm3_43)));
+    SETMEMUDI (current_cpu, pc, ADDSI (GET_H_C_GPR (FLD (f_uimm3_93)), FLD (f_uimm8_62_123_000)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -992,13 +1012,17 @@ SEM_FN_NAME (riscv32bf_rv32,c_fsd) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_fld) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (GETMEMUDI (current_cpu, pc, ADDSI (GET_H_C_GPR (FLD (f_uimm3_93)), FLD (f_uimm8_62_123_000))), MAKEDI (0xffffffff, 0)));
+    SET_H_C_FPR (FLD (f_uimm3_43), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "c-fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -1632,7 +1656,7 @@ SEM_FN_NAME (riscv32bf_rv32,srai_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,add) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1653,7 +1677,7 @@ SEM_FN_NAME (riscv32bf_rv32,add) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sub) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1674,7 +1698,7 @@ SEM_FN_NAME (riscv32bf_rv32,sub) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sll) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1695,7 +1719,7 @@ SEM_FN_NAME (riscv32bf_rv32,sll) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,slt) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1716,7 +1740,7 @@ SEM_FN_NAME (riscv32bf_rv32,slt) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sltu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1737,7 +1761,7 @@ SEM_FN_NAME (riscv32bf_rv32,sltu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,xor) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1758,7 +1782,7 @@ SEM_FN_NAME (riscv32bf_rv32,xor) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,srl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1779,7 +1803,7 @@ SEM_FN_NAME (riscv32bf_rv32,srl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sra) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1800,7 +1824,7 @@ SEM_FN_NAME (riscv32bf_rv32,sra) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,or) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -1821,7 +1845,7 @@ SEM_FN_NAME (riscv32bf_rv32,or) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,and) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2165,7 +2189,7 @@ SEM_FN_NAME (riscv32bf_rv32,wfi) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,mul) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2186,7 +2210,7 @@ SEM_FN_NAME (riscv32bf_rv32,mul) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,mulh) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2248,7 +2272,7 @@ if (EQSI (GET_H_XLEN (), 32)) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,mulhsu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2309,7 +2333,7 @@ if (EQSI (GET_H_XLEN (), 32)) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,mulhu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2369,7 +2393,7 @@ if (EQSI (GET_H_XLEN (), 32)) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,div) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2390,7 +2414,7 @@ SEM_FN_NAME (riscv32bf_rv32,div) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,divu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2411,7 +2435,7 @@ SEM_FN_NAME (riscv32bf_rv32,divu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,rem) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2432,7 +2456,7 @@ SEM_FN_NAME (riscv32bf_rv32,rem) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,remu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2453,7 +2477,7 @@ SEM_FN_NAME (riscv32bf_rv32,remu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,lr_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2474,7 +2498,7 @@ SEM_FN_NAME (riscv32bf_rv32,lr_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,lr_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2495,7 +2519,7 @@ SEM_FN_NAME (riscv32bf_rv32,lr_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,lr_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2516,7 +2540,7 @@ SEM_FN_NAME (riscv32bf_rv32,lr_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,lr_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2537,7 +2561,7 @@ SEM_FN_NAME (riscv32bf_rv32,lr_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sc_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2558,7 +2582,7 @@ SEM_FN_NAME (riscv32bf_rv32,sc_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sc_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2579,7 +2603,7 @@ SEM_FN_NAME (riscv32bf_rv32,sc_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sc_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2600,7 +2624,7 @@ SEM_FN_NAME (riscv32bf_rv32,sc_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,sc_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2621,7 +2645,7 @@ SEM_FN_NAME (riscv32bf_rv32,sc_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoswap_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2651,7 +2675,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoswap_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoswap_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2681,7 +2705,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoswap_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoswap_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2711,7 +2735,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoswap_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoswap_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2741,7 +2765,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoswap_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_a
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoadd_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2771,7 +2795,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoadd_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoadd_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2801,7 +2825,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoadd_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoadd_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2831,7 +2855,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoadd_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoadd_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2861,7 +2885,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoadd_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoxor_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2891,7 +2915,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoxor_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoxor_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2921,7 +2945,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoxor_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoxor_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2951,7 +2975,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoxor_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoxor_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -2981,7 +3005,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoxor_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoand_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3011,7 +3035,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoand_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoand_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3041,7 +3065,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoand_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoand_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3071,7 +3095,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoand_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoand_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3101,7 +3125,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoand_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoor_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3131,7 +3155,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoor_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoor_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3161,7 +3185,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoor_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoor_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3191,7 +3215,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoor_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amoor_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3221,7 +3245,7 @@ SEM_FN_NAME (riscv32bf_rv32,amoor_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomin_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3262,7 +3286,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomin_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3303,7 +3327,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomin_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3344,7 +3368,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomin_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3385,7 +3409,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomax_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3426,7 +3450,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomax_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3467,7 +3491,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomax_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3508,7 +3532,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomax_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3549,7 +3573,7 @@ if (LTSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amominu_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3590,7 +3614,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amominu_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3631,7 +3655,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amominu_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3672,7 +3696,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amominu_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3713,7 +3737,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomaxu_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3754,7 +3778,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomaxu_w_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3795,7 +3819,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomaxu_w_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3836,7 +3860,7 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,amomaxu_w_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -3877,13 +3901,17 @@ if (LTUSI (tmp_tmp, GET_H_GPR (FLD (f_rs2)))) {
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,flw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_jalr.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (GETMEMSI (current_cpu, pc, ADDSI (GET_H_GPR (FLD (f_rs1)), FLD (f_imm12_3112)))), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -3894,13 +3922,17 @@ SEM_FN_NAME (riscv32bf_rv32,flw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CPU (h_fpr[FLD (f_rs2)]);
+    SETMEMDF (current_cpu, pc, ADDSI (GET_H_GPR (FLD (f_rs1)), FLD (f_imm12_317_115)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -3911,13 +3943,27 @@ SEM_FN_NAME (riscv32bf_rv32,fsw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_addend;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_addend = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs3)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->addsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->mulsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs), tmp_addend);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -3928,13 +3974,27 @@ SEM_FN_NAME (riscv32bf_rv32,fmadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_addend;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_addend = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs3)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->subsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->mulsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs), tmp_addend);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -3945,13 +4005,27 @@ SEM_FN_NAME (riscv32bf_rv32,fmsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fnmsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_addend;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_addend = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs3)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->addsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->mulsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->negsf (CGEN_CPU_FPU (current_cpu), tmp_lhs), tmp_rhs), tmp_addend);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -3962,13 +4036,27 @@ SEM_FN_NAME (riscv32bf_rv32,fnmsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fnmadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_addend;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_addend = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs3)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->subsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->mulsf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->negsf (CGEN_CPU_FPU (current_cpu), tmp_lhs), tmp_rhs), tmp_addend);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -3979,13 +4067,25 @@ SEM_FN_NAME (riscv32bf_rv32,fnmadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->addsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -3996,13 +4096,25 @@ SEM_FN_NAME (riscv32bf_rv32,fadd_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->subsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4013,13 +4125,25 @@ SEM_FN_NAME (riscv32bf_rv32,fsub_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmul_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->mulsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4030,13 +4154,25 @@ SEM_FN_NAME (riscv32bf_rv32,fmul_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fdiv_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->divsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4047,13 +4183,29 @@ SEM_FN_NAME (riscv32bf_rv32,fdiv_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnj_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_body;
+  SF tmp_sgn;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_body = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), 0x80000000));
+  tmp_sgn = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_rhs), 2147483647));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ANDSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn), CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_body)));
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4064,13 +4216,29 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnj_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnjn_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_body;
+  SF tmp_sgn;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_body = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), 0x80000000));
+  tmp_sgn = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (INVSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_rhs)), 2147483647));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ANDSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn), CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_body)));
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4081,13 +4249,33 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnjn_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnjx_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  SF tmp_body;
+  SF tmp_sgn1;
+  SF tmp_sgn2;
+  SF tmp_sgn;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  tmp_body = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), 0x80000000));
+  tmp_sgn1 = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), 2147483647));
+  tmp_sgn2 = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_rhs), 2147483647));
+  tmp_sgn = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, XORSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn1), CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn2)));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, ANDSI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn), CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_body)));
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4098,14 +4286,35 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnjx_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmin_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+if (CGEN_CPU_FPU (current_cpu)->ops->ltsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs)) {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_lhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_rhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -4115,14 +4324,35 @@ SEM_FN_NAME (riscv32bf_rv32,fmin_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmax_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+if (CGEN_CPU_FPU (current_cpu)->ops->gtsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs)) {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_lhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_rhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -4132,13 +4362,23 @@ SEM_FN_NAME (riscv32bf_rv32,fmax_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,feq_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  {
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->eqsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4149,13 +4389,23 @@ SEM_FN_NAME (riscv32bf_rv32,feq_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,flt_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  {
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->ltsf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4166,13 +4416,23 @@ SEM_FN_NAME (riscv32bf_rv32,flt_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fle_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_rhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_rhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]));
+  {
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->lesf (CGEN_CPU_FPU (current_cpu), tmp_lhs, tmp_rhs);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4183,13 +4443,23 @@ SEM_FN_NAME (riscv32bf_rv32,fle_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsqrt_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  SF tmp_res;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  tmp_res = CGEN_CPU_FPU (current_cpu)->ops->sqrtsf (CGEN_CPU_FPU (current_cpu), tmp_lhs);
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_res)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4200,13 +4470,21 @@ SEM_FN_NAME (riscv32bf_rv32,fsqrt_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_w_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  {
+    SI opval = ORDI (ZEXTSIDI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs)), MAKEDI (0xffffffff, 0));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4217,13 +4495,21 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_w_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_wu_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  {
+    SI opval = ORDI (ZEXTSIDI (CGEN_CPU_FPU (current_cpu)->ops->ufixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs)), MAKEDI (0xffffffff, 0));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4234,13 +4520,21 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_wu_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmv_x_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  {
+    SI opval = ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), MAKEDI (0xffffffff, 0));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4268,13 +4562,21 @@ SEM_FN_NAME (riscv32bf_rv32,fclass_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_s_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->floatsisf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_lhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4285,13 +4587,21 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_s_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_s_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ufloatsisf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDSFSI (tmp_lhs)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4302,13 +4612,21 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_s_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmv_w_x) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  {
+    SI opval = ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs), MAKEDI (0xffffffff, 0));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4319,13 +4637,17 @@ SEM_FN_NAME (riscv32bf_rv32,fmv_w_x) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fld) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_jalr.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (GETMEMSI (current_cpu, pc, ADDSI (GET_H_GPR (FLD (f_rs1)), FLD (f_imm12_3112)))), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4336,13 +4658,17 @@ SEM_FN_NAME (riscv32bf_rv32,fld) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsd) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_sb.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CPU (h_fpr[FLD (f_rs2)]);
+    SETMEMDF (current_cpu, pc, ADDSI (GET_H_GPR (FLD (f_rs1)), FLD (f_imm12_317_115)), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4353,13 +4679,17 @@ SEM_FN_NAME (riscv32bf_rv32,fsd) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->adddf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->muldf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)])), CPU (h_fpr[FLD (f_rs3)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4370,13 +4700,17 @@ SEM_FN_NAME (riscv32bf_rv32,fmadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->subdf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->muldf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)])), CPU (h_fpr[FLD (f_rs3)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4387,13 +4721,17 @@ SEM_FN_NAME (riscv32bf_rv32,fmsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fnmsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->adddf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->muldf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->negdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)])), CPU (h_fpr[FLD (f_rs2)])), CPU (h_fpr[FLD (f_rs3)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4404,13 +4742,17 @@ SEM_FN_NAME (riscv32bf_rv32,fnmsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fnmadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->subdf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->muldf (CGEN_CPU_FPU (current_cpu), CGEN_CPU_FPU (current_cpu)->ops->negdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)])), CPU (h_fpr[FLD (f_rs2)])), CPU (h_fpr[FLD (f_rs3)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4421,13 +4763,17 @@ SEM_FN_NAME (riscv32bf_rv32,fnmadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->adddf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4438,13 +4784,17 @@ SEM_FN_NAME (riscv32bf_rv32,fadd_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->subdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4455,13 +4805,17 @@ SEM_FN_NAME (riscv32bf_rv32,fsub_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmul_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->muldf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4472,13 +4826,17 @@ SEM_FN_NAME (riscv32bf_rv32,fmul_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fdiv_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->divdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4489,14 +4847,53 @@ SEM_FN_NAME (riscv32bf_rv32,fdiv_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnj_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  BI tmp_cnd1;
+  BI tmp_cnd2;
+  tmp_cnd1 = CGEN_CPU_FPU (current_cpu)->ops->ltdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), 0);
+  tmp_cnd2 = CGEN_CPU_FPU (current_cpu)->ops->ltdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs2)]), 0);
+if (EQBI (tmp_cnd2, 1)) {
+if (EQBI (tmp_cnd1, 0)) {
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatsidf (CGEN_CPU_FPU (current_cpu), 0, XORSI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])), MAKEDI (0x80000000, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = CPU (h_fpr[FLD (f_rs1)]);
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+} else {
+if (EQBI (tmp_cnd2, 1)) {
+  {
+    DF opval = CPU (h_fpr[FLD (f_rs1)]);
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatsidf (CGEN_CPU_FPU (current_cpu), 0, XORSI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])), MAKEDI (0x80000000, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+}
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -4506,13 +4903,23 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnj_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnjn_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  DF tmp_body;
+  DF tmp_sgn;
+  tmp_body = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])), MAKEDI (0x80000000, 0)));
+  tmp_sgn = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ORDI (INVSI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)]))), MAKEDI (2147483647, 0xffffffff)));
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ANDDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn), CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_body)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4523,13 +4930,27 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnjn_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsgnjx_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  DF tmp_body;
+  DF tmp_sgn1;
+  DF tmp_sgn2;
+  DF tmp_sgn;
+  tmp_body = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])), MAKEDI (0x80000000, 0)));
+  tmp_sgn1 = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])), MAKEDI (2147483647, 0xffffffff)));
+  tmp_sgn2 = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs2)])), MAKEDI (2147483647, 0xffffffff)));
+  tmp_sgn = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, XORDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn1), CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn2)));
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatdidf (CGEN_CPU_FPU (current_cpu), 0, ANDDI (CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_sgn), CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, tmp_body)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -4540,14 +4961,31 @@ SEM_FN_NAME (riscv32bf_rv32,fsgnjx_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmin_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+if (CGEN_CPU_FPU (current_cpu)->ops->ltdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]))) {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDDFSI (CPU (h_fpr[FLD (f_rs1)]), 0)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDDFSI (CPU (h_fpr[FLD (f_rs2)]), 0)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -4557,14 +4995,31 @@ SEM_FN_NAME (riscv32bf_rv32,fmin_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fmax_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+if (CGEN_CPU_FPU (current_cpu)->ops->gtdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]))) {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDDFSI (CPU (h_fpr[FLD (f_rs1)]), 0)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+} else {
+  {
+    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (SUBWORDDFSI (CPU (h_fpr[FLD (f_rs2)]), 0)), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    written |= (1 << 2);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -4574,13 +5029,17 @@ SEM_FN_NAME (riscv32bf_rv32,fmax_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,feq_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DI opval = CGEN_CPU_FPU (current_cpu)->ops->eqdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4591,13 +5050,17 @@ SEM_FN_NAME (riscv32bf_rv32,feq_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,flt_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DI opval = CGEN_CPU_FPU (current_cpu)->ops->ltdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4608,13 +5071,17 @@ SEM_FN_NAME (riscv32bf_rv32,flt_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fle_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DI opval = CGEN_CPU_FPU (current_cpu)->ops->ledf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]), CPU (h_fpr[FLD (f_rs2)]));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4625,13 +5092,17 @@ SEM_FN_NAME (riscv32bf_rv32,fle_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fsqrt_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->sqrtdf (CGEN_CPU_FPU (current_cpu), CPU (h_fpr[FLD (f_rs1)]));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4642,13 +5113,17 @@ SEM_FN_NAME (riscv32bf_rv32,fsqrt_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_w_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4659,13 +5134,17 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_w_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_wu_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->ufixsfsi (CGEN_CPU_FPU (current_cpu), 0, CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4693,16 +5172,16 @@ SEM_FN_NAME (riscv32bf_rv32,fclass_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_d_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
-    CPU (h_fpr[FLD (f_rd)]) = opval;
-    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
   }
 
   return vpc;
@@ -4714,16 +5193,16 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_d_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_d_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_add.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    DF opval = CGEN_CPU_FPU (current_cpu)->ops->ufloatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
-    CPU (h_fpr[FLD (f_rd)]) = opval;
-    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+    SI opval = CGEN_CPU_FPU (current_cpu)->ops->ufixsfsi (CGEN_CPU_FPU (current_cpu), 0, CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)])));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
   }
 
   return vpc;
@@ -4735,13 +5214,17 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_d_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_s_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+  {
+    DF opval = SUBWORDDIDF (ORDI (CGEN_CPU_FPU (current_cpu)->ops->fixsfsi (CGEN_CPU_FPU (current_cpu), 0, CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]))), MAKEDI (0xffffffff, 0)));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
 
   return vpc;
 #undef FLD
@@ -4752,13 +5235,21 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_s_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,fcvt_d_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_empty.f
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
-((void) 0); /*nop*/
+{
+  SF tmp_lhs;
+  tmp_lhs = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+  {
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->fextsfdf (CGEN_CPU_FPU (current_cpu), 0, tmp_lhs);
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
+  }
+}
 
   return vpc;
 #undef FLD

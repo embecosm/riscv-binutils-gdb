@@ -213,6 +213,14 @@ union sem_fields {
     UINT f_rd;
   } sfmt_c_fldsp;
   struct { /*  */
+    DI f_uimm7_51_123_61_00;
+    UDI f_uimm5_65;
+  } sfmt_c_fswsp;
+  struct { /*  */
+    DI f_uimm8_32_121_63_00;
+    UINT f_rd;
+  } sfmt_c_flwsp;
+  struct { /*  */
     DI f_imm9_121_62_21_112_42_0;
     UDI f_uimm3_93;
   } sfmt_c_beqz;
@@ -253,11 +261,6 @@ union sem_fields {
     UDI f_uimm3_43;
   } sfmt_c_addi4spn;
   struct { /*  */
-    UINT f_rd;
-    UINT f_rs1;
-    UINT f_rs2;
-  } sfmt_add;
-  struct { /*  */
     UDI f_uimm5_245;
     UINT f_rd;
     UINT f_rs1;
@@ -278,10 +281,21 @@ union sem_fields {
     UINT f_rs1;
   } sfmt_jalr;
   struct { /*  */
+    DI f_uimm8_62_123_000;
+    UDI f_uimm3_43;
+    UDI f_uimm3_93;
+  } sfmt_c_fsd;
+  struct { /*  */
     DI f_uimm7_51_123_61_00;
     UDI f_uimm3_43;
     UDI f_uimm3_93;
   } sfmt_c_lw;
+  struct { /*  */
+    UINT f_rd;
+    UINT f_rs1;
+    UINT f_rs2;
+    UINT f_rs3;
+  } sfmt_fmadd_s;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {
