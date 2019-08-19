@@ -1,3 +1,7 @@
+019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Added more semantics 
+
 2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv.cpu: Fixed fsgnj (FIXDFDI does not work).
