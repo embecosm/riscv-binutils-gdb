@@ -1,4 +1,8 @@
-2019-08-13  Mary Bennett  <mary.bennetts@embecosm.com>
+2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv-opc.c: Regenerated
+
+2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv-asm.c: Regenerated.
 	* riscv-desc.c: Likewise.
@@ -7,7 +11,7 @@
 	* riscv-ibld.c: Likewise.
 	* riscv-opc.c: Likewise.
 
-2019-08-12  Mary Bennett  <mary.bennetts@embecosm.com>
+2019-08-12  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv-asm.c: Regenerated.
 	* riscv-desc.c: Likewise.
@@ -24,7 +28,7 @@
 	* riscv-opc.c: Likewise.
 	* riscv-opc.h: Likewise.
 
-2019-07-23  Mary Bennett  <mary.bennetts@embecosm.com>
+2019-07-23  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv-asm.c: Regenerated.
 	* riscv-desc.c: Likewise.
