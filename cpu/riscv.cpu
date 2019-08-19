@@ -2942,22 +2942,28 @@
 (define-pmacro (fcond-d-sem cnd); FIXME: test for nan
   (set DI rd (cnd fl-rs1 fl-rs2)))
 
-(define-pmacro fsgnj-d-sem (sequence ((DF body) (DF sgn))
-  (set DF body (float DF 0 (or DI (fix DI 0 fl-rs1) #x8000000000000000))) ;all bits except sign bit
-  (set DF sgn (float DF 0 (or DI (fix DI 0 fl-rs2) #x7fffffffffffffff))) ;sign bit
-  (set fl-rd (float DF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
+(define-pmacro fsgnj-d-sem (sequence ((BI cnd1) (BI cnd2))
+  (set cnd1 (lt fl-rs1 (const DF 0)))
+  (set cnd2 (lt fl-rs2 (const DF 0)))
+  (if (eq cnd2 #b1) ;sgn = 1
+      (if (eq cnd1 #b0)
+	  (set DF fl-rd (float DF 0 (xor (fix SI 0 fl-rs1) #x8000000000000000))) ;change sgn 0->1
+	  (set DF fl-rd fl-rs1))
+      (if (eq cnd2 #b1)
+	  (set DF fl-rd fl-rs1)
+	  (set DF fl-rd (float DF 0 (xor (fix SI 0 fl-rs1) #x8000000000000000))))))) ;change sgn 1->0
 
 (define-pmacro fsgnjn-d-sem (sequence ((DF body) (DF sgn))
-  (set DF body (float SF 0 (or DI (fix DI 0 fl-rs1) #x80000000))) ;all bits except sign bit
-  (set DF sgn (float SF 0 (or DI (inv (fix DI 0 fl-rs2)) #x7fffffff))) ;sign bit (opposite)
-  (set fl-rd (float SF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
+  (set DF body  (float DF 0 (or  DI (fix SI 0 fl-rs1) #x8000000000000000))) ;all bits except sign bit
+  (set DF sgn   (float DF 0 (or  DI (inv (fix SI 0 fl-rs2)) #x7fffffffffffffff))) ;sign bit (opposite)
+  (set DF fl-rd (float DF 0 (and DI (fix SI 0 sgn) (fix SI 0 body))))))
 
 (define-pmacro fsgnjx-d-sem (sequence ((DF body) (DF sgn1) (DF sgn2) (DF sgn))
-  (set SF body (float DF 0 (or DI (fix DI 0 fl-rs1) #x80000000))) ;all bits except sign bit
-  (set SF sgn1 (float DF 0 (or DI (fix DI 0 fl-rs1) #x7fffffff))) ;sign bit rs1
-  (set SF sgn2 (float DF 0 (or DI (fix DI 0 fl-rs2) #x7fffffff))) ;sign bit rs2
-  (set SF sgn (float DF 0 (xor DI (fix DI 0 sgn1) (fix DI 0 sgn2)))) ;sign bit
-  (set fl-rd (float DF 0 (and DI (fix DI 0 sgn) (fix DI 0 body))))))
+  (set DF body  (float DF 0 (or  DI (fix SI 0 fl-rs1) #x8000000000000000))) ;all bits except sign bit
+  (set DF sgn1  (float DF 0 (or  DI (fix SI 0 fl-rs1) #x7fffffffffffffff))) ;sign bit rs1
+  (set DF sgn2  (float DF 0 (or  DI (fix SI 0 fl-rs2) #x7fffffffffffffff))) ;sign bit rs2
+  (set DF sgn   (float DF 0 (xor DI (fix SI 0 sgn1) (fix SI 0 sgn2)))) ;sign bit
+  (set DF fl-rd (float DF 0 (and DI (fix SI 0 sgn) (fix SI 0 body))))))
 
 
 (rv-format-f-1    "fld"       (all-isas d-ext d-machs) #b011 #b0000111 flw-sem)
