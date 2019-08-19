@@ -1,5 +1,9 @@
 2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
 
+	* riscv.cpu: Added some semantics for RV32F & RV32D.
+
+2019-08-13  Mary Bennett  <mary.bennett@embecosm.com>
+
 	* riscv.cpu: Added semantics for c.fldsp, c.fsdsp, fcvt.d.w,
 	fcvt.d.wu.
 
