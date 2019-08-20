@@ -1,6 +1,10 @@
+019-08-20  Mary Bennett  <mary.bennett@embecosm.com>
+
+	* riscv.cpu: Added fld semantics.
+
 019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
 
-	* riscv.cpu: Added more semantics 
+	* riscv.cpu: Added more semantics. 
 
 2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
 
