@@ -205,9 +205,9 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FDIV_S, RISCV32BF_RV32_INSN_FDIV_S, RISCV32BF_RV32_SFMT_FADD_S },
   { RISCV_INSN_FSGNJ_S, RISCV32BF_RV32_INSN_FSGNJ_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
   { RISCV_INSN_FSGNJN_S, RISCV32BF_RV32_INSN_FSGNJN_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
-  { RISCV_INSN_FSGNJX_S, RISCV32BF_RV32_INSN_FSGNJX_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
-  { RISCV_INSN_FMIN_S, RISCV32BF_RV32_INSN_FMIN_S, RISCV32BF_RV32_SFMT_FMIN_S },
-  { RISCV_INSN_FMAX_S, RISCV32BF_RV32_INSN_FMAX_S, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FSGNJX_S, RISCV32BF_RV32_INSN_FSGNJX_S, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FMIN_S, RISCV32BF_RV32_INSN_FMIN_S, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FMAX_S, RISCV32BF_RV32_INSN_FMAX_S, RISCV32BF_RV32_SFMT_FSGNJX_S },
   { RISCV_INSN_FEQ_S, RISCV32BF_RV32_INSN_FEQ_S, RISCV32BF_RV32_SFMT_FEQ_S },
   { RISCV_INSN_FLT_S, RISCV32BF_RV32_INSN_FLT_S, RISCV32BF_RV32_SFMT_FEQ_S },
   { RISCV_INSN_FLE_S, RISCV32BF_RV32_INSN_FLE_S, RISCV32BF_RV32_SFMT_FEQ_S },
@@ -219,7 +219,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FCVT_S_W, RISCV32BF_RV32_INSN_FCVT_S_W, RISCV32BF_RV32_SFMT_FCVT_S_W },
   { RISCV_INSN_FCVT_S_WU, RISCV32BF_RV32_INSN_FCVT_S_WU, RISCV32BF_RV32_SFMT_FCVT_S_W },
   { RISCV_INSN_FMV_W_X, RISCV32BF_RV32_INSN_FMV_W_X, RISCV32BF_RV32_SFMT_FMV_W_X },
-  { RISCV_INSN_FLD, RISCV32BF_RV32_INSN_FLD, RISCV32BF_RV32_SFMT_FLW },
+  { RISCV_INSN_FLD, RISCV32BF_RV32_INSN_FLD, RISCV32BF_RV32_SFMT_FLD },
   { RISCV_INSN_FSD, RISCV32BF_RV32_INSN_FSD, RISCV32BF_RV32_SFMT_FSW },
   { RISCV_INSN_FMADD_D, RISCV32BF_RV32_INSN_FMADD_D, RISCV32BF_RV32_SFMT_FMADD_S },
   { RISCV_INSN_FMSUB_D, RISCV32BF_RV32_INSN_FMSUB_D, RISCV32BF_RV32_SFMT_FMADD_S },
@@ -229,11 +229,11 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FSUB_D, RISCV32BF_RV32_INSN_FSUB_D, RISCV32BF_RV32_SFMT_FADD_S },
   { RISCV_INSN_FMUL_D, RISCV32BF_RV32_INSN_FMUL_D, RISCV32BF_RV32_SFMT_FADD_S },
   { RISCV_INSN_FDIV_D, RISCV32BF_RV32_INSN_FDIV_D, RISCV32BF_RV32_SFMT_FADD_S },
-  { RISCV_INSN_FSGNJ_D, RISCV32BF_RV32_INSN_FSGNJ_D, RISCV32BF_RV32_SFMT_FMIN_S },
-  { RISCV_INSN_FSGNJN_D, RISCV32BF_RV32_INSN_FSGNJN_D, RISCV32BF_RV32_SFMT_FSGNJ_S },
-  { RISCV_INSN_FSGNJX_D, RISCV32BF_RV32_INSN_FSGNJX_D, RISCV32BF_RV32_SFMT_FSGNJ_S },
-  { RISCV_INSN_FMIN_D, RISCV32BF_RV32_INSN_FMIN_D, RISCV32BF_RV32_SFMT_FMIN_S },
-  { RISCV_INSN_FMAX_D, RISCV32BF_RV32_INSN_FMAX_D, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FSGNJ_D, RISCV32BF_RV32_INSN_FSGNJ_D, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FSGNJN_D, RISCV32BF_RV32_INSN_FSGNJN_D, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FSGNJX_D, RISCV32BF_RV32_INSN_FSGNJX_D, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FMIN_D, RISCV32BF_RV32_INSN_FMIN_D, RISCV32BF_RV32_SFMT_FSGNJX_S },
+  { RISCV_INSN_FMAX_D, RISCV32BF_RV32_INSN_FMAX_D, RISCV32BF_RV32_SFMT_FSGNJX_S },
   { RISCV_INSN_FEQ_D, RISCV32BF_RV32_INSN_FEQ_D, RISCV32BF_RV32_SFMT_FEQ_S },
   { RISCV_INSN_FLT_D, RISCV32BF_RV32_INSN_FLT_D, RISCV32BF_RV32_SFMT_FEQ_S },
   { RISCV_INSN_FLE_D, RISCV32BF_RV32_INSN_FLE_D, RISCV32BF_RV32_SFMT_FEQ_S },
@@ -842,10 +842,10 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
           case 16 : itype = RISCV32BF_RV32_INSN_FSGNJ_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJ_D; goto extract_sfmt_fmin_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJ_D; goto extract_sfmt_fsgnjx_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJ_Q; goto extract_sfmt_c_nop;
-          case 20 : itype = RISCV32BF_RV32_INSN_FMIN_S; goto extract_sfmt_fmin_s;
-          case 21 : itype = RISCV32BF_RV32_INSN_FMIN_D; goto extract_sfmt_fmin_s;
+          case 20 : itype = RISCV32BF_RV32_INSN_FMIN_S; goto extract_sfmt_fsgnjx_s;
+          case 21 : itype = RISCV32BF_RV32_INSN_FMIN_D; goto extract_sfmt_fsgnjx_s;
           case 23 : itype = RISCV32BF_RV32_INSN_FMIN_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -1150,10 +1150,10 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
           case 16 : itype = RISCV32BF_RV32_INSN_FSGNJN_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJN_D; goto extract_sfmt_fsgnj_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJN_D; goto extract_sfmt_fsgnjx_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJN_Q; goto extract_sfmt_c_nop;
-          case 20 : itype = RISCV32BF_RV32_INSN_FMAX_S; goto extract_sfmt_fmin_s;
-          case 21 : itype = RISCV32BF_RV32_INSN_FMAX_D; goto extract_sfmt_fmin_s;
+          case 20 : itype = RISCV32BF_RV32_INSN_FMAX_S; goto extract_sfmt_fsgnjx_s;
+          case 21 : itype = RISCV32BF_RV32_INSN_FMAX_D; goto extract_sfmt_fsgnjx_s;
           case 23 : itype = RISCV32BF_RV32_INSN_FMAX_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -1584,8 +1584,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_fadd_s;
           case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJX_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJX_D; goto extract_sfmt_fsgnj_s;
+          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJX_S; goto extract_sfmt_fsgnjx_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJX_D; goto extract_sfmt_fsgnjx_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJX_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -1692,7 +1692,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 371 : /* fall through */
       case 1395 : itype = RISCV32BF_RV32_INSN_CSRRS; goto extract_sfmt_c_nop;
       case 391 : /* fall through */
-      case 1415 : itype = RISCV32BF_RV32_INSN_FLD; goto extract_sfmt_flw;
+      case 1415 : itype = RISCV32BF_RV32_INSN_FLD; goto extract_sfmt_fld;
       case 403 : /* fall through */
       case 1427 : itype = RISCV32BF_RV32_INSN_SLTIU; goto extract_sfmt_addi;
       case 423 : /* fall through */
@@ -4694,7 +4694,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
- extract_sfmt_fmin_s:
+ extract_sfmt_fsgnjx_s:
   {
     const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
     CGEN_INSN_WORD insn = entire_insn;
@@ -4711,7 +4711,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs1) = f_rs1;
   FLD (f_rs2) = f_rs2;
   FLD (f_rd) = f_rd;
-  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmin_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsgnjx_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;
@@ -4835,6 +4835,29 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs1) = f_rs1;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmv_w_x", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fld:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_jalr.f
+    DI f_imm12_3112;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_imm12_3112 = EXTRACT_LSB0_SINT (insn, 32, 31, 12);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_imm12_3112) = f_imm12_3112;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fld", "f_imm12_3112 0x%x", 'x', f_imm12_3112, "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;
