@@ -3283,6 +3283,10 @@ static const CGEN_IFMT ifmt_p_fge_d ATTRIBUTE_UNUSED = {
   32, 32, 0xfe00707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
 
+static const CGEN_IFMT ifmt_p_fmv_d ATTRIBUTE_UNUSED = {
+  32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
+};
+
 static const CGEN_IFMT ifmt_p_fcvt_l_d ATTRIBUTE_UNUSED = {
   32, 32, 0xfff0707f, { { F (F_FUNCT7) }, { F (F_RS2) }, { F (F_RS1) }, { F (F_FUNCT3) }, { F (F_RD) }, { F (F_OPCODE) }, { 0 } }
 };
@@ -4444,6 +4448,11 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* fge.d ${rd},${fl-rs2},${fl-rs1} */
   {
     -1, "p-fge.d", "fge.d", 32,
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32D)|(1<<RVEXT_RV64D), 0 } } } }
+  },
+/* fmv.d ${fl-rd},${rs1} */
+  {
+    -1, "p-fmv.d", "fmv.d", 32,
     { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32D)|(1<<RVEXT_RV64D), 0 } } } }
   },
 /* fcvt.l.d ${rd},${fl-rs1} */
@@ -5836,6 +5845,12 @@ static const CGEN_OPCODE riscv_cgen_macro_insn_opcode_table[] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (FL_RS2), ',', OP (FL_RS1), 0 } },
     & ifmt_p_fge_d, { 0xa2000053 }
+  },
+/* fmv.d ${fl-rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (FL_RD), ',', OP (RS1), 0 } },
+    & ifmt_p_fmv_d, { 0xf2000053 }
   },
 /* fcvt.l.d ${rd},${fl-rs1} */
   {
