@@ -307,7 +307,7 @@ if test x${all_targets} = xfalse ; then
 	bfd_pru_arch)		ta="$ta pru-dis.lo pru-opc.lo" ;;
 	bfd_pyramid_arch)	;;
 	bfd_romp_arch)		;;
-	bfd_riscv_arch)         ta="$ta riscv-asm.lo riscv-desc.lo riscv-dis.lo riscv-ibld.lo riscv-opc.lo" using_cgen=yes ;;
+	bfd_riscv_arch)         ta="$ta riscv-cgen-asm.lo riscv-cgen-desc.lo riscv-cgen-dis.lo riscv-cgen-ibld.lo riscv-cgen-opc.lo" using_cgen=yes ;;
 	bfd_rs6000_arch)	ta="$ta ppc-dis.lo ppc-opc.lo" ;;
 	bfd_rl78_arch)		ta="$ta rl78-dis.lo rl78-decode.lo";;
 	bfd_rx_arch)		ta="$ta rx-dis.lo rx-decode.lo";;

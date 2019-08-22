@@ -27,8 +27,8 @@ This file is part of the GNU Binutils and/or GDB, the GNU debugger.
 #include "ansidecl.h"
 #include "bfd.h"
 #include "symcat.h"
-#include "riscv-desc.h"
-#include "riscv-opc.h"
+#include "riscv-cgen-desc.h"
+#include "riscv-cgen-opc.h"
 #include "libiberty.h"
 
 /* -- opc.c */

@@ -33,8 +33,8 @@
 #include "bfd.h"
 #include "symcat.h"
 #include "libiberty.h"
-#include "riscv-desc.h"
-#include "riscv-opc.h"
+#include "riscv-cgen-desc.h"
+#include "riscv-cgen-opc.h"
 #include "opintl.h"
 
 /* Default text to print if an instruction isn't recognized.  */
