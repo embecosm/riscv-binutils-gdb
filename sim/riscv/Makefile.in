@@ -50,7 +50,7 @@ SIM_EXTRA_DEPS = \
 	arch$(XLEN).h \
 	cpuall$(XLEN).h \
 	riscv-sim.h \
-	$(srcdir)/../../opcodes/riscv-desc.h
+	$(srcdir)/../../opcodes/riscv-cgen-desc.h
 
 SIM_EXTRA_CFLAGS = $(XLEN_CFLAG)
 SIM_EXTRA_CLEAN = riscv-clean
