@@ -1,3 +1,19 @@
+2019-08-22  Edward Jones  <ed.jones@embecosm.com>
+
+	* Makefile.am: Rename occurrences of riscv-* prefixed files
+	to have a riscv-cgen-* prefix.
+	* Makefile.in: Regenerated.
+	* configure: Regenerated.
+	* configure.ac: Rename occurrences of riscv-* prefixed files
+	to have a riscv-cgen-* prefix instead.
+	* riscv-asm.c: Renamed to riscv-cgen-asm.c, and regenerated.
+	* riscv-desc.c: Renamed to riscv-cgen-desc.c, and regenerated.
+	* riscv-desc.h: Renamed to riscv-cgen-desc.h, and regenerated.
+	* riscv-dis.c: Renamed to riscv-cgen-dis.c, and regenerated.
+	* riscv-ibld.c: Renamed to riscv-cgen-ibld.c, and regenerated.
+	* riscv-opc.c: Renamed to riscv-cgen-opc.c, and regenerated.
+	* riscv-opc.h: Renamed to riscv-cgen-opc.h, and regenerated.
+
 2019-08-20  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv-opc.c: Regenerated

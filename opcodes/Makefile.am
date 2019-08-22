@@ -219,11 +219,11 @@ TARGET_LIBOPCODES_CFILES = \
 	ppc-opc.c \
 	pru-dis.c \
 	pru-opc.c \
-	riscv-asm.c \
-	riscv-desc.c \
-	riscv-dis.c \
-	riscv-ibld.c \
-	riscv-opc.c \
+	riscv-cgen-asm.c \
+	riscv-cgen-desc.c \
+	riscv-cgen-dis.c \
+	riscv-cgen-ibld.c \
+	riscv-cgen-opc.c \
 	rl78-decode.c \
 	rl78-dis.c \
 	rx-decode.c \
@@ -499,10 +499,10 @@ stamp-or1k: $(CGENDEPS) $(CPUDIR)/or1k.cpu $(CPUDIR)/or1k.opc $(CPUDIR)/or1kcomm
 	$(MAKE) run-cgen arch=or1k prefix=or1k options=opinst \
 		archfile=$(CPUDIR)/or1k.cpu opcfile=$(CPUDIR)/or1k.opc extrafiles=opinst
 
-$(srcdir)/riscv-desc.h $(srcdir)/riscv-desc.c $(srcdir)/riscv-opc.h $(srcdir)/riscv-opc.c $(srcdir)/riscv-ibld.c $(srcdir)/riscv-asm.c $(srcdir)/riscv-dis.c: $(RISCV_DEPS)
+$(srcdir)/riscv-cgen-desc.h $(srcdir)/riscv-cgen-desc.c $(srcdir)/riscv-cgen-opc.h $(srcdir)/riscv-cgen-opc.c $(srcdir)/riscv-cgen-ibld.c $(srcdir)/riscv-cgen-asm.c $(srcdir)/riscv-cgen-dis.c: $(RISCV_DEPS)
 	@true
 stamp-riscv: $(CGENDEPS) $(CPUDIR)/riscv.cpu $(CPUDIR)/riscv.opc
-	$(MAKE) run-cgen arch=riscv prefix=riscv options= \
+	$(MAKE) run-cgen arch=riscv prefix=riscv-cgen options= \
 		archfile=$(CPUDIR)/riscv.cpu opcfile=$(CPUDIR)/riscv.opc extrafiles=
 
 $(srcdir)/xc16x-desc.h $(srcdir)/xc16x-desc.c $(srcdir)/xc16x-opc.h $(srcdir)/xc16x-opc.c $(srcdir)/xc16x-ibld.c $(srcdir)/xc16x-asm.c $(srcdir)/xc16x-dis.c: $(XC16X_DEPS)
