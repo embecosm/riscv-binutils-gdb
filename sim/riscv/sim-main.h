@@ -30,8 +30,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "symcat.h"
 #include "sim-basics.h"
 #include "cgen-types.h"
-#include "riscv-desc.h"
-#include "riscv-opc.h"
+#include "riscv-cgen-desc.h"
+#include "riscv-cgen-opc.h"
 #include "arch.h"
 
 #include "sim-base.h"
