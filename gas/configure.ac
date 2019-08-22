@@ -680,7 +680,7 @@ if test $using_cgen = yes ; then
     or1knd)
        cgen_cpu_prefix=or1k ;;
     riscv*)
-       cgen_cpu_prefix=riscv ;;
+       cgen_cpu_prefix=riscv-cgen ;;
     *) cgen_cpu_prefix=${target_cpu} ;;
   esac
   AC_SUBST(cgen_cpu_prefix)
