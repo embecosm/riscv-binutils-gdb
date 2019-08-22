@@ -29,8 +29,8 @@
 #include "symcat.h"
 #include "safe-ctype.h"
 
-#include "opcodes/riscv-desc.h"
-#include "opcodes/riscv-opc.h"
+#include "opcodes/riscv-cgen-desc.h"
+#include "opcodes/riscv-cgen-opc.h"
 #include "cgen.h"
 
 #include "itbl-ops.h"

@@ -1,3 +1,10 @@
+2019-08-22  Edward Jones  <ed.jones@embecosm.com>
+
+	* config/tc-riscv.c: Include riscv-cgen-desc.h and 
+	riscv-cgen-opc.h instead of riscv-desc.h and riscv-opc.h.
+	* configure: Regenerated.
+	* configure.ac: Set riscv cgen_cpu_prefix to riscv-cgen.
+
 2019-07-30  Mary Bennett     <mary.bennett@embecosm.com>
 
 	* testsuite/gas/riscv/fsxxi.d: Changed test to use upstream
