@@ -21,22 +21,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Custom hardware handlers */
 #if XLEN == 32
-void riscv32bf_exception (sim_cpu *current_cpu, USI pc, USI exnum);
-
-DI   riscv32bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
-void riscv32bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
-UDI  riscv32bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
-void riscv32bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
+  #define WI  SI
+  #define UWI USI
+  #define SETTWI(buf, val) SETTSI(buf, val)
+  #define SETTUWI(buf, val) SETTUSI(buf, val)
+  #define GETTWI(buf) GETTDI(buf)
+  #define CPU_FUNC(FN) riscv32bf ## FN
+#elif XLEN == 64
+  #define WI  DI
+  #define UWI UDI
+  #define SETTWI(buf, val) SETTDI(buf, val)
+  #define SETTUWI(buf, val) SETTUDI(buf, val)
+  #define GETTWI(buf) GETTDI(buf)
+  #define CPU_FUNC(FN) riscv64bf ## FN
+#else
+  #error XLEN not defined, or not 32 or 64 bits
 #endif
 
+void CPU_FUNC(_exception) (sim_cpu *current_cpu, USI pc, USI exnum);
+UWI  CPU_FUNC(_h_xlen_get_handler) (SIM_CPU * current_cpu);
+WI   CPU_FUNC(_h_gpr_get_handler)  (SIM_CPU * current_cpu, UINT gpr);
+void CPU_FUNC(_h_gpr_set_handler)  (SIM_CPU * current_cpu, UINT gpr, WI newval);
+UWI  CPU_FUNC(_h_csr_get_handler)  (SIM_CPU * current_cpu, UINT csr);
+void CPU_FUNC(_h_csr_set_handler)  (SIM_CPU * current_cpu, UINT csr, UWI newval);
+
 #if XLEN == 64
-void riscv64bf_exception (sim_cpu *current_cpu, UDI pc, USI exnum);
-
-DI   riscv64bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
-void riscv64bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
-UDI  riscv64bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
-void riscv64bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
-
 DI riscv64_bmatflip (SIM_CPU *current_cpu, DI rs1);
 DI riscv64_bmator (SIM_CPU *current_cpu, DI rs1, DI rs2);
 DI riscv64_bmatxor (SIM_CPU *current_cpu, DI rs1, DI rs2);

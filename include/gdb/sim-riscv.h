@@ -23,26 +23,35 @@
 #define SIM_RISCV_H
 
 /* RiscV register numbers.  */
+/* NOTE: This is a copy of the table found in gdb/riscv-tdep.h */
 enum
 {
-  SIM_RISCV_ZERO_REGNUM = 0,	/* Read-only register, always 0.  */
-  SIM_RISCV_RA_REGNUM = 1,		/* Return Address.  */
-  SIM_RISCV_SP_REGNUM = 2,		/* Stack Pointer.  */
-  SIM_RISCV_GP_REGNUM = 3,		/* Global Pointer.  */
-  SIM_RISCV_TP_REGNUM = 4,		/* Thread Pointer.  */
-  SIM_RISCV_FP_REGNUM = 8,		/* Frame Pointer.  */
-  SIM_RISCV_A0_REGNUM = 10,		/* First argument.  */
-  SIM_RISCV_A1_REGNUM = 11,		/* Second argument.  */
-  SIM_RISCV_T6_REGNUM = 31,
-  SIM_RISCV_PC_REGNUM = 32,		/* Program Counter.  */
+  RISCV_ZERO_REGNUM = 0,	/* Read-only register, always 0.  */
+  RISCV_RA_REGNUM = 1,		/* Return Address.  */
+  RISCV_SP_REGNUM = 2,		/* Stack Pointer.  */
+  RISCV_GP_REGNUM = 3,		/* Global Pointer.  */
+  RISCV_TP_REGNUM = 4,		/* Thread Pointer.  */
+  RISCV_FP_REGNUM = 8,		/* Frame Pointer.  */
+  RISCV_A0_REGNUM = 10,		/* First argument.  */
+  RISCV_A1_REGNUM = 11,		/* Second argument.  */
+  RISCV_PC_REGNUM = 32,		/* Program Counter.  */
 
-  SIM_RISCV_FIRST_FP_REGNUM = 33,	/* First Floating Point Register */
-  SIM_RISCV_FA0_REGNUM = 43,
-  SIM_RISCV_FA1_REGNUM = SIM_RISCV_FA0_REGNUM + 1,
-  SIM_RISCV_LAST_FP_REGNUM = 64,	/* Last Floating Point Register */
+  RISCV_FIRST_FP_REGNUM = 33,	/* First Floating Point Register */
+  RISCV_FA0_REGNUM = 43,
+  RISCV_FA1_REGNUM = RISCV_FA0_REGNUM + 1,
+  RISCV_LAST_FP_REGNUM = 64,	/* Last Floating Point Register */
 
-  /* Somehow define CSRs?  */
-  SIM_RISCV_LAST_REGNUM = SIM_RISCV_LAST_FP_REGNUM
+  RISCV_FIRST_CSR_REGNUM = 65,  /* First CSR */
+#define DECLARE_CSR(name, num) \
+  RISCV_ ## num ## _REGNUM = RISCV_FIRST_CSR_REGNUM + num,
+#include "opcode/riscv-opc.h"
+#undef DECLARE_CSR
+  RISCV_LAST_CSR_REGNUM = 4160,
+  RISCV_CSR_LEGACY_MISA_REGNUM = 0xf10 + RISCV_FIRST_CSR_REGNUM,
+
+  RISCV_PRIV_REGNUM = 4161,
+
+  RISCV_LAST_REGNUM = RISCV_PRIV_REGNUM
 };
 
 #endif /* SIM_RISCV_H */
