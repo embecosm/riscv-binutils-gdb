@@ -19,45 +19,99 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if XLEN == 32
-#define WANT_CPU riscv32bf
-#define WANT_CPU_RISCV32BF
+  #define WANT_CPU riscv32bf
+  #define WANT_CPU_RISCV32BF
 #elif XLEN == 64
-#define WANT_CPU riscv64bf
-#define WANT_CPU_RISCV64BF
+  #define WANT_CPU riscv64bf
+  #define WANT_CPU_RISCV64BF
 #else
-#error XLEN not defined, or not 32 or 64 bits
+  #error XLEN not defined, or not 32 or 64 bits
 #endif
 
+#include <assert.h>
 #include "sim-main.h"
 #include "cgen-mem.h"
 #include "gdb/sim-riscv.h"
 
 
-#ifdef WANT_CPU_RISCV32BF
-
-USI
-riscv32bf_h_xlen_get_handler (SIM_CPU *current_cpu)
+UWI
+CPU_FUNC(_h_xlen_get_handler) (SIM_CPU *current_cpu)
 {
-  return 32;
+  return XLEN;
+}
+
+UWI
+CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
+{
+  int csr = rn + RISCV_FIRST_CSR_REGNUM;
+  if (csr == RISCV_CSR_MISA_REGNUM)
+    {
+      UWI misa = 0;
+
+      /* Encode the base field in misa.  */ 
+      assert (XLEN == 32 || XLEN == 64);
+      misa |= (UWI)(XLEN == 32 ? 1 : 2) << (XLEN - 2);
+
+      /* Encode the supported extensions.  */
+      const char *mach_name = MACH_NAME (CPU_MACH (current_cpu));
+      assert (!strncmp (mach_name, "rv32", strlen ("rv32"))
+              || !strncmp (mach_name, "rv64", strlen ("rv64")));
+      mach_name += strlen ("rv32");
+
+      for (const char *ext = mach_name; *ext != '\0'; ext++) 
+	{
+	  /* Set the bit in misa for each supported extension.  */
+	  #define EXTENSION_TO_MASK(EXT) (1 << (EXT - 'a'))
+	  switch (*ext)
+	    {
+	    case 'i':
+	    case 'a':
+	    case 'f':
+	    case 'd':
+	    case 'q':
+	    case 'm':
+	    case 'c':
+	      misa |= EXTENSION_TO_MASK(*ext);
+	      break;
+	    case 'g':
+	      misa |= EXTENSION_TO_MASK('i');
+	      misa |= EXTENSION_TO_MASK('a');
+	      misa |= EXTENSION_TO_MASK('f');
+	      misa |= EXTENSION_TO_MASK('d');
+	      misa |= EXTENSION_TO_MASK('m');
+	      break;
+	    default:
+	      assert (0 && "Unsupported extension in machine name");
+	    }
+	  #undef EXTENSION_MASK
+	}
+      return misa;
+    } 
+  else
+    {
+      /* Unhandled CSR, just return 0 */
+      return 0;
+    }
 }
 
 /* The contents of BUF are in target byte order.  */
 int
-riscv32bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                          int len)
+CPU_FUNC(_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
+                           int len)
 {
-  if (SIM_RISCV_ZERO_REGNUM <= rn && rn <= SIM_RISCV_T6_REGNUM)
+  if (RISCV_ZERO_REGNUM <= rn && rn < RISCV_PC_REGNUM)
     {
-      int gprn = rn - SIM_RISCV_ZERO_REGNUM;
-      SETTSI (buf, GET_H_GPR (gprn));
+      assert (len == (XLEN / 8));
+      int gprn = rn - RISCV_ZERO_REGNUM;
+      SETTWI (buf, GET_H_GPR (gprn));
     }
-  else if (rn == SIM_RISCV_PC_REGNUM)
+  else if (rn == RISCV_PC_REGNUM)
     {
       SETTUSI (buf, GET_H_PC ());
     }
-  else if (SIM_RISCV_FIRST_FP_REGNUM <= rn && rn <= SIM_RISCV_LAST_FP_REGNUM)
+  else if (RISCV_FIRST_FP_REGNUM <= rn && rn <= RISCV_LAST_FP_REGNUM)
     {
-      int fprn = rn - SIM_RISCV_FIRST_FP_REGNUM;
+      int fprn = rn - RISCV_FIRST_FP_REGNUM;
       if (len == 4)
 	{
 	  SETTSF (buf, GET_H_FPR (fprn));
@@ -69,9 +123,16 @@ riscv32bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
 	  return 8;
 	}
     }
+  else if (RISCV_FIRST_CSR_REGNUM <= rn && rn <= RISCV_LAST_CSR_REGNUM)
+    {
+      assert (len == (XLEN / 8));
+      int csrn = rn - RISCV_FIRST_CSR_REGNUM;
+      SETTWI (buf, GET_H_CSR (csrn));
+    }
   else
     {
-      SETTUSI (buf, 0xcabba9e5);
+      assert (0 && "Unknown register!");
+      SETTUWI (buf, 0);
       return 0;
     }
   return len;
@@ -79,30 +140,40 @@ riscv32bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
 
 /* The contents of BUF are in target byte order.  */
 int
-riscv32bf_store_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                          int len)
+CPU_FUNC(_store_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
+                           int len)
 {
-  if (SIM_RISCV_ZERO_REGNUM <= rn && rn <= SIM_RISCV_T6_REGNUM)
+  if (RISCV_ZERO_REGNUM <= rn && rn < RISCV_PC_REGNUM)
     {
-      int gprn = rn - SIM_RISCV_ZERO_REGNUM;
-      SET_H_GPR (gprn, GETTDI (buf));
+      assert (len == (XLEN / 8));
+      int gprn = rn - RISCV_ZERO_REGNUM;
+      SET_H_GPR (gprn, GETTWI (buf));
     }
-  else if (rn == SIM_RISCV_PC_REGNUM)
+  else if (rn == RISCV_PC_REGNUM)
     {
-      SET_H_PC (GETTUDI (buf));
+      SET_H_PC (GETTUSI (buf));
     }
-  else if (SIM_RISCV_FIRST_FP_REGNUM <= rn && rn <= SIM_RISCV_LAST_FP_REGNUM)
+  else if (RISCV_FIRST_FP_REGNUM <= rn && rn <= RISCV_LAST_FP_REGNUM)
     {
-      int fprn = rn - SIM_RISCV_FIRST_FP_REGNUM;
+      int fprn = rn - RISCV_FIRST_FP_REGNUM;
       SET_H_FPR (fprn, GETTDF (buf));
       return 8;
     }
+  else if (RISCV_FIRST_CSR_REGNUM <= rn && rn <= RISCV_LAST_CSR_REGNUM)
+    {
+      assert (len == (XLEN / 8));
+      int csrn = rn - RISCV_FIRST_CSR_REGNUM;
+      SET_H_CSR (csrn, GETTWI (buf));
+    }
   else
     {
+      assert (0 && "Unknown register!");
       return 0;
     }
   return len;
 }
+
+#ifdef WANT_CPU_RISCV32BF
 
 int riscv32bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
                             int unit_num, int referenced)
@@ -147,55 +218,6 @@ int riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
 
 #elif defined(WANT_CPU_RISCV64BF)
 
-UDI
-riscv64bf_h_xlen_get_handler (SIM_CPU *current_cpu)
-{
-  return 64;
-}
-
-/* The contents of BUF are in target byte order.  */
-int
-riscv64bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                          int len)
-{
-  if (SIM_RISCV_ZERO_REGNUM <= rn && rn <= SIM_RISCV_T6_REGNUM)
-    {
-      int gprn = rn - SIM_RISCV_ZERO_REGNUM;
-      SETTDI (buf, GET_H_GPR (gprn));
-    }
-  else if (rn == SIM_RISCV_PC_REGNUM)
-    {
-      SETTUDI (buf, GET_H_PC ());
-    }
-  else
-    {
-      SETTUDI (buf, 0xcabba9e50be0f00d);
-      return 0;
-    }
-  return len;
-}
-
-/* The contents of BUF are in target byte order.  */
-int
-riscv64bf_store_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                          int len)
-{
-  if (SIM_RISCV_ZERO_REGNUM <= rn && rn <= SIM_RISCV_T6_REGNUM)
-    {
-      int gprn = rn - SIM_RISCV_ZERO_REGNUM;
-      SET_H_GPR (gprn, GETTDI (buf));
-    }
-  else if (rn == SIM_RISCV_PC_REGNUM)
-    {
-      SET_H_PC (GETTUDI (buf));
-    }
-  else
-    {
-      return 0;
-    }
-  return len;
-}
-
 int riscv64bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
                             int unit_num, int referenced)
 {
@@ -238,4 +260,3 @@ int riscv64bf_model_rv64gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
 }
 
 #endif
-

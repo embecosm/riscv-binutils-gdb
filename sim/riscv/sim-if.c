@@ -153,8 +153,10 @@ sim_create_inferior (sd, abfd, argv, envp)
       STATE_PROG_ARGV (sd) = dupargv (argv);
     }
 
-  char buf[4] = { 0xf0, 0xff, 0xff, 0xff };
-  sim_store_register (sd, SIM_RISCV_SP_REGNUM, buf, 4);
+  /* Put the stack pointer somewhere sensible by default (at the top of the
+     32-bit address space).  */
+  char buf[8] = { 0xf0, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00 };
+  sim_store_register (sd, RISCV_SP_REGNUM, buf, XLEN / 8);
 
   return SIM_RC_OK;
 }

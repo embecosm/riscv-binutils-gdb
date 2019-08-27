@@ -71,13 +71,8 @@ sim_engine_invalid_insn (SIM_CPU * current_cpu, IADDR cia, SEM_PC pc)
 
 /* Handle syscalls */
 
-#if XLEN == 32
 void
-riscv32bf_exception (sim_cpu *current_cpu, USI pc, USI exnum)
-#elif XLEN == 64
-void
-riscv64bf_exception (sim_cpu *current_cpu, UDI pc, USI exnum)
-#endif
+CPU_FUNC(_exception) (sim_cpu *current_cpu, USI pc, USI exnum)
 {
   SIM_DESC sd = CPU_STATE (current_cpu);
   host_callback *cb = STATE_CALLBACK (sd);

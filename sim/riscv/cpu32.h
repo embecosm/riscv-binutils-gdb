@@ -60,10 +60,10 @@ CPU (h_gpr[(index)]) = (x);\
 ;} while (0)
   /* CSRs */
   USI h_csr[4096];
-#define GET_H_CSR(index) CPU (h_csr[index])
+#define GET_H_CSR(index) riscv32bf_h_csr_get_handler (current_cpu, index)
 #define SET_H_CSR(index, x) \
 do { \
-CPU (h_csr[(index)]) = (x);\
+((void) 0); /*nop*/\
 ;} while (0)
   /* Floating Point Registers */
   DF h_fpr[32];
