@@ -1,3 +1,8 @@
+2019-08-27  Edward Jones  <ed.jones@embecosm.com>
+
+	* riscv.cpu: Make a call out to C for reads from CSRs.
+	Make writes to the CSRs a nop.
+
 2019-08-27  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv.cpu: Fix some semantics. 
@@ -6,7 +11,7 @@
 
 	* riscv.cpu: Added fld semantics.
 
-2019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
+019-08-19  Mary Bennett  <mary.bennett@embecosm.com>
 
 	* riscv.cpu: Added more semantics. 
 

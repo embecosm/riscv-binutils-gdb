@@ -487,8 +487,9 @@
     (mdbase  #x384) (mdbound #x385) (mhcounteren #x322))
 
   )
-  (get (index) (raw-reg h-csr index))
-  (set (index newval) (set (raw-reg h-csr index) newval))
+  (get (index) (c-call UWI "@cpu@_h_csr_get_handler" index))
+  ; Writes to CSRs are always a nop
+  (set (index newval) (nop))
 )
 
 (define-pmacro fpr-names () (
