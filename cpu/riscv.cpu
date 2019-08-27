@@ -2794,8 +2794,7 @@
 
 (define-pmacro flw-sem (set fl-rd (subword DF (or (zext DI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
 (define-pmacro fsw-sem (sequence ((SF lhs))
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
-  (set (mem DF (add rs1 store12)) lhs)))
+  (set (mem DF (add rs1 store12)) fl-rs2)))
 
 (define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
@@ -2828,45 +2827,23 @@
   (set SF res (binop SF lhs rhs))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
-(define-pmacro fsgnj-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
-  (set cnd1 (lt lhs (const DF 0)))
-  (set cnd2 (lt rhs (const DF 0)))
-  (if (eq cnd2 #b1) ;sgn = 1
-      (if (eq cnd1 #b0)
-	  (set res (float SF 0 (xor (fix SI 0 lhs) #x80000000))) ;change sgn 0->1
-	  (set res lhs))
-      (if (eq cnd2 #b1)
-	  (set res lhs)
-	  (set res (float SF 0 (xor (fix SI 0 lhs) #x80000000)))))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fsgnj-s-sem (sequence ((DI lhs) (DI rhs) (DI res))
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and rhs #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
 
-(define-pmacro fsgnjn-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
-  (set cnd1 (lt lhs (const DF 0)))
-  (set cnd2 (lt rhs (const DF 0)))
-  (if (eq cnd2 #b1) ;sgn = 1
-      (if (eq cnd1 #b1)
-	  (set res (float SF 0 (xor (fix SI 0 lhs) #x80000000))) ;change sgn 1->0
-	  (set res lhs))
-      (if (eq cnd2 #b0)
-	  (set res lhs)
-	  (set res (float SF 0 (xor (fix SI 0 lhs) #x80000000))))) ;change sgn 0->1
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fsgnjn-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
+  (set SI lhs (subword SI (subword DI fl-rs1 0) 0))
+  (set SI rhs (subword SI (subword DI fl-rs2 0) 0))
+  (set SI res (and (or lhs #x8000000) (or (inv rhs) #x7ffffffff)))
+  (set fl-rd (subword DF (or DI (zext DI res) #xffffffff00000000) 0))))
 
-(define-pmacro fsgnjx-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
-  (set cnd1 (lt lhs (const DF 0)))
-  (set cnd2 (lt rhs (const DF 0)))
-  (if (eq cnd2 #b1) ;sgn = 1
-      (if (eq cnd1 #b0)
-	  (set DF fl-rd (float DF 0 (xor (fix SI 0 fl-rs1) #x8000000000000000))) ;change sgn 0->1
-	  (set DF fl-rd (float DF 0 (xor (fix SI 0 fl-rs1) #x8000000000000000)))) ;change sgn 1->0
-      (set DF fl-rd fl-rs1))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fsgnjx-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
+  (set SI lhs (subword SI (subword DI fl-rs1 0) 0))
+  (set SI rhs (subword SI (subword DI fl-rs2 0) 0))
+  (set SI res (and (or lhs #x8000000) (or (xor lhs rhs) #x7ffffffff)))
+  (set fl-rd (subword DF (or DI (zext DI res) #xffffffff00000000) 0))))
 
 (define-pmacro (fmin-max-s-sem cnd) (sequence ((SF lhs) (SF rhs))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
@@ -2888,9 +2865,8 @@
   (set lhs (ufloat SF 0 (trunc SI rs1)))
   (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
 
-(define-pmacro fcvt-w-s-s-sem (sequence ((SF lhs)) ; SF -> SI
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set rd (or DI (zext DI (fix SI 0 lhs)) #xffffffff00000000))))
+(define-pmacro fcvt-w-s-s-sem (sequence () ; SF -> SI
+  (set rd (subword DI fl-rs1 0))))
 
 (define-pmacro fcvt-wu-s-s-sem (sequence ((SF lhs)) ; SF -> USI
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
