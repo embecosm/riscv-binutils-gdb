@@ -2794,43 +2794,43 @@
 
 (define-pmacro flw-sem (set fl-rd (subword DF (or (zext DI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
 (define-pmacro fsw-sem (sequence ((SF lhs))
-  (set lhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set (mem DF (add rs1 store12)) lhs)))
 
 (define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
-  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
+  (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (add SF (mul SF lhs rhs) addend))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
-  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
+  (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (sub SF (mul SF lhs rhs) addend))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fnmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
-  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
+  (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (add SF (mul SF (neg lhs) rhs) addend))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fnmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
-  (set SF addend (ftrunc SF 0 fl-rs3))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
+  (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (sub SF (mul SF (neg lhs) rhs) addend))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (define-pmacro (fbinop-s-sem binop) (sequence ((SF lhs) (SF rhs) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF res (binop SF lhs rhs))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (define-pmacro fsgnj-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set cnd1 (lt lhs (const DF 0)))
   (set cnd2 (lt rhs (const DF 0)))
   (if (eq cnd2 #b1) ;sgn = 1
@@ -2843,8 +2843,8 @@
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (define-pmacro fsgnjn-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set cnd1 (lt lhs (const DF 0)))
   (set cnd2 (lt rhs (const DF 0)))
   (if (eq cnd2 #b1) ;sgn = 1
@@ -2857,8 +2857,8 @@
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (define-pmacro fsgnjx-s-sem (sequence ((SF lhs) (SF rhs) (BI cnd1) (BI cnd2) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set cnd1 (lt lhs (const DF 0)))
   (set cnd2 (lt rhs (const DF 0)))
   (if (eq cnd2 #b1) ;sgn = 1
@@ -2869,15 +2869,15 @@
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (define-pmacro (fmin-max-s-sem cnd) (sequence ((SF lhs) (SF rhs))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (if (cnd lhs rhs)
       (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))
       (set fl-rd (subword DF (or DI (zext DI (subword SI rhs 0)) #xffffffff00000000) 0)))))
 
 (define-pmacro (fcond-s-sem cnd) (sequence ((SF lhs) (SF rhs))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
-  (set SF rhs (ftrunc SF 0 fl-rs2))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
+  (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set rd (cnd lhs rhs))))
 
 (define-pmacro fcvt-s-w-s-sem (sequence ((SF lhs)) ; SI -> SF
@@ -2889,22 +2889,22 @@
   (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
 
 (define-pmacro fcvt-w-s-s-sem (sequence ((SF lhs)) ; SF -> SI
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set rd (or DI (zext DI (fix SI 0 lhs)) #xffffffff00000000))))
 
 (define-pmacro fcvt-wu-s-s-sem (sequence ((SF lhs)) ; SF -> USI
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set rd (or DI (zext DI (ufix SI 0 lhs)) #xffffffff00000000))))
 
 (define-pmacro fmv-x-w-s-sem (sequence ((SF lhs)) ; SF -> SI (move)
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set rd (or DI (zext (subword SI lhs 0)) #xffffffff00000000))))
 
 (define-pmacro fmv-w-x-s-sem
   (set fl-rd (subword DF (or DI (zext DI (trunc SI rs1)) #xffffffff00000000) 0)))
 
 (define-pmacro fsqrt-s-sem (sequence ((SF lhs) (SF res))
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set res (sqrt lhs))
   (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
 
@@ -2938,10 +2938,10 @@
 
 ;RV64F
 (define-pmacro fcvt-l-s-s-sem (sequence ((SF lhs)) ; SF -> DI
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set rd (or DI (zext DI (fix SI 0 lhs)) #xffffffff00000000))))
 (define-pmacro fcvt-lu-s-s-sem (sequence ((SF lhs)) ; SF -> UDI
-  (set SF lhs (ftrunc SF 0 fl-rs1))
+  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set rd (or DI (zext DI (ufix SI 0 lhs)) #xffffffff00000000))))
 
 (define-pmacro fcvt-s-l-s-sem (sequence ((SF lhs)) ; DI -> SF

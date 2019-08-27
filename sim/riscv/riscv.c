@@ -55,6 +55,20 @@ riscv32bf_fetch_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
     {
       SETTUSI (buf, GET_H_PC ());
     }
+  else if (SIM_RISCV_FIRST_FP_REGNUM <= rn && rn <= SIM_RISCV_LAST_FP_REGNUM)
+    {
+      int fprn = rn - SIM_RISCV_FIRST_FP_REGNUM;
+      if (len == 4)
+	{
+	  SETTSF (buf, GET_H_FPR (fprn));
+	  return 4;
+	}
+      else if (len == 8)
+	{
+	  SETTDF (buf, GET_H_FPR (fprn));
+	  return 8;
+	}
+    }
   else
     {
       SETTUSI (buf, 0xcabba9e5);
@@ -76,6 +90,12 @@ riscv32bf_store_register (SIM_CPU * current_cpu, int rn, unsigned char *buf,
   else if (rn == SIM_RISCV_PC_REGNUM)
     {
       SET_H_PC (GETTUDI (buf));
+    }
+  else if (SIM_RISCV_FIRST_FP_REGNUM <= rn && rn <= SIM_RISCV_LAST_FP_REGNUM)
+    {
+      int fprn = rn - SIM_RISCV_FIRST_FP_REGNUM;
+      SET_H_FPR (fprn, GETTDF (buf));
+      return 8;
     }
   else
     {
