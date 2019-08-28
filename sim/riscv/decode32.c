@@ -220,7 +220,7 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FCVT_S_WU, RISCV32BF_RV32_INSN_FCVT_S_WU, RISCV32BF_RV32_SFMT_FCVT_S_W },
   { RISCV_INSN_FMV_W_X, RISCV32BF_RV32_INSN_FMV_W_X, RISCV32BF_RV32_SFMT_FMV_W_X },
   { RISCV_INSN_FLD, RISCV32BF_RV32_INSN_FLD, RISCV32BF_RV32_SFMT_FLD },
-  { RISCV_INSN_FSD, RISCV32BF_RV32_INSN_FSD, RISCV32BF_RV32_SFMT_FSW },
+  { RISCV_INSN_FSD, RISCV32BF_RV32_INSN_FSD, RISCV32BF_RV32_SFMT_FSD },
   { RISCV_INSN_FMADD_D, RISCV32BF_RV32_INSN_FMADD_D, RISCV32BF_RV32_SFMT_FMADD_S },
   { RISCV_INSN_FMSUB_D, RISCV32BF_RV32_INSN_FMSUB_D, RISCV32BF_RV32_SFMT_FMADD_S },
   { RISCV_INSN_FNMSUB_D, RISCV32BF_RV32_INSN_FNMSUB_D, RISCV32BF_RV32_SFMT_FMADD_S },
@@ -1696,7 +1696,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
       case 403 : /* fall through */
       case 1427 : itype = RISCV32BF_RV32_INSN_SLTIU; goto extract_sfmt_addi;
       case 423 : /* fall through */
-      case 1447 : itype = RISCV32BF_RV32_INSN_FSD; goto extract_sfmt_fsw;
+      case 1447 : itype = RISCV32BF_RV32_INSN_FSD; goto extract_sfmt_fsd;
       case 435 : /* fall through */
       case 1459 :
         {
@@ -4858,6 +4858,35 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs1) = f_rs1;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fld", "f_imm12_3112 0x%x", 'x', f_imm12_3112, "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fsd:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_sb.f
+    DI f_imm7_317;
+    UINT f_rs2;
+    UINT f_rs1;
+    UDI f_uimm5_115;
+    DI f_imm12_317_115;
+
+    f_imm7_317 = EXTRACT_LSB0_SINT (insn, 32, 31, 7);
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+{
+  f_imm12_317_115 = ((((f_imm7_317) << (5))) | (f_uimm5_115));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_imm12_317_115) = f_imm12_317_115;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsd", "f_rs2 0x%x", 'x', f_rs2, "f_rs1 0x%x", 'x', f_rs1, "f_imm12_317_115 0x%x", 'x', f_imm12_317_115, (char *) 0));
 
 #undef FLD
     return idesc;
