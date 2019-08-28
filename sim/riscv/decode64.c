@@ -299,9 +299,9 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_FSUB_D, RISCV64BF_RV64_INSN_FSUB_D, RISCV64BF_RV64_SFMT_FADD_S },
   { RISCV_INSN_FMUL_D, RISCV64BF_RV64_INSN_FMUL_D, RISCV64BF_RV64_SFMT_FADD_S },
   { RISCV_INSN_FDIV_D, RISCV64BF_RV64_INSN_FDIV_D, RISCV64BF_RV64_SFMT_FADD_S },
-  { RISCV_INSN_FSGNJ_D, RISCV64BF_RV64_INSN_FSGNJ_D, RISCV64BF_RV64_SFMT_FMIN_S },
-  { RISCV_INSN_FSGNJN_D, RISCV64BF_RV64_INSN_FSGNJN_D, RISCV64BF_RV64_SFMT_FMIN_S },
-  { RISCV_INSN_FSGNJX_D, RISCV64BF_RV64_INSN_FSGNJX_D, RISCV64BF_RV64_SFMT_FMIN_S },
+  { RISCV_INSN_FSGNJ_D, RISCV64BF_RV64_INSN_FSGNJ_D, RISCV64BF_RV64_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJN_D, RISCV64BF_RV64_INSN_FSGNJN_D, RISCV64BF_RV64_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJX_D, RISCV64BF_RV64_INSN_FSGNJX_D, RISCV64BF_RV64_SFMT_FSGNJ_S },
   { RISCV_INSN_FMIN_D, RISCV64BF_RV64_INSN_FMIN_D, RISCV64BF_RV64_SFMT_FMIN_S },
   { RISCV_INSN_FMAX_D, RISCV64BF_RV64_INSN_FMAX_D, RISCV64BF_RV64_SFMT_FMIN_S },
   { RISCV_INSN_FEQ_D, RISCV64BF_RV64_INSN_FEQ_D, RISCV64BF_RV64_SFMT_FEQ_S },
@@ -925,7 +925,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : itype = RISCV64BF_RV64_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV64BF_RV64_INSN_FDIV_Q; goto extract_sfmt_c_nop;
           case 16 : itype = RISCV64BF_RV64_INSN_FSGNJ_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJ_D; goto extract_sfmt_fmin_s;
+          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJ_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV64BF_RV64_INSN_FSGNJ_Q; goto extract_sfmt_c_nop;
           case 20 : itype = RISCV64BF_RV64_INSN_FMIN_S; goto extract_sfmt_fmin_s;
           case 21 : itype = RISCV64BF_RV64_INSN_FMIN_D; goto extract_sfmt_fmin_s;
@@ -1512,7 +1512,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : itype = RISCV64BF_RV64_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV64BF_RV64_INSN_FDIV_Q; goto extract_sfmt_c_nop;
           case 16 : itype = RISCV64BF_RV64_INSN_FSGNJN_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJN_D; goto extract_sfmt_fmin_s;
+          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJN_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV64BF_RV64_INSN_FSGNJN_Q; goto extract_sfmt_c_nop;
           case 20 : itype = RISCV64BF_RV64_INSN_FMAX_S; goto extract_sfmt_fmin_s;
           case 21 : itype = RISCV64BF_RV64_INSN_FMAX_D; goto extract_sfmt_fmin_s;
@@ -2028,7 +2028,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 13 : itype = RISCV64BF_RV64_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV64BF_RV64_INSN_FDIV_Q; goto extract_sfmt_c_nop;
           case 16 : itype = RISCV64BF_RV64_INSN_FSGNJX_S; goto extract_sfmt_fsgnj_s;
-          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJX_D; goto extract_sfmt_fmin_s;
+          case 17 : itype = RISCV64BF_RV64_INSN_FSGNJX_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV64BF_RV64_INSN_FSGNJX_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
