@@ -2185,31 +2185,31 @@
 ; This should maybe be moved to a separate rv32fc isa
 (rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b011 #b10
-  (set fl-rd (subword DF (or (mem DI (add (reg h-gpr 2) uimm8-32-121-63-00-abs)) #xffffffff00000000) 0)))
+  (set fl-rd (subword DF (or (zext UDI (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))) #xffffffff00000000) 0)))
 (rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b10
-  (set (mem SI (add (reg h-gpr 2) uimm7-51-123-61-00-abs)) (subword DI fc-rs3 0)))
+  (set (mem SI (add (reg h-gpr 2) uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs3 0))))
 (rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b00
-  (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (subword DI fc-rs2 0)))
+  (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs2 0))))
 (rv-format-cl-3   "c.flw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b011 #b00
-  (set fc-rs2 (subword DF (or (mem DI (add c-reg97 uimm7-51-123-61-00-abs)) #xffffffff00000000) 0)))
+  (set fc-rs2 (subword DF (or (zext UDI (mem SI (add c-reg97 uimm7-51-123-61-00-abs))) #xffffffff00000000) 0)))
 
 ;RV32DC/RV64DC
 ; These should maybe be moved to a separate rv32/64dc isa
 (rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs) ;Good
   #b001 #b10
-  (set fl-rd (subword DF (or (mem DI (add (reg h-gpr 2) uimm9-43-121-62-000-abs)) #xffffffff00000000) 0)))
+  (set fl-rd (mem DF (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
 (rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs) ;Good
   #b101 #b10
-  (set (mem DI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (subword DI fc-rs3 0)))
+  (set (mem DF (add (reg h-gpr 2) uimm8-82-124-00-abs)) fc-rs3))
 (rv-format-cs-4   "c.fsd"   (all-isas c-ext c-machs)
   #b101 #b00
-  (set (mem UDI (add c-reg97 uimm8-62-123-000-abs)) (subword DI fc-rs2 0)))
+  (set (mem DF (add c-reg97 uimm8-62-123-000-abs)) fc-rs2))
 (rv-format-cl-4   "c.fld"   (all-isas c-ext c-machs)
   #b001 #b00
-  (set fc-rs2 (subword DF (or (mem UDI (add c-reg97 uimm8-62-123-000-abs)) #xffffffff00000000) 0)))
+  (set fc-rs2 (mem DF (add c-reg97 uimm8-62-123-000-abs))))
 
 ;===------------------------- 'I' Base instructions -------------------------===
 
