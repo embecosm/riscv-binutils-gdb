@@ -2793,98 +2793,99 @@
 
 ;===-------------------- 'F' extension instructions -------------------------===
 
-(define-pmacro flw-sem (set fl-rd (subword DF (or (zext DI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
-(define-pmacro fsw-sem (sequence ((SF lhs))
-  (set (mem DF (add rs1 store12)) fl-rs2)))
+; Loads and stores
+(define-pmacro flw-sem
+  (set fl-rd (subword DF (or (zext UDI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
+(define-pmacro fsw-sem
+  (set (mem SI (add rs1 store12)) (subword SI (subword DI fl-rs2 0) 0)))
 
+; Fused-multiplies
 (define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (add SF (mul SF lhs rhs) addend))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (sub SF (mul SF lhs rhs) addend))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fnmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (add SF (mul SF (neg lhs) rhs) addend))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 (define-pmacro fnmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF addend (subword SF (subword SI (subword DI fl-rs3 0) 0) 0))
   (set SF res (sub SF (mul SF (neg lhs) rhs) addend))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
+; Simple binary ops
 (define-pmacro (fbinop-s-sem binop) (sequence ((SF lhs) (SF rhs) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set SF res (binop SF lhs rhs))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
+; Sign injection
 (define-pmacro fsgnj-s-sem (sequence ((DI lhs) (DI rhs) (DI res))
   (set DI lhs (subword DI fl-rs1 0))
   (set DI rhs (subword DI fl-rs2 0))
   (set DI res (or (and rhs #x000000080000000) (and lhs #xffffffff7fffffff)))
   (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
-
 (define-pmacro fsgnjn-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
-  (set SI lhs (subword SI (subword DI fl-rs1 0) 0))
-  (set SI rhs (subword SI (subword DI fl-rs2 0) 0))
-  (set SI res (and (or lhs #x8000000) (or (inv rhs) #x7ffffffff)))
-  (set fl-rd (subword DF (or DI (zext DI res) #xffffffff00000000) 0))))
-
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and (inv rhs) #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
 (define-pmacro fsgnjx-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
-  (set SI lhs (subword SI (subword DI fl-rs1 0) 0))
-  (set SI rhs (subword SI (subword DI fl-rs2 0) 0))
-  (set SI res (and (or lhs #x8000000) (or (xor lhs rhs) #x7ffffffff)))
-  (set fl-rd (subword DF (or DI (zext DI res) #xffffffff00000000) 0))))
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and (xor lhs rhs) #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
 
 (define-pmacro (fmin-max-s-sem cnd) (sequence ((SF lhs) (SF rhs))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (if (cnd lhs rhs)
-      (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))
-      (set fl-rd (subword DF (or DI (zext DI (subword SI rhs 0)) #xffffffff00000000) 0)))))
+      (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+      (set fl-rd (subword DF (or (zext UDI (subword SI rhs 0)) #xffffffff00000000) 0)))))
 
+; Conditionals
 (define-pmacro (fcond-s-sem cnd) (sequence ((SF lhs) (SF rhs))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set SF rhs (subword SF (subword SI (subword DI fl-rs2 0) 0) 0))
   (set rd (cnd lhs rhs))))
 
+; Integer <-> float conversions
 (define-pmacro fcvt-s-w-s-sem (sequence ((SF lhs)) ; SI -> SF
   (set lhs (float SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
-
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
 (define-pmacro fcvt-s-wu-s-sem (sequence ((SF lhs)) ; USI -> SF
   (set lhs (ufloat SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
 
-(define-pmacro fcvt-w-s-s-sem (sequence () ; SF -> SI
-  (set rd (subword DI fl-rs1 0))))
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-w-s-s-sem
+  (set rd (ext (fix SI 0 (subword SF (subword SI (subword DI fl-rs1 0) 0) 0)))))
+(define-pmacro fcvt-wu-s-s-sem
+  (set rd (zext (ufix USI 0 (subword SF (subword SI (subword DI fl-rs1 0) 0) 0)))))
 
-(define-pmacro fcvt-wu-s-s-sem (sequence ((SF lhs)) ; SF -> USI
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set rd (or DI (zext DI (ufix SI 0 lhs)) #xffffffff00000000))))
-
-(define-pmacro fmv-x-w-s-sem (sequence ((SF lhs)) ; SF -> SI (move)
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set rd (or DI (zext (subword SI lhs 0)) #xffffffff00000000))))
-
+; Moves
+(define-pmacro fmv-x-w-s-sem
+  (set rd (ext (subword SI (subword DI fl-rs1 0) 0))))
 (define-pmacro fmv-w-x-s-sem
-  (set fl-rd (subword DF (or DI (zext DI (trunc SI rs1)) #xffffffff00000000) 0)))
+  (set fl-rd (subword DF (or (zext UDI (trunc SI rs1)) #xffffffff00000000) 0)))
 
 (define-pmacro fsqrt-s-sem (sequence ((SF lhs) (SF res))
   (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
   (set res (sqrt lhs))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI res 0)) #xffffffff00000000) 0))))
-
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 flw-sem)
 (rv-format-f-2    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111 fsw-sem)
@@ -2914,24 +2915,21 @@
 (rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 fmv-w-x-s-sem)
 
 ;RV64F
-(define-pmacro fcvt-l-s-s-sem (sequence ((SF lhs)) ; SF -> DI
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set rd (or DI (zext DI (fix SI 0 lhs)) #xffffffff00000000))))
-(define-pmacro fcvt-lu-s-s-sem (sequence ((SF lhs)) ; SF -> UDI
-  (set SF lhs (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))
-  (set rd (or DI (zext DI (ufix SI 0 lhs)) #xffffffff00000000))))
+(define-pmacro fcvt-s-l-s-sem
+  (set fl-rd (subword DF (or (zext UDI (subword SI (float SF 0 rs1) 0)) #xffffffff00000000) 0)))
+(define-pmacro fcvt-s-lu-s-sem
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ufloat SF 0 rs1) 0)) #xffffffff00000000) 0)))
 
-(define-pmacro fcvt-s-l-s-sem (sequence ((SF lhs)) ; DI -> SF
-  (set lhs (float SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
-(define-pmacro fcvt-s-lu-s-sem (sequence ((SF lhs)) ; UDI -> SF
-  (set lhs (ufloat SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or DI (zext DI (subword SI lhs 0)) #xffffffff00000000) 0))))
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-l-s-s-sem
+  (set rd (fix DI 0 (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))))
+(define-pmacro fcvt-lu-s-s-sem
+  (set rd (ufix UDI 0 (subword SF (subword SI (subword DI fl-rs1 0) 0) 0))))
 
-(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 fcvt-l-s-s-sem)
-(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 fcvt-lu-s-s-sem)
 (rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 fcvt-s-l-s-sem)
 (rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 fcvt-s-lu-s-sem)
+(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 fcvt-l-s-s-sem)
+(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 fcvt-lu-s-s-sem)
 
 ;===-------------------- 'D' extension instructions -------------------------===
 
