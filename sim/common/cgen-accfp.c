@@ -323,7 +323,6 @@ ftruncdfsf (CGEN_FPU* fpu, int how UNUSED, DF x)
 
   sim_fpu_64to (&op1, x);
   sim_fpu_to32 (&res, &op1);
-
   return res;
 }
 
@@ -681,6 +680,28 @@ gedf (CGEN_FPU* fpu, DF x, DF y)
   sim_fpu_64to (&op2, y);
   return sim_fpu_is_ge (&op1, &op2);
 }
+
+static int
+unordereddf (CGEN_FPU* fpu, DF x, DF y)
+{
+  sim_fpu op1;
+  sim_fpu op2;
+
+  sim_fpu_64to (&op1, x);
+  sim_fpu_64to (&op2, y);
+  return sim_fpu_is_nan (&op1) || sim_fpu_is_nan (&op2);
+}
+
+static USI
+ufixdfsi (CGEN_FPU* fpu, int how UNUSED, DF x)
+{
+  sim_fpu op1;
+  unsigned32 res;
+
+  sim_fpu_64to (&op1, x);
+  sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
+  return res;
+}
 
 /* Initialize FP_OPS to use accurate library.  */
 
@@ -743,4 +764,5 @@ cgen_init_accurate_fpu (SIM_CPU* cpu, CGEN_FPU* fpu, CGEN_FPU_ERROR_FN* error)
   o->fixsfsi = fixsfsi;
   o->fixdfsi = fixdfsi;
   o->ufixsfsi = ufixsfsi;
+  o->ufixdfsi = ufixdfsi;
 }
