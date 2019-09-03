@@ -1,6 +1,6 @@
 /* Read a symbol table in MIPS' format (Third-Eye).
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    Contributed by Alessandro Forin (af@cs.cmu.edu) at CMU.  Major work
    by Per Bothner, John Gilmore and Ian Lance Taylor at Cygnus Support.
@@ -28,6 +28,7 @@
 #include "symtab.h"
 #include "objfiles.h"
 #include "stabsread.h"
+#include "mdebugread.h"
 
 #include "coff/sym.h"
 #include "coff/internal.h"
@@ -75,7 +76,7 @@ mipscoff_symfile_read (struct objfile *objfile, symfile_add_flags symfile_flags)
      process it and define symbols accordingly.  */
 
   if (!((*ecoff_backend (abfd)->debug_swap.read_debug_info)
-	(abfd, (asection *) NULL, &ecoff_data (abfd)->debug_info)))
+	(abfd, NULL, &ecoff_data (abfd)->debug_info)))
     error (_("Error reading symbol table: %s"), bfd_errmsg (bfd_get_error ()));
 
   mdebug_build_psymtabs (reader, objfile, &ecoff_backend (abfd)->debug_swap,

@@ -1,5 +1,5 @@
 /* Assorted BFD support routines, only used internally.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -254,6 +254,10 @@ _bfd_dummy_target (bfd *ignore_abfd ATTRIBUTE_UNUSED)
 
 /* Allocate memory using malloc.  */
 
+#ifndef SSIZE_MAX
+#define SSIZE_MAX ((size_t) -1 >> 1)
+#endif
+
 void *
 bfd_malloc (bfd_size_type size)
 {
@@ -262,7 +266,7 @@ bfd_malloc (bfd_size_type size)
 
   if (size != sz
       /* This is to pacify memory checkers like valgrind.  */
-      || ((signed long) sz) < 0)
+      || sz > SSIZE_MAX)
     {
       bfd_set_error (bfd_error_no_memory);
       return NULL;
@@ -304,7 +308,7 @@ bfd_realloc (void *ptr, bfd_size_type size)
 
   if (size != sz
       /* This is to pacify memory checkers like valgrind.  */
-      || ((signed long) sz) < 0)
+      || sz > SSIZE_MAX)
     {
       bfd_set_error (bfd_error_no_memory);
       return NULL;

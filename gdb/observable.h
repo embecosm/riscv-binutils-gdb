@@ -1,6 +1,6 @@
 /* Observers
 
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,10 +17,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#if !defined (GDB_OBSERVER_H)
-#define GDB_OBSERVER_H
+#ifndef OBSERVABLE_H
+#define OBSERVABLE_H
 
-#include "common/observable.h"
+#include "gdbsupport/observable.h"
 
 struct bpstats;
 struct so_list;
@@ -228,8 +228,12 @@ extern observable<struct frame_info *, int> register_changed;
    frame has changed.  */
 extern observable<user_selected_what> user_selected_context_changed;
 
+/* This is notified when the source styling setting has changed and
+   should be reconsulted.  */
+extern observable<> source_styling_changed;
+
 } /* namespace observers */
 
 } /* namespace gdb */
 
-#endif /* GDB_OBSERVER_H */
+#endif /* OBSERVABLE_H */

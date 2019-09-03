@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2018 Free Software Foundation, Inc.
+# Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1151,6 +1151,9 @@ if { [istarget mips*-*-vxworks*] } {
     # Verify that machine markings are handled properly.
     run_dump_test "elf_mach_5900"
     run_dump_test "elf_mach_interaptiv-mr2"
+    run_dump_test "elf_mach_p6600"
+    run_dump_test "elf_mach_i6400"
+    run_dump_test "elf_mach_i6500"
 
     run_dump_test "mips-gp32-fp32-pic"
     run_dump_test "mips-gp32-fp64-pic"
@@ -1342,6 +1345,8 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "hwr-names-numeric"
     run_dump_test "hwr-names-mips32r2"
     run_dump_test "hwr-names-mips64r2"
+    run_dump_test_arches "hwr-names"	[mips_arch_list_matching mips32r6 \
+					    !micromipsr6]
 
     run_dump_test "ldstla-32"
     run_dump_test "ldstla-32-mips3"
@@ -1497,6 +1502,7 @@ if { [istarget mips*-*-vxworks*] } {
 					[mips_arch_list_matching mips32] ] ]
     run_dump_test_arches "daddi"	[mips_arch_list_matching mips3 \
 						!mips32r6]
+    run_dump_test_arches "dadd" 	[mips_arch_list_matching mips64r6]
     run_dump_test_arches "pref" [lsort -dictionary -unique [concat \
 					[mips_arch_list_matching mips4] \
 					[mips_arch_list_matching mips32] ] ]
@@ -1560,6 +1566,8 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "break-error"	[mips_arch_list_all]
 
     run_dump_test "r5900"
+    run_dump_test "r5900-fix"
+    run_dump_test "r5900-no-fix"
     run_dump_test "r5900-full"
     run_list_test "r5900-nollsc" "-mabi=o64 -march=r5900"
     run_dump_test "r5900-vu0"
@@ -2066,7 +2074,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_list_test_arches "r6-removed"	"-32" [mips_arch_list_matching mips32r6]
     run_list_test_arches "r6-64-removed"	[mips_arch_list_matching mips64r6]
 
-    run_list_test_arches "r6-branch-constraints"  "-32" \
+    run_list_test_arches "r6-reg-constraints"  "-32" \
 			[mips_arch_list_matching mips32r6]
 
     run_dump_test_arches "crc"		[mips_arch_list_matching mips32r6]
@@ -2076,4 +2084,14 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "ginv"	[mips_arch_list_matching mips32r6]
     run_dump_test_arches "ginv-err"	[mips_arch_list_matching mips32r6]
+
+    run_dump_test_arches "llpscp-32" [mips_arch_list_matching mips32r6]
+    run_dump_test_arch "llpscp-64" "" mips64r6
+
+    if [istarget *-*-irix*] {
+	run_dump_test "pr14798-irix"
+    } else {
+	run_dump_test "pr14798"
+    }
+    run_dump_test "insn-isa-mode"
 }

@@ -1,6 +1,6 @@
 /* TUI Interpreter definitions for GDB, the GNU debugger.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -34,6 +34,7 @@
 #include "observable.h"
 #include "gdbthread.h"
 #include "inferior.h"
+#include "main.h"
 
 /* Set to 1 when the TUI mode must be activated when we first start
    gdb.  */
@@ -210,13 +211,11 @@ tui_on_command_error (void)
 static void
 tui_on_user_selected_context_changed (user_selected_what selection)
 {
-  struct thread_info *tp;
-
   /* This event is suppressed.  */
   if (cli_suppress_notification.user_selected_context)
     return;
 
-  tp = find_thread_ptid (inferior_ptid);
+  thread_info *tp = inferior_ptid != null_ptid ? inferior_thread () : NULL;
 
   SWITCH_THRU_ALL_UIS ()
     {
@@ -242,8 +241,6 @@ tui_interp::init (bool top_level)
 {
   /* Install exit handler to leave the screen in a good shape.  */
   atexit (tui_exit);
-
-  tui_initialize_static_data ();
 
   tui_initialize_io ();
   tui_initialize_win ();

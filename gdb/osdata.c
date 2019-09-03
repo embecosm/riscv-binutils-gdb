@@ -1,6 +1,6 @@
 /* Routines for handling XML generic OS data provided by target.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,7 +19,7 @@
 
 #include "defs.h"
 #include "target.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "xml-support.h"
 #include "osdata.h"
 #include "ui-out.h"

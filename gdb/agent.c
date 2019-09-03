@@ -1,4 +1,4 @@
-/* Copyright (C) 2012-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,7 +19,7 @@
 #include "command.h"
 #include "gdbcmd.h"
 #include "target.h"
-#include "agent.h"
+#include "gdbsupport/agent.h"
 
 /* Enum strings for "set|show agent".  */
 

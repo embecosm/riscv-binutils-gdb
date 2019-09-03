@@ -1,5 +1,5 @@
 /* MI Command Set - MI output generating routines for GDB.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
    Contributed by Cygnus Solutions (a Red Hat company).
 
    This file is part of GDB.
@@ -17,8 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef MI_OUT_H
-#define MI_OUT_H 1
+#ifndef MI_MI_OUT_H
+#define MI_MI_OUT_H
 
 #include <vector>
 
@@ -40,6 +40,11 @@ public:
   /* Return the version number of the current MI.  */
   int version ();
 
+  bool can_emit_style_escape () const override
+  {
+    return false;
+  }
+
 protected:
 
   virtual void do_table_begin (int nbrofcols, int nr_rows, const char *tblid)
@@ -52,12 +57,16 @@ protected:
 
   virtual void do_begin (ui_out_type type, const char *id) override;
   virtual void do_end (ui_out_type type) override;
-  virtual void do_field_int (int fldno, int width, ui_align align,
-			  const char *fldname, int value) override;
+  virtual void do_field_signed (int fldno, int width, ui_align align,
+				const char *fldname, LONGEST value) override;
+  virtual void do_field_unsigned (int fldno, int width, ui_align align,
+				  const char *fldname, ULONGEST value)
+    override;
   virtual void do_field_skip (int fldno, int width, ui_align align,
 			   const char *fldname) override;
   virtual void do_field_string (int fldno, int width, ui_align align,
-			     const char *fldname, const char *string) override;
+				const char *fldname, const char *string,
+				ui_out_style_kind style) override;
   virtual void do_field_fmt (int fldno, int width, ui_align align,
 			  const char *fldname, const char *format, va_list args)
     override ATTRIBUTE_PRINTF (6,0);
@@ -89,9 +98,14 @@ private:
   std::vector<ui_file *> m_streams;
 };
 
-mi_ui_out *mi_out_new (int mi_version);
+/* Create an MI ui-out object with MI version MI_VERSION, which should be equal
+   to one of the INTERP_MI* constants (see interps.h).
+
+   Return nullptr if an invalid version is provided.  */
+mi_ui_out *mi_out_new (const char *mi_version);
+
 int mi_version (ui_out *uiout);
 void mi_out_put (ui_out *uiout, struct ui_file *stream);
 void mi_out_rewind (ui_out *uiout);
 
-#endif /* MI_OUT_H */
+#endif /* MI_MI_OUT_H */

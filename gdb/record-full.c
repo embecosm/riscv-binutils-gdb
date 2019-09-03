@@ -1,6 +1,6 @@
 /* Process record and replay target for GDB, the GNU debugger.
 
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -36,8 +36,8 @@
 #include "gdb_bfd.h"
 #include "observable.h"
 #include "infrun.h"
-#include "common/gdb_unlinker.h"
-#include "common/byte-vector.h"
+#include "gdbsupport/gdb_unlinker.h"
+#include "gdbsupport/byte-vector.h"
 
 #include <signal.h>
 
@@ -218,10 +218,9 @@ static const char record_doc[]
 class record_full_base_target : public target_ops
 {
 public:
-  record_full_base_target ()
-  { to_stratum = record_stratum; }
-
   const target_info &info () const override = 0;
+
+  strata stratum () const override { return record_stratum; }
 
   void close () override;
   void async (int) override;
@@ -709,7 +708,7 @@ record_full_message (struct regcache *regcache, enum gdb_signal signal)
   int ret;
   struct gdbarch *gdbarch = regcache->arch ();
 
-  TRY
+  try
     {
       record_full_arch_list_head = NULL;
       record_full_arch_list_tail = NULL;
@@ -762,12 +761,11 @@ record_full_message (struct regcache *regcache, enum gdb_signal signal)
       if (ret < 0)
 	error (_("Process record: failed to record execution log."));
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       record_full_list_release (record_full_arch_list_tail);
-      throw_exception (ex);
+      throw;
     }
-  END_CATCH
 
   record_full_list->next = record_full_arch_list_head;
   record_full_arch_list_head->prev = record_full_list;
@@ -783,16 +781,15 @@ static bool
 record_full_message_wrapper_safe (struct regcache *regcache,
 				  enum gdb_signal signal)
 {
-  TRY
+  try
     {
       record_full_message (regcache, signal);
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       exception_print (gdb_stderr, ex);
       return false;
     }
-  END_CATCH
 
   return true;
 }
@@ -1015,15 +1012,11 @@ record_full_base_target::close ()
     }
 
   /* Release record_full_core_buf_list.  */
-  if (record_full_core_buf_list)
+  while (record_full_core_buf_list)
     {
-      for (entry = record_full_core_buf_list->prev; entry;
-	   entry = entry->prev)
-	{
-	  xfree (record_full_core_buf_list);
-	  record_full_core_buf_list = entry;
-	}
-      record_full_core_buf_list = NULL;
+      entry = record_full_core_buf_list;
+      record_full_core_buf_list = record_full_core_buf_list->prev;
+      xfree (entry);
     }
 
   if (record_full_async_inferior_event_token)
@@ -1103,7 +1096,7 @@ record_full_target::resume (ptid_t ptid, int step, enum gdb_signal signal)
         }
 
       /* Make sure the target beneath reports all signals.  */
-      target_pass_signals (0, NULL);
+      target_pass_signals ({});
 
       this->beneath ()->resume (ptid, step, signal);
     }
@@ -1201,8 +1194,6 @@ record_full_wait_1 (struct target_ops *ops,
 
 	  while (1)
 	    {
-	      struct thread_info *tp;
-
 	      ret = ops->beneath ()->wait (ptid, status, options);
 	      if (status->kind == TARGET_WAITKIND_IGNORE)
 		{
@@ -1213,7 +1204,7 @@ record_full_wait_1 (struct target_ops *ops,
 		  return ret;
 		}
 
-	      ALL_NON_EXITED_THREADS (tp)
+	      for (thread_info *tp : all_non_exited_threads ())
                 delete_single_step_breakpoints (tp);
 
 	      if (record_full_resume_step)
@@ -1300,7 +1291,7 @@ record_full_wait_1 (struct target_ops *ops,
       int continue_flag = 1;
       int first_record_full_end = 1;
 
-      TRY
+      try
 	{
 	  CORE_ADDR tmp_pc;
 
@@ -1443,7 +1434,7 @@ record_full_wait_1 (struct target_ops *ops,
 	  else
 	    status->value.sig = GDB_SIGNAL_TRAP;
 	}
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	  if (execution_direction == EXEC_REVERSE)
 	    {
@@ -1453,9 +1444,8 @@ record_full_wait_1 (struct target_ops *ops,
 	  else
 	    record_full_list = record_full_list->prev;
 
-	  throw_exception (ex);
+	  throw;
 	}
-      END_CATCH
     }
 
   signal (SIGINT, handle_sigint);
@@ -2381,7 +2371,7 @@ record_full_restore (void)
   record_full_arch_list_tail = NULL;
   record_full_insn_num = 0;
 
-  TRY
+  try
     {
       regcache = get_current_regcache ();
 
@@ -2483,12 +2473,11 @@ record_full_restore (void)
 	  record_full_arch_list_add (rec);
 	}
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       record_full_list_release (record_full_arch_list_tail);
-      throw_exception (ex);
+      throw;
     }
-  END_CATCH
 
   /* Add record_full_arch_list_head to the end of record list.  */
   record_full_first.next = record_full_arch_list_head;
@@ -2843,11 +2832,11 @@ Argument is filename.  File must be created with 'record save'."),
   deprecate_cmd (c, "record full restore");
 
   add_prefix_cmd ("full", class_support, set_record_full_command,
-		  _("Set record options"), &set_record_full_cmdlist,
+		  _("Set record options."), &set_record_full_cmdlist,
 		  "set record full ", 0, &set_record_cmdlist);
 
   add_prefix_cmd ("full", class_support, show_record_full_command,
-		  _("Show record options"), &show_record_full_cmdlist,
+		  _("Show record options."), &show_record_full_cmdlist,
 		  "show record full ", 0, &show_record_cmdlist);
 
   /* Record instructions number limit command.  */

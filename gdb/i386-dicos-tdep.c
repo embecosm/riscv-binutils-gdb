@@ -1,6 +1,6 @@
 /* Target-dependent code for DICOS running on i386's, for GDB.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,6 +20,7 @@
 #include "defs.h"
 #include "osabi.h"
 #include "dicos-tdep.h"
+#include "gdbarch.h"
 
 static void
 i386_dicos_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)

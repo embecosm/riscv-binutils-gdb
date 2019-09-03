@@ -1,7 +1,336 @@
 		What has changed in GDB?
 	     (Organized release by release)
 
-*** Changes since GDB 8.2
+*** Changes since GDB 8.3
+
+* 'thread-exited' event is now available in the annotations interface.
+
+* New built-in convenience variables $_gdb_major and $_gdb_minor
+  provide the GDB version.  They are handy for conditionally using
+  features available only in or since specific GDB versions, in
+  scripts that should work error-free with many different versions,
+  such as in system-wide init files.
+
+* GDB now supports Thread Local Storage (TLS) variables on several
+  FreeBSD architectures (amd64, i386, powerpc, riscv).  Other
+  architectures require kernel changes.  TLS is not yet supported for
+  amd64 and i386 process core dumps.
+
+* Support for Pointer Authentication (PAC) on AArch64 Linux.  Return
+  addresses that required unmasking are shown in the backtrace with the
+  postfix [PAC].
+
+* Two new convenience functions $_cimag and $_creal that extract the
+  imaginary and real parts respectively from complex numbers.
+
+* New built-in convenience variables $_shell_exitcode and $_shell_exitsignal
+  provide the exitcode or exit status of the shell commands launched by
+  GDB commands such as "shell", "pipe" and "make".
+
+* The RX port now supports XML target descriptions.
+
+* Python API
+
+  ** The gdb.Value type has a new method 'format_string' which returns a
+     string representing the value.  The formatting is controlled by the
+     optional keyword arguments: 'raw', 'pretty_arrays', 'pretty_structs',
+     'array_indexes', 'symbols', 'unions', 'deref_refs', 'actual_objects',
+     'static_members', 'max_elements', 'repeat_threshold', and 'format'.
+
+  ** gdb.Type has a new property 'objfile' which returns the objfile the
+     type was defined in.
+
+  ** The frame information printed by the python frame filtering code
+     is now consistent with what the 'backtrace' command prints when
+     there are no filters, or when the 'backtrace' '-no-filters' option
+     is given.
+
+  ** The new function gdb.lookup_static_symbol can be used to look up
+     symbols with static linkage.
+
+  ** gdb.Objfile has new methods 'lookup_global_symbol' and
+     'lookup_static_symbol' to lookup a symbol from this objfile only.
+
+  ** gdb.Block now supports the dictionary syntax for accessing symbols in
+     this block (e.g. block['local_variable']).
+
+* New commands
+
+| [COMMAND] | SHELL_COMMAND
+| -d DELIM COMMAND DELIM SHELL_COMMAND
+pipe [COMMAND] | SHELL_COMMAND
+pipe -d DELIM COMMAND DELIM SHELL_COMMAND
+  Executes COMMAND and sends its output to SHELL_COMMAND.
+  With no COMMAND, repeat the last executed command
+  and send its output to SHELL_COMMAND.
+
+with SETTING [VALUE] [-- COMMAND]
+w SETTING [VALUE] [-- COMMAND]
+  Temporarily set SETTING, run COMMAND, and restore SETTING.
+  Usage: with SETTING -- COMMAND
+  With no COMMAND, repeats the last executed command.
+  SETTING is any GDB setting you can change with the "set"
+  subcommands.  For example, 'with language c -- print someobj'
+  temporarily switches to the C language in order to print someobj.
+  Settings can be combined: 'w lang c -- w print elements unlimited --
+  usercmd' switches to the C language and runs usercmd with no limit
+  of array elements to print.
+
+maint with SETTING [VALUE] [-- COMMAND]
+  Like "with", but works with "maintenance set" settings.
+
+set may-call-functions [on|off]
+show may-call-functions
+  This controls whether GDB will attempt to call functions in
+  the program, such as with expressions in the print command.  It
+  defaults to on.  Calling functions in the program being debugged
+  can have undesired side effects.  It is now possible to forbid
+  such function calls.  If function calls are forbidden, GDB will throw
+  an error when a command (such as print expression) calls a function
+  in the program.
+
+set print finish [on|off]
+show print finish
+  This controls whether the `finish' command will display the value
+  that is returned by the current function.  When `off', the value is
+  still entered into the value history, but it is not printed.  The
+  default is `on'.
+
+set print max-depth
+show print max-depth
+  Allows deeply nested structures to be simplified when printing by
+  replacing deeply nested parts (beyond the max-depth) with ellipses.
+  The default max-depth is 20, but this can be set to unlimited to get
+  the old behavior back.
+
+set logging debugredirect [on|off]
+  By default, GDB debug output will go to both the terminal and the logfile.
+  Set if you want debug output to go only to the log file.
+
+set style title foreground COLOR
+set style title background COLOR
+set style title intensity VALUE
+  Control the styling of titles.
+
+set style highlight foreground COLOR
+set style highlight background COLOR
+set style highlight intensity VALUE
+  Control the styling of highlightings.
+
+maint set test-settings KIND
+maint show test-settings KIND
+  A set of commands used by the testsuite for exercising the settings
+  infrastructure.
+
+set print frame-info [short-location|location|location-and-address
+                        |source-and-location|source-line|auto]
+show print frame-info
+  This controls what frame information is printed by the commands printing
+  a frame.  This setting will e.g. influence the behaviour of 'backtrace',
+  'frame', 'stepi'.  The python frame filtering also respect this setting.
+  The 'backtrace' '-frame-info' option can override this global setting.
+
+* Changed commands
+
+help
+  The "help" command uses the title style to enhance the
+  readibility of its output by styling the classes and
+  command names.
+
+apropos [-v] REGEXP
+  Similarly to "help", the "apropos" command also uses the
+  title style for the command names.  "apropos" accepts now
+  a flag "-v" (verbose) to show the full documentation
+  of matching commands and to use the highlight style to mark
+  the documentation parts matching REGEXP.
+
+printf
+eval
+  The GDB printf and eval commands can now print C-style and Ada-style
+  string convenience variables without calling functions in the program.
+  This allows to do formatted printing of strings without having
+  a running inferior, or when debugging a core dump.
+
+info sources [-dirname | -basename] [--] [REGEXP]
+  This command has now optional arguments to only print the files
+  whose names match REGEXP.  The arguments -dirname and -basename
+  allow to restrict matching respectively to the dirname and basename
+  parts of the files.
+
+show style
+  The "show style" and its subcommands are now styling
+  a style name in their output using its own style, to help
+  the user visualize the different styles.
+
+set print frame-arguments
+  The new value 'presence' indicates to only indicate the presence of
+  arguments using ..., instead of printing argument names and values.
+
+set print raw-frame-arguments
+show print raw-frame-arguments
+
+  These commands replace the similarly-named "set/show print raw
+  frame-arguments" commands (now with a dash instead of a space).  The
+  old commands are now deprecated and may be removed in a future
+  release.
+
+maint test-options require-delimiter
+maint test-options unknown-is-error
+maint test-options unknown-is-operand
+maint show test-options-completion-result
+  Commands used by the testsuite to validate the command options
+  framework.
+
+* New command options, command completion
+
+  GDB now has a standard infrastructure to support dash-style command
+  options ('-OPT').  One benefit is that commands that use it can
+  easily support completion of command line arguments.  Try "CMD
+  -[TAB]" or "help CMD" to find options supported by a command.  Over
+  time, we intend to migrate most commands to this infrastructure.  A
+  number of commands got support for new command options in this
+  release:
+
+  ** The "print" and "compile print" commands now support a number of
+     options that allow overriding relevant global print settings as
+     set by "set print" subcommands:
+
+      -address [on|off]
+      -array [on|off]
+      -array-indexes [on|off]
+      -elements NUMBER|unlimited
+      -null-stop [on|off]
+      -object [on|off]
+      -pretty [on|off]
+      -repeats NUMBER|unlimited
+      -static-members [on|off]
+      -symbol [on|off]
+      -union [on|off]
+      -vtbl [on|off]
+
+     Note that because the "print"/"compile print" commands accept
+     arbitrary expressions which may look like options (including
+     abbreviations), if you specify any command option, then you must
+     use a double dash ("--") to mark the end of argument processing.
+
+  ** The "backtrace" command now supports a number of options that
+     allow overriding relevant global print settings as set by "set
+     backtrace" and "set print" subcommands:
+
+      -entry-values no|only|preferred|if-needed|both|compact|default
+      -frame-arguments all|scalars|none
+      -raw-frame-arguments [on|off]
+      -frame-info auto|source-line|location|source-and-location
+           |location-and-address|short-location
+      -past-main [on|off]
+      -past-entry [on|off]
+
+     In addition, the full/no-filters/hide qualifiers are now also
+     exposed as command options too:
+
+      -full
+      -no-filters
+      -hide
+
+  ** The "frame apply", "tfaas" and "faas" commands similarly now
+     support the following options:
+
+      -past-main [on|off]
+      -past-entry [on|off]
+
+  ** The new "info sources" options -dirname and -basename options
+     are using the standard '-OPT' infrastructure.
+
+   All options above can also be abbreviated.  The argument of boolean
+   (on/off) options can be 0/1 too, and also the argument is assumed
+   "on" if omitted.  This allows writing compact command invocations,
+   like for example:
+
+    (gdb) p -r -p -o 0 -- *myptr
+
+   The above is equivalent to:
+
+    (gdb) print -raw -pretty -object off -- *myptr
+
+  ** The "info types" command now supports the '-q' flag to disable
+     printing of some header information in a similar fashion to "info
+     variables" and "info functions".
+
+  ** The "info variables", "info functions", and "whereis" commands
+     now take a '-n' flag that excludes non-debug symbols (symbols
+     from the symbol table, not from the debug info such as DWARF)
+     from the results.
+
+* Completion improvements
+
+  ** GDB can now complete the options of the "thread apply all" and
+     "taas" commands, and their "-ascending" option can now be
+     abbreviated.
+
+  ** GDB can now complete the options of the "info threads", "info
+     functions", "info variables", "info locals", and "info args"
+     commands.
+
+  ** GDB can now complete the options of the "compile file" and
+     "compile code" commands.  The "compile file" command now
+     completes on filenames.
+
+  ** GDB can now complete the backtrace command's
+     "full/no-filters/hide" qualifiers.
+
+* In settings, you can now abbreviate "unlimited".
+
+  E.g., "set print elements u" is now equivalent to "set print
+  elements unlimited".
+
+* New MI commands
+
+-complete
+  This lists all the possible completions for the rest of the line, if it
+  were to be given as a command itself.  This is intended for use by MI
+  frontends in cases when separate CLI and MI channels cannot be used.
+
+-catch-throw, -catch-rethrow, and -catch-catch
+  These can be used to catch C++ exceptions in a similar fashion to
+  the CLI commands 'catch throw', 'catch rethrow', and 'catch catch'.
+
+* Other MI changes
+
+ ** Backtraces and frames include a new optional field addr_flags which is
+    given after the addr field.  On AArch64 this contains PAC if the address
+    has been masked in the frame.  On all other targets the field is not
+    present.
+
+* Testsuite
+
+  The testsuite now creates the files gdb.cmd (containing the arguments
+  used to launch GDB) and gdb.in (containing all the commands sent to
+  GDB) in the output directory for each test script.  Multiple invocations
+  are appended with .1, .2, .3 etc.
+
+* Building GDB and GDBserver now requires GNU make >= 3.82.
+
+  Using another implementation of the make program or an earlier version of
+  GNU make to build GDB or GDBserver is not supported.
+
+* Building GDB now requires GNU readline >= 7.0.
+
+  GDB now bundles GNU readline 8.0, but if you choose to use
+  --with-system-readline, only readline >= 7.0 can be used.
+
+*** Changes in GDB 8.3
+
+* GDB and GDBserver now support access to additional registers on
+  PowerPC GNU/Linux targets: PPR, DSCR, TAR, EBB/PMU registers, and
+  HTM registers.
+
+* GDB now has experimental support for the compilation and injection of
+  C++ source code into the inferior.  This beta release does not include
+  support for several language features, such as templates, constructors,
+  and operators.
+
+  This feature requires GCC 7.1 or higher built with libcp1.so
+  (the C++ plug-in).
 
 * GDB and GDBserver now support IPv6 connections.  IPv6 addresses
   can be passed using the '[ADDRESS]:PORT' notation, or the regular
@@ -10,7 +339,49 @@
 * DWARF index cache: GDB can now automatically save indices of DWARF
   symbols on disk to speed up further loading of the same binaries.
 
+* Ada task switching is now supported on aarch64-elf targets when
+  debugging a program using the Ravenscar Profile.  For more information,
+  see the "Tasking Support when using the Ravenscar Profile" section
+  in the GDB user manual.
+
+* GDB in batch mode now exits with status 1 if the last command to be
+  executed failed.
+
+* The RISC-V target now supports target descriptions.
+
+* System call catchpoints now support system call aliases on FreeBSD.
+  When the ABI of a system call changes in FreeBSD, this is
+  implemented by leaving a compatibility system call using the old ABI
+  at the existing number and allocating a new system call number for
+  the new ABI.  For example, FreeBSD 12 altered the layout of 'struct
+  kevent' used by the 'kevent' system call.  As a result, FreeBSD 12
+  kernels ship with both 'kevent' and 'freebsd11_kevent' system calls.
+  The 'freebsd11_kevent' system call is assigned an alias of 'kevent'
+  so that a system call catchpoint for the 'kevent' system call will
+  catch invocations of both the 'kevent' and 'freebsd11_kevent'
+  binaries.  This ensures that 'kevent' system calls are caught for
+  binaries using either the old or new ABIs.
+
+* Terminal styling is now available for the CLI and the TUI.  GNU
+  Source Highlight can additionally be used to provide styling of
+  source code snippets.  See the "set style" commands, below, for more
+  information.
+
+* Removed support for old demangling styles arm, edg, gnu, hp and
+  lucid.
+
 * New commands
+
+set debug compile-cplus-types
+show debug compile-cplus-types
+  Control the display of debug output about type conversion in the
+  C++ compile feature.  Commands have no effect while compiliong
+  for other languages.
+
+set debug skip
+show debug skip
+  Control whether debug output about files/functions skipping is
+  displayed.
 
 frame apply [all | COUNT | -COUNT | level LEVEL...] [FLAG]... COMMAND
   Apply a command to some frames.
@@ -34,20 +405,156 @@ maint set dwarf unwinders (on|off)
 maint show dwarf unwinders
   Control whether DWARF unwinders can be used.
 
+info proc files
+  Display a list of open files for a process.
+
 * Changed commands
+
+Changes to the "frame", "select-frame", and "info frame" CLI commands.
+  These commands all now take a frame specification which
+  is either a frame level, or one of the keywords 'level', 'address',
+  'function', or 'view' followed by a parameter.  Selecting a frame by
+  address, or viewing a frame outside the current backtrace now
+  requires the use of a keyword.  Selecting a frame by level is
+  unchanged.  The MI comment "-stack-select-frame" is unchanged.
+
+target remote FILENAME
+target extended-remote FILENAME
+  If FILENAME is a Unix domain socket, GDB will attempt to connect
+  to this socket instead of opening FILENAME as a character device.
+
+info args [-q] [-t TYPEREGEXP] [NAMEREGEXP]
+info functions [-q] [-t TYPEREGEXP] [NAMEREGEXP]
+info locals [-q] [-t TYPEREGEXP] [NAMEREGEXP]
+info variables [-q] [-t TYPEREGEXP] [NAMEREGEXP]
+  These commands can now print only the searched entities
+  matching the provided regexp(s), giving a condition
+  on the entity names or entity types.  The flag -q disables
+  printing headers or informations messages.
+
+info functions
+info types
+info variables
+rbreak
+  These commands now determine the syntax for the shown entities
+  according to the language chosen by `set language'.  In particular,
+  `set language auto' means to automatically choose the language of
+  the shown entities.
 
 thread apply [all | COUNT | -COUNT] [FLAG]... COMMAND
   The 'thread apply' command accepts new FLAG arguments.
   FLAG arguments allow to control what output to produce and how to handle
   errors raised when applying COMMAND to a thread.
 
+set tui tab-width NCHARS
+show tui tab-width NCHARS
+  "set tui tab-width" replaces the "tabset" command, which has been deprecated.
+
+set style enabled [on|off]
+show style enabled
+  Enable or disable terminal styling.  Styling is enabled by default
+  on most hosts, but disabled by default when in batch mode.
+
+set style sources [on|off]
+show style sources
+  Enable or disable source code styling.  Source code styling is
+  enabled by default, but only takes effect if styling in general is
+  enabled, and if GDB was linked with GNU Source Highlight.
+
+set style filename foreground COLOR
+set style filename background COLOR
+set style filename intensity VALUE
+  Control the styling of file names.
+
+set style function foreground COLOR
+set style function background COLOR
+set style function intensity VALUE
+  Control the styling of function names.
+
+set style variable foreground COLOR
+set style variable background COLOR
+set style variable intensity VALUE
+  Control the styling of variable names.
+
+set style address foreground COLOR
+set style address background COLOR
+set style address intensity VALUE
+  Control the styling of addresses.
+
+* MI changes
+
+  ** The default version of the MI interpreter is now 3 (-i=mi3).
+
+  ** The '-data-disassemble' MI command now accepts an '-a' option to
+     disassemble the whole function surrounding the given program
+     counter value or function name.  Support for this feature can be
+     verified by using the "-list-features" command, which should
+     contain "data-disassemble-a-option".
+
+  ** Command responses and notifications that include a frame now include
+     the frame's architecture in a new "arch" attribute.
+
+  ** The output of information about multi-location breakpoints (which is
+     syntactically incorrect in MI 2) has changed in MI 3.  This affects
+     the following commands and events:
+
+	- -break-insert
+	- -break-info
+	- =breakpoint-created
+	- =breakpoint-modified
+
+     The -fix-multi-location-breakpoint-output command can be used to enable
+     this behavior with previous MI versions.
+
 * New native configurations
 
 GNU/Linux/RISC-V		riscv*-*-linux*
+FreeBSD/riscv			riscv*-*-freebsd*
 
 * New targets
 
 GNU/Linux/RISC-V		riscv*-*-linux*
+CSKY ELF			csky*-*-elf
+CSKY GNU/LINUX			csky*-*-linux
+FreeBSD/riscv			riscv*-*-freebsd*
+NXP S12Z			s12z-*-elf
+GNU/Linux/OpenRISC		or1k*-*-linux*
+
+* Removed targets
+
+GDB no longer supports native debugging on versions of MS-Windows
+before Windows XP.
+
+* Python API
+
+  ** GDB no longer supports Python versions less than 2.6.
+
+  ** The gdb.Inferior type has a new 'progspace' property, which is the program
+     space associated to that inferior.
+
+  ** The gdb.Progspace type has a new 'objfiles' method, which returns the list
+     of objfiles associated to that program space.
+
+  ** gdb.SYMBOL_LOC_COMMON_BLOCK, gdb.SYMBOL_MODULE_DOMAIN, and
+     gdb.SYMBOL_COMMON_BLOCK_DOMAIN were added to reflect changes to
+     the gdb core.
+
+  ** gdb.SYMBOL_VARIABLES_DOMAIN, gdb.SYMBOL_FUNCTIONS_DOMAIN, and
+     gdb.SYMBOL_TYPES_DOMAIN are now deprecated.  These were never
+     correct and did not work properly.
+
+  ** The gdb.Value type has a new constructor, which is used to construct a
+     gdb.Value from a Python buffer object and a gdb.Type.
+
+* Configure changes
+
+--enable-ubsan
+
+  Enable or disable the undefined behavior sanitizer.  This is
+  disabled by default, but passing --enable-ubsan=yes or
+  --enable-ubsan=auto to configure will enable it.  Enabling this can
+  cause a performance penalty.  The undefined behavior sanitizer was
+  first introduced in GCC 4.9.
 
 *** Changes in GDB 8.2
 
@@ -81,6 +588,9 @@ GNU/Linux/RISC-V		riscv*-*-linux*
 
 * C expressions can now use _Alignof, and C++ expressions can now use
   alignof.
+
+* Support for SVE on AArch64 Linux.  Note that GDB does not detect changes to
+  the vector length while the process is running.
 
 * New commands
 

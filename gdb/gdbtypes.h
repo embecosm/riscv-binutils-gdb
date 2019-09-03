@@ -1,7 +1,7 @@
 
 /* Internal type definitions for GDB.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Support, using pieces from other GDB modules.
 
@@ -45,10 +45,11 @@
  */
 
 #include "hashtab.h"
-#include "common/offset-type.h"
-#include "common/enum-flags.h"
-#include "common/underlying.h"
-#include "common/print-utils.h"
+#include "gdbsupport/array-view.h"
+#include "gdbsupport/offset-type.h"
+#include "gdbsupport/enum-flags.h"
+#include "gdbsupport/underlying.h"
+#include "gdbsupport/print-utils.h"
 
 /* Forward declarations for prototypes.  */
 struct field;
@@ -192,7 +193,7 @@ enum type_code
 /* * Some bits for the type's instance_flags word.  See the macros
    below for documentation on each bit.  */
 
-enum type_instance_flag_value
+enum type_instance_flag_value : unsigned
 {
   TYPE_INSTANCE_FLAG_CONST = (1 << 0),
   TYPE_INSTANCE_FLAG_VOLATILE = (1 << 1),
@@ -347,6 +348,10 @@ DEF_ENUM_FLAGS_TYPE (enum type_instance_flag_value, type_instance_flags);
 
 #define TYPE_IS_REFERENCE(t) \
   (TYPE_CODE (t) == TYPE_CODE_REF || TYPE_CODE (t) == TYPE_CODE_RVALUE_REF)
+
+/* * True if this type is allocatable.  */
+#define TYPE_IS_ALLOCATABLE(t) \
+  (get_dyn_prop (DYN_PROP_ALLOCATED, t) != NULL)
 
 /* * Instruction-space delimited type.  This is for Harvard architectures
    which have separate instruction and data address spaces (and perhaps
@@ -613,7 +618,7 @@ struct range_bounds
   struct dynamic_prop high;
 
   /* True if HIGH range bound contains the number of elements in the
-     subrange. This affects how the final hight bound is computed.  */
+     subrange.  This affects how the final high bound is computed.  */
 
   int flag_upper_bound_is_count : 1;
 
@@ -857,7 +862,7 @@ struct type
      type_length_units function should be used in order to get the length
      expressed in target addressable memory units.  */
 
-  unsigned int length;
+  ULONGEST length;
 
   /* * Core type, shared by a group of qualified types.  */
 
@@ -1093,13 +1098,9 @@ struct rank
     short subrank;
   };
 
-/* * Struct used for ranking a function for overload resolution.  */
+/* * Used for ranking a function for overload resolution.  */
 
-struct badness_vector
-  {
-    int length;
-    struct rank *rank;
-  };
+typedef std::vector<rank> badness_vector;
 
 /* * GNAT Ada-specific information for various Ada types.  */
 
@@ -1257,6 +1258,10 @@ extern void allocate_cplus_struct_type (struct type *);
   (TYPE_SPECIFIC_FIELD (type) == TYPE_SPECIFIC_CPLUS_STUFF \
    && TYPE_RAW_CPLUS_SPECIFIC (type) !=  &cplus_struct_default)
 
+#define INIT_NONE_SPECIFIC(type) \
+  (TYPE_SPECIFIC_FIELD (type) = TYPE_SPECIFIC_NONE, \
+   TYPE_MAIN_TYPE (type)->type_specific = {})
+
 extern const struct gnat_aux_type gnat_aux_default;
 
 extern void allocate_gnat_aux_type (struct type *);
@@ -1269,6 +1274,12 @@ extern void allocate_gnat_aux_type (struct type *);
    read as "gnat-stuff".  */
 #define HAVE_GNAT_AUX_INFO(type) \
   (TYPE_SPECIFIC_FIELD (type) == TYPE_SPECIFIC_GNAT_STUFF)
+
+/* * True if TYPE is known to be an Ada type of some kind.  */
+#define ADA_TYPE_P(type)					\
+  (TYPE_SPECIFIC_FIELD (type) == TYPE_SPECIFIC_GNAT_STUFF	\
+    || (TYPE_SPECIFIC_FIELD (type) == TYPE_SPECIFIC_NONE	\
+	&& TYPE_FIXED_INSTANCE (type)))
 
 #define INIT_FUNC_SPECIFIC(type)					       \
   (TYPE_SPECIFIC_FIELD (type) = TYPE_SPECIFIC_FUNC,			       \
@@ -1357,7 +1368,8 @@ extern bool set_type_align (struct type *, ULONGEST);
   dynprop->kind
 
 
-/* Moto-specific stuff for FORTRAN arrays.  */
+/* Accessors for struct range_bounds data attached to an array type's
+   index type.  */
 
 #define TYPE_ARRAY_UPPER_BOUND_IS_UNDEFINED(arraytype) \
    TYPE_HIGH_BOUND_UNDEFINED(TYPE_INDEX_TYPE(arraytype))
@@ -1583,6 +1595,7 @@ struct builtin_type
   struct type *builtin_unsigned_short;
   struct type *builtin_unsigned_int;
   struct type *builtin_unsigned_long;
+  struct type *builtin_half;
   struct type *builtin_float;
   struct type *builtin_double;
   struct type *builtin_long_double;
@@ -1611,6 +1624,8 @@ struct builtin_type
   struct type *builtin_uint8;
   struct type *builtin_int16;
   struct type *builtin_uint16;
+  struct type *builtin_int24;
+  struct type *builtin_uint24;
   struct type *builtin_int32;
   struct type *builtin_uint32;
   struct type *builtin_int64;
@@ -1676,6 +1691,7 @@ struct objfile_type
   struct type *builtin_unsigned_int;
   struct type *builtin_unsigned_long;
   struct type *builtin_unsigned_long_long;
+  struct type *builtin_half;
   struct type *builtin_float;
   struct type *builtin_double;
   struct type *builtin_long_double;
@@ -1715,26 +1731,30 @@ extern const struct floatformat *floatformats_vax_d[BFD_ENDIAN_UNKNOWN];
 extern const struct floatformat *floatformats_ibm_long_double[BFD_ENDIAN_UNKNOWN];
 
 
-/* * Allocate space for storing data associated with a particular
+/* Allocate space for storing data associated with a particular
    type.  We ensure that the space is allocated using the same
    mechanism that was used to allocate the space for the type
    structure itself.  I.e.  if the type is on an objfile's
    objfile_obstack, then the space for data associated with that type
-   will also be allocated on the objfile_obstack.  If the type is not
-   associated with any particular objfile (such as builtin types),
-   then the data space will be allocated with xmalloc, the same as for
-   the type structure.  */
+   will also be allocated on the objfile_obstack.  If the type is
+   associated with a gdbarch, then the space for data associated with that
+   type will also be allocated on the gdbarch_obstack.
 
-#define TYPE_ALLOC(t,size)  \
-   (TYPE_OBJFILE_OWNED (t) \
-    ? obstack_alloc (&TYPE_OBJFILE (t) -> objfile_obstack, size) \
-    : xmalloc (size))
+   If a type is not associated with neither an objfile or a gdbarch then
+   you should not use this macro to allocate space for data, instead you
+   should call xmalloc directly, and ensure the memory is correctly freed
+   when it is no longer needed.  */
 
-#define TYPE_ZALLOC(t,size)  \
-   (TYPE_OBJFILE_OWNED (t) \
-    ? memset (obstack_alloc (&TYPE_OBJFILE (t)->objfile_obstack, size),  \
-	      0, size)  \
-    : xzalloc (size))
+#define TYPE_ALLOC(t,size)                                              \
+  (obstack_alloc ((TYPE_OBJFILE_OWNED (t)                               \
+                   ? &TYPE_OBJFILE (t)->objfile_obstack                 \
+                   : gdbarch_obstack (TYPE_OWNER (t).gdbarch)),         \
+                  size))
+
+
+/* See comment on TYPE_ALLOC.  */
+
+#define TYPE_ZALLOC(t,size) (memset (TYPE_ALLOC (t, size), 0, size))
 
 /* Use alloc_type to allocate a type owned by an objfile.  Use
    alloc_type_arch to allocate a type owned by an architecture.  Use
@@ -1845,7 +1865,7 @@ extern struct type *make_atomic_type (struct type *);
 
 extern void replace_type (struct type *, struct type *);
 
-extern int address_space_name_to_int (struct gdbarch *, char *);
+extern int address_space_name_to_int (struct gdbarch *, const char *);
 
 extern const char *address_space_int_to_name (struct gdbarch *, int);
 
@@ -1868,6 +1888,44 @@ extern void smash_to_methodptr_type (struct type *, struct type *);
 extern struct type *allocate_stub_method (struct type *);
 
 extern const char *type_name_or_error (struct type *type);
+
+struct struct_elt
+{
+  /* The field of the element, or NULL if no element was found.  */
+  struct field *field;
+
+  /* The bit offset of the element in the parent structure.  */
+  LONGEST offset;
+};
+
+/* Given a type TYPE, lookup the field and offset of the component named
+   NAME.
+
+   TYPE can be either a struct or union, or a pointer or reference to
+   a struct or union.  If it is a pointer or reference, its target
+   type is automatically used.  Thus '.' and '->' are interchangable,
+   as specified for the definitions of the expression element types
+   STRUCTOP_STRUCT and STRUCTOP_PTR.
+
+   If NOERR is nonzero, the returned structure will have field set to
+   NULL if there is no component named NAME.
+
+   If the component NAME is a field in an anonymous substructure of
+   TYPE, the returned offset is a "global" offset relative to TYPE
+   rather than an offset within the substructure.  */
+
+extern struct_elt lookup_struct_elt (struct type *, const char *, int);
+
+/* Given a type TYPE, lookup the type of the component named NAME.
+
+   TYPE can be either a struct or union, or a pointer or reference to
+   a struct or union.  If it is a pointer or reference, its target
+   type is automatically used.  Thus '.' and '->' are interchangable,
+   as specified for the definitions of the expression element types
+   STRUCTOP_STRUCT and STRUCTOP_PTR.
+
+   If NOERR is nonzero, return NULL if there is no component named
+   NAME.  */
 
 extern struct type *lookup_struct_elt_type (struct type *, const char *, int);
 
@@ -1953,7 +2011,7 @@ extern struct type *lookup_typename (const struct language_defn *,
 				     struct gdbarch *, const char *,
 				     const struct block *, int);
 
-extern struct type *lookup_template_type (char *, struct type *,
+extern struct type *lookup_template_type (const char *, struct type *,
 					  const struct block *);
 
 extern int get_vptr_fieldno (struct type *, struct type **);
@@ -1974,8 +2032,6 @@ extern int is_public_ancestor (struct type *, struct type *);
 extern int is_unique_ancestor (struct type *, struct value *);
 
 /* Overload resolution */
-
-#define LENGTH_MATCH(bv) ((bv)->rank[0])
 
 /* * Badness if parameter list length doesn't match arg list length.  */
 extern const struct rank LENGTH_MISMATCH_BADNESS;
@@ -2035,10 +2091,11 @@ extern const struct rank NS_INTEGER_POINTER_CONVERSION_BADNESS;
 extern struct rank sum_ranks (struct rank a, struct rank b);
 extern int compare_ranks (struct rank a, struct rank b);
 
-extern int compare_badness (struct badness_vector *, struct badness_vector *);
+extern int compare_badness (const badness_vector &,
+			    const badness_vector &);
 
-extern struct badness_vector *rank_function (struct type **, int,
-					     struct value **, int);
+extern badness_vector rank_function (gdb::array_view<type *> parms,
+				     gdb::array_view<value *> args);
 
 extern struct rank rank_one_type (struct type *, struct type *,
 				  struct value *);

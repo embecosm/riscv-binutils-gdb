@@ -1,5 +1,5 @@
 /* Low level interface to SPUs, for the remote server for GDB.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    Contributed by Ulrich Weigand <uweigand@de.ibm.com>.
 
@@ -20,12 +20,12 @@
 
 #include "server.h"
 
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include <sys/ptrace.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/syscall.h>
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "hostio.h"
 #include "nat/fork-inferior.h"
 
@@ -362,12 +362,12 @@ spu_mourn (struct process_info *process)
 }
 
 static void
-spu_join (process_info *proc)
+spu_join (int pid)
 {
   int status, ret;
 
   do {
-    ret = waitpid (proc->pid, &status, 0);
+    ret = waitpid (pid, &status, 0);
     if (WIFEXITED (status) || WIFSIGNALED (status))
       break;
   } while (ret != -1 || errno != ECHILD);

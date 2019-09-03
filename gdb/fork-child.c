@@ -1,6 +1,6 @@
 /* Fork a Unix child process, and set up to debug it, for GDB.
 
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Support.
 
@@ -25,17 +25,17 @@
 #include "terminal.h"
 #include "gdbthread.h"
 #include "top.h"
-#include "job-control.h"
-#include "filestuff.h"
+#include "gdbsupport/job-control.h"
+#include "gdbsupport/filestuff.h"
 #include "nat/fork-inferior.h"
-#include "common/common-inferior.h"
+#include "gdbsupport/common-inferior.h"
 
 /* The exec-wrapper, if any, that will be used when starting the
    inferior.  */
 
 static char *exec_wrapper = NULL;
 
-/* See common/common-inferior.h.  */
+/* See gdbsupport/common-inferior.h.  */
 
 const char *
 get_exec_wrapper ()
@@ -78,12 +78,7 @@ prefork_hook (const char *args)
 void
 postfork_hook (pid_t pid)
 {
-  struct inferior *inf;
-
-  if (!have_inferiors ())
-    init_thread_list ();
-
-  inf = current_inferior ();
+  inferior *inf = current_inferior ();
 
   inferior_appeared (inf, pid);
 

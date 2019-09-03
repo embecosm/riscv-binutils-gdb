@@ -1,6 +1,6 @@
 /* Native-dependent code for OpenBSD.
 
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -24,7 +24,7 @@
 
 #include <sys/types.h>
 #include <sys/ptrace.h>
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 
 #include "inf-child.h"
 #include "obsd-nat.h"
@@ -35,16 +35,11 @@
 
 #ifdef PT_GET_THREAD_FIRST
 
-const char *
+std::string
 obsd_nat_target::pid_to_str (ptid_t ptid)
 {
   if (ptid.lwp () != 0)
-    {
-      static char buf[64];
-
-      xsnprintf (buf, sizeof buf, "thread %ld", ptid.lwp ());
-      return buf;
-    }
+    return string_printf ("thread %ld", ptid.lwp ());
 
   return normal_pid_to_str (ptid);
 }

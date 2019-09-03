@@ -1,5 +1,5 @@
 /* ppc-dis.c -- Disassemble PowerPC instructions
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
    Written by Ian Lance Taylor, Cygnus Support
 
    This file is part of the GNU opcodes library.
@@ -184,6 +184,11 @@ struct ppc_mopt ppc_opts[] = {
 		| PPC_OPCODE_POWER4 | PPC_OPCODE_POWER5 | PPC_OPCODE_POWER6
 		| PPC_OPCODE_POWER7 | PPC_OPCODE_POWER8 | PPC_OPCODE_POWER9
 		| PPC_OPCODE_ALTIVEC | PPC_OPCODE_VSX),
+    0 },
+  { "future",  (PPC_OPCODE_PPC | PPC_OPCODE_ISEL | PPC_OPCODE_64
+		| PPC_OPCODE_POWER4 | PPC_OPCODE_POWER5 | PPC_OPCODE_POWER6
+		| PPC_OPCODE_POWER7 | PPC_OPCODE_POWER8 | PPC_OPCODE_POWER9
+		| PPC_OPCODE_POWERXX | PPC_OPCODE_ALTIVEC | PPC_OPCODE_VSX),
     0 },
   { "ppc",     PPC_OPCODE_PPC,
     0 },
@@ -376,6 +381,8 @@ powerpc_init_dialect (struct disassemble_info *info)
 
 #define PPC_OPCD_SEGS (1 + PPC_OP (-1))
 static unsigned short powerpc_opcd_indices[PPC_OPCD_SEGS + 1];
+#define PREFIX_OPCD_SEGS (1 + PPC_PREFIX_SEG (-1))
+static unsigned short prefix_opcd_indices[PREFIX_OPCD_SEGS + 1];
 #define VLE_OPCD_SEGS (1 + VLE_OP_TO_SEG (VLE_OP (-1, 0xffff)))
 static unsigned short vle_opcd_indices[VLE_OPCD_SEGS + 1];
 #define SPE2_OPCD_SEGS (1 + SPE2_XOP_TO_SEG (SPE2_XOP (-1)))
@@ -397,6 +404,15 @@ disassemble_init_powerpc (struct disassemble_info *info)
 	  powerpc_opcd_indices[seg] = idx;
 	  for (; idx < powerpc_num_opcodes; idx++)
 	    if (seg < PPC_OP (powerpc_opcodes[idx].opcode))
+	      break;
+	}
+
+      /* 64-bit prefix opcodes */
+      for (seg = 0, idx = 0; seg <= PREFIX_OPCD_SEGS; seg++)
+	{
+	  prefix_opcd_indices[seg] = idx;
+	  for (; idx < prefix_num_opcodes; idx++)
+	    if (seg < PPC_PREFIX_SEG (prefix_opcodes[idx].opcode))
 	      break;
 	}
 
@@ -451,7 +467,7 @@ operand_value_powerpc (const struct powerpc_operand *operand,
 		       uint64_t insn, ppc_cpu_t dialect)
 {
   int64_t value;
-  int invalid;
+  int invalid = 0;
   /* Extract the value from the instruction.  */
   if (operand->extract)
     value = (*operand->extract) (insn, dialect, &invalid);
@@ -479,23 +495,30 @@ operand_value_powerpc (const struct powerpc_operand *operand,
 
 /* Determine whether the optional operand(s) should be printed.  */
 
-static int
+static bfd_boolean
 skip_optional_operands (const unsigned char *opindex,
 			uint64_t insn, ppc_cpu_t dialect)
 {
   const struct powerpc_operand *operand;
+  int num_optional;
 
-  for (; *opindex != 0; opindex++)
+  for (num_optional = 0; *opindex != 0; opindex++)
     {
       operand = &powerpc_operands[*opindex];
-      if ((operand->flags & PPC_OPERAND_NEXT) != 0
-	  || ((operand->flags & PPC_OPERAND_OPTIONAL) != 0
-	      && operand_value_powerpc (operand, insn, dialect) !=
-		 ppc_optional_operand_value (operand)))
-	return 0;
+      if ((operand->flags & PPC_OPERAND_NEXT) != 0)
+	return FALSE;
+      if ((operand->flags & PPC_OPERAND_OPTIONAL) != 0)
+	{
+	  /* Negative count is used as a flag to extract function.  */
+	  --num_optional;
+	  if (operand_value_powerpc (operand, insn, dialect)
+	      != ppc_optional_operand_value (operand, insn, dialect,
+					     num_optional))
+	    return FALSE;
+	}
     }
 
-  return 1;
+  return TRUE;
 }
 
 /* Find a match for INSN in the opcode table, given machine DIALECT.  */
@@ -513,6 +536,57 @@ lookup_powerpc (uint64_t insn, ppc_cpu_t dialect)
   opcode_end = powerpc_opcodes + powerpc_opcd_indices[op + 1];
   last = NULL;
   for (opcode = powerpc_opcodes + powerpc_opcd_indices[op];
+       opcode < opcode_end;
+       ++opcode)
+    {
+      const unsigned char *opindex;
+      const struct powerpc_operand *operand;
+      int invalid;
+
+      if ((insn & opcode->mask) != opcode->opcode
+	  || ((dialect & PPC_OPCODE_ANY) == 0
+	      && ((opcode->flags & dialect) == 0
+		  || (opcode->deprecated & dialect) != 0)))
+	continue;
+
+      /* Check validity of operands.  */
+      invalid = 0;
+      for (opindex = opcode->operands; *opindex != 0; opindex++)
+	{
+	  operand = powerpc_operands + *opindex;
+	  if (operand->extract)
+	    (*operand->extract) (insn, dialect, &invalid);
+	}
+      if (invalid)
+	continue;
+
+      if ((dialect & PPC_OPCODE_RAW) == 0)
+	return opcode;
+
+      /* The raw machine insn is one that is not a specialization.  */
+      if (last == NULL
+	  || (last->mask & ~opcode->mask) != 0)
+	last = opcode;
+    }
+
+  return last;
+}
+
+/* Find a match for INSN in the PREFIX opcode table.  */
+
+static const struct powerpc_opcode *
+lookup_prefix (uint64_t insn, ppc_cpu_t dialect)
+{
+  const struct powerpc_opcode *opcode, *opcode_end, *last;
+  unsigned long seg;
+
+  /* Get the opcode segment of the instruction.  */
+  seg = PPC_PREFIX_SEG (insn);
+
+  /* Find the first match in the opcode table for this major opcode.  */
+  opcode_end = prefix_opcodes + prefix_opcd_indices[seg + 1];
+  last = NULL;
+  for (opcode = prefix_opcodes + prefix_opcd_indices[seg];
        opcode < opcode_end;
        ++opcode)
     {
@@ -692,7 +766,31 @@ print_insn_powerpc (bfd_vma memaddr,
 
   /* Get the major opcode of the insn.  */
   opcode = NULL;
-  if ((dialect & PPC_OPCODE_VLE) != 0)
+  if ((dialect & PPC_OPCODE_POWERXX) != 0
+      && PPC_OP (insn) == 0x1)
+    {
+      uint64_t temp_insn, suffix;
+      status = (*info->read_memory_func) (memaddr + 4, buffer, 4, info);
+      if (status == 0)
+	{
+	  if (bigendian)
+	    suffix = bfd_getb32 (buffer);
+	  else
+	    suffix = bfd_getl32 (buffer);
+	  temp_insn = (insn << 32) | suffix;
+	  opcode = lookup_prefix (temp_insn, dialect & ~PPC_OPCODE_ANY);
+	  if (opcode == NULL && (dialect & PPC_OPCODE_ANY) != 0)
+	    opcode = lookup_prefix (temp_insn, dialect);
+	  if (opcode != NULL)
+	    {
+	      insn = temp_insn;
+	      insn_length = 8;
+	      if ((info->flags & WIDE_OUTPUT) != 0)
+		info->bytes_per_line = 8;
+	    }
+	}
+    }
+  if (opcode == NULL && (dialect & PPC_OPCODE_VLE) != 0)
     {
       opcode = lookup_vle (insn);
       if (opcode != NULL && PPC_OP_SE_VLE (opcode->mask))
@@ -713,69 +811,83 @@ print_insn_powerpc (bfd_vma memaddr,
     {
       const unsigned char *opindex;
       const struct powerpc_operand *operand;
-      int need_comma;
-      int need_paren;
-      int skip_optional;
+      enum {
+	need_comma = 0,
+	need_1space = 1,
+	need_2spaces = 2,
+	need_3spaces = 3,
+	need_4spaces = 4,
+	need_5spaces = 5,
+	need_6spaces = 6,
+	need_7spaces = 7,
+	need_paren
+      } op_separator;
+      bfd_boolean skip_optional;
+      int spaces;
 
-      if (opcode->operands[0] != 0)
-	(*info->fprintf_func) (info->stream, "%-7s ", opcode->name);
-      else
-	(*info->fprintf_func) (info->stream, "%s", opcode->name);
+      (*info->fprintf_func) (info->stream, "%s", opcode->name);
+      /* gdb fprintf_func doesn't return count printed.  */
+      spaces = 8 - strlen (opcode->name);
+      if (spaces <= 0)
+	spaces = 1;
 
       /* Now extract and print the operands.  */
-      need_comma = 0;
-      need_paren = 0;
-      skip_optional = -1;
+      op_separator = spaces;
+      skip_optional = FALSE;
       for (opindex = opcode->operands; *opindex != 0; opindex++)
 	{
 	  int64_t value;
 
 	  operand = powerpc_operands + *opindex;
 
-	  /* If all of the optional operands have the value zero,
-	     then don't print any of them.  */
-	  if ((operand->flags & PPC_OPERAND_OPTIONAL) != 0)
+	  /* If all of the optional operands past this one have their
+	     default value, then don't print any of them.  Except in
+	     raw mode, print them all.  */
+	  if ((operand->flags & PPC_OPERAND_OPTIONAL) != 0
+	      && (dialect & PPC_OPCODE_RAW) == 0)
 	    {
-	      if (skip_optional < 0)
-		skip_optional = skip_optional_operands (opindex, insn,
-							dialect);
+	      if (!skip_optional)
+		skip_optional = skip_optional_operands (opindex, insn, dialect);
 	      if (skip_optional)
 		continue;
 	    }
 
 	  value = operand_value_powerpc (operand, insn, dialect);
 
-	  if (need_comma)
-	    {
-	      (*info->fprintf_func) (info->stream, ",");
-	      need_comma = 0;
-	    }
+	  if (op_separator == need_comma)
+	    (*info->fprintf_func) (info->stream, ",");
+	  else if (op_separator == need_paren)
+	    (*info->fprintf_func) (info->stream, "(");
+	  else
+	    (*info->fprintf_func) (info->stream, "%*s", op_separator, " ");
 
 	  /* Print the operand as directed by the flags.  */
 	  if ((operand->flags & PPC_OPERAND_GPR) != 0
 	      || ((operand->flags & PPC_OPERAND_GPR_0) != 0 && value != 0))
-	    (*info->fprintf_func) (info->stream, "r%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "r%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_FPR) != 0)
-	    (*info->fprintf_func) (info->stream, "f%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "f%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_VR) != 0)
-	    (*info->fprintf_func) (info->stream, "v%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "v%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_VSR) != 0)
-	    (*info->fprintf_func) (info->stream, "vs%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "vs%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_RELATIVE) != 0)
 	    (*info->print_address_func) (memaddr + value, info);
 	  else if ((operand->flags & PPC_OPERAND_ABSOLUTE) != 0)
 	    (*info->print_address_func) ((bfd_vma) value & 0xffffffff, info);
 	  else if ((operand->flags & PPC_OPERAND_FSL) != 0)
-	    (*info->fprintf_func) (info->stream, "fsl%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "fsl%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_FCR) != 0)
-	    (*info->fprintf_func) (info->stream, "fcr%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "fcr%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_UDI) != 0)
-	    (*info->fprintf_func) (info->stream, "%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "%" PRId64, value);
 	  else if ((operand->flags & PPC_OPERAND_CR_REG) != 0
+		   && (operand->flags & PPC_OPERAND_CR_BIT) == 0
 		   && (((dialect & PPC_OPCODE_PPC) != 0)
 		       || ((dialect & PPC_OPCODE_VLE) != 0)))
-	    (*info->fprintf_func) (info->stream, "cr%" PPC_INT_FMT "d", value);
-	  else if (((operand->flags & PPC_OPERAND_CR_BIT) != 0)
+	    (*info->fprintf_func) (info->stream, "cr%" PRId64, value);
+	  else if ((operand->flags & PPC_OPERAND_CR_BIT) != 0
+		   && (operand->flags & PPC_OPERAND_CR_REG) == 0
 		   && (((dialect & PPC_OPCODE_PPC) != 0)
 		       || ((dialect & PPC_OPCODE_VLE) != 0)))
 	    {
@@ -790,21 +902,14 @@ print_insn_powerpc (bfd_vma memaddr,
 	      (*info->fprintf_func) (info->stream, "%s", cbnames[cc]);
 	    }
 	  else
-	    (*info->fprintf_func) (info->stream, "%" PPC_INT_FMT "d", value);
+	    (*info->fprintf_func) (info->stream, "%" PRId64, value);
 
-	  if (need_paren)
-	    {
-	      (*info->fprintf_func) (info->stream, ")");
-	      need_paren = 0;
-	    }
+	  if (op_separator == need_paren)
+	    (*info->fprintf_func) (info->stream, ")");
 
-	  if ((operand->flags & PPC_OPERAND_PARENS) == 0)
-	    need_comma = 1;
-	  else
-	    {
-	      (*info->fprintf_func) (info->stream, "(");
-	      need_paren = 1;
-	    }
+	  op_separator = need_comma;
+	  if ((operand->flags & PPC_OPERAND_PARENS) != 0)
+	    op_separator = need_paren;
 	}
 
       /* We have found and printed an instruction.  */
@@ -812,7 +917,7 @@ print_insn_powerpc (bfd_vma memaddr,
     }
 
   /* We could not find a match.  */
-  (*info->fprintf_func) (info->stream, ".long 0x%" PPC_INT_FMT "x", insn);
+  (*info->fprintf_func) (info->stream, ".long 0x%" PRIx64, insn);
 
   return 4;
 }

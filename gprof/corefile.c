@@ -1,6 +1,6 @@
 /* corefile.c
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GNU Binutils.
 
@@ -185,6 +185,8 @@ core_init (const char * aout_name)
       perror (aout_name);
       done (1);
     }
+
+  core_bfd->flags |= BFD_DECOMPRESS;
 
   if (!bfd_check_format (core_bfd, bfd_object))
     {

@@ -1,6 +1,6 @@
 /* Exception (throw catch) mechanism, for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -27,7 +27,7 @@
 #include "serial.h"
 #include "gdbthread.h"
 #include "top.h"
-#include "common/gdb_optional.h"
+#include "gdbsupport/gdb_optional.h"
 
 static void
 print_flush (void)
@@ -74,14 +74,14 @@ print_flush (void)
 }
 
 static void
-print_exception (struct ui_file *file, struct gdb_exception e)
+print_exception (struct ui_file *file, const struct gdb_exception &e)
 {
   /* KLUGE: cagney/2005-01-13: Write the string out one line at a time
      as that way the MI's behavior is preserved.  */
   const char *start;
   const char *end;
 
-  for (start = e.message; start != NULL; start = end)
+  for (start = e.what (); start != NULL; start = end)
     {
       end = strchr (start, '\n');
       if (end == NULL)
@@ -110,7 +110,7 @@ print_exception (struct ui_file *file, struct gdb_exception e)
 }
 
 void
-exception_print (struct ui_file *file, struct gdb_exception e)
+exception_print (struct ui_file *file, const struct gdb_exception &e)
 {
   if (e.reason < 0 && e.message != NULL)
     {
@@ -120,7 +120,7 @@ exception_print (struct ui_file *file, struct gdb_exception e)
 }
 
 void
-exception_fprintf (struct ui_file *file, struct gdb_exception e,
+exception_fprintf (struct ui_file *file, const struct gdb_exception &e,
 		   const char *prefix, ...)
 {
   if (e.reason < 0 && e.message != NULL)
@@ -141,15 +141,11 @@ exception_fprintf (struct ui_file *file, struct gdb_exception e,
 /* See exceptions.h.  */
 
 int
-exception_print_same (struct gdb_exception e1, struct gdb_exception e2)
+exception_print_same (const struct gdb_exception &e1,
+		      const struct gdb_exception &e2)
 {
-  const char *msg1 = e1.message;
-  const char *msg2 = e2.message;
-
-  if (msg1 == NULL)
-    msg1 = "";
-  if (msg2 == NULL)
-    msg2 = "";
+  const char *msg1 = e1.message == nullptr ? "" : e1.what ();
+  const char *msg2 = e2.message == nullptr ? "" : e2.what ();
 
   return (e1.reason == e2.reason
 	  && e1.error == e2.error

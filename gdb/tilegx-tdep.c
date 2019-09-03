@@ -1,6 +1,6 @@
 /* Target-dependent code for the Tilera TILE-Gx processor.
 
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -40,7 +40,7 @@
 #include "tilegx-tdep.h"
 #include "opcode/tilegx.h"
 #include <algorithm>
-#include "common/byte-vector.h"
+#include "gdbsupport/byte-vector.h"
 
 struct tilegx_frame_cache
 {
@@ -281,7 +281,7 @@ tilegx_push_dummy_call (struct gdbarch *gdbarch,
 			struct regcache *regcache,
 			CORE_ADDR bp_addr, int nargs,
 			struct value **args,
-			CORE_ADDR sp, int struct_return,
+			CORE_ADDR sp, function_call_return_method return_method,
 			CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -293,7 +293,7 @@ tilegx_push_dummy_call (struct gdbarch *gdbarch,
 
   /* If struct_return is 1, then the struct return address will
      consume one argument-passing register.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     regcache_cooked_write_unsigned (regcache, argreg++, struct_addr);
 
   /* Arguments are passed in R0 - R9, and as soon as an argument
@@ -930,29 +930,6 @@ static const struct frame_base tilegx_frame_base = {
   tilegx_frame_base_address
 };
 
-static CORE_ADDR
-tilegx_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, TILEGX_SP_REGNUM);
-}
-
-static CORE_ADDR
-tilegx_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, TILEGX_PC_REGNUM);
-}
-
-static struct frame_id
-tilegx_unwind_dummy_id (struct gdbarch *gdbarch,
-			struct frame_info *this_frame)
-{
-  CORE_ADDR sp;
-
-  sp = get_frame_register_unsigned (this_frame, TILEGX_SP_REGNUM);
-  return frame_id_build (sp, get_frame_pc (this_frame));
-}
-
-
 /* We cannot read/write the "special" registers.  */
 
 static int
@@ -1027,9 +1004,6 @@ tilegx_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_inner_than (gdbarch, core_addr_lessthan);
 
   /* Frame Info.  */
-  set_gdbarch_unwind_sp (gdbarch, tilegx_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, tilegx_unwind_pc);
-  set_gdbarch_dummy_id (gdbarch, tilegx_unwind_dummy_id);
   set_gdbarch_frame_align (gdbarch, tilegx_frame_align);
   frame_base_set_default (gdbarch, &tilegx_frame_base);
 

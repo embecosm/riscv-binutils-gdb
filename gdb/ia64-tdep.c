@@ -1,6 +1,6 @@
 /* Target-dependent code for the IA-64 for GDB, the GNU debugger.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -947,7 +947,6 @@ ia64_pseudo_register_read (struct gdbarch *gdbarch, readable_regcache *regcache,
 	     found sequentially in memory starting at $bof.  This
 	     isn't always true, but without libunwind, this is the
 	     best we can do.  */
-	  enum register_status status;
 	  ULONGEST cfm;
 	  ULONGEST bsp;
 	  CORE_ADDR reg;
@@ -1399,8 +1398,8 @@ examine_prologue (CORE_ADDR pc, CORE_ADDR lim_pc,
       && it == M && ((instr & 0x1ee0000003fLL) == 0x02c00000000LL))
     {
       /* alloc - start of a regular function.  */
-      int sol = (int) ((instr & 0x00007f00000LL) >> 20);
-      int sof = (int) ((instr & 0x000000fe000LL) >> 13);
+      int sol_bits = (int) ((instr & 0x00007f00000LL) >> 20);
+      int sof_bits = (int) ((instr & 0x000000fe000LL) >> 13);
       int rN = (int) ((instr & 0x00000001fc0LL) >> 6);
 
       /* Verify that the current cfm matches what we think is the
@@ -1409,8 +1408,8 @@ examine_prologue (CORE_ADDR pc, CORE_ADDR lim_pc,
 	 addresses of various registers such as the return address.
 	 We will instead treat the frame as frameless.  */
       if (!this_frame ||
-	  (sof == (cache->cfm & 0x7f) &&
-	   sol == ((cache->cfm >> 7) & 0x7f)))
+	  (sof_bits == (cache->cfm & 0x7f) &&
+	   sol_bits == ((cache->cfm >> 7) & 0x7f)))
 	frameless = 0;
 
       cfm_reg = rN;
@@ -2846,7 +2845,6 @@ ia64_get_dyn_info_list (unw_addr_space_t as,
 			unw_word_t *dilap, void *arg)
 {
   struct obj_section *text_sec;
-  struct objfile *objfile;
   unw_word_t ip, addr;
   unw_dyn_info_t di;
   int ret;
@@ -2854,7 +2852,7 @@ ia64_get_dyn_info_list (unw_addr_space_t as,
   if (!libunwind_is_initialized ())
     return -UNW_ENOINFO;
 
-  for (objfile = object_files; objfile; objfile = objfile->next)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
       void *buf = NULL;
 
@@ -3229,9 +3227,9 @@ ia64_extract_return_value (struct type *type, struct regcache *regcache,
 
       while (n-- > 0)
 	{
-	  ULONGEST val;
-	  regcache_cooked_read_unsigned (regcache, regnum, &val);
-	  memcpy ((char *)valbuf + offset, &val, reglen);
+	  ULONGEST regval;
+	  regcache_cooked_read_unsigned (regcache, regnum, &regval);
+	  memcpy ((char *)valbuf + offset, &regval, reglen);
 	  offset += reglen;
 	  regnum++;
 	}
@@ -3270,7 +3268,6 @@ ia64_store_return_value (struct type *type, struct regcache *regcache,
     }
   else
     {
-      ULONGEST val;
       int offset = 0;
       int regnum = IA64_GR8_REGNUM;
       int reglen = TYPE_LENGTH (register_type (gdbarch, IA64_GR8_REGNUM));
@@ -3288,6 +3285,7 @@ ia64_store_return_value (struct type *type, struct regcache *regcache,
 
       if (m)
 	{
+	  ULONGEST val;
 	  memcpy (&val, (char *)valbuf + offset, m);
           regcache_cooked_write_unsigned (regcache, regnum, val);
 	}
@@ -3674,7 +3672,8 @@ static CORE_ADDR
 ia64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 		      struct regcache *regcache, CORE_ADDR bp_addr,
 		      int nargs, struct value **args, CORE_ADDR sp,
-		      int struct_return, CORE_ADDR struct_addr)
+		      function_call_return_method return_method,
+		      CORE_ADDR struct_addr)
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -3829,11 +3828,9 @@ ia64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
     }
 
   /* Store the struct return value in r8 if necessary.  */
-  if (struct_return)
-    {
-      regcache_cooked_write_unsigned (regcache, IA64_GR8_REGNUM,
-				      (ULONGEST) struct_addr);
-    }
+  if (return_method == return_method_struct)
+    regcache_cooked_write_unsigned (regcache, IA64_GR8_REGNUM,
+				    (ULONGEST) struct_addr);
 
   global_pointer = ia64_find_global_pointer (gdbarch, func_addr);
 

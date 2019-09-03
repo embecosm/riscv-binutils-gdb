@@ -1,7 +1,7 @@
 /* *INDENT-OFF* */ /* ATTRIBUTE_PRINTF confuses indent, avoid running it
 		      for now.  */
 /* Basic, host-specific, and target-specific definitions for GDB.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,7 +25,7 @@
 #  error gdbserver should not include gdb/defs.h
 #endif
 
-#include "common-defs.h"
+#include "gdbsupport/common-defs.h"
 
 #include <sys/types.h>
 #include <limits.h>
@@ -52,8 +52,8 @@
 
 #include "ui-file.h"
 
-#include "host-defs.h"
-#include "common/enum-flags.h"
+#include "gdbsupport/host-defs.h"
+#include "gdbsupport/enum-flags.h"
 
 /* Scope types enumerator.  List the types of scopes the compiler will
    accept.  */
@@ -300,16 +300,13 @@ EXTERN_C char *re_comp (const char *);
 
 extern void symbol_file_command (const char *, int);
 
-/* * Remote targets may wish to use this as their load function.  */
-extern void generic_load (const char *name, int from_tty);
-
 /* From top.c */
 
 typedef void initialize_file_ftype (void);
 
 extern char *gdb_readline_wrapper (const char *);
 
-extern char *command_line_input (const char *, int, const char *);
+extern char *command_line_input (const char *, const char *);
 
 extern void print_prompt (void);
 
@@ -388,6 +385,9 @@ enum info_proc_what
 
     /* * Display `info proc cwd'.  */
     IP_CWD,
+
+    /* * Display `info proc files'.  */
+    IP_FILES,
 
     /* * Display all of the above.  */
     IP_ALL
@@ -495,6 +495,7 @@ enum gdb_osabi
   GDB_OSABI_LYNXOS178,
   GDB_OSABI_NEWLIB,
   GDB_OSABI_SDE,
+  GDB_OSABI_PIKEOS,
 
   GDB_OSABI_INVALID		/* keep this last */
 };
@@ -517,9 +518,6 @@ enum symbol_needs_kind
   /* The symbol needs a frame.  */
   SYMBOL_NEEDS_FRAME
 };
-
-/* Dynamic target-system-dependent parameters for GDB.  */
-#include "gdbarch.h"
 
 /* In findvar.c.  */
 
@@ -574,18 +572,7 @@ extern void copy_integer_to_size (gdb_byte *dest, int dest_size,
 				  const gdb_byte *source, int source_size,
 				  bool is_signed, enum bfd_endian byte_order);
 
-/* From valops.c */
-
-extern int watchdog;
-
-/* From dwarf2read.c */
-
-ULONGEST read_unsigned_leb128 (bfd *, const gdb_byte *, unsigned int *);
-
 /* Hooks for alternate command interfaces.  */
-
-/* * The name of the interpreter if specified on the command line.  */
-extern char *interpreter_p;
 
 struct target_waitstatus;
 struct cmd_list_element;
@@ -607,7 +594,6 @@ extern int (*deprecated_query_hook) (const char *, va_list)
      ATTRIBUTE_FPTR_PRINTF(1,0);
 extern void (*deprecated_warning_hook) (const char *, va_list)
      ATTRIBUTE_FPTR_PRINTF(1,0);
-extern void (*deprecated_interactive_hook) (void);
 extern void (*deprecated_readline_begin_hook) (const char *, ...)
      ATTRIBUTE_FPTR_PRINTF_1;
 extern char *(*deprecated_readline_hook) (const char *);

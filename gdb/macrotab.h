@@ -1,5 +1,5 @@
 /* Interface to C preprocessor macro tables for GDB.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
    Contributed by Red Hat, Inc.
 
    This file is part of GDB.
@@ -20,7 +20,7 @@
 #ifndef MACROTAB_H
 #define MACROTAB_H
 
-#include "common/function-view.h"
+#include "gdbsupport/function-view.h"
 
 struct obstack;
 struct bcache;
@@ -351,12 +351,11 @@ void macro_for_each_in_scope (struct macro_source_file *file, int line,
 
 /* Return FILE->filename with possibly prepended compilation directory name.
    This is raw concatenation without the "set substitute-path" and gdb_realpath
-   applications done by symtab_to_fullname.  Returned string must be freed by
-   xfree.
+   applications done by symtab_to_fullname.
 
    THis function ignores the "set filename-display" setting.  Its default
    setting is "relative" which is backward compatible but the former behavior
    of macro filenames printing was "absolute".  */
-extern char *macro_source_fullname (struct macro_source_file *file);
+extern std::string macro_source_fullname (struct macro_source_file *file);
 
 #endif /* MACROTAB_H */

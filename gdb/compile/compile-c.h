@@ -1,5 +1,5 @@
 /* Header file for GDB compile C-language support.
-   Copyright (C) 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,10 +14,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef GDB_COMPILE_C_H
-#define GDB_COMPILE_C_H
+#ifndef COMPILE_COMPILE_C_H
+#define COMPILE_COMPILE_C_H
 
-#include "common/enum-flags.h"
+#include "gdbsupport/enum-flags.h"
 #include "gcc-c-plugin.h"
 
 /* enum-flags wrapper.  */
@@ -69,7 +69,7 @@ private:
 extern gdb::unique_xmalloc_ptr<unsigned char>
   generate_c_for_variable_locations
      (compile_instance *compiler,
-      string_file &stream,
+      string_file *stream,
       struct gdbarch *gdbarch,
       const struct block *block,
       CORE_ADDR pc);
@@ -92,4 +92,4 @@ extern std::string c_get_range_decl_name (const struct dynamic_prop *prop);
 extern gdb::unique_xmalloc_ptr<char>
   c_symbol_substitution_name (struct symbol *sym);
 
-#endif /* GDB_COMPILE_C_H  */
+#endif /* COMPILE_COMPILE_C_H */

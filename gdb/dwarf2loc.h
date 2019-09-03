@@ -1,6 +1,6 @@
 /* DWARF 2 location expression support for GDB.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -67,7 +67,7 @@ const gdb_byte *dwarf2_find_location_expression
 struct dwarf2_locexpr_baton dwarf2_fetch_die_loc_sect_off
   (sect_offset offset_in_cu, struct dwarf2_per_cu_data *per_cu,
    CORE_ADDR (*get_frame_pc) (void *baton),
-   void *baton);
+   void *baton, bool resolve_abstract_p = false);
 
 struct dwarf2_locexpr_baton dwarf2_fetch_die_loc_cu_off
   (cu_offset offset_in_cu, struct dwarf2_per_cu_data *per_cu,
@@ -135,13 +135,13 @@ struct property_addr_info
    property. When evaluating a property that is not related to a type, it can
    be NULL.
 
-   Returns 1 if PROP could be converted and the static value is passed back
-   into VALUE, otherwise returns 0.  */
+   Returns true if PROP could be converted and the static value is passed
+   back into VALUE, otherwise returns false.  */
 
-int dwarf2_evaluate_property (const struct dynamic_prop *prop,
-			      struct frame_info *frame,
-			      struct property_addr_info *addr_stack,
-			      CORE_ADDR *value);
+bool dwarf2_evaluate_property (const struct dynamic_prop *prop,
+			       struct frame_info *frame,
+			       struct property_addr_info *addr_stack,
+			       CORE_ADDR *value);
 
 /* A helper for the compiler interface that compiles a single dynamic
    property to C code.
@@ -156,7 +156,7 @@ int dwarf2_evaluate_property (const struct dynamic_prop *prop,
    evaluated.
    SYM the originating symbol, used for error reporting.  */
 
-void dwarf2_compile_property_to_c (string_file &stream,
+void dwarf2_compile_property_to_c (string_file *stream,
 				   const char *result_name,
 				   struct gdbarch *gdbarch,
 				   unsigned char *registers_used,
@@ -182,6 +182,12 @@ struct dwarf2_locexpr_baton
   /* Length of the location expression.  For optimized out expressions it is
      zero.  */
   size_t size;
+
+  /* When true this location expression is a reference and actually
+     describes the address at which the value of the attribute can be
+     found.  When false the expression provides the value of the attribute
+     directly.  */
+  bool is_reference;
 
   /* The compilation unit containing the symbol whose location
      we're computing.  */
@@ -222,29 +228,33 @@ struct dwarf2_offset_baton
   LONGEST offset;
 
   /* The type of the object whose property is dynamic.  In the example
-     provided above, this would the the array's index type.  */
+     provided above, this would the array's index type.  */
   struct type *type;
 };
 
 /* A dynamic property is either expressed as a single location expression
    or a location list.  If the property is an indirection, pointing to
-   another die, keep track of the targeted type in REFERENCED_TYPE.  */
+   another die, keep track of the targeted type in PROPERTY_TYPE.
+   Alternatively, if the property location gives the property value
+   directly then it will have PROPERTY_TYPE.  */
 
 struct dwarf2_property_baton
 {
   /* If the property is an indirection, we need to evaluate the location
-     in the context of the type REFERENCED_TYPE.
-     If NULL, the location is the actual value of the property.  */
-  struct type *referenced_type;
+     in the context of the type PROPERTY_TYPE.  If the property is supplied
+     by value then it will be of PROPERTY_TYPE.  This field should never be
+     NULL.  */
+  struct type *property_type;
   union
   {
-    /* Location expression.  */
+    /* Location expression either evaluated in the context of
+       PROPERTY_TYPE, or a value of type PROPERTY_TYPE.  */
     struct dwarf2_locexpr_baton locexpr;
 
-    /* Location list to be evaluated in the context of REFERENCED_TYPE.  */
+    /* Location list to be evaluated in the context of PROPERTY_TYPE.  */
     struct dwarf2_loclist_baton loclist;
 
-    /* The location is an offset to REFERENCED_TYPE.  */
+    /* The location is an offset to PROPERTY_TYPE.  */
     struct dwarf2_offset_baton offset_info;
   };
 };

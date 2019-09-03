@@ -1,5 +1,5 @@
 /* Target definitions for NN-bit ELF
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -497,7 +497,7 @@
 #define elf_backend_begin_write_processing	0
 #endif
 #ifndef elf_backend_final_write_processing
-#define elf_backend_final_write_processing	0
+#define elf_backend_final_write_processing	_bfd_elf_final_write_processing
 #endif
 #ifndef elf_backend_additional_program_headers
 #define elf_backend_additional_program_headers	0
@@ -549,6 +549,9 @@
 #endif
 #ifndef elf_backend_setup_gnu_properties
 #define elf_backend_setup_gnu_properties	_bfd_elf_link_setup_gnu_properties
+#endif
+#ifndef elf_backend_fixup_gnu_properties
+#define elf_backend_fixup_gnu_properties	NULL
 #endif
 #ifndef elf_backend_static_tls_alignment
 #define elf_backend_static_tls_alignment	1
@@ -731,6 +734,10 @@
 #define elf_backend_hash_symbol _bfd_elf_hash_symbol
 #endif
 
+#ifndef elf_backend_record_xhash_symbol
+#define elf_backend_record_xhash_symbol NULL
+#endif
+
 #ifndef elf_backend_is_function_type
 #define elf_backend_is_function_type _bfd_elf_is_function_type
 #endif
@@ -855,6 +862,7 @@ static struct elf_backend_data elfNN_bed =
   elf_backend_common_section,
   elf_backend_merge_symbol,
   elf_backend_hash_symbol,
+  elf_backend_record_xhash_symbol,
   elf_backend_is_function_type,
   elf_backend_maybe_function_sym,
   elf_backend_get_reloc_section,
@@ -876,6 +884,7 @@ static struct elf_backend_data elfNN_bed =
   elf_backend_parse_gnu_properties,
   elf_backend_merge_gnu_properties,
   elf_backend_setup_gnu_properties,
+  elf_backend_fixup_gnu_properties,
   elf_backend_compact_eh_encoding,
   elf_backend_cant_unwind_opcode,
   elf_backend_static_tls_alignment,

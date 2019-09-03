@@ -1,5 +1,5 @@
 /* Fork a Unix child process, and set up to debug it, for GDBserver.
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,7 +17,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "server.h"
-#include "job-control.h"
+#include "gdbsupport/job-control.h"
 #include "nat/fork-inferior.h"
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>

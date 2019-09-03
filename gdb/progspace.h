@@ -1,6 +1,6 @@
 /* Program and address space management, for GDB, the GNU debugger.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,10 +22,12 @@
 #define PROGSPACE_H
 
 #include "target.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "gdb_bfd.h"
-#include "gdb_vecs.h"
+#include "gdbsupport/gdb_vecs.h"
 #include "registry.h"
+#include "gdbsupport/next-iterator.h"
+#include "gdbsupport/safe-iterator.h"
 
 struct target_ops;
 struct bfd;
@@ -137,6 +139,33 @@ struct program_space
   program_space (address_space *aspace_);
   ~program_space ();
 
+  typedef next_adapter<struct objfile> objfiles_range;
+
+  /* Return an iterarable object that can be used to iterate over all
+     objfiles.  The basic use is in a foreach, like:
+
+     for (objfile *objf : pspace->objfiles ()) { ... }  */
+  objfiles_range objfiles ()
+  {
+    return objfiles_range (objfiles_head);
+  }
+
+  typedef next_adapter<struct objfile,
+		       basic_safe_iterator<next_iterator<objfile>>>
+    objfiles_safe_range;
+
+  /* An iterable object that can be used to iterate over all objfiles.
+     The basic use is in a foreach, like:
+
+     for (objfile *objf : pspace->objfiles_safe ()) { ... }
+
+     This variant uses a basic_safe_iterator so that objfiles can be
+     deleted during iteration.  */
+  objfiles_safe_range objfiles_safe ()
+  {
+    return objfiles_safe_range (objfiles_head);
+  }
+
   /* Pointer to next in linked list.  */
   struct program_space *next = NULL;
 
@@ -189,7 +218,7 @@ struct program_space
 
   /* All known objfiles are kept in a linked list.  This points to
      the head of this list.  */
-  struct objfile *objfiles = NULL;
+  struct objfile *objfiles_head = NULL;
 
   /* The set of target sections matching the sections mapped into
      this program space.  Managed by both exec_ops and solib.c.  */
@@ -232,7 +261,7 @@ struct address_space
 
 /* All known objfiles are kept in a linked list.  This points to the
    root of this list.  */
-#define object_files current_program_space->objfiles
+#define object_files current_program_space->objfiles_head
 
 /* The set of target sections matching the sections mapped into the
    current program space.  */

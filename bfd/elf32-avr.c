@@ -1,5 +1,5 @@
 /* AVR-specific support for 32-bit ELF
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
    Contributed by Denis Chertykov <denisc@overta.ru>
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -25,7 +25,6 @@
 #include "elf-bfd.h"
 #include "elf/avr.h"
 #include "elf32-avr.h"
-#include "bfd_stdint.h"
 
 /* Enable debugging printout at stdout with this variable.  */
 static bfd_boolean debug_relax = FALSE;
@@ -708,6 +707,12 @@ static const struct avr_reloc_map avr_reloc_map[] =
   { BFD_RELOC_32_PCREL,		    R_AVR_32_PCREL}
 };
 
+static const struct bfd_elf_special_section elf_avr_special_sections[] =
+{
+  { STRING_COMMA_LEN (".noinit"), 0, SHT_NOBITS,   SHF_ALLOC + SHF_WRITE },
+  { NULL, 0,			  0, 0,		   0 }
+};
+
 /* Meant to be filled one day with the wrap around address for the
    specific device.  I.e. should get the value 0x4000 for 16k devices,
    0x8000 for 32k devices and so on.
@@ -905,7 +910,7 @@ avr_relative_distance_considering_wrap_around (unsigned int distance)
   unsigned int wrap_around_mask = avr_pc_wrap_around - 1;
   int dist_with_wrap_around = distance & wrap_around_mask;
 
-  if (dist_with_wrap_around > ((int) (avr_pc_wrap_around >> 1)))
+  if (dist_with_wrap_around >= ((int) (avr_pc_wrap_around >> 1)))
     dist_with_wrap_around -= avr_pc_wrap_around;
 
   return dist_with_wrap_around;
@@ -1531,9 +1536,8 @@ elf32_avr_relocate_section (bfd *output_bfd ATTRIBUTE_UNUSED,
    file.  This gets the AVR architecture right based on the machine
    number.  */
 
-static void
-bfd_elf_avr_final_write_processing (bfd *abfd,
-				    bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+bfd_elf_avr_final_write_processing (bfd *abfd)
 {
   unsigned long val;
 
@@ -1616,6 +1620,7 @@ bfd_elf_avr_final_write_processing (bfd *abfd,
   elf_elfheader (abfd)->e_machine = EM_AVR;
   elf_elfheader (abfd)->e_flags &= ~ EF_AVR_MACH;
   elf_elfheader (abfd)->e_flags |= val;
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Set the right machine number.  */
@@ -2638,16 +2643,28 @@ elf32_avr_relax_section (bfd *abfd,
 	    /* Compute the distance from this insn to the branch target.  */
 	    gap = value - dot;
 
+	    /* The ISA manual states that addressable range is PC - 2k + 1 to
+	       PC + 2k. In bytes, that would be -4094 <= PC <= 4096. The range
+	       is shifted one word to the right, because pc-relative instructions
+	       implicitly add one word i.e. rjmp 0 jumps to next insn, not the
+	       current one.
+	       Therefore, for the !shrinkable case, the range is as above.
+	       If shrinkable, then the current code only deletes bytes 3 and
+	       4 of the absolute call/jmp, so the forward jump range increases
+	       by 2 bytes, but the backward (negative) jump range remains
+	       the same. */
+
+
 	    /* Check if the gap falls in the range that can be accommodated
 	       in 13bits signed (It is 12bits when encoded, as we deal with
 	       word addressing). */
-	    if (!shrinkable && ((int) gap >= -4096 && (int) gap <= 4095))
+	    if (!shrinkable && ((int) gap >= -4094 && (int) gap <= 4096))
 	      distance_short_enough = 1;
 	    /* If shrinkable, then we can check for a range of distance which
-	       is two bytes farther on both the directions because the call
+	       is two bytes farther on the positive direction because the call
 	       or jump target will be closer by two bytes after the
 	       relaxation. */
-	    else if (shrinkable && ((int) gap >= -4094 && (int) gap <= 4097))
+	    else if (shrinkable && ((int) gap >= -4094 && (int) gap <= 4098))
 	      distance_short_enough = 1;
 
 	    /* Here we handle the wrap-around case.  E.g. for a 16k device
@@ -4256,5 +4273,6 @@ avr_elf32_property_record_name (struct avr_property_record *rec)
 #define bfd_elf32_bfd_get_relocated_section_contents \
 					elf32_avr_get_relocated_section_contents
 #define bfd_elf32_new_section_hook	elf_avr_new_section_hook
+#define elf_backend_special_sections	elf_avr_special_sections
 
 #include "elf32-target.h"

@@ -1,6 +1,6 @@
 /* Inline frame unwinder for GDB.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -27,7 +27,7 @@
 #include "gdbthread.h"
 #include "regcache.h"
 #include "symtab.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "frame.h"
 #include <algorithm>
 
@@ -165,7 +165,7 @@ inline_frame_this_id (struct frame_info *this_frame,
      in the frame ID (and eventually, to set breakpoints).  */
   func = get_frame_function (this_frame);
   gdb_assert (func != NULL);
-  (*this_id).code_addr = BLOCK_START (SYMBOL_BLOCK_VALUE (func));
+  (*this_id).code_addr = BLOCK_ENTRY_PC (SYMBOL_BLOCK_VALUE (func));
   (*this_id).artificial_depth++;
 }
 
@@ -266,13 +266,14 @@ static int
 block_starting_point_at (CORE_ADDR pc, const struct block *block)
 {
   const struct blockvector *bv;
-  struct block *new_block;
+  const struct block *new_block;
 
   bv = blockvector_for_pc (pc, NULL);
   if (BLOCKVECTOR_MAP (bv) == NULL)
     return 0;
 
-  new_block = (struct block *) addrmap_find (BLOCKVECTOR_MAP (bv), pc - 1);
+  new_block = (const struct block *) addrmap_find (BLOCKVECTOR_MAP (bv),
+						   pc - 1);
   if (new_block == NULL)
     return 1;
 
@@ -341,8 +342,8 @@ skip_inline_frames (thread_info *thread, bpstat stop_chain)
 	  if (block_inlined_p (cur_block))
 	    {
 	      /* See comments in inline_frame_this_id about this use
-		 of BLOCK_START.  */
-	      if (BLOCK_START (cur_block) == this_pc
+		 of BLOCK_ENTRY_PC.  */
+	      if (BLOCK_ENTRY_PC (cur_block) == this_pc
 		  || block_starting_point_at (this_pc, cur_block))
 		{
 		  /* Do not skip the inlined frame if execution

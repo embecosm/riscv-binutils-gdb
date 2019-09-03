@@ -1,7 +1,7 @@
 /* RISC-V simulator support code.
    Contributed by Edward Jones  <ed.jones@embecosm.com>
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of the GNU simulators.
 

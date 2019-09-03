@@ -1,6 +1,6 @@
 /* Support for printing C values for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -197,7 +197,6 @@ print_unpacked_pointer (struct type *type, struct type *elttype,
 	  struct value *vt_val;
 	  struct symbol *wsym = NULL;
 	  struct type *wtype;
-	  struct block *block = NULL;
 
 	  if (want_space)
 	    fputs_filtered (" ", stream);
@@ -206,7 +205,7 @@ print_unpacked_pointer (struct type *type, struct type *elttype,
 	    {
 	      const char *search_name
 		= MSYMBOL_SEARCH_NAME (msymbol.minsym);
-	      wsym = lookup_symbol_search_name (search_name, block,
+	      wsym = lookup_symbol_search_name (search_name, NULL,
 						VAR_DOMAIN).symbol;
 	    }
 
@@ -564,7 +563,6 @@ c_val_print (struct type *type,
 			 &c_decorations);
       break;
     }
-  gdb_flush (stream);
 }
 
 void

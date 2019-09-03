@@ -1,6 +1,6 @@
 #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
 #   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
-#   2014, 2015, 2016 Free Software Foundation, Inc.
+#   2014, 2015, 2016, 2019 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -131,7 +131,7 @@ build_tools="build-texinfo build-flex build-bison build-m4 build-fixincludes"
 
 # these libraries are used by various programs built for the host environment
 #f
-host_libs="intl libiberty opcodes bfd readline tcl tk itcl libgui zlib libbacktrace libcpp libdecnumber gmp mpfr mpc isl libelf libiconv"
+host_libs="intl libiberty opcodes bfd readline tcl tk itcl libgui zlib libbacktrace libcpp libdecnumber gmp mpfr mpc isl libelf libiconv libctf"
 
 # these tools are built for the host environment
 # Note, the powerpc-eabi build depends on sim occurring before gdb in order to
@@ -243,6 +243,12 @@ AC_ARG_WITH(system-zlib,
 if test x$with_system_zlib = xyes ; then
   use_included_zlib=no
   noconfigdirs="$noconfigdirs zlib"
+fi
+
+# Don't compile the bundled readline/libreadline.a if --with-system-readline
+# is provided.
+if test x$with_system_readline = xyes ; then
+  noconfigdirs="$noconfigdirs readline"
 fi
 
 # some tools are so dependent upon X11 that if we're not building with X, 
@@ -1596,6 +1602,19 @@ AC_ARG_WITH(stage1-libs,
 [stage1_libs=])
 AC_SUBST(stage1_libs)
 
+# Whether or not to use -static-libstdc++ and -static-libgcc.  The
+# default is yes if gcc is being built; no otherwise.  The reason for
+# this default is that gdb is sometimes linked against GNU Source
+# Highlight, which is a shared library that uses C++ exceptions.  In
+# this case, -static-libstdc++ will cause crashes.
+AC_ARG_WITH(static-standard-libraries,
+[AS_HELP_STRING([--with-static-standard-libraries],
+                [use -static-libstdc++ and -static-libgcc (default=auto)])],
+[], [with_static_standard_libraries=auto])
+if test "$with_static_standard_libraries" = auto; then
+  with_static_standard_libraries=$have_compiler
+fi
+
 # Linker flags to use for stage1 or when not bootstrapping.
 AC_ARG_WITH(stage1-ldflags,
 [AS_HELP_STRING([--with-stage1-ldflags=FLAGS], [linker flags for stage1])],
@@ -1608,7 +1627,8 @@ AC_ARG_WITH(stage1-ldflags,
  # In stage 1, default to linking libstdc++ and libgcc statically with GCC
  # if supported.  But if the user explicitly specified the libraries to use,
  # trust that they are doing what they want.
- if test "$stage1_libs" = "" -a "$have_static_libs" = yes; then
+ if test "$with_static_standard_libraries" = yes -a "$stage1_libs" = "" \
+     -a "$have_static_libs" = yes; then
    stage1_ldflags="-static-libstdc++ -static-libgcc"
  fi])
 AC_SUBST(stage1_ldflags)
@@ -2705,6 +2725,14 @@ case "$enable_gdbtk" in
 esac
 CONFIGURE_GDB_TK=`echo ${GDB_TK} | sed s/-all-/-configure-/g`
 INSTALL_GDB_TK=`echo ${GDB_TK} | sed s/-all-/-install-/g`
+
+# gdb depends on gnulib, but as nothing else does, only include it if
+# gdb is built.
+if echo " ${configdirs} " | grep " gdb " > /dev/null 2>&1 ; then
+  # The Makefile provides the ordering, so it's enough here to add
+  # gnulib to the list.
+  configdirs="${configdirs} gnulib"
+fi
 
 # Strip out unwanted targets.
 

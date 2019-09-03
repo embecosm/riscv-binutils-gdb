@@ -1,6 +1,6 @@
 /* Code dealing with dummy stack frames, for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -29,6 +29,7 @@
 #include "observable.h"
 #include "gdbthread.h"
 #include "infcall.h"
+#include "gdbarch.h"
 
 struct dummy_frame_id
 {
@@ -385,6 +386,18 @@ const struct frame_unwind dummy_frame_unwind =
   dummy_frame_sniffer,
 };
 
+/* See dummy-frame.h.  */
+
+struct frame_id
+default_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
+{
+  CORE_ADDR sp, pc;
+
+  sp = get_frame_sp (this_frame);
+  pc = get_frame_pc (this_frame);
+  return frame_id_build (sp, pc);
+}
+
 static void
 fprint_dummy_frames (struct ui_file *file)
 {
@@ -397,7 +410,7 @@ fprint_dummy_frames (struct ui_file *file)
       fprintf_unfiltered (file, " id=");
       fprint_frame_id (file, s->id.id);
       fprintf_unfiltered (file, ", ptid=%s",
-			  target_pid_to_str (s->id.thread->ptid));
+			  target_pid_to_str (s->id.thread->ptid).c_str ());
       fprintf_unfiltered (file, "\n");
     }
 }

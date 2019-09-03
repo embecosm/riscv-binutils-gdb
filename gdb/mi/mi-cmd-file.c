@@ -1,5 +1,5 @@
 /* MI Command Set - file commands.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
    Contributed by Cygnus Solutions (a Red Hat company).
 
    This file is part of GDB.
@@ -53,13 +53,13 @@ mi_cmd_file_list_exec_source_file (const char *command, char **argv, int argc)
     error (_("-file-list-exec-source-file: No symtab"));
 
   /* Print to the user the line, filename and fullname.  */
-  uiout->field_int ("line", st.line);
+  uiout->field_signed ("line", st.line);
   uiout->field_string ("file", symtab_to_filename_for_display (st.symtab));
 
   uiout->field_string ("fullname", symtab_to_fullname (st.symtab));
 
-  uiout->field_int ("macro-info",
-		    COMPUNIT_MACRO_TABLE (SYMTAB_COMPUNIT (st.symtab)) != NULL);
+  uiout->field_signed ("macro-info",
+		       COMPUNIT_MACRO_TABLE (SYMTAB_COMPUNIT (st.symtab)) != NULL);
 }
 
 /* A callback for map_partial_symbol_filenames.  */
@@ -84,9 +84,6 @@ void
 mi_cmd_file_list_exec_source_files (const char *command, char **argv, int argc)
 {
   struct ui_out *uiout = current_uiout;
-  struct compunit_symtab *cu;
-  struct symtab *s;
-  struct objfile *objfile;
 
   if (!mi_valid_noargs ("-file-list-exec-source-files", argc, argv))
     error (_("-file-list-exec-source-files: Usage: No args"));
@@ -95,15 +92,21 @@ mi_cmd_file_list_exec_source_files (const char *command, char **argv, int argc)
   uiout->begin (ui_out_type_list, "files");
 
   /* Look at all of the file symtabs.  */
-  ALL_FILETABS (objfile, cu, s)
-  {
-    uiout->begin (ui_out_type_tuple, NULL);
+  for (objfile *objfile : current_program_space->objfiles ())
+    {
+      for (compunit_symtab *cu : objfile->compunits ())
+	{
+	  for (symtab *s : compunit_filetabs (cu))
+	    {
+	      uiout->begin (ui_out_type_tuple, NULL);
 
-    uiout->field_string ("file", symtab_to_filename_for_display (s));
-    uiout->field_string ("fullname", symtab_to_fullname (s));
+	      uiout->field_string ("file", symtab_to_filename_for_display (s));
+	      uiout->field_string ("fullname", symtab_to_fullname (s));
 
-    uiout->end (ui_out_type_tuple);
-  }
+	      uiout->end (ui_out_type_tuple);
+	    }
+	}
+    }
 
   map_symbol_filenames (print_partial_file_name, NULL,
 			1 /*need_fullname*/);

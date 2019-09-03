@@ -156,6 +156,9 @@
 /* Define if ELF support should be included. */
 #undef HAVE_ELF
 
+/* Define if <sys/procfs.h> has elf_fpregset_t. */
+#undef HAVE_ELF_FPREGSET_T
+
 /* Define to 1 if you have the <elf_hp.h> header file. */
 #undef HAVE_ELF_HP_H
 
@@ -240,17 +243,8 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
-/* Define to 1 if you have the `mcheck' library (-lmcheck). */
-#undef HAVE_LIBMCHECK
-
 /* Define if you have the mpfr library. */
 #undef HAVE_LIBMPFR
-
-/* Define if Python 2.4 is being used. */
-#undef HAVE_LIBPYTHON2_4
-
-/* Define if Python 2.5 is being used. */
-#undef HAVE_LIBPYTHON2_5
 
 /* Define if Python 2.6 is being used. */
 #undef HAVE_LIBPYTHON2_6
@@ -260,6 +254,9 @@
 
 /* Define to 1 if you have the <libunwind-ia64.h> header file. */
 #undef HAVE_LIBUNWIND_IA64_H
+
+/* Define to 1 if you have the <linux/elf.h> header file. */
+#undef HAVE_LINUX_ELF_H
 
 /* Define to 1 if you have the <linux/perf_event.h> header file. */
 #undef HAVE_LINUX_PERF_EVENT_H
@@ -281,9 +278,6 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
-
-/* Define to 1 if you have the `mkdtemp' function. */
-#undef HAVE_MKDTEMP
 
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
@@ -423,6 +417,9 @@
 /* Define to 1 if the system has the type `socklen_t'. */
 #undef HAVE_SOCKLEN_T
 
+/* Define to 1 if the source-highlight library is available */
+#undef HAVE_SOURCE_HIGHLIGHT
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -540,6 +537,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the `use_default_colors' function. */
+#undef HAVE_USE_DEFAULT_COLORS
+
 /* Define to 1 if you have the `vfork' function. */
 #undef HAVE_VFORK
 
@@ -615,9 +615,6 @@
 
 /* Additional package description */
 #undef PKGVERSION
-
-/* Define if the prfpregset_t type is broken. */
-#undef PRFPREGSET_T_BROKEN
 
 /* Define to 1 if the "%H, %D and %DD" formats work to print decfloats. */
 #undef PRINTF_HAS_DECFLOAT

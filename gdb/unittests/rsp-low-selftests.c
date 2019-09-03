@@ -1,6 +1,6 @@
 /* Unit tests for the rsp-low.c file.
 
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,8 +18,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "defs.h"
-#include "selftest.h"
-#include "common/rsp-low.h"
+#include "gdbsupport/selftest.h"
+#include "gdbsupport/rsp-low.h"
 
 namespace selftests {
 namespace rsp_low {

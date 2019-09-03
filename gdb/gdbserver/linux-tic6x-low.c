@@ -1,6 +1,6 @@
 /* Target dependent code for GDB on TI C6x systems.
 
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
    Contributed by Andrew Jenner <andrew@codesourcery.com>
    Contributed by Yao Qi <yao@codesourcery.com>
 
@@ -424,7 +424,7 @@ struct linux_target_ops the_low_target = {
 };
 
 #if GDB_SELF_TEST
-#include "common/selftest.h"
+#include "gdbsupport/selftest.h"
 
 namespace selftests {
 namespace tdesc {

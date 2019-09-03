@@ -1,6 +1,6 @@
 /* Solaris threads debugging interface.
 
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -78,17 +78,16 @@ static const target_info thread_db_target_info = {
 class sol_thread_target final : public target_ops
 {
 public:
-  sol_thread_target ()
-  { this->to_stratum = thread_stratum; }
-
   const target_info &info () const override
   { return thread_db_target_info; }
+
+  strata stratum () const override { return thread_stratum; }
 
   void detach (inferior *, int) override;
   ptid_t wait (ptid_t, struct target_waitstatus *, int) override;
   void resume (ptid_t, int, enum gdb_signal) override;
   void mourn_inferior () override;
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
   ptid_t get_ada_task_ptid (long lwp, long thread) override;
 
   void fetch_registers (struct regcache *, int) override;
@@ -440,14 +439,14 @@ sol_thread_target::wait (ptid_t ptid, struct target_waitstatus *ourstatus,
 
   if (ptid.pid () != -1)
     {
-      ptid_t save_ptid = ptid;
+      ptid_t ptid_for_warning = ptid;
 
       ptid = thread_to_lwp (ptid, -2);
       if (ptid.pid () == -2)		/* Inactive thread.  */
 	error (_("This version of Solaris can't start inactive threads."));
       if (info_verbose && ptid.pid () == -1)
 	warning (_("Specified thread %ld seems to have terminated"),
-		 save_ptid.tid ());
+		 ptid_for_warning.tid ());
     }
 
   rtnval = beneath ()->wait (ptid, ourstatus, options);
@@ -460,11 +459,12 @@ sol_thread_target::wait (ptid_t ptid, struct target_waitstatus *ourstatus,
 	rtnval = save_ptid;
 
       /* See if we have a new thread.  */
-      if (rtnval.tid_p ()
-	  && rtnval != save_ptid
-	  && (!in_thread_list (rtnval)
-	      || is_exited (rtnval)))
-	add_thread (rtnval);
+      if (rtnval.tid_p () && rtnval != save_ptid)
+	{
+	  thread_info *thr = find_thread_ptid (rtnval);
+	  if (thr == NULL || thr->state == THREAD_EXITED)
+	    add_thread (rtnval);
+	}
     }
 
   /* During process initialization, we may get here without the thread
@@ -705,9 +705,11 @@ sol_thread_target::thread_alive (ptid_t ptid)
       int pid;
 
       pid = ptid.tid ();
-      if ((val = p_td_ta_map_id2thr (main_ta, pid, &th)) != TD_OK)
+      val = p_td_ta_map_id2thr (main_ta, pid, &th);
+      if (val != TD_OK)
 	return false;		/* Thread not found.  */
-      if ((val = p_td_thr_validate (&th)) != TD_OK)
+      val = p_td_thr_validate (&th);
+      if (val != TD_OK)
 	return false;		/* Thread not valid.  */
       return true;		/* Known thread.  */
     }
@@ -943,7 +945,6 @@ ps_lsetfpregs (struct ps_prochandle *ph, lwpid_t lwpid,
   return PS_OK;
 }
 
-#ifdef PR_MODEL_LP64
 /* Identify process as 32-bit or 64-bit.  At the moment we're using
    BFD to do this.  There might be a more Solaris-specific
    (e.g. procfs) method, but this ought to work.  */
@@ -960,7 +961,6 @@ ps_pdmodel (struct ps_prochandle *ph, int *data_model)
 
   return PS_OK;
 }
-#endif /* PR_MODEL_LP64 */
 
 #if (defined(__i386__) || defined(__x86_64__)) && defined (sun)
 
@@ -970,8 +970,7 @@ ps_pdmodel (struct ps_prochandle *ph, int *data_model)
    of libthread_db would fail because of ps_lgetLDT being undefined.  */
 
 ps_err_e
-ps_lgetLDT (struct ps_prochandle *ph, lwpid_t lwpid,
-	    struct ssd *pldt)
+ps_lgetLDT (struct ps_prochandle *ph, lwpid_t lwpid, struct ssd *pldt)	/* ARI: editCase function */
 {
   /* NOTE: only used on Solaris, therefore OK to refer to procfs.c.  */
   struct ssd *ret;
@@ -998,11 +997,9 @@ ps_lgetLDT (struct ps_prochandle *ph, lwpid_t lwpid,
 
 /* Convert PTID to printable form.  */
 
-const char *
+std::string
 sol_thread_target::pid_to_str (ptid_t ptid)
 {
-  static char buf[100];
-
   if (ptid.tid_p ())
     {
       ptid_t lwp;
@@ -1010,21 +1007,19 @@ sol_thread_target::pid_to_str (ptid_t ptid)
       lwp = thread_to_lwp (ptid, -2);
 
       if (lwp.pid () == -1)
-	xsnprintf (buf, sizeof (buf), "Thread %ld (defunct)",
-		   ptid.tid ());
+	return string_printf ("Thread %ld (defunct)",
+			      ptid.tid ());
       else if (lwp.pid () != -2)
-	xsnprintf (buf, sizeof (buf), "Thread %ld (LWP %ld)",
-		 ptid.tid (), lwp.lwp ());
+	return string_printf ("Thread %ld (LWP %ld)",
+			      ptid.tid (), lwp.lwp ());
       else
-	xsnprintf (buf, sizeof (buf), "Thread %ld        ",
-		   ptid.tid ());
+	return string_printf ("Thread %ld        ",
+			      ptid.tid ());
     }
   else if (ptid.lwp () != 0)
-    xsnprintf (buf, sizeof (buf), "LWP    %ld        ", ptid.lwp ());
+    return string_printf ("LWP    %ld        ", ptid.lwp ());
   else
-    xsnprintf (buf, sizeof (buf), "process %d    ", ptid.pid ());
-
-  return buf;
+    return string_printf ("process %d    ", ptid.pid ());
 }
 
 
@@ -1036,14 +1031,14 @@ sol_update_thread_list_callback (const td_thrhandle_t *th, void *ignored)
 {
   td_err_e retval;
   td_thrinfo_t ti;
-  ptid_t ptid;
 
   retval = p_td_thr_get_info (th, &ti);
   if (retval != TD_OK)
     return -1;
 
-  ptid = ptid_t (inferior_ptid.pid (), 0, ti.ti_tid);
-  if (!in_thread_list (ptid) || is_exited (ptid))
+  ptid_t ptid = ptid_t (inferior_ptid.pid (), 0, ti.ti_tid);
+  thread_info *thr = find_thread_ptid (ptid);
+  if (thr == NULL || thr->state == THREAD_EXITED)
     add_thread (ptid);
 
   return 0;

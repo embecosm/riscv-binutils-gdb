@@ -1,5 +1,5 @@
 /* SPARC-specific support for ELF
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -658,8 +658,6 @@ _bfd_sparc_elf_info_to_howto (bfd *abfd, arelent *cache_ptr,
 
   if ((cache_ptr->howto = _bfd_sparc_elf_info_to_howto_ptr (abfd, r_type)) == NULL)
     {
-      _bfd_error_handler (_("%pB: unsupported relocation type %#x"),
-			  abfd, r_type);
       bfd_set_error (bfd_error_bad_value);
       return FALSE;
     }
@@ -1839,9 +1837,7 @@ _bfd_sparc_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	  break;
 
 	case R_SPARC_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 
@@ -4794,6 +4790,24 @@ _bfd_sparc_elf_finish_dynamic_sections (bfd *output_bfd, struct bfd_link_info *i
   htab = _bfd_sparc_elf_hash_table (info);
   BFD_ASSERT (htab != NULL);
   dynobj = htab->elf.dynobj;
+
+  /* We arranged in size_dynamic_sections to put the STT_REGISTER
+     entries at the end of the dynlocal list, so they came at the end
+     of the local symbols in the symtab.  Except that they aren't
+     STB_LOCAL, so we need to back up symtab->sh_info.  */
+  if (ABI_64_P (output_bfd)
+      && elf_hash_table (info)->dynlocal)
+    {
+      asection *dynsymsec = bfd_get_linker_section (dynobj, ".dynsym");
+      struct elf_link_local_dynamic_entry *e;
+
+      for (e = elf_hash_table (info)->dynlocal; e ; e = e->next)
+	if (e->input_indx == -1)
+	  break;
+      if (e)
+	elf_section_data (dynsymsec->output_section)->this_hdr.sh_info
+	  = e->dynindx;
+    }
 
   sdyn = bfd_get_linker_section (dynobj, ".dynamic");
 

@@ -1,6 +1,6 @@
 # Expect script for linker support of size relocations.
 #
-#   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -48,7 +48,7 @@ foreach t $test_list {
 }
 
 # We need a working compiler.
-if { [which $CC] == 0 } {
+if { ![check_compiler_available] } {
     verbose "Native size relocation tests not run - no compiler available"
     return
 }
@@ -226,9 +226,9 @@ run_ld_link_exec_tests [list \
 	"size-3.out" \
     ] \
     [list \
-    {"Run size-3e"
-     "-Wl,--no-as-needed tmpdir/libsize-3c.so" ""
-     {size-3.c} "size-3e" "size-3.out"}
+    {"Run size-3e" \
+     "-Wl,--no-as-needed tmpdir/libsize-3c.so" "" \
+     {size-3.c} "size-3e" "size-3.out"} \
     ] \
     [list \
 	"Run size-4a" \

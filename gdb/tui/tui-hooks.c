@@ -1,6 +1,6 @@
 /* GDB hooks for TUI.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -33,6 +33,7 @@
 #include "ui-out.h"
 #include "top.h"
 #include "observable.h"
+#include "source.h"
 #include <unistd.h>
 #include <fcntl.h>
 
@@ -44,7 +45,6 @@
 #include "tui/tui-regs.h"
 #include "tui/tui-win.h"
 #include "tui/tui-stack.h"
-#include "tui/tui-windata.h"
 #include "tui/tui-winsource.h"
 
 #include "gdb_curses.h"
@@ -71,6 +71,9 @@ tui_register_changed (struct frame_info *frame, int regno)
 {
   struct frame_info *fi;
 
+  if (!tui_is_window_visible (DATA_WIN))
+    return;
+
   /* The frame of the register that was changed may differ from the selected
      frame, but we only want to show the register values of the selected frame.
      And even if the frames differ a register change made in one can still show
@@ -80,7 +83,7 @@ tui_register_changed (struct frame_info *frame, int regno)
   if (tui_refreshing_registers == 0)
     {
       tui_refreshing_registers = 1;
-      tui_check_data_values (fi);
+      TUI_DATA_WIN->check_register_values (fi);
       tui_refreshing_registers = 0;
     }
 }
@@ -90,7 +93,7 @@ tui_register_changed (struct frame_info *frame, int regno)
 static void
 tui_event_create_breakpoint (struct breakpoint *b)
 {
-  tui_update_all_breakpoint_info ();
+  tui_update_all_breakpoint_info (nullptr);
 }
 
 /* Breakpoint deletion hook.
@@ -98,13 +101,13 @@ tui_event_create_breakpoint (struct breakpoint *b)
 static void
 tui_event_delete_breakpoint (struct breakpoint *b)
 {
-  tui_update_all_breakpoint_info ();
+  tui_update_all_breakpoint_info (b);
 }
 
 static void
 tui_event_modify_breakpoint (struct breakpoint *b)
 {
-  tui_update_all_breakpoint_info ();
+  tui_update_all_breakpoint_info (nullptr);
 }
 
 /* Refresh TUI's frame and register information.  This is a hook intended to be
@@ -152,7 +155,7 @@ tui_refresh_frame_and_register_information (int registers_too_p)
       && (frame_info_changed_p || registers_too_p))
     {
       tui_refreshing_registers = 1;
-      tui_check_data_values (fi);
+      TUI_DATA_WIN->check_register_values (fi);
       tui_refreshing_registers = 0;
     }
 }
@@ -205,7 +208,7 @@ tui_normal_stop (struct bpstats *bs, int print_frame)
 
 /* Token associated with observers registered while TUI hooks are
    installed.  */
-static const gdb::observers::token tui_observers_token;
+static const gdb::observers::token tui_observers_token {};
 
 /* Attach or detach a single observer, according to ATTACH.  */
 
@@ -260,7 +263,6 @@ void
 tui_remove_hooks (void)
 {
   deprecated_print_frame_info_listing_hook = 0;
-  deprecated_query_hook = 0;
 
   /* Remove our observers.  */
   tui_attach_detach_observers (false);

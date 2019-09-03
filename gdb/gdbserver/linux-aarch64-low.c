@@ -1,7 +1,7 @@
 /* GNU/Linux/AArch64 specific low level interface, for the remote server for
    GDB.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
    Contributed by ARM Ltd.
 
    This file is part of GDB.
@@ -39,6 +39,7 @@
 
 #include "gdb_proc_service.h"
 #include "arch/aarch64.h"
+#include "linux-aarch32-tdesc.h"
 #include "linux-aarch64-tdesc.h"
 #include "nat/aarch64-sve-linux-ptrace.h"
 #include "tdesc.h"
@@ -82,22 +83,6 @@ is_sve_tdesc (void)
   struct regcache *regcache = get_thread_regcache (current_thread, 0);
 
   return regcache->tdesc->reg_defs.size () == AARCH64_SVE_NUM_REGS;
-}
-
-/* Implementation of linux_target_ops method "cannot_store_register".  */
-
-static int
-aarch64_cannot_store_register (int regno)
-{
-  return regno >= AARCH64_NUM_REGS;
-}
-
-/* Implementation of linux_target_ops method "cannot_fetch_register".  */
-
-static int
-aarch64_cannot_fetch_register (int regno)
-{
-  return regno >= AARCH64_NUM_REGS;
 }
 
 static void
@@ -149,6 +134,23 @@ aarch64_store_fpregset (struct regcache *regcache, const void *buf)
     supply_register (regcache, AARCH64_V0_REGNUM + i, &regset->vregs[i]);
   supply_register (regcache, AARCH64_FPSR_REGNUM, &regset->fpsr);
   supply_register (regcache, AARCH64_FPCR_REGNUM, &regset->fpcr);
+}
+
+/* Store the pauth registers to regcache.  */
+
+static void
+aarch64_store_pauthregset (struct regcache *regcache, const void *buf)
+{
+  uint64_t *pauth_regset = (uint64_t *) buf;
+  int pauth_base = find_regno (regcache->tdesc, "pauth_dmask");
+
+  if (pauth_base == 0)
+    return;
+
+  supply_register (regcache, AARCH64_PAUTH_DMASK_REGNUM (pauth_base),
+		   &pauth_regset[0]);
+  supply_register (regcache, AARCH64_PAUTH_CMASK_REGNUM (pauth_base),
+		   &pauth_regset[1]);
 }
 
 /* Enable miscellaneous debugging output.  The name is historical - it
@@ -501,6 +503,9 @@ aarch64_linux_new_fork (struct process_info *parent,
   *child->priv->arch_private = *parent->priv->arch_private;
 }
 
+/* Matches HWCAP_PACA in kernel header arch/arm64/include/uapi/asm/hwcap.h.  */
+#define AARCH64_HWCAP_PACA (1 << 30)
+
 /* Implementation of linux_target_ops method "arch_setup".  */
 
 static void
@@ -517,10 +522,13 @@ aarch64_arch_setup (void)
   if (is_elf64)
     {
       uint64_t vq = aarch64_sve_get_vq (tid);
-      current_process ()->tdesc = aarch64_linux_read_description (vq);
+      unsigned long hwcap = linux_get_hwcap (8);
+      bool pauth_p = hwcap & AARCH64_HWCAP_PACA;
+
+      current_process ()->tdesc = aarch64_linux_read_description (vq, pauth_p);
     }
   else
-    current_process ()->tdesc = tdesc_arm_with_neon;
+    current_process ()->tdesc = aarch32_linux_read_description ();
 
   aarch64_linux_get_debug_reg_capacity (lwpid_of (current_thread));
 }
@@ -550,6 +558,9 @@ static struct regset_info aarch64_regsets[] =
     sizeof (struct user_fpsimd_state), FP_REGS,
     aarch64_fill_fpregset, aarch64_store_fpregset
   },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_ARM_PAC_MASK,
+    AARCH64_PAUTH_REGS_SIZE, OPTIONAL_REGS,
+    NULL, aarch64_store_pauthregset },
   NULL_REGSET
 };
 
@@ -576,6 +587,9 @@ static struct regset_info aarch64_sve_regsets[] =
     SVE_PT_SIZE (AARCH64_MAX_SVE_VQ, SVE_PT_REGS_SVE), EXTENDED_REGS,
     aarch64_sve_regs_copy_from_regcache, aarch64_sve_regs_copy_to_regcache
   },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_ARM_PAC_MASK,
+    AARCH64_PAUTH_REGS_SIZE, OPTIONAL_REGS,
+    NULL, aarch64_store_pauthregset },
   NULL_REGSET
 };
 
@@ -1612,11 +1626,11 @@ append_insns (CORE_ADDR *to, size_t len, const uint32_t *buf)
   for (i = 0; i < len; i++)
     le_buf[i] = htole32 (buf[i]);
 
-  write_inferior_memory (*to, (const unsigned char *) le_buf, byte_len);
+  target_write_memory (*to, (const unsigned char *) le_buf, byte_len);
 
   xfree (le_buf);
 #else
-  write_inferior_memory (*to, (const unsigned char *) buf, byte_len);
+  target_write_memory (*to, (const unsigned char *) buf, byte_len);
 #endif
 
   *to += byte_len;
@@ -3041,8 +3055,8 @@ struct linux_target_ops the_low_target =
 {
   aarch64_arch_setup,
   aarch64_regs_info,
-  aarch64_cannot_fetch_register,
-  aarch64_cannot_store_register,
+  NULL, /* cannot_fetch_register */
+  NULL, /* cannot_store_register */
   NULL, /* fetch_register */
   aarch64_get_pc,
   aarch64_set_pc,
@@ -3084,8 +3098,4 @@ initialize_low_arch (void)
 
   initialize_regsets_info (&aarch64_regsets_info);
   initialize_regsets_info (&aarch64_sve_regsets_info);
-
-#if GDB_SELF_TEST
-  initialize_low_tdesc ();
-#endif
 }

@@ -1,6 +1,6 @@
 /* Target-dependent code for NetBSD/amd64.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,7 +25,7 @@
 #include "symtab.h"
 
 #include "amd64-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "nbsd-tdep.h"
 #include "solib-svr4.h"
 

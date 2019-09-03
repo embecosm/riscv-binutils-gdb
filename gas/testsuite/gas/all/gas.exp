@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2018 Free Software Foundation, Inc.
+# Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -91,32 +91,15 @@ case $target_triplet in {
 
 gas_test "eqv-ok.s" "" "" ".eqv support"
 gas_test_error "eqv-bad.s" "" ".eqv for symbol already set"
+run_dump_test eqv-dot
 
 if { ![istarget "bfin-*-*"] } then {
     gas_test "assign-ok.s" "" "" "== assignment support"
 }
 gas_test_error "assign-bad.s" "" "== assignment for symbol already set"
 
-# .equ works differently on some targets.
-# linkrelax-ing prevents most forward references from working.
-case $target_triplet in {
-    { am3*-*-* } { }
-    { *c54x*-*-* } { }
-    { cr16*-*-* } { }
-    { crx*-*-* } { }
-    { h8300*-*-* } { }
-    { hppa*-*-* } { }
-    { mep-*-* } { }
-    { microblaze-*-* } { }
-    { mn10\[23\]00*-*-* } { }
-    default {
-	# Some targets don't manage to resolve BFD_RELOC_8 for constants.
-	setup_xfail "alpha*-*-*" "*c30*-*-*" "*c4x*-*-*" \
-	    "d\[13\]0v*-*-*" \
-	    "pdp11-*-*" "xtensa*-*-*"
-	run_dump_test forward
-    }
-}
+run_dump_test simple-forward
+run_dump_test forward
 
 # aout relocs are often weird, so is mep. don't bother testing
 # som doesn't use a .text section
@@ -211,13 +194,7 @@ proc do_comment {} {
     if [all_ones $x1 $x2 $x3] then { pass $testname } else { fail $testname }
 }
 
-# m32c pads out sections, even empty ones.
-case $target_triplet in {
-    { m32c-*-* } { }
-    default {
-	do_comment
-    }
-}
+do_comment
 
 # This test checks the output of the -ag switch. It must detect at least
 # the name of the input file, output file, and options passed.
@@ -299,7 +276,6 @@ case $target_triplet in {
     default {
 	run_dump_test struct
 	run_dump_test align
-	setup_xfail "ns32k-*-*"
 	run_dump_test align2
     }
 }
@@ -424,7 +400,6 @@ case $target_triplet in {
     { *c54x*-*-* } { }
     { z80-*-* } { }
     default {
-	setup_xfail "nds32*-*-*"
 	run_dump_test weakref1
 	run_dump_test weakref1g
 	run_dump_test weakref1l
@@ -452,6 +427,9 @@ dg-finish
 
 # Set $nop_type appropriately to indicate the NOP instruction mnemonic.
 case $target_triplet in {
+    { "bpf-*-*" } {
+        set nop_type 6
+    }
     { "mmix-*-*" } {
 	set nop_type 5
     }
@@ -473,3 +451,5 @@ run_dump_test "org-5"
 run_dump_test "org-6"
 
 run_dump_test "fill-1"
+
+gas_test "pr23938.s" "" "" ".xstabs"

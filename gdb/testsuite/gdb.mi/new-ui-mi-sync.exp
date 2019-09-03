@@ -1,4 +1,4 @@
-# Copyright 2016-2018 Free Software Foundation, Inc.
+# Copyright 2016-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,6 +19,12 @@
 # prematurely re-enable MI input.  After executing synchronous
 # commands, MI should not process further commands until the inferior
 # stops again.  See PR gdb/20418.
+
+# Do not run if gdb debug is enabled as it doesn't work for separate-mi-tty.
+if [gdb_debug_enabled] {
+    untested "debug is enabled"
+    return 0
+}
 
 load_lib mi-support.exp
 

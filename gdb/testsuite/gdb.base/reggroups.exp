@@ -1,6 +1,6 @@
 # This testcase is part of GDB, the GNU debugger.
 
-# Copyright 2017-2018 Free Software Foundation, Inc.
+# Copyright 2017-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ proc fetch_reggroups {test} {
 	-re "^ Group\[ \t\]+Type\[ \t\]+\r\n" {
 	    exp_continue
 	}
-	-re "^ (\[0-9a-zA-Z-\]+)\[ \t\]+(user|internal)\[ \t\]+\r\n" {
+	-re "^ (\[_0-9a-zA-Z-\]+)\[ \t\]+(user|internal)\[ \t\]+\r\n" {
 	    lappend reggroups $expect_out(1,string)
 	    exp_continue
 	}

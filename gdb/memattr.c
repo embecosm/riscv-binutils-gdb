@@ -1,6 +1,6 @@
 /* Memory attributes support, for GDB.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,10 +25,11 @@
 #include "target-dcache.h"
 #include "value.h"
 #include "language.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "breakpoint.h"
 #include "cli/cli-utils.h"
 #include <algorithm>
+#include "gdbarch.h"
 
 static std::vector<mem_region> user_mem_region_list, target_mem_region_list;
 static std::vector<mem_region> *mem_region_list = &target_mem_region_list;
@@ -459,8 +460,6 @@ info_mem_command (const char *args, int from_tty)
 #endif
 
       printf_filtered ("\n");
-
-      gdb_flush (gdb_stdout);
     }
 }
 
@@ -600,8 +599,8 @@ void
 _initialize_mem (void)
 {
   add_com ("mem", class_vars, mem_command, _("\
-Define attributes for memory region or reset memory region handling to\n\
-target-based.\n\
+Define attributes for memory region or reset memory region handling to "
+"target-based.\n\
 Usage: mem auto\n\
        mem LOW HIGH [MODE WIDTH CACHE],\n\
 where MODE  may be rw (read/write), ro (read-only) or wo (write-only),\n\
@@ -627,14 +626,14 @@ Usage: delete mem [ID]...\n\
 Do \"info mem\" to see current list of IDs."), &deletelist);
 
   add_info ("mem", info_mem_command,
-	    _("Memory region attributes"));
+	    _("Memory region attributes."));
 
   add_prefix_cmd ("mem", class_vars, dummy_cmd, _("\
-Memory regions settings"),
+Memory regions settings."),
 		  &mem_set_cmdlist, "set mem ",
 		  0/* allow-unknown */, &setlist);
   add_prefix_cmd ("mem", class_vars, dummy_cmd, _("\
-Memory regions settings"),
+Memory regions settings."),
 		  &mem_show_cmdlist, "show mem  ",
 		  0/* allow-unknown */, &showlist);
 

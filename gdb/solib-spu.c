@@ -1,5 +1,5 @@
 /* Cell SPU GNU/Linux support -- shared library handling.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    Contributed by Ulrich Weigand <uweigand@de.ibm.com>.
 
@@ -94,24 +94,23 @@ spu_skip_standalone_loader (void)
     }
 }
 
-static const struct objfile_data *ocl_program_data_key;
+static objfile_key<CORE_ADDR, gdb::noop_deleter<CORE_ADDR>>
+  ocl_program_data_key;
 
 /* Appends OpenCL programs to the list of `struct so_list' objects.  */
 static void
 append_ocl_sos (struct so_list **link_ptr)
 {
   CORE_ADDR *ocl_program_addr_base;
-  struct objfile *objfile;
 
-  ALL_OBJFILES (objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
-      ocl_program_addr_base
-	= (CORE_ADDR *) objfile_data (objfile, ocl_program_data_key);
+      ocl_program_addr_base = ocl_program_data_key.get (objfile);
       if (ocl_program_addr_base != NULL)
         {
 	  enum bfd_endian byte_order = bfd_big_endian (objfile->obfd)?
 					 BFD_ENDIAN_BIG : BFD_ENDIAN_LITTLE;
-	  TRY
+	  try
 	    {
 	      CORE_ADDR data =
 		read_memory_unsigned_integer (*ocl_program_addr_base,
@@ -134,7 +133,7 @@ append_ocl_sos (struct so_list **link_ptr)
 		  link_ptr = &newobj->next;
 		}
 	    }
-	  CATCH (ex, RETURN_MASK_ALL)
+	  catch (const gdb_exception &ex)
 	    {
 	      /* Ignore memory errors.  */
 	      switch (ex.error)
@@ -142,11 +141,10 @@ append_ocl_sos (struct so_list **link_ptr)
 		case MEMORY_ERROR:
 		  break;
 		default:
-		  throw_exception (ex);
+		  throw;
 		  break;
 		}
 	    }
-	  END_CATCH
 	}
     }
 }
@@ -394,11 +392,12 @@ spu_lookup_lib_symbol (struct objfile *objfile,
 		       const domain_enum domain)
 {
   if (bfd_get_arch (objfile->obfd) == bfd_arch_spu)
-    return lookup_global_symbol_from_objfile (objfile, name, domain);
+    return lookup_global_symbol_from_objfile (objfile, GLOBAL_BLOCK, name,
+					      domain);
 
   if (svr4_so_ops.lookup_lib_global_symbol != NULL)
     return svr4_so_ops.lookup_lib_global_symbol (objfile, name, domain);
-  return (struct block_symbol) {NULL, NULL};
+  return {};
 }
 
 /* Enable shared library breakpoint.  */
@@ -450,15 +449,14 @@ ocl_enable_break (struct objfile *objfile)
 
       /* Store the address of the symbol that will point to OpenCL program
          using the per-objfile private data mechanism.  */
-      if (objfile_data (objfile, ocl_program_data_key) == NULL)
+      if (ocl_program_data_key.get (objfile) == NULL)
         {
           CORE_ADDR *ocl_program_addr_base = OBSTACK_CALLOC (
 		  &objfile->objfile_obstack,
 		  objfile->sections_end - objfile->sections,
 		  CORE_ADDR);
 	  *ocl_program_addr_base = BMSYMBOL_VALUE_ADDRESS (addr_sym);
-	  set_objfile_data (objfile, ocl_program_data_key,
-			    ocl_program_addr_base);
+	  ocl_program_data_key.set (objfile, ocl_program_addr_base);
         }
     }
 }
@@ -546,6 +544,5 @@ void
 _initialize_spu_solib (void)
 {
   gdb::observers::solib_loaded.attach (spu_solib_loaded);
-  ocl_program_data_key = register_objfile_data ();
 }
 

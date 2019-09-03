@@ -1,6 +1,6 @@
 // symtab.h -- the gold symbol table   -*- C++ -*-
 
-// Copyright (C) 2006-2018 Free Software Foundation, Inc.
+// Copyright (C) 2006-2019 Free Software Foundation, Inc.
 // Written by Ian Lance Taylor <iant@google.com>.
 
 // This file is part of gold.
@@ -914,7 +914,7 @@ class Symbol
   // Instances of this class should always be created at a specific
   // size.
   Symbol()
-  { memset(this, 0, sizeof *this); }
+  { memset(static_cast<void*>(this), 0, sizeof *this); }
 
   // Initialize the general fields.
   void

@@ -1,5 +1,5 @@
 /* Print mips instructions for GDB, the GNU debugger, or for objdump.
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
    Contributed by Nobuyuki Hikichi(hikichi@sra.co.jp).
 
    This file is part of the GNU opcodes library.
@@ -629,9 +629,26 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS3 | INSN_LOONGSON_2F, ASE_LOONGSON_MMI, mips_cp0_names_numeric,
     NULL, 0, mips_cp1_names_numeric, mips_hwr_names_numeric },
 
-  { "loongson3a",   1, bfd_mach_mips_loongson_3a, CPU_LOONGSON_3A,
-    ISA_MIPS64R2 | INSN_LOONGSON_3A, ASE_LOONGSON_MMI, mips_cp0_names_numeric,
-    NULL, 0, mips_cp1_names_mips3264, mips_hwr_names_numeric },
+  /* The loongson3a is an alias of gs464 for compatibility */
+  { "loongson3a",   1, bfd_mach_mips_gs464, CPU_GS464,
+    ISA_MIPS64R2, ASE_LOONGSON_MMI | ASE_LOONGSON_CAM | ASE_LOONGSON_EXT,
+    mips_cp0_names_numeric, NULL, 0, mips_cp1_names_mips3264,
+    mips_hwr_names_numeric },
+
+  { "gs464",   1, bfd_mach_mips_gs464, CPU_GS464,
+    ISA_MIPS64R2, ASE_LOONGSON_MMI | ASE_LOONGSON_CAM | ASE_LOONGSON_EXT,
+    mips_cp0_names_numeric, NULL, 0, mips_cp1_names_mips3264,
+    mips_hwr_names_numeric },
+
+  { "gs464e",   1, bfd_mach_mips_gs464e, CPU_GS464E,
+    ISA_MIPS64R2, ASE_LOONGSON_MMI | ASE_LOONGSON_CAM | ASE_LOONGSON_EXT
+    | ASE_LOONGSON_EXT2, mips_cp0_names_numeric, NULL, 0, mips_cp1_names_mips3264,
+    mips_hwr_names_numeric },
+
+  { "gs264e",   1, bfd_mach_mips_gs464e, CPU_GS264E,
+    ISA_MIPS64R2, ASE_LOONGSON_MMI | ASE_LOONGSON_CAM | ASE_LOONGSON_EXT
+    | ASE_LOONGSON_EXT2 | ASE_MSA | ASE_MSA64, mips_cp0_names_numeric, NULL,
+    0, mips_cp1_names_mips3264, mips_hwr_names_numeric },
 
   { "octeon",   1, bfd_mach_mips_octeon, CPU_OCTEON,
     ISA_MIPS64R2 | INSN_OCTEON, 0, mips_cp0_names_numeric, NULL, 0,
@@ -812,7 +829,7 @@ mips_convert_abiflags_ases (unsigned long afl_ases)
 /* Calculate combination ASE flags from regular ASE flags.  */
 
 static unsigned long
-mips_calculate_combination_ases (unsigned long opcode_ases)
+mips_calculate_combination_ases (int opcode_isa, unsigned long opcode_ases)
 {
   unsigned long combination_ases = 0;
 
@@ -820,6 +837,10 @@ mips_calculate_combination_ases (unsigned long opcode_ases)
     combination_ases |= ASE_XPA_VIRT;
   if ((opcode_ases & (ASE_MIPS16E2 | ASE_MT)) == (ASE_MIPS16E2 | ASE_MT))
     combination_ases |= ASE_MIPS16E2_MT;
+  if ((opcode_ases & ASE_EVA)
+      && ((opcode_isa & INSN_ISA_MASK) == ISA_MIPS64R6
+	  || (opcode_isa & INSN_ISA_MASK) == ISA_MIPS32R6))
+    combination_ases |= ASE_EVA_R6;
   return combination_ases;
 }
 
@@ -892,7 +913,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
 	mips_ase |= ASE_MDMX;
     }
 #endif
-  mips_ase |= mips_calculate_combination_ases (mips_ase);
+  mips_ase |= mips_calculate_combination_ases (mips_isa, mips_ase);
 }
 
 /* Parse an ASE disassembler option and set the corresponding global
@@ -941,6 +962,25 @@ parse_mips_ase_option (const char *option)
       return TRUE;
     }
 
+  if (CONST_STRNEQ (option, "loongson-cam"))
+    {
+      mips_ase |= ASE_LOONGSON_CAM;
+      return TRUE;
+    }
+  
+  /* Put here for match ext2 frist */
+  if (CONST_STRNEQ (option, "loongson-ext2"))
+    {
+      mips_ase |= ASE_LOONGSON_EXT2;
+      return TRUE;
+    }
+
+  if (CONST_STRNEQ (option, "loongson-ext"))
+    {
+      mips_ase |= ASE_LOONGSON_EXT;
+      return TRUE;
+    }
+
   return FALSE;
 }
 
@@ -961,7 +1001,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
 
   if (parse_mips_ase_option (option))
     {
-      mips_ase |= mips_calculate_combination_ases (mips_ase);
+      mips_ase |= mips_calculate_combination_ases (mips_isa, mips_ase);
       return;
     }
 
@@ -2591,6 +2631,18 @@ static struct
   { "loongson-mmi",
 		  N_("Recognize the Loongson MultiMedia extensions "
 		     "Instructions (MMI) ASE instructions.\n"),
+		  MIPS_OPTION_ARG_NONE },
+  { "loongson-cam",
+		  N_("Recognize the Loongson Content Address Memory (CAM) "
+		     " instructions.\n"),
+		  MIPS_OPTION_ARG_NONE },
+  { "loongson-ext",
+		  N_("Recognize the Loongson EXTensions (EXT) "
+		     " instructions.\n"),
+		  MIPS_OPTION_ARG_NONE },
+  { "loongson-ext2",
+		  N_("Recognize the Loongson EXTensions R2 (EXT2) "
+		     " instructions.\n"),
 		  MIPS_OPTION_ARG_NONE },
   { "gpr-names=", N_("Print GPR names according to specified ABI.\n\
                   Default: based on binary being disassembled.\n"),

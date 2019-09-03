@@ -1,5 +1,5 @@
 /* dlltool.c -- tool to generate stuff for PE style DLLs
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
    This file is part of GNU Binutils.
 
@@ -3504,7 +3504,8 @@ identify_dll_for_implib (void)
   search_data.symname = "__NULL_IMPORT_DESCRIPTOR";
   search_data.found = FALSE;
 
-  bfd_init ();
+  if (bfd_init () != BFD_INIT_MAGIC)
+    fatal (_("fatal error: libbfd ABI mismatch"));
 
   abfd = bfd_openr (identify_imp_name, 0);
   if (abfd == NULL)

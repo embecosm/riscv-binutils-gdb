@@ -1,5 +1,5 @@
 /* Inferior process information for the remote server for GDB.
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,10 +16,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef INFERIORS_H
-#define INFERIORS_H
+#ifndef GDBSERVER_INFERIORS_H
+#define GDBSERVER_INFERIORS_H
 
-#include "gdb_vecs.h"
+#include "gdbsupport/gdb_vecs.h"
 #include <list>
 
 struct thread_info;
@@ -144,4 +144,4 @@ void *thread_target_data (struct thread_info *);
 struct regcache *thread_regcache_data (struct thread_info *);
 void set_thread_regcache_data (struct thread_info *, struct regcache *);
 
-#endif /* INFERIORS_H */
+#endif /* GDBSERVER_INFERIORS_H */

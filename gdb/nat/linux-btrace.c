@@ -1,6 +1,6 @@
 /* Linux-dependent part of branch trace support for GDB, and GDBserver.
 
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
    Contributed by Intel Corp. <markus.t.metzger@intel.com>
 
@@ -19,14 +19,14 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "common-defs.h"
+#include "gdbsupport/common-defs.h"
 #include "linux-btrace.h"
-#include "common-regcache.h"
-#include "gdb_wait.h"
+#include "gdbsupport/common-regcache.h"
+#include "gdbsupport/gdb_wait.h"
 #include "x86-cpuid.h"
-#include "filestuff.h"
-#include "common/scoped_fd.h"
-#include "common/scoped_mmap.h"
+#include "gdbsupport/filestuff.h"
+#include "gdbsupport/scoped_fd.h"
+#include "gdbsupport/scoped_mmap.h"
 
 #include <inttypes.h>
 
@@ -544,12 +544,10 @@ linux_enable_bts (ptid_t ptid, const struct btrace_config_bts *conf)
 
   bts->bts.size = size;
   bts->bts.data_head = &header->data_head;
-  bts->bts.mem = (const uint8_t *) data.get () + data_offset;
+  bts->bts.mem = (const uint8_t *) data.release () + data_offset;
   bts->bts.last_head = 0ull;
   bts->header = header;
   bts->file = fd.release ();
-
-  data.release ();
 
   tinfo->conf.bts.size = (unsigned int) size;
   return tinfo.release ();
@@ -667,10 +665,9 @@ linux_enable_pt (ptid_t ptid, const struct btrace_config_pt *conf)
   pt->pt.size = aux.size ();
   pt->pt.mem = (const uint8_t *) aux.release ();
   pt->pt.data_head = &header->aux_head;
-  pt->header = header;
+  pt->header = (struct perf_event_mmap_page *) data.release ();
+  gdb_assert (pt->header == header);
   pt->file = fd.release ();
-
-  data.release ();
 
   tinfo->conf.pt.size = (unsigned int) pt->pt.size;
   return tinfo.release ();

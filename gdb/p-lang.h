@@ -1,6 +1,6 @@
 /* Pascal language support definitions for GDB, the GNU debugger.
 
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,6 +16,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef P_LANG_H
+#define P_LANG_H
 
 /* This file is derived from c-lang.h */
 
@@ -80,3 +83,5 @@ extern void pascal_object_print_value_fields (struct type *, const gdb_byte *,
 extern int pascal_object_is_vtbl_ptr_type (struct type *);
 
 extern int pascal_object_is_vtbl_member (struct type *);
+
+#endif /* P_LANG_H */

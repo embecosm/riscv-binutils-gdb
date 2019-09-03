@@ -1,4 +1,4 @@
-/* Copyright (C) 2018 Free Software Foundation, Inc.
+/* Copyright (C) 2018-2019 Free Software Foundation, Inc.
    Contributed by Arm Ltd.
 
    This file is part of GDB.
@@ -16,8 +16,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef AARCH64_SVE_LINUX_SIGCONTEXT_H
-#define AARCH64_SVE_LINUX_SIGCONTEXT_H
+#ifndef NAT_AARCH64_SVE_LINUX_SIGCONTEXT_H
+#define NAT_AARCH64_SVE_LINUX_SIGCONTEXT_H
 
 #define SVE_MAGIC	0x53564501
 
@@ -64,7 +64,7 @@ struct sve_context {
  * The same convention applies when returning from a signal: a caller
  * will need to remove or resize the sve_context block if it wants to
  * make the SVE registers live when they were previously non-live or
- * vice-versa.  This may require the the caller to allocate fresh
+ * vice-versa.  This may require the caller to allocate fresh
  * memory and/or move other context blocks in the signal frame.
  *
  * Changing the vector length during signal return is not permitted:
@@ -264,5 +264,4 @@ struct user_sve_header {
 		  SVE_PT_SVE_OFFSET + SVE_PT_SVE_SIZE(vq, flags)	\
 		: SVE_PT_FPSIMD_OFFSET + SVE_PT_FPSIMD_SIZE(vq, flags))
 
-
-#endif /* AARCH64_SVE_LINUX_SIGCONTEXT_H */
+#endif /* NAT_AARCH64_SVE_LINUX_SIGCONTEXT_H */

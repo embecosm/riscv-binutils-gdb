@@ -1,4 +1,4 @@
-#   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+#   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -489,7 +489,7 @@ if {![binutils_assemble $srcdir/$subdir/debuglink.s tmpdir/debuglink.o]} then {
 	    set tempfile2 [remote_download host tmpdir/linkdebug.debug]
 	}
 
-	readelf_test {-wKis} $tempfile objdump.WK2  {}
+	readelf_test {-wKis} $tempfile readelf.wKis  {}
     }
 }
 

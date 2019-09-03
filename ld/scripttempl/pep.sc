@@ -1,6 +1,6 @@
 # Linker script for PE.
 #
-# Copyright (C) 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2014-2019 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -70,7 +70,7 @@ else
 fi
 
 cat <<EOF
-/* Copyright (C) 2014-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    Copying and distribution of this script, with or without modification,
    are permitted in any medium without royalty provided the copyright
@@ -90,7 +90,7 @@ SECTIONS
   ${RELOCATING+. = ALIGN(__section_alignment__);}
   .text ${RELOCATING+ __image_base__ + ( __section_alignment__ < ${TARGET_PAGE_SIZE} ? . : __section_alignment__ )} :
   {
-    ${RELOCATING+ KEEP(*(.init))}
+    ${RELOCATING+KEEP (*(SORT_NONE(.init)))}
     *(.text)
     ${R_TEXT}
     ${RELOCATING+ *(.text.*)}
@@ -134,7 +134,7 @@ SECTIONS
        KEEP (*(SORT_BY_NAME(.dtors.*)));
        LONG (0); LONG (0);
      }
-    ${RELOCATING+ KEEP (*(.fini))}
+    ${RELOCATING+KEEP (*(SORT_NONE(.fini)))}
     /* ??? Why is .gcc_exc here?  */
     ${RELOCATING+ *(.gcc_exc)}
     ${RELOCATING+PROVIDE (etext = .);}
@@ -161,6 +161,7 @@ SECTIONS
   .rdata ${RELOCATING+BLOCK(__section_alignment__)} :
   {
     ${R_RDATA}
+    . = ALIGN(4);
     ${RELOCATING+__rt_psrelocs_start = .;}
     ${RELOCATING+KEEP(*(.rdata_runtime_pseudo_reloc))}
     ${RELOCATING+__rt_psrelocs_end = .;}

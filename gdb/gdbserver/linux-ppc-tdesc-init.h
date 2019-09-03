@@ -1,6 +1,6 @@
 /* Low level support for ppc, shared between gdbserver and IPA.
 
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,6 +17,9 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#ifndef GDBSERVER_LINUX_PPC_TDESC_INIT_H
+#define GDBSERVER_LINUX_PPC_TDESC_INIT_H
+
 /* Note: since IPA obviously knows what ABI it's running on (32 vs 64),
    it's sufficient to pass only the register set here.  This, together with
    the ABI known at IPA compile time, maps to a tdesc.  */
@@ -29,6 +32,9 @@ enum ppc_linux_tdesc {
   PPC_TDESC_ISA205,
   PPC_TDESC_ISA205_ALTIVEC,
   PPC_TDESC_ISA205_VSX,
+  PPC_TDESC_ISA205_PPR_DSCR_VSX,
+  PPC_TDESC_ISA207_VSX,
+  PPC_TDESC_ISA207_HTM_VSX,
   PPC_TDESC_E500,
 };
 
@@ -54,6 +60,15 @@ void init_registers_powerpc_isa205_altivec32l (void);
 
 /* Defined in auto-generated file powerpc-isa205-vsx32l.c.  */
 void init_registers_powerpc_isa205_vsx32l (void);
+
+/* Defined in auto-generated file powerpc-isa205-ppr-dscr-vsx32l.c.  */
+void init_registers_powerpc_isa205_ppr_dscr_vsx32l (void);
+
+/* Defined in auto-generated file powerpc-isa207-vsx32l.c.  */
+void init_registers_powerpc_isa207_vsx32l (void);
+
+/* Defined in auto-generated file powerpc-isa207-htm-vsx32l.c.  */
+void init_registers_powerpc_isa207_htm_vsx32l (void);
 
 /* Defined in auto-generated file powerpc-e500l.c.  */
 void init_registers_powerpc_e500l (void);
@@ -83,4 +98,15 @@ void init_registers_powerpc_isa205_altivec64l (void);
 /* Defined in auto-generated file powerpc-isa205-vsx64l.c.  */
 void init_registers_powerpc_isa205_vsx64l (void);
 
+/* Defined in auto-generated file powerpc-isa205-ppr-dscr-vsx64l.c.  */
+void init_registers_powerpc_isa205_ppr_dscr_vsx64l (void);
+
+/* Defined in auto-generated file powerpc-isa207-vsx64l.c.  */
+void init_registers_powerpc_isa207_vsx64l (void);
+
+/* Defined in auto-generated file powerpc-isa207-htm-vsx64l.c.  */
+void init_registers_powerpc_isa207_htm_vsx64l (void);
+
 #endif
+
+#endif /* GDBSERVER_LINUX_PPC_TDESC_INIT_H */

@@ -1,5 +1,5 @@
 /* tc-arc.c -- Assembler for the ARC
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
    Contributor: Claudiu Zissulescu <claziss@synopsys.com>
 
@@ -22,7 +22,6 @@
 
 #include "as.h"
 #include "subsegs.h"
-#include "struc-symbol.h"
 #include "dwarf2dbg.h"
 #include "dw2gencfi.h"
 #include "safe-ctype.h"
@@ -48,9 +47,6 @@
 #define SUB_OPCODE(x)	 (((x) & 0x003F0000) >> 16)
 #define LP_INSN(x)	 ((MAJOR_OPCODE (x) == 0x4) \
 			  && (SUB_OPCODE (x) == 0x28))
-
-/* Equal to MAX_PRECISION in atof-ieee.c.  */
-#define MAX_LITTLENUMS 6
 
 #ifndef TARGET_WITH_CPU
 #define TARGET_WITH_CPU "arc700"
@@ -799,7 +795,7 @@ md_number_to_chars_midend (char *buf, unsigned long long val, int n)
       md_number_to_chars (buf, val, n);
       break;
     case 6:
-      md_number_to_chars (buf, (val & 0xffff00000000) >> 32, 2);
+      md_number_to_chars (buf, (val & 0xffff00000000ull) >> 32, 2);
       md_number_to_chars_midend (buf + 2, (val & 0xffffffff), 4);
       break;
     case 4:
@@ -807,7 +803,7 @@ md_number_to_chars_midend (char *buf, unsigned long long val, int n)
       md_number_to_chars (buf + 2, (val & 0xffff), 2);
       break;
     case 8:
-      md_number_to_chars_midend (buf, (val & 0xffffffff00000000) >> 32, 4);
+      md_number_to_chars_midend (buf, (val & 0xffffffff00000000ull) >> 32, 4);
       md_number_to_chars_midend (buf + 4, (val & 0xffffffff), 4);
       break;
     default:
@@ -3272,7 +3268,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED,
   int size, fix;
   struct arc_relax_type *relax_arg = &fragP->tc_frag_data;
 
-  fix = (fragP->fr_fix < 0 ? 0 : fragP->fr_fix);
+  fix = fragP->fr_fix;
   dest = fragP->fr_literal + fix;
   table_entry = TC_GENERIC_RELAX_TABLE + fragP->fr_subtype;
 
@@ -4211,7 +4207,7 @@ arc_check_reloc (expressionS *exp,
   if (*r_type_p == BFD_RELOC_32
       && exp->X_op == O_subtract
       && exp->X_op_symbol != NULL
-      && exp->X_op_symbol->bsym->section == now_seg)
+      && S_GET_SEGMENT (exp->X_op_symbol) == now_seg)
     *r_type_p = BFD_RELOC_ARC_32_PCREL;
 }
 

@@ -1,5 +1,5 @@
 /* Declarations for Intel 80386 opcode table
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    This file is part of the GNU opcodes library.
 
@@ -206,6 +206,10 @@ enum
   CpuAVX512_VNNI,
   /* Intel AVX-512 BITALG Instructions support required.  */
   CpuAVX512_BITALG,
+  /* Intel AVX-512 BF16 Instructions support required.  */
+  CpuAVX512_BF16,
+  /* Intel AVX-512 VP2INTERSECT Instructions support required.  */
+  CpuAVX512_VP2INTERSECT,
   /* mwaitx instruction required */
   CpuMWAITX,
   /* Clzero instruction required */
@@ -237,6 +241,8 @@ enum
   CpuMOVDIRI,
   /* MOVDIRR64B instruction required */
   CpuMOVDIR64B,
+  /* ENQCMD instruction required */
+  CpuENQCMD,
   /* 64bit support required  */
   Cpu64,
   /* Not supported in the 64bit mode  */
@@ -347,6 +353,8 @@ typedef union i386_cpu_flags
       unsigned int cpuavx512_vbmi2:1;
       unsigned int cpuavx512_vnni:1;
       unsigned int cpuavx512_bitalg:1;
+      unsigned int cpuavx512_bf16:1;
+      unsigned int cpuavx512_vp2intersect:1;
       unsigned int cpumwaitx:1;
       unsigned int cpuclzero:1;
       unsigned int cpuospke:1;
@@ -363,6 +371,7 @@ typedef union i386_cpu_flags
       unsigned int cpucldemote:1;
       unsigned int cpumovdiri:1;
       unsigned int cpumovdir64b:1;
+      unsigned int cpuenqcmd:1;
       unsigned int cpu64:1;
       unsigned int cpuno64:1;
 #ifdef CpuUnused
@@ -399,11 +408,12 @@ enum
   /* src/dest swap for floats. */
   FloatR,
   /* needs size prefix if in 32-bit mode */
-  Size16,
+#define SIZE16 1
   /* needs size prefix if in 16-bit mode */
-  Size32,
+#define SIZE32 2
   /* needs size prefix if in 64-bit mode */
-  Size64,
+#define SIZE64 3
+  Size,
   /* check register size.  */
   CheckRegSize,
   /* instruction ignores operand size prefix and in Intel mode ignores
@@ -427,6 +437,11 @@ enum
   FWait,
   /* quick test for string instructions */
   IsString,
+  /* RegMem is for instructions with a modrm byte where the register
+     destination operand should be encoded in the mod and regmem fields.
+     Normally, it will be encoded in the reg field. We add a RegMem
+     flag to indicate that it should be encoded in the regmem field.  */
+  RegMem,
   /* quick test if branch instruction is MPX supported */
   BNDPrefixOk,
   /* quick test if NOTRACK prefix is supported */
@@ -499,9 +514,11 @@ enum
      0: Set by the REX.W bit.
      1: VEX.W0.  Should always be 0.
      2: VEX.W1.  Should always be 1.
+     3: VEX.WIG. The VEX.W bit is ignored.
    */
 #define VEXW0	1
 #define VEXW1	2
+#define VEXWIG	3
   VexW,
   /* VEX opcode prefix:
      0: VEX 0x0F opcode prefix.
@@ -609,7 +626,7 @@ enum
   /* Intel64.  */
   Intel64,
   /* The last bitfield in i386_opcode_modifier.  */
-  Opcode_Modifier_Max
+  Opcode_Modifier_Num
 };
 
 typedef struct i386_opcode_modifier
@@ -625,9 +642,7 @@ typedef struct i386_opcode_modifier
   unsigned int jumpintersegment:1;
   unsigned int floatmf:1;
   unsigned int floatr:1;
-  unsigned int size16:1;
-  unsigned int size32:1;
-  unsigned int size64:1;
+  unsigned int size:2;
   unsigned int checkregsize:1;
   unsigned int ignoresize:1;
   unsigned int defaultsize:1;
@@ -639,6 +654,7 @@ typedef struct i386_opcode_modifier
   unsigned int no_ldsuf:1;
   unsigned int fwait:1;
   unsigned int isstring:1;
+  unsigned int regmem:1;
   unsigned int bndprefixok:1;
   unsigned int notrackprefixok:1;
   unsigned int islockable:1;
@@ -696,10 +712,8 @@ enum
   Debug,
   /* Test register */
   Test,
-  /* 2 bit segment register */
-  SReg2,
-  /* 3 bit segment register */
-  SReg3,
+  /* Segment register */
+  SReg,
   /* 1 bit immediate */
   Imm1,
   /* 8 bit immediate */
@@ -743,14 +757,6 @@ enum
   JumpAbsolute,
   /* String insn operand with fixed es segment */
   EsSeg,
-  /* RegMem is for instructions with a modrm byte where the register
-     destination operand should be encoded in the mod and regmem fields.
-     Normally, it will be encoded in the reg field. We add a RegMem
-     flag to the destination register operand to indicate that it should
-     be encoded in the regmem field.  */
-  RegMem,
-  /* Memory.  */
-  Mem,
   /* BYTE size. */
   Byte,
   /* WORD size. 2 byte */
@@ -773,9 +779,6 @@ enum
   Unspecified,
   /* Any memory size.  */
   Anysize,
-
-  /* Vector 4 bit immediate.  */
-  Vec_Imm4,
 
   /* Bound register.  */
   RegBND,
@@ -804,8 +807,7 @@ typedef union i386_operand_type
       unsigned int control:1;
       unsigned int debug:1;
       unsigned int test:1;
-      unsigned int sreg2:1;
-      unsigned int sreg3:1;
+      unsigned int sreg:1;
       unsigned int imm1:1;
       unsigned int imm8:1;
       unsigned int imm8s:1;
@@ -824,7 +826,6 @@ typedef union i386_operand_type
       unsigned int shiftcount:1;
       unsigned int jumpabsolute:1;
       unsigned int esseg:1;
-      unsigned int regmem:1;
       unsigned int byte:1;
       unsigned int word:1;
       unsigned int dword:1;
@@ -836,7 +837,6 @@ typedef union i386_operand_type
       unsigned int zmmword:1;
       unsigned int unspecified:1;
       unsigned int anysize:1;
-      unsigned int vec_imm4:1;
       unsigned int regbnd:1;
 #ifdef OTUnused
       unsigned int unused:(OTNumOfBits - OTUnused);
@@ -861,6 +861,8 @@ typedef struct insn_template
 			       unset if Regmem --> Reg. */
 #define Opcode_FloatR	0x8 /* Bit to swap src/dest for float insns. */
 #define Opcode_FloatD 0x400 /* Direction bit for float insns. */
+#define Opcode_SIMD_FloatD 0x1 /* Direction bit for SIMD fp insns. */
+#define Opcode_SIMD_IntD 0x10 /* Direction bit for SIMD int insns. */
 
   /* extension_opcode is the 3 bit extension for group <n> insns.
      This field is also used to store the 8-bit opcode suffix for the

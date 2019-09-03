@@ -1,5 +1,5 @@
 /* Matsushita 10200 specific support for 32-bit ELF
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -228,7 +228,7 @@ mn10200_info_to_howto (bfd *abfd,
       bfd_set_error (bfd_error_bad_value);
       return FALSE;
     }
-  
+
   cache_ptr->howto = &elf_mn10200_howto_table[r_type];
   return cache_ptr->howto != NULL;
 }

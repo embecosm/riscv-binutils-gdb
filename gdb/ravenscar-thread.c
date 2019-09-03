@@ -1,6 +1,6 @@
 /* Ada Ravenscar thread support.
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -36,7 +36,7 @@
 
    The typical situation is when debugging a bare-metal target over
    the remote protocol. In that situation, the system does not know
-   about high-level comcepts such as threads, only about some code
+   about high-level concepts such as threads, only about some code
    running on one or more CPUs. And since the remote protocol does not
    provide any handling for CPUs, the de facto standard for handling
    them is to have one thread per CPU, where the thread's ptid has
@@ -44,14 +44,14 @@
    2 for the second one, etc).  This module will make that assumption.
 
    This module then creates and maintains the list of threads based
-   on the list of Ada tasks, with one thread per Ada tasks. The convention
+   on the list of Ada tasks, with one thread per Ada task. The convention
    is that threads corresponding to the CPUs (see assumption above)
-   have a ptid_t of the form (PID, LWP, 0), which threads corresponding
+   have a ptid_t of the form (PID, LWP, 0), while threads corresponding
    to our Ada tasks have a ptid_t of the form (PID, 0, TID) where TID
    is the Ada task's ID as extracted from Ada runtime information.
 
-   Switching to a given Ada tasks (or its underlying thread) is performed
-   by fetching the registers of that tasks from the memory area where
+   Switching to a given Ada task (or its underlying thread) is performed
+   by fetching the registers of that task from the memory area where
    the registers were saved.  For any of the other operations, the
    operation is performed by first finding the CPU on which the task
    is running, switching to its corresponding ptid, and then performing
@@ -60,18 +60,13 @@
 /* If non-null, ravenscar task support is enabled.  */
 static int ravenscar_task_support = 1;
 
-/* PTID of the last thread that received an event.
-   This can be useful to determine the associated task that received
-   the event, to make it the current task.  */
-static ptid_t base_ptid;
-
 static const char running_thread_name[] = "__gnat_running_thread_table";
 
 static const char known_tasks_name[] = "system__tasking__debug__known_tasks";
 static const char first_task_name[] = "system__tasking__debug__first_task";
 
-static const char ravenscar_runtime_initializer[] =
-  "system__bb__threads__initialize";
+static const char ravenscar_runtime_initializer[]
+  = "system__bb__threads__initialize";
 
 static const target_info ravenscar_target_info = {
   "ravenscar",
@@ -82,10 +77,14 @@ static const target_info ravenscar_target_info = {
 struct ravenscar_thread_target final : public target_ops
 {
   ravenscar_thread_target ()
-  { to_stratum = thread_stratum; }
+  {
+    update_inferior_ptid ();
+  }
 
   const target_info &info () const override
   { return ravenscar_target_info; }
+
+  strata stratum () const override { return thread_stratum; }
 
   ptid_t wait (ptid_t, struct target_waitstatus *, int) override;
   void resume (ptid_t, int, enum gdb_signal) override;
@@ -111,33 +110,33 @@ struct ravenscar_thread_target final : public target_ops
 
   const char *extra_thread_info (struct thread_info *) override;
 
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
 
   ptid_t get_ada_task_ptid (long lwp, long thread) override;
 
   void mourn_inferior () override;
 
-  bool has_all_memory ()  override { return default_child_has_all_memory (); }
-  bool has_memory ()  override { return default_child_has_memory (); }
-  bool has_stack ()  override { return default_child_has_stack (); }
-  bool has_registers ()  override { return default_child_has_registers (); }
-  bool has_execution (ptid_t ptid) override
-  { return default_child_has_execution (ptid); }
+  void close () override
+  {
+    delete this;
+  }
+
+private:
+
+  /* PTID of the last thread that received an event.
+     This can be useful to determine the associated task that received
+     the event, to make it the current task.  */
+  ptid_t m_base_ptid = null_ptid;
+
+  void update_inferior_ptid ();
+  ptid_t active_task (int cpu);
+  bool task_is_currently_active (ptid_t ptid);
+  bool runtime_initialized ();
 };
 
-/* This module's target-specific operations.  */
-static ravenscar_thread_target ravenscar_ops;
+/* Return true iff PTID corresponds to a ravenscar task.  */
 
-static ptid_t ravenscar_active_task (int cpu);
-static void ravenscar_update_inferior_ptid (void);
-static int has_ravenscar_runtime (void);
-static int ravenscar_runtime_initialized (void);
-static void ravenscar_inferior_created (struct target_ops *target,
-					int from_tty);
-
-/* Return nonzero iff PTID corresponds to a ravenscar task.  */
-
-static int
+static bool
 is_ravenscar_task (ptid_t ptid)
 {
   /* By construction, ravenscar tasks have their LWP set to zero.
@@ -177,7 +176,7 @@ ravenscar_get_thread_base_cpu (ptid_t ptid)
   return base_cpu;
 }
 
-/* Given a ravenscar task (identified by its ptid_t PTID), return nonzero
+/* Given a ravenscar task (identified by its ptid_t PTID), return true
    if this task is the currently active task on the cpu that task is
    running on.
 
@@ -187,11 +186,11 @@ ravenscar_get_thread_base_cpu (ptid_t ptid)
    that task's registers are in the CPU bank.  Otherwise, the task
    is currently suspended, and its registers have been saved in memory.  */
 
-static int
-ravenscar_task_is_currently_active (ptid_t ptid)
+bool
+ravenscar_thread_target::task_is_currently_active (ptid_t ptid)
 {
   ptid_t active_task_ptid
-    = ravenscar_active_task (ravenscar_get_thread_base_cpu (ptid));
+    = active_task (ravenscar_get_thread_base_cpu (ptid));
 
   return ptid == active_task_ptid;
 }
@@ -217,24 +216,24 @@ get_base_thread_from_ravenscar_task (ptid_t ptid)
 /* Fetch the ravenscar running thread from target memory and
    update inferior_ptid accordingly.  */
 
-static void
-ravenscar_update_inferior_ptid (void)
+void
+ravenscar_thread_target::update_inferior_ptid ()
 {
   int base_cpu;
 
-  base_ptid = inferior_ptid;
+  m_base_ptid = inferior_ptid;
 
   gdb_assert (!is_ravenscar_task (inferior_ptid));
-  base_cpu = ravenscar_get_thread_base_cpu (base_ptid);
+  base_cpu = ravenscar_get_thread_base_cpu (m_base_ptid);
 
   /* If the runtime has not been initialized yet, the inferior_ptid is
      the only ptid that there is.  */
-  if (!ravenscar_runtime_initialized ())
+  if (!runtime_initialized ())
     return;
 
-  /* Make sure we set base_ptid before calling ravenscar_active_task
+  /* Make sure we set m_base_ptid before calling active_task
      as the latter relies on it.  */
-  inferior_ptid = ravenscar_active_task (base_cpu);
+  inferior_ptid = active_task (base_cpu);
   gdb_assert (inferior_ptid != null_ptid);
 
   /* The running thread may not have been added to
@@ -250,7 +249,7 @@ ravenscar_update_inferior_ptid (void)
    Return NULL if not found.  */
 
 static struct bound_minimal_symbol
-get_running_thread_msymbol (void)
+get_running_thread_msymbol ()
 {
   struct bound_minimal_symbol msym;
 
@@ -268,15 +267,15 @@ get_running_thread_msymbol (void)
 /* Return True if the Ada Ravenscar run-time can be found in the
    application.  */
 
-static int
-has_ravenscar_runtime (void)
+static bool
+has_ravenscar_runtime ()
 {
-  struct bound_minimal_symbol msym_ravenscar_runtime_initializer =
-    lookup_minimal_symbol (ravenscar_runtime_initializer, NULL, NULL);
-  struct bound_minimal_symbol msym_known_tasks =
-    lookup_minimal_symbol (known_tasks_name, NULL, NULL);
-  struct bound_minimal_symbol msym_first_task =
-    lookup_minimal_symbol (first_task_name, NULL, NULL);
+  struct bound_minimal_symbol msym_ravenscar_runtime_initializer
+    = lookup_minimal_symbol (ravenscar_runtime_initializer, NULL, NULL);
+  struct bound_minimal_symbol msym_known_tasks
+    = lookup_minimal_symbol (known_tasks_name, NULL, NULL);
+  struct bound_minimal_symbol msym_first_task
+    = lookup_minimal_symbol (first_task_name, NULL, NULL);
   struct bound_minimal_symbol msym_running_thread
     = get_running_thread_msymbol ();
 
@@ -288,10 +287,10 @@ has_ravenscar_runtime (void)
 /* Return True if the Ada Ravenscar run-time can be found in the
    application, and if it has been initialized on target.  */
 
-static int
-ravenscar_runtime_initialized (void)
+bool
+ravenscar_thread_target::runtime_initialized ()
 {
-  return (!(ravenscar_active_task (1) == null_ptid));
+  return active_task (1) != null_ptid;
 }
 
 /* Return the ID of the thread that is currently running.
@@ -305,8 +304,8 @@ get_running_thread_id (int cpu)
   int buf_size;
   gdb_byte *buf;
   CORE_ADDR object_addr;
-  struct type *builtin_type_void_data_ptr =
-    builtin_type (target_gdbarch ())->builtin_data_ptr;
+  struct type *builtin_type_void_data_ptr
+    = builtin_type (target_gdbarch ())->builtin_data_ptr;
 
   if (!object_msym.minsym)
     return 0;
@@ -321,10 +320,15 @@ get_running_thread_id (int cpu)
 }
 
 void
-ravenscar_thread_target::resume (ptid_t ptid, int step, enum gdb_signal siggnal)
+ravenscar_thread_target::resume (ptid_t ptid, int step,
+				 enum gdb_signal siggnal)
 {
-  inferior_ptid = base_ptid;
-  beneath ()->resume (base_ptid, step, siggnal);
+  /* If we see a wildcard resume, we simply pass that on.  Otherwise,
+     arrange to resume the base ptid.  */
+  inferior_ptid = m_base_ptid;
+  if (ptid != minus_one_ptid)
+    ptid = m_base_ptid;
+  beneath ()->resume (ptid, step, siggnal);
 }
 
 ptid_t
@@ -334,8 +338,10 @@ ravenscar_thread_target::wait (ptid_t ptid,
 {
   ptid_t event_ptid;
 
-  inferior_ptid = base_ptid;
-  event_ptid = beneath ()->wait (base_ptid, status, 0);
+  inferior_ptid = m_base_ptid;
+  if (ptid != minus_one_ptid)
+    ptid = m_base_ptid;
+  event_ptid = beneath ()->wait (ptid, status, 0);
   /* Find any new threads that might have been created, and update
      inferior_ptid to the active thread.
 
@@ -348,8 +354,10 @@ ravenscar_thread_target::wait (ptid_t ptid,
     {
       inferior_ptid = event_ptid;
       this->update_thread_list ();
-      ravenscar_update_inferior_ptid ();
+      this->update_inferior_ptid ();
     }
+  else
+    inferior_ptid = m_base_ptid;
   return inferior_ptid;
 }
 
@@ -366,25 +374,23 @@ ravenscar_add_thread (struct ada_task_info *task)
 void
 ravenscar_thread_target::update_thread_list ()
 {
-  ada_build_task_list ();
-
   /* Do not clear the thread list before adding the Ada task, to keep
      the thread that the process stratum has included into it
-     (base_ptid) and the running thread, that may not have been included
+     (m_base_ptid) and the running thread, that may not have been included
      to system.tasking.debug's list yet.  */
 
   iterate_over_live_ada_tasks (ravenscar_add_thread);
 }
 
-static ptid_t
-ravenscar_active_task (int cpu)
+ptid_t
+ravenscar_thread_target::active_task (int cpu)
 {
   CORE_ADDR tid = get_running_thread_id (cpu);
 
   if (tid == 0)
     return null_ptid;
   else
-    return ptid_t (base_ptid.pid (), 0, tid);
+    return ptid_t (m_base_ptid.pid (), 0, tid);
 }
 
 const char *
@@ -400,13 +406,10 @@ ravenscar_thread_target::thread_alive (ptid_t ptid)
   return true;
 }
 
-const char *
+std::string
 ravenscar_thread_target::pid_to_str (ptid_t ptid)
 {
-  static char buf[30];
-
-  snprintf (buf, sizeof (buf), "Thread %#x", (int) ptid.tid ());
-  return buf;
+  return string_printf ("Thread %#x", (int) ptid.tid ());
 }
 
 void
@@ -414,15 +417,15 @@ ravenscar_thread_target::fetch_registers (struct regcache *regcache, int regnum)
 {
   ptid_t ptid = regcache->ptid ();
 
-  if (ravenscar_runtime_initialized ()
+  if (runtime_initialized ()
       && is_ravenscar_task (ptid)
-      && !ravenscar_task_is_currently_active (ptid))
+      && !task_is_currently_active (ptid))
     {
       struct gdbarch *gdbarch = regcache->arch ();
       struct ravenscar_arch_ops *arch_ops
 	= gdbarch_ravenscar_ops (gdbarch);
 
-      arch_ops->to_fetch_registers (regcache, regnum);
+      arch_ops->fetch_registers (regcache, regnum);
     }
   else
     beneath ()->fetch_registers (regcache, regnum);
@@ -434,15 +437,15 @@ ravenscar_thread_target::store_registers (struct regcache *regcache,
 {
   ptid_t ptid = regcache->ptid ();
 
-  if (ravenscar_runtime_initialized ()
+  if (runtime_initialized ()
       && is_ravenscar_task (ptid)
-      && !ravenscar_task_is_currently_active (ptid))
+      && !task_is_currently_active (ptid))
     {
       struct gdbarch *gdbarch = regcache->arch ();
       struct ravenscar_arch_ops *arch_ops
 	= gdbarch_ravenscar_ops (gdbarch);
 
-      arch_ops->to_store_registers (regcache, regnum);
+      arch_ops->store_registers (regcache, regnum);
     }
   else
     beneath ()->store_registers (regcache, regnum);
@@ -453,15 +456,11 @@ ravenscar_thread_target::prepare_to_store (struct regcache *regcache)
 {
   ptid_t ptid = regcache->ptid ();
 
-  if (ravenscar_runtime_initialized ()
+  if (runtime_initialized ()
       && is_ravenscar_task (ptid)
-      && !ravenscar_task_is_currently_active (ptid))
+      && !task_is_currently_active (ptid))
     {
-      struct gdbarch *gdbarch = regcache->arch ();
-      struct ravenscar_arch_ops *arch_ops
-	= gdbarch_ravenscar_ops (gdbarch);
-
-      arch_ops->to_prepare_to_store (regcache);
+      /* Nothing.  */
     }
   else
     beneath ()->prepare_to_store (regcache);
@@ -472,13 +471,9 @@ ravenscar_thread_target::prepare_to_store (struct regcache *regcache)
 bool
 ravenscar_thread_target::stopped_by_sw_breakpoint ()
 {
-  ptid_t saved_ptid = inferior_ptid;
-  bool result;
-
-  inferior_ptid = get_base_thread_from_ravenscar_task (saved_ptid);
-  result = beneath ()->stopped_by_sw_breakpoint ();
-  inferior_ptid = saved_ptid;
-  return result;
+  scoped_restore save_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = get_base_thread_from_ravenscar_task (inferior_ptid);
+  return beneath ()->stopped_by_sw_breakpoint ();
 }
 
 /* Implement the to_stopped_by_hw_breakpoint target_ops "method".  */
@@ -486,13 +481,9 @@ ravenscar_thread_target::stopped_by_sw_breakpoint ()
 bool
 ravenscar_thread_target::stopped_by_hw_breakpoint ()
 {
-  ptid_t saved_ptid = inferior_ptid;
-  bool result;
-
-  inferior_ptid = get_base_thread_from_ravenscar_task (saved_ptid);
-  result = beneath ()->stopped_by_hw_breakpoint ();
-  inferior_ptid = saved_ptid;
-  return result;
+  scoped_restore save_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = get_base_thread_from_ravenscar_task (inferior_ptid);
+  return beneath ()->stopped_by_hw_breakpoint ();
 }
 
 /* Implement the to_stopped_by_watchpoint target_ops "method".  */
@@ -500,13 +491,9 @@ ravenscar_thread_target::stopped_by_hw_breakpoint ()
 bool
 ravenscar_thread_target::stopped_by_watchpoint ()
 {
-  ptid_t saved_ptid = inferior_ptid;
-  bool result;
-
-  inferior_ptid = get_base_thread_from_ravenscar_task (saved_ptid);
-  result = beneath ()->stopped_by_watchpoint ();
-  inferior_ptid = saved_ptid;
-  return result;
+  scoped_restore save_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = get_base_thread_from_ravenscar_task (inferior_ptid);
+  return beneath ()->stopped_by_watchpoint ();
 }
 
 /* Implement the to_stopped_data_address target_ops "method".  */
@@ -514,21 +501,17 @@ ravenscar_thread_target::stopped_by_watchpoint ()
 bool
 ravenscar_thread_target::stopped_data_address (CORE_ADDR *addr_p)
 {
-  ptid_t saved_ptid = inferior_ptid;
-  bool result;
-
-  inferior_ptid = get_base_thread_from_ravenscar_task (saved_ptid);
-  result = beneath ()->stopped_data_address (addr_p);
-  inferior_ptid = saved_ptid;
-  return result;
+  scoped_restore save_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = get_base_thread_from_ravenscar_task (inferior_ptid);
+  return beneath ()->stopped_data_address (addr_p);
 }
 
 void
 ravenscar_thread_target::mourn_inferior ()
 {
-  base_ptid = null_ptid;
+  m_base_ptid = null_ptid;
   beneath ()->mourn_inferior ();
-  unpush_target (&ravenscar_ops);
+  unpush_target (this);
 }
 
 /* Implement the to_core_of_thread target_ops "method".  */
@@ -536,13 +519,9 @@ ravenscar_thread_target::mourn_inferior ()
 int
 ravenscar_thread_target::core_of_thread (ptid_t ptid)
 {
-  ptid_t saved_ptid = inferior_ptid;
-  int result;
-
-  inferior_ptid = get_base_thread_from_ravenscar_task (saved_ptid);
-  result = beneath ()->core_of_thread (inferior_ptid);
-  inferior_ptid = saved_ptid;
-  return result;
+  scoped_restore save_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = get_base_thread_from_ravenscar_task (inferior_ptid);
+  return beneath ()->core_of_thread (inferior_ptid);
 }
 
 /* Observer on inferior_created: push ravenscar thread stratum if needed.  */
@@ -564,14 +543,14 @@ ravenscar_inferior_created (struct target_ops *target, int from_tty)
       return;
     }
 
-  ravenscar_update_inferior_ptid ();
-  push_target (&ravenscar_ops);
+  target_ops_up target_holder (new ravenscar_thread_target ());
+  push_target (std::move (target_holder));
 }
 
 ptid_t
 ravenscar_thread_target::get_ada_task_ptid (long lwp, long thread)
 {
-  return ptid_t (base_ptid.pid (), 0, thread);
+  return ptid_t (m_base_ptid.pid (), 0, thread);
 }
 
 /* Command-list for the "set/show ravenscar" prefix command.  */
@@ -615,26 +594,24 @@ Support for Ravenscar task/thread switching is disabled\n"));
    init.c.  */
 
 void
-_initialize_ravenscar (void)
+_initialize_ravenscar ()
 {
-  base_ptid = null_ptid;
-
   /* Notice when the inferior is created in order to push the
      ravenscar ops if needed.  */
   gdb::observers::inferior_created.attach (ravenscar_inferior_created);
 
   add_prefix_cmd ("ravenscar", no_class, set_ravenscar_command,
-                  _("Prefix command for changing Ravenscar-specific settings"),
+                  _("Prefix command for changing Ravenscar-specific settings."),
                   &set_ravenscar_list, "set ravenscar ", 0, &setlist);
 
   add_prefix_cmd ("ravenscar", no_class, show_ravenscar_command,
-                  _("Prefix command for showing Ravenscar-specific settings"),
+                  _("Prefix command for showing Ravenscar-specific settings."),
                   &show_ravenscar_list, "show ravenscar ", 0, &showlist);
 
   add_setshow_boolean_cmd ("task-switching", class_obscure,
                            &ravenscar_task_support, _("\
-Enable or disable support for GNAT Ravenscar tasks"), _("\
-Show whether support for GNAT Ravenscar tasks is enabled"),
+Enable or disable support for GNAT Ravenscar tasks."), _("\
+Show whether support for GNAT Ravenscar tasks is enabled."),
                            _("\
 Enable or disable support for task/thread switching with the GNAT\n\
 Ravenscar run-time library for bareboard configuration."),

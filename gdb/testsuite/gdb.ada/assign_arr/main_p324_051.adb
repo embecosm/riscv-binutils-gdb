@@ -1,4 +1,4 @@
---  Copyright 2016-2018 Free Software Foundation, Inc.
+--  Copyright 2016-2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -17,5 +17,5 @@ with target_wrapper; use target_wrapper;
 
 procedure Main_P324_051 is
 begin
-   input.u2 := (0.2,0.3,0.4);  -- STOP
+   Assign_Arr_Input.u2 := (0.2,0.3,0.4);  -- STOP
 end Main_P324_051;

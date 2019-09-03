@@ -1,6 +1,6 @@
 /* Header only used inside opcodes library for disassemble.
 
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ extern int print_insn_csky		(bfd_vma, disassemble_info *);
 extern int print_insn_d10v		(bfd_vma, disassemble_info *);
 extern int print_insn_d30v		(bfd_vma, disassemble_info *);
 extern int print_insn_dlx		(bfd_vma, disassemble_info *);
+extern int print_insn_bpf		(bfd_vma, disassemble_info *);
 extern int print_insn_epiphany		(bfd_vma, disassemble_info *);
 extern int print_insn_fr30		(bfd_vma, disassemble_info *);
 extern int print_insn_frv		(bfd_vma, disassemble_info *);
@@ -51,7 +52,7 @@ extern int print_insn_ia64		(bfd_vma, disassemble_info *);
 extern int print_insn_ip2k		(bfd_vma, disassemble_info *);
 extern int print_insn_iq2000		(bfd_vma, disassemble_info *);
 extern int print_insn_little_nios2	(bfd_vma, disassemble_info *);
-extern int print_insn_riscv		(bfd_vma, disassemble_info *);
+extern int print_insn_riscv_orig	(bfd_vma, disassemble_info *);
 extern int print_insn_little_arm	(bfd_vma, disassemble_info *);
 extern int print_insn_little_mips	(bfd_vma, disassemble_info *);
 extern int print_insn_little_powerpc	(bfd_vma, disassemble_info *);

@@ -1,5 +1,5 @@
 /* Low level interface to ptrace, for the remote server for GDB.
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,13 +19,13 @@
 #include "server.h"
 #include "linux-low.h"
 #include "nat/linux-osdata.h"
-#include "agent.h"
+#include "gdbsupport/agent.h"
 #include "tdesc.h"
-#include "rsp-low.h"
-#include "signals-state-save-restore.h"
+#include "gdbsupport/rsp-low.h"
+#include "gdbsupport/signals-state-save-restore.h"
 #include "nat/linux-nat.h"
 #include "nat/linux-waitpid.h"
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include "nat/gdb_ptrace.h"
 #include "nat/linux-ptrace.h"
 #include "nat/linux-procfs.h"
@@ -43,14 +43,14 @@
 #include <sys/stat.h>
 #include <sys/vfs.h>
 #include <sys/uio.h>
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "tracepoint.h"
 #include "hostio.h"
 #include <inttypes.h>
-#include "common-inferior.h"
+#include "gdbsupport/common-inferior.h"
 #include "nat/fork-inferior.h"
-#include "environ.h"
-#include "common/scoped_restore.h"
+#include "gdbsupport/environ.h"
+#include "gdbsupport/scoped_restore.h"
 #ifndef ELFMAG0
 /* Don't include <linux/elf.h> here.  If it got included by gdb_proc_service.h
    then ELFMAG0 will have been defined.  If it didn't get included by
@@ -73,6 +73,10 @@
 
 #ifndef O_LARGEFILE
 #define O_LARGEFILE 0
+#endif
+
+#ifndef AT_HWCAP2
+#define AT_HWCAP2 26
 #endif
 
 /* Some targets did not define these ptrace constants from the start,
@@ -101,7 +105,7 @@
 
 #ifdef HAVE_LINUX_BTRACE
 # include "nat/linux-btrace.h"
-# include "btrace-common.h"
+# include "gdbsupport/btrace-common.h"
 #endif
 
 #ifndef HAVE_ELF32_AUXV_T
@@ -951,10 +955,10 @@ add_lwp (ptid_t ptid)
 
   lwp->waitstatus.kind = TARGET_WAITKIND_IGNORE;
 
+  lwp->thread = add_thread (ptid, lwp);
+
   if (the_low_target.new_thread != NULL)
     the_low_target.new_thread (lwp);
-
-  lwp->thread = add_thread (ptid, lwp);
 
   return lwp;
 }
@@ -1188,17 +1192,18 @@ linux_attach (unsigned long pid)
   ptid_t ptid = ptid_t (pid, pid, 0);
   int err;
 
+  proc = linux_add_process (pid, 1);
+
   /* Attach to PID.  We will check for other threads
      soon.  */
   err = linux_attach_lwp (ptid);
   if (err != 0)
     {
-      std::string reason = linux_ptrace_attach_fail_reason_string (ptid, err);
+      remove_process (proc);
 
+      std::string reason = linux_ptrace_attach_fail_reason_string (ptid, err);
       error ("Cannot attach to process %ld: %s", pid, reason.c_str ());
     }
-
-  proc = linux_add_process (pid, 1);
 
   /* Don't ignore the initial SIGSTOP if we just attached to this
      process.  It will be collected by wait shortly.  */
@@ -1255,7 +1260,7 @@ last_thread_of_process_p (int pid)
 {
   bool seen_one = false;
 
-  thread_info *thread = find_thread (pid, [&] (thread_info *thread)
+  thread_info *thread = find_thread (pid, [&] (thread_info *thr_arg)
     {
       if (!seen_one)
 	{
@@ -1526,7 +1531,7 @@ linux_detach_one_lwp (struct lwp_info *lwp)
   /* Preparing to resume may try to write registers, and fail if the
      lwp is zombie.  If that happens, ignore the error.  We'll handle
      it below, when detach fails with ESRCH.  */
-  TRY
+  try
     {
       /* Flush any pending changes to the process's registers.  */
       regcache_invalidate_thread (thread);
@@ -1535,12 +1540,11 @@ linux_detach_one_lwp (struct lwp_info *lwp)
       if (the_low_target.prepare_to_resume != NULL)
 	the_low_target.prepare_to_resume (lwp);
     }
-  CATCH (ex, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &ex)
     {
       if (!check_ptrace_stopped_lwp_gone (lwp))
-	throw_exception (ex);
+	throw;
     }
-  END_CATCH
 
   lwpid = lwpid_of (thread);
   if (ptrace (PTRACE_DETACH, lwpid, (PTRACE_TYPE_ARG3) 0,
@@ -1670,12 +1674,12 @@ linux_mourn (struct process_info *process)
 }
 
 static void
-linux_join (process_info *proc)
+linux_join (int pid)
 {
   int status, ret;
 
   do {
-    ret = my_waitpid (proc->pid, &status, 0);
+    ret = my_waitpid (pid, &status, 0);
     if (WIFEXITED (status) || WIFSIGNALED (status))
       break;
   } while (ret != -1 || errno != ECHILD);
@@ -1811,10 +1815,10 @@ status_pending_p_callback (thread_info *thread, ptid_t ptid)
 struct lwp_info *
 find_lwp_pid (ptid_t ptid)
 {
-  thread_info *thread = find_thread ([&] (thread_info *thread)
+  thread_info *thread = find_thread ([&] (thread_info *thr_arg)
     {
       int lwp = ptid.lwp () != 0 ? ptid.lwp () : ptid.pid ();
-      return thread->id.lwp () == lwp;
+      return thr_arg->id.lwp () == lwp;
     });
 
   if (thread == NULL)
@@ -1842,14 +1846,13 @@ num_lwps (int pid)
 
 struct lwp_info *
 iterate_over_lwps (ptid_t filter,
-		   iterate_over_lwps_ftype callback,
-		   void *data)
+		   gdb::function_view<iterate_over_lwps_ftype> callback)
 {
-  thread_info *thread = find_thread (filter, [&] (thread_info *thread)
+  thread_info *thread = find_thread (filter, [&] (thread_info *thr_arg)
     {
-      lwp_info *lwp = get_thread_lwp (thread);
+      lwp_info *lwp = get_thread_lwp (thr_arg);
 
-      return callback (lwp, data);
+      return callback (lwp);
     });
 
   if (thread == NULL)
@@ -2825,7 +2828,6 @@ linux_wait_for_event (ptid_t ptid, int *wstatp, int options)
 static void
 select_event_lwp (struct lwp_info **orig_lp)
 {
-  int random_selector;
   struct thread_info *event_thread = NULL;
 
   /* In all-stop, give preference to the LWP that is being
@@ -2859,39 +2861,13 @@ select_event_lwp (struct lwp_info **orig_lp)
       /* No single-stepping LWP.  Select one at random, out of those
          which have had events.  */
 
-      /* First see how many events we have.  */
-      int num_events = 0;
-      for_each_thread ([&] (thread_info *thread)
+      event_thread = find_thread_in_random ([&] (thread_info *thread)
 	{
 	  lwp_info *lp = get_thread_lwp (thread);
 
-	  /* Count only resumed LWPs that have an event pending. */
-	  if (thread->last_status.kind == TARGET_WAITKIND_IGNORE
-	      && lp->status_pending_p)
-	    num_events++;
-	});
-      gdb_assert (num_events > 0);
-
-      /* Now randomly pick a LWP out of those that have had
-	 events.  */
-      random_selector = (int)
-	((num_events * (double) rand ()) / (RAND_MAX + 1.0));
-
-      if (debug_threads && num_events > 1)
-	debug_printf ("SEL: Found %d SIGTRAP events, selecting #%d\n",
-		      num_events, random_selector);
-
-      event_thread = find_thread ([&] (thread_info *thread)
-	{
-	  lwp_info *lp = get_thread_lwp (thread);
-
-	  /* Select only resumed LWPs that have an event pending.  */
-	  if (thread->last_status.kind == TARGET_WAITKIND_IGNORE
-	      && lp->status_pending_p)
-	    if (random_selector-- == 0)
-	      return true;
-
-	  return false;
+	  /* Only resumed LWPs that have an event pending. */
+	  return (thread->last_status.kind == TARGET_WAITKIND_IGNORE
+		  && lp->status_pending_p);
 	});
     }
 
@@ -4504,16 +4480,15 @@ static void
 linux_resume_one_lwp (struct lwp_info *lwp,
 		      int step, int signal, siginfo_t *info)
 {
-  TRY
+  try
     {
       linux_resume_one_lwp_throw (lwp, step, signal, info);
     }
-  CATCH (ex, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &ex)
     {
       if (!check_ptrace_stopped_lwp_gone (lwp))
-	throw_exception (ex);
+	throw;
     }
-  END_CATCH
 }
 
 /* This function is called once per thread via for_each_thread.
@@ -5358,10 +5333,11 @@ regsets_fetch_inferior_registers (struct regsets_info *regsets_info,
 #endif
       if (res < 0)
 	{
-	  if (errno == EIO)
+	  if (errno == EIO
+	      || (errno == EINVAL && regset->type == OPTIONAL_REGS))
 	    {
-	      /* If we get EIO on a regset, do not try it again for
-		 this process mode.  */
+	      /* If we get EIO on a regset, or an EINVAL and the regset is
+		 optional, do not try it again for this process mode.  */
 	      disable_regset (regsets_info, regset);
 	    }
 	  else if (errno == ENODATA)
@@ -5456,10 +5432,11 @@ regsets_store_inferior_registers (struct regsets_info *regsets_info,
 
       if (res < 0)
 	{
-	  if (errno == EIO)
+	  if (errno == EIO
+	      || (errno == EINVAL && regset->type == OPTIONAL_REGS))
 	    {
-	      /* If we get EIO on a regset, do not try it again for
-		 this process mode.  */
+	      /* If we get EIO on a regset, or an EINVAL and the regset is
+		 optional, do not try it again for this process mode.  */
 	      disable_regset (regsets_info, regset);
 	    }
 	  else if (errno == ESRCH)
@@ -6208,10 +6185,9 @@ sigchld_handler (int signo)
     {
       do
 	{
-	  /* fprintf is not async-signal-safe, so call write
-	     directly.  */
-	  if (write (2, "sigchld_handler\n",
-		     sizeof ("sigchld_handler\n") - 1) < 0)
+	  /* Use the async signal safe debug function.  */
+	  if (debug_write ("sigchld_handler\n",
+			   sizeof ("sigchld_handler\n") - 1) < 0)
 	    break; /* just ignore */
 	} while (0);
     }
@@ -7032,16 +7008,16 @@ linux_qxfer_libraries_svr4 (const char *annex, unsigned char *readbuf,
     {
       const char *sep;
       CORE_ADDR *addrp;
-      int len;
+      int name_len;
 
       sep = strchr (annex, '=');
       if (sep == NULL)
 	break;
 
-      len = sep - annex;
-      if (len == 5 && startswith (annex, "start"))
+      name_len = sep - annex;
+      if (name_len == 5 && startswith (annex, "start"))
 	addrp = &lm_addr;
-      else if (len == 4 && startswith (annex, "prev"))
+      else if (name_len == 4 && startswith (annex, "prev"))
 	addrp = &lm_prev;
       else
 	{
@@ -7213,7 +7189,7 @@ linux_low_encode_raw (struct buffer *buffer, const gdb_byte *data,
   if (size == 0)
     return;
 
-  /* We use hex encoding - see common/rsp-low.h.  */
+  /* We use hex encoding - see gdbsupport/rsp-low.h.  */
   buffer_grow_str (buffer, "<raw>\n");
 
   while (size-- > 0)
@@ -7421,6 +7397,62 @@ linux_get_pc_64bit (struct regcache *regcache)
   return pc;
 }
 
+/* See linux-low.h.  */
+
+int
+linux_get_auxv (int wordsize, CORE_ADDR match, CORE_ADDR *valp)
+{
+  gdb_byte *data = (gdb_byte *) alloca (2 * wordsize);
+  int offset = 0;
+
+  gdb_assert (wordsize == 4 || wordsize == 8);
+
+  while ((*the_target->read_auxv) (offset, data, 2 * wordsize) == 2 * wordsize)
+    {
+      if (wordsize == 4)
+	{
+	  uint32_t *data_p = (uint32_t *) data;
+	  if (data_p[0] == match)
+	    {
+	      *valp = data_p[1];
+	      return 1;
+	    }
+	}
+      else
+	{
+	  uint64_t *data_p = (uint64_t *) data;
+	  if (data_p[0] == match)
+	    {
+	      *valp = data_p[1];
+	      return 1;
+	    }
+	}
+
+      offset += 2 * wordsize;
+    }
+
+  return 0;
+}
+
+/* See linux-low.h.  */
+
+CORE_ADDR
+linux_get_hwcap (int wordsize)
+{
+  CORE_ADDR hwcap = 0;
+  linux_get_auxv (wordsize, AT_HWCAP, &hwcap);
+  return hwcap;
+}
+
+/* See linux-low.h.  */
+
+CORE_ADDR
+linux_get_hwcap2 (int wordsize)
+{
+  CORE_ADDR hwcap2 = 0;
+  linux_get_auxv (wordsize, AT_HWCAP2, &hwcap2);
+  return hwcap2;
+}
 
 static struct target_ops linux_target_ops = {
   linux_create_inferior,

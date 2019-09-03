@@ -1,6 +1,6 @@
 /* Target-dependent code for Motorola 68000 BSD's.
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -123,8 +123,10 @@ m68kbsd_iterate_over_regset_sections (struct gdbarch *gdbarch,
 				      void *cb_data,
 				      const struct regcache *regcache)
 {
-  cb (".reg", M68KBSD_SIZEOF_GREGS, &m68kbsd_gregset, NULL, cb_data);
-  cb (".reg2", M68KBSD_SIZEOF_FPREGS, &m68kbsd_fpregset, NULL, cb_data);
+  cb (".reg", M68KBSD_SIZEOF_GREGS, M68KBSD_SIZEOF_GREGS, &m68kbsd_gregset,
+      NULL, cb_data);
+  cb (".reg2", M68KBSD_SIZEOF_FPREGS, M68KBSD_SIZEOF_FPREGS, &m68kbsd_fpregset,
+      NULL, cb_data);
 }
 
 

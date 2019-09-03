@@ -1,5 +1,5 @@
 /* tc-ia64.c -- Assembler for the HP/Intel IA-64 architecture.
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
    Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
    This file is part of GAS, the GNU Assembler.
@@ -11569,8 +11569,6 @@ tc_gen_reloc (asection *sec ATTRIBUTE_UNUSED, fixS *fixp)
    of type TYPE, and store the appropriate bytes in *LIT.  The number
    of LITTLENUMS emitted is stored in *SIZE.  An error message is
    returned, or NULL on OK.  */
-
-#define MAX_LITTLENUMS 5
 
 const char *
 md_atof (int type, char *lit, int *size)

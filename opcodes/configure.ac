@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+dnl   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 dnl
 dnl This file is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -51,8 +51,6 @@ AC_ARG_ENABLE(targets,
 esac])dnl
 
 AM_BINUTILS_WARNINGS
-ACX_PROG_CC_WARNING_OPTS([-Wno-missing-field-initializers],
-			 [NO_WMISSING_FIELD_INITIALIZERS])
 
 AC_CONFIG_HEADERS(config.h:config.in)
 
@@ -111,11 +109,17 @@ AC_ARG_ENABLE(cgen-maint,
   yes)	cgen_maint=yes ;;
   no)	cgen_maint=no ;;
   *)
-	# argument is cgen install directory (not implemented yet).
-	# Having a `share' directory might be more appropriate for the .scm,
-	# .cpu, etc. files.
+	# Argument is a directory where cgen can be found.  In some
+	# future world cgen could be installable, but right now this
+	# is not the case.  Instead we assume the directory is a path
+	# to the cgen source tree.
 	cgen_maint=yes
-	cgendir=${cgen_maint}/lib/cgen
+        if test -r ${enableval}/iformat.scm; then
+          # This looks like a cgen source tree.
+	  cgendir=${enableval}
+        else
+	  AC_MSG_ERROR(${enableval} doesn't look like a cgen source tree)
+        fi
 	;;
 esac])dnl
 AM_CONDITIONAL(CGEN_MAINT, test x${cgen_maint} = xyes)
@@ -283,7 +287,7 @@ if test x${all_targets} = xfalse ; then
 	bfd_m68hc12_arch)	ta="$ta m68hc11-dis.lo m68hc11-opc.lo" ;;
 	bfd_m9s12x_arch)	ta="$ta m68hc11-dis.lo m68hc11-opc.lo" ;;
 	bfd_m9s12xg_arch)	ta="$ta m68hc11-dis.lo m68hc11-opc.lo" ;;
-	bfd_s12z_arch)	ta="$ta s12z-dis.lo m68hc11-opc.lo" ;;
+	bfd_s12z_arch)		ta="$ta s12z-dis.lo s12z-opc.lo" ;;
 	bfd_m68k_arch)		ta="$ta m68k-dis.lo m68k-opc.lo" ;;
 	bfd_mcore_arch)		ta="$ta mcore-dis.lo" ;;
 	bfd_mep_arch)		ta="$ta mep-asm.lo mep-desc.lo mep-dis.lo mep-ibld.lo mep-opc.lo" using_cgen=yes ;;
@@ -307,7 +311,7 @@ if test x${all_targets} = xfalse ; then
 	bfd_pru_arch)		ta="$ta pru-dis.lo pru-opc.lo" ;;
 	bfd_pyramid_arch)	;;
 	bfd_romp_arch)		;;
-	bfd_riscv_arch)         ta="$ta riscv-cgen-asm.lo riscv-cgen-desc.lo riscv-cgen-dis.lo riscv-cgen-ibld.lo riscv-cgen-opc.lo" using_cgen=yes ;;
+	bfd_riscv_arch)         ta="$ta riscv-dis.lo riscv-opc.lo riscv-cgen-desc.lo riscv-cgen-dis.lo riscv-cgen-ibld.lo riscv-cgen-opc.lo riscv-cgen-asm.lo" using_cgen=yes ;;
 	bfd_rs6000_arch)	ta="$ta ppc-dis.lo ppc-opc.lo" ;;
 	bfd_rl78_arch)		ta="$ta rl78-dis.lo rl78-decode.lo";;
 	bfd_rx_arch)		ta="$ta rx-dis.lo rx-decode.lo";;
@@ -336,6 +340,7 @@ if test x${all_targets} = xfalse ; then
 	bfd_xtensa_arch)	ta="$ta xtensa-dis.lo" ;;
 	bfd_z80_arch)		ta="$ta z80-dis.lo" ;;
 	bfd_z8k_arch)		ta="$ta z8k-dis.lo" ;;
+	bfd_bpf_arch)		ta="$ta bpf-asm.lo bpf-desc.lo bpf-dis.lo bpf-ibld.lo bpf-opc.lo" using_cgen=yes ;;
 
 	"")			;;
 	*)		AC_MSG_ERROR(*** unknown target architecture $arch) ;;

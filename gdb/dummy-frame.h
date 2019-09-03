@@ -1,6 +1,6 @@
 /* Code dealing with dummy stack frames, for GDB, the GNU debugger.
 
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -24,6 +24,7 @@
 
 struct infcall_suspend_state;
 struct frame_unwind;
+class thread_info;
 
 /* Push the information needed to identify, and unwind from, a dummy
    frame onto the dummy frame stack.  */
@@ -72,5 +73,11 @@ extern void register_dummy_frame_dtor (frame_id dummy_id,
    destructors equal to both DTOR and DTOR_DATA.  Return 0 otherwise.  */
 extern int find_dummy_frame_dtor (dummy_frame_dtor_ftype *dtor,
 				  void *dtor_data);
+
+/* Default implementation of gdbarch_dummy_id.  Generate a dummy frame_id
+   for THIS_FRAME assuming that the frame is a dummy frame.  */
+
+extern struct frame_id default_dummy_id (struct gdbarch *gdbarch,
+					 struct frame_info *this_frame);
 
 #endif /* !defined (DUMMY_FRAME_H)  */

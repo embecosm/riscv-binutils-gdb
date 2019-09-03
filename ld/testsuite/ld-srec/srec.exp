@@ -1,6 +1,6 @@
 # Test linking directly to S-records.
 # By Ian Lance Taylor, Cygnus Support.
-#   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+#   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -342,7 +342,7 @@ set sizeof_headers [string match "*SIZEOF_HEADERS*" $exec_output]
 # directly to the S-record format, and require that the two files
 # contain the same data.
 
-if { ![is_remote host] && [which $CC] == 0 } {
+if { ![check_compiler_available] } {
     untested $test1
     untested $test2
     return
@@ -356,6 +356,13 @@ set old_CC "$CC"
 set CC "$CC $PLT_CFLAGS $NOPIE_CFLAGS $NOPIE_LDFLAGS"
 set old_CXX "$CXX"
 set CXX "$CXX $PLT_CFLAGS $NOPIE_CFLAGS $NOPIE_LDFLAGS"
+
+# S-records can't handle .note.gnu.property sections.
+if { [is_elf_format] \
+     && ([istarget "i?86-*-*"] || [istarget "x86_64-*-*"]) } {
+    set CC "$CC -Wa,-mx86-used-note=no"
+    set CXX "$CXX -Wa,-mx86-used-note=no"
+}
 
 if { ![ld_compile $CC $srcdir/$subdir/sr1.c tmpdir/sr1.o] \
      || ![ld_compile $CC $srcdir/$subdir/sr2.c tmpdir/sr2.o] } {
@@ -421,6 +428,9 @@ setup_xfail "tile*-*-*"
 # The S-record linker is not supported for C-SKY.
 setup_xfail "csky*-*-*"
 
+# The S-record linker is not supported for eBPF.
+setup_xfail "bpf-*-*"
+
 run_srec_test $test1 "tmpdir/sr1.o tmpdir/sr2.o"
 
 # Now try linking a C++ program with global constructors and
@@ -457,6 +467,7 @@ setup_xfail "score-*-*"
 setup_xfail "bfin-*-linux-uclibc"
 setup_xfail "tile*-*-*"
 setup_xfail "csky*-*-*"
+setup_xfail "bpf-*-*"
 
 run_srec_test $test2 "tmpdir/sr3.o"
 

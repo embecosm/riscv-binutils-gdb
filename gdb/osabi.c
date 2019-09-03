@@ -1,6 +1,6 @@
 /* OS ABI variant handling for GDB.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -80,6 +80,7 @@ static const struct osabi_names gdb_osabi_names[] =
   { "LynxOS178", NULL },
   { "Newlib", NULL },
   { "SDE", NULL },
+  { "PikeOS", NULL },
 
   { "<invalid>", NULL }
 };

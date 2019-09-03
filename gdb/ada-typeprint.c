@@ -1,5 +1,5 @@
 /* Support for printing Ada types for GDB, the GNU debugger.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -30,6 +30,7 @@
 #include "language.h"
 #include "demangle.h"
 #include "c-lang.h"
+#include "cli/cli-style.h"
 #include "typeprint.h"
 #include "target-float.h"
 #include "ada-lang.h"
@@ -159,20 +160,15 @@ print_range (struct type *type, struct ui_file *stream,
     case TYPE_CODE_RANGE:
     case TYPE_CODE_ENUM:
       {
-	struct type *target_type;
 	LONGEST lo = 0, hi = 0; /* init for gcc -Wall */
 	int got_error = 0;
 
-	target_type = TYPE_TARGET_TYPE (type);
-	if (target_type == NULL)
-	  target_type = type;
-
-	TRY
+	try
 	  {
 	    lo = ada_discrete_type_low_bound (type);
 	    hi = ada_discrete_type_high_bound (type);
 	  }
-	CATCH (e, RETURN_MASK_ERROR)
+	catch (const gdb_exception_error &e)
 	  {
 	    /* This can happen when the range is dynamic.  Sometimes,
 	       resolving dynamic property values requires us to have
@@ -182,13 +178,12 @@ print_range (struct type *type, struct ui_file *stream,
 	    fprintf_filtered (stream, "<>");
 	    got_error = 1;
 	  }
-	END_CATCH
 
 	if (!got_error)
 	  {
-	    ada_print_scalar (target_type, lo, stream);
+	    ada_print_scalar (type, lo, stream);
 	    fprintf_filtered (stream, " .. ");
-	    ada_print_scalar (target_type, hi, stream);
+	    ada_print_scalar (type, hi, stream);
 	  }
       }
       break;
@@ -784,7 +779,10 @@ print_func_type (struct type *type, struct ui_file *stream, const char *name,
     fprintf_filtered (stream, "function");
 
   if (name != NULL && name[0] != '\0')
-    fprintf_filtered (stream, " %s", name);
+    {
+      fputs_filtered (" ", stream);
+      fputs_styled (name, function_name_style.style (), stream);
+    }
 
   if (len > 0)
     {
@@ -896,8 +894,8 @@ ada_print_type (struct type *type0, const char *varstring,
 	    const char *name = ada_type_name (type);
 
 	    if (!ada_is_range_type_name (name))
-	      fprintf_filtered (stream, _("<%d-byte integer>"),
-				TYPE_LENGTH (type));
+	      fprintf_filtered (stream, _("<%s-byte integer>"),
+				pulongest (TYPE_LENGTH (type)));
 	    else
 	      {
 		fprintf_filtered (stream, "range ");
@@ -918,7 +916,8 @@ ada_print_type (struct type *type0, const char *varstring,
 	  }
 	break;
       case TYPE_CODE_FLT:
-	fprintf_filtered (stream, _("<%d-byte float>"), TYPE_LENGTH (type));
+	fprintf_filtered (stream, _("<%s-byte float>"),
+			  pulongest (TYPE_LENGTH (type)));
 	break;
       case TYPE_CODE_ENUM:
 	if (show < 0)

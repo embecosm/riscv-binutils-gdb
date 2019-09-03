@@ -1,6 +1,6 @@
 # Linker script for TI TMS320C80 (tic80) COFF.
 #
-# Copyright (C) 2014-2018 Free Software Foundation, Inc.
+# Copyright (C) 2014-2019 Free Software Foundation, Inc.
 #
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright
@@ -26,7 +26,7 @@ test -z "$TEXT_START_ADDR" && TEXT_START_ADDR="0x80000 + SIZEOF_HEADERS"
 test -z "$ENTRY" && ENTRY=__start
 
 cat <<EOF
-/* Copyright (C) 2014-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    Copying and distribution of this script, with or without modification,
    are permitted in any medium without royalty provided the copyright
@@ -40,8 +40,8 @@ ${RELOCATING+ENTRY (${ENTRY})}
 SECTIONS
 {
   .text ${RELOCATING+ $TEXT_START_ADDR} : {
-    *(.init)
-    *(.fini)
+    ${RELOCATING+KEEP (*(SORT_NONE(.init)))
+    KEEP (*(SORT_NONE(.fini)))}
     *(.text)
   }
   .const ALIGN(4) : {

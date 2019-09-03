@@ -1,6 +1,6 @@
 ## Process this file with automake to generate Makefile.in
 #
-#   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ bfdlibdir = @bfdlibdir@
 bfdincludedir = @bfdincludedir@
 bfdlib_LTLIBRARIES = libbfd.la
 bfdinclude_HEADERS = $(BFD_H) $(INCDIR)/ansidecl.h $(INCDIR)/symcat.h \
-		     $(INCDIR)/bfdlink.h $(INCDIR)/diagnostics.h
+		     bfd_stdint.h $(INCDIR)/diagnostics.h $(INCDIR)/bfdlink.h
 else !INSTALL_LIBBFD
 # Empty these so that the respective installation directories will not be created.
 bfdlibdir =
@@ -70,17 +70,17 @@ BFD_H = bfd.h
 # need two copies of the executable, one to download and one for the
 # debugger).
 BFD32_LIBS = \
-	archive.lo archures.lo bfd.lo bfdio.lo bfdwin.lo \
-	cache.lo coff-bfd.lo compress.lo corefile.lo format.lo hash.lo \
-	init.lo libbfd.lo linker.lo merge.lo opncls.lo reloc.lo \
+	archive.lo archures.lo bfd.lo bfdio.lo bfdwin.lo cache.lo \
+	coff-bfd.lo compress.lo corefile.lo elf-properties.lo format.lo \
+	hash.lo init.lo libbfd.lo linker.lo merge.lo opncls.lo reloc.lo \
 	section.lo simple.lo stab-syms.lo stabs.lo syms.lo targets.lo \
 	binary.lo ihex.lo srec.lo tekhex.lo verilog.lo
 
 BFD64_LIBS = archive64.lo
 
 BFD32_LIBS_CFILES = \
-	archive.c archures.c bfd.c bfdio.c bfdwin.c \
-	cache.c coff-bfd.c compress.c corefile.c format.c hash.c \
+	archive.c archures.c bfd.c bfdio.c bfdwin.c cache.c coff-bfd.c \
+	compress.c corefile.c elf-properties.c format.c hash.c \
 	init.c libbfd.c linker.c merge.c opncls.c reloc.c \
 	section.c simple.c stab-syms.c stabs.c syms.c targets.c \
 	binary.c ihex.c srec.c tekhex.c verilog.c
@@ -96,6 +96,7 @@ ALL_MACHINES = \
 	cpu-arm.lo \
 	cpu-avr.lo \
 	cpu-bfin.lo \
+	cpu-bpf.lo \
 	cpu-cr16.lo \
 	cpu-cr16c.lo \
 	cpu-cris.lo \
@@ -182,6 +183,7 @@ ALL_MACHINES_CFILES = \
 	cpu-arm.c \
 	cpu-avr.c \
 	cpu-bfin.c \
+	cpu-bpf.c \
 	cpu-cr16.c \
 	cpu-cr16c.c \
 	cpu-cris.c \
@@ -293,7 +295,6 @@ BFD32_BACKENDS = \
 	elf-m10200.lo \
 	elf-m10300.lo \
 	elf-nacl.lo \
-	elf-properties.lo \
 	elf-strtab.lo \
 	elf-vxworks.lo \
 	elf.lo \
@@ -431,7 +432,6 @@ BFD32_BACKENDS_CFILES = \
 	elf-m10200.c \
 	elf-m10300.c \
 	elf-nacl.c \
-	elf-properties.c \
 	elf-strtab.c \
 	elf-vxworks.c \
 	elf.c \
@@ -576,6 +576,7 @@ BFD64_BACKENDS = \
 	elf64-tilegx.lo \
 	elf64-x86-64.lo \
 	elfxx-x86.lo \
+	elf64-bpf.lo \
 	elf64.lo \
 	mach-o-aarch64.lo \
 	mach-o-x86-64.lo \
@@ -609,6 +610,7 @@ BFD64_BACKENDS_CFILES = \
 	elf64-tilegx.c \
 	elf64-x86-64.c \
 	elfxx-x86.c \
+	elf64-bpf.c \
 	elf64.c \
 	elfn32-mips.c \
 	elfxx-aarch64.c \
@@ -875,8 +877,8 @@ pex64igen.c: peXXigen.c
 	$(SED) -e s/XX/pex64/g < $(srcdir)/peXXigen.c > pex64igen.new
 	mv -f pex64igen.new pex64igen.c
 
-BFD_H_DEPS= $(INCDIR)/ansidecl.h $(INCDIR)/symcat.h
-LOCAL_H_DEPS= libbfd.h sysdep.h config.h
+BFD_H_DEPS= $(INCDIR)/ansidecl.h $(INCDIR)/symcat.h $(INCDIR)/diagnostics.h
+LOCAL_H_DEPS= libbfd.h sysdep.h config.h bfd_stdint.h
 $(BFD32_LIBS) \
  $(BFD64_LIBS) \
  $(ALL_MACHINES) \

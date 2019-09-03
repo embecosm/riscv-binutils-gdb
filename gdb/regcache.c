@@ -1,6 +1,6 @@
 /* Cache and manage the values of registers for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,6 +21,7 @@
 #include "inferior.h"
 #include "gdbthread.h"
 #include "target.h"
+#include "test-target.h"
 #include "gdbarch.h"
 #include "gdbcmd.h"
 #include "regcache.h"
@@ -86,8 +87,7 @@ init_regcache_descr (struct gdbarch *gdbarch)
   /* Total size of the register space.  The raw registers are mapped
      directly onto the raw register cache while the pseudo's are
      either mapped onto raw-registers or memory.  */
-  descr->nr_cooked_registers = gdbarch_num_regs (gdbarch)
-			       + gdbarch_num_pseudo_regs (gdbarch);
+  descr->nr_cooked_registers = gdbarch_num_cooked_regs (gdbarch);
 
   /* Fill in a table of register types.  */
   descr->register_type
@@ -163,14 +163,12 @@ register_size (struct gdbarch *gdbarch, int regnum)
   struct regcache_descr *descr = regcache_descr (gdbarch);
   int size;
 
-  gdb_assert (regnum >= 0
-	      && regnum < (gdbarch_num_regs (gdbarch)
-			   + gdbarch_num_pseudo_regs (gdbarch)));
+  gdb_assert (regnum >= 0 && regnum < gdbarch_num_cooked_regs (gdbarch));
   size = descr->sizeof_register[regnum];
   return size;
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 int
 regcache_register_size (const struct regcache *regcache, int n)
@@ -220,37 +218,6 @@ reg_buffer::arch () const
 {
   return m_descr->gdbarch;
 }
-
-/* Cleanup class for invalidating a register.  */
-
-class regcache_invalidator
-{
-public:
-
-  regcache_invalidator (struct regcache *regcache, int regnum)
-    : m_regcache (regcache),
-      m_regnum (regnum)
-  {
-  }
-
-  ~regcache_invalidator ()
-  {
-    if (m_regcache != nullptr)
-      m_regcache->invalidate (m_regnum);
-  }
-
-  DISABLE_COPY_AND_ASSIGN (regcache_invalidator);
-
-  void release ()
-  {
-    m_regcache = nullptr;
-  }
-
-private:
-
-  struct regcache *m_regcache;
-  int m_regnum;
-};
 
 /* Return  a pointer to register REGNUM's buffer cache.  */
 
@@ -317,7 +284,7 @@ regcache::restore (readonly_detached_regcache *src)
     }
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 enum register_status
 reg_buffer::get_register_status (int regnum) const
@@ -405,7 +372,7 @@ get_current_regcache (void)
   return get_thread_regcache (inferior_thread ());
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 struct regcache *
 get_thread_regcache_for_ptid (ptid_t ptid)
@@ -487,13 +454,6 @@ void
 registers_changed (void)
 {
   registers_changed_ptid (minus_one_ptid);
-
-  /* Force cleanup of any alloca areas if using C alloca instead of
-     a builtin alloca.  This particular call is used to clean up
-     areas allocated by low level target code which may build up
-     during lengthy interactions between gdb and the target before
-     gdb gives control to the user (ie watchpoints).  */
-  alloca (0);
 }
 
 void
@@ -771,7 +731,8 @@ regcache::raw_write (int regnum, const gdb_byte *buf)
 
   /* Invalidate the register after it is written, in case of a
      failure.  */
-  regcache_invalidator invalidator (this, regnum);
+  auto invalidator
+    = make_scope_exit ([&] { this->invalidate (regnum); });
 
   target_store_registers (this, regnum);
 
@@ -970,7 +931,7 @@ regcache::cooked_write_part (int regnum, int offset, int len,
   write_part (regnum, offset, len, buf, false);
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 void
 reg_buffer::raw_supply (int regnum, const void *buf)
@@ -1035,7 +996,7 @@ reg_buffer::raw_supply_zeroed (int regnum)
   m_register_status[regnum] = REG_VALID;
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 void
 reg_buffer::raw_collect (int regnum, void *buf) const
@@ -1187,7 +1148,7 @@ regcache::collect_regset (const struct regset *regset,
   transfer_regset (regset, nullptr, regnum, nullptr, (gdb_byte *) buf, size);
 }
 
-/* See common/common-regcache.h.  */
+/* See gdbsupport/common-regcache.h.  */
 
 bool
 reg_buffer::raw_compare (int regnum, const void *buf, int offset) const
@@ -1311,8 +1272,7 @@ register_dump::dump (ui_file *file)
   long register_offset = 0;
 
   gdb_assert (descr->nr_cooked_registers
-	      == (gdbarch_num_regs (m_gdbarch)
-		  + gdbarch_num_pseudo_regs (m_gdbarch)));
+	      == gdbarch_num_cooked_regs (m_gdbarch));
 
   for (regnum = -1; regnum < descr->nr_cooked_registers; regnum++)
     {
@@ -1420,9 +1380,8 @@ register_dump::dump (ui_file *file)
 }
 
 #if GDB_SELF_TEST
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 #include "selftest-arch.h"
-#include "gdbthread.h"
 #include "target-float.h"
 
 namespace selftests {
@@ -1563,7 +1522,7 @@ cooked_read_test (struct gdbarch *gdbarch)
 {
   /* Error out if debugging something, because we're going to push the
      test target, which would pop any existing target.  */
-  if (current_top_target ()->to_stratum >= process_stratum)
+  if (current_top_target ()->stratum () >= process_stratum)
     error (_("target already pushed"));
 
   /* Create a mock environment.  An inferior with a thread, with a
@@ -1576,9 +1535,6 @@ cooked_read_test (struct gdbarch *gdbarch)
   mock_inferior.gdbarch = gdbarch;
   mock_inferior.aspace = &mock_aspace;
   thread_info mock_thread (&mock_inferior, mock_ptid);
-
-  scoped_restore restore_thread_list
-    = make_scoped_restore (&thread_list, &mock_thread);
 
   /* Add the mock inferior to the inferior list so that look ups by
      target+ptid can find it.  */
@@ -1609,19 +1565,21 @@ cooked_read_test (struct gdbarch *gdbarch)
 
   /* Test that read one raw register from regcache_no_target will go
      to the target layer.  */
-  int regnum;
 
   /* Find a raw register which size isn't zero.  */
-  for (regnum = 0; regnum < gdbarch_num_regs (gdbarch); regnum++)
+  int nonzero_regnum;
+  for (nonzero_regnum = 0;
+       nonzero_regnum < gdbarch_num_regs (gdbarch);
+       nonzero_regnum++)
     {
-      if (register_size (gdbarch, regnum) != 0)
+      if (register_size (gdbarch, nonzero_regnum) != 0)
 	break;
     }
 
   readwrite_regcache readwrite (gdbarch);
-  gdb::def_vector<gdb_byte> buf (register_size (gdbarch, regnum));
+  gdb::def_vector<gdb_byte> buf (register_size (gdbarch, nonzero_regnum));
 
-  readwrite.raw_read (regnum, buf.data ());
+  readwrite.raw_read (nonzero_regnum, buf.data ());
 
   /* raw_read calls target_fetch_registers.  */
   SELF_CHECK (mock_target.fetch_registers_called > 0);
@@ -1635,16 +1593,15 @@ cooked_read_test (struct gdbarch *gdbarch)
   mock_target.reset ();
   /* Then, read all raw and pseudo registers, and don't expect calling
      to_{fetch,store}_registers.  */
-  for (int regnum = 0;
-       regnum < gdbarch_num_regs (gdbarch) + gdbarch_num_pseudo_regs (gdbarch);
-       regnum++)
+  for (int regnum = 0; regnum < gdbarch_num_cooked_regs (gdbarch); regnum++)
     {
       if (register_size (gdbarch, regnum) == 0)
 	continue;
 
-      gdb::def_vector<gdb_byte> buf (register_size (gdbarch, regnum));
+      gdb::def_vector<gdb_byte> inner_buf (register_size (gdbarch, regnum));
 
-      SELF_CHECK (REG_VALID == readwrite.cooked_read (regnum, buf.data ()));
+      SELF_CHECK (REG_VALID == readwrite.cooked_read (regnum,
+						      inner_buf.data ()));
 
       SELF_CHECK (mock_target.fetch_registers_called == 0);
       SELF_CHECK (mock_target.store_registers_called == 0);
@@ -1662,16 +1619,14 @@ cooked_read_test (struct gdbarch *gdbarch)
      readonly regcache.  */
   mock_target.reset ();
 
-  for (int regnum = 0;
-       regnum < gdbarch_num_regs (gdbarch) + gdbarch_num_pseudo_regs (gdbarch);
-       regnum++)
+  for (int regnum = 0; regnum < gdbarch_num_cooked_regs (gdbarch); regnum++)
     {
       if (register_size (gdbarch, regnum) == 0)
 	continue;
 
-      gdb::def_vector<gdb_byte> buf (register_size (gdbarch, regnum));
+      gdb::def_vector<gdb_byte> inner_buf (register_size (gdbarch, regnum));
       enum register_status status = readonly.cooked_read (regnum,
-							  buf.data ());
+							  inner_buf.data ());
 
       if (regnum < gdbarch_num_regs (gdbarch))
 	{
@@ -1684,7 +1639,7 @@ cooked_read_test (struct gdbarch *gdbarch)
 	      || bfd_arch == bfd_arch_mips || bfd_arch == bfd_arch_v850_rh850
 	      || bfd_arch == bfd_arch_tic6x || bfd_arch == bfd_arch_mn10300
 	      || bfd_arch == bfd_arch_rl78 || bfd_arch == bfd_arch_score
-	      || bfd_arch == bfd_arch_riscv)
+	      || bfd_arch == bfd_arch_riscv || bfd_arch == bfd_arch_csky)
 	    {
 	      /* Raw registers.  If raw registers are not in save_reggroup,
 		 their status are unknown.  */
@@ -1737,7 +1692,7 @@ cooked_write_test (struct gdbarch *gdbarch)
 {
   /* Error out if debugging something, because we're going to push the
      test target, which would pop any existing target.  */
-  if (current_top_target ()->to_stratum >= process_stratum)
+  if (current_top_target ()->stratum () >= process_stratum)
     error (_("target already pushed"));
 
   /* Create a mock environment.  A process_stratum target pushed.  */
@@ -1759,8 +1714,7 @@ cooked_write_test (struct gdbarch *gdbarch)
 
   readwrite_regcache readwrite (gdbarch);
 
-  const int num_regs = (gdbarch_num_regs (gdbarch)
-			+ gdbarch_num_pseudo_regs (gdbarch));
+  const int num_regs = gdbarch_num_cooked_regs (gdbarch);
 
   for (auto regnum = 0; regnum < num_regs; regnum++)
     {
@@ -1859,7 +1813,7 @@ _initialize_regcache (void)
     (regcache::regcache_thread_ptid_changed);
 
   add_com ("flushregs", class_maintenance, reg_flush_command,
-	   _("Force gdb to flush its register cache (maintainer command)"));
+	   _("Force gdb to flush its register cache (maintainer command)."));
 
 #if GDB_SELF_TEST
   selftests::register_test ("current_regcache", selftests::current_regcache_test);

@@ -1,6 +1,6 @@
 /* Target-dependent code for the NEC V850 for GDB, the GNU debugger.
 
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -1013,13 +1013,13 @@ v850_push_dummy_call (struct gdbarch *gdbarch,
 		      int nargs,
 		      struct value **args,
 		      CORE_ADDR sp,
-		      int struct_return,
+		      function_call_return_method return_method,
 		      CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   int argreg;
   int argnum;
-  int len = 0;
+  int arg_space = 0;
   int stack_offset;
 
   if (gdbarch_tdep (gdbarch)->abi == V850_ABI_RH850)
@@ -1034,12 +1034,12 @@ v850_push_dummy_call (struct gdbarch *gdbarch,
 
   /* Now make space on the stack for the args.  */
   for (argnum = 0; argnum < nargs; argnum++)
-    len += ((TYPE_LENGTH (value_type (args[argnum])) + 3) & ~3);
-  sp -= len + stack_offset;
+    arg_space += ((TYPE_LENGTH (value_type (args[argnum])) + 3) & ~3);
+  sp -= arg_space + stack_offset;
 
   argreg = E_ARG0_REGNUM;
   /* The struct_return pointer occupies the first parameter register.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     regcache_cooked_write_unsigned (regcache, argreg++, struct_addr);
 
   /* Now load as many as possible of the first arguments into
@@ -1327,28 +1327,6 @@ static const struct frame_unwind v850_frame_unwind = {
 };
 
 static CORE_ADDR
-v850_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame,
-					 gdbarch_sp_regnum (gdbarch));
-} 
-
-static CORE_ADDR
-v850_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame,
-					 gdbarch_pc_regnum (gdbarch));
-}
-
-static struct frame_id
-v850_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  CORE_ADDR sp = get_frame_register_unsigned (this_frame,
-					      gdbarch_sp_regnum (gdbarch));
-  return frame_id_build (sp, get_frame_pc (this_frame));
-}
-  
-static CORE_ADDR
 v850_frame_base_address (struct frame_info *this_frame, void **this_cache)
 {
   struct v850_frame_cache *cache = v850_frame_cache (this_frame, this_cache);
@@ -1464,9 +1442,6 @@ v850_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_skip_prologue (gdbarch, v850_skip_prologue);
 
   set_gdbarch_frame_align (gdbarch, v850_frame_align);
-  set_gdbarch_unwind_sp (gdbarch, v850_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, v850_unwind_pc);
-  set_gdbarch_dummy_id (gdbarch, v850_dummy_id);
   frame_base_set_default (gdbarch, &v850_frame_base);
 
   /* Hook in ABI-specific overrides, if they have been registered.  */

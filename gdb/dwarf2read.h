@@ -1,6 +1,6 @@
 /* DWARF 2 debugging format support for GDB.
 
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,9 +20,11 @@
 #ifndef DWARF2READ_H
 #define DWARF2READ_H
 
+#include <unordered_map>
 #include "dwarf-index-cache.h"
 #include "filename-seen-cache.h"
 #include "gdb_obstack.h"
+#include "gdbsupport/hash_enum.h"
 
 /* Hold 'maintenance (set|show) dwarf' commands.  */
 extern struct cmd_list_element *set_dwarf_cmdlist;
@@ -65,14 +67,11 @@ struct dwarf2_section_info
      Only valid if is_virtual.  */
   bfd_size_type virtual_offset;
   /* True if we have tried to read this section.  */
-  char readin;
+  bool readin;
   /* True if this is a virtual section, False otherwise.
      This specifies which of s.section and s.containing_section to use.  */
-  char is_virtual;
+  bool is_virtual;
 };
-
-typedef struct dwarf2_section_info dwarf2_section_info_def;
-DEF_VEC_O (dwarf2_section_info_def);
 
 /* Read the contents of the section INFO.
    OBJFILE is the main object file, but not necessarily the file where
@@ -95,11 +94,13 @@ struct dwarf2_debug_sections;
 struct mapped_index;
 struct mapped_debug_names;
 struct signatured_type;
+struct die_info;
+typedef struct die_info *die_info_ptr;
 
 /* Collection of data recorded per objfile.
    This hangs off of dwarf2_objfile_data_key.  */
 
-struct dwarf2_per_objfile : public allocate_on_obstack
+struct dwarf2_per_objfile
 {
   /* Construct a dwarf2_per_objfile for OBJFILE.  NAMES points to the
      dwarf2 section names, or is NULL if the standard ELF names are
@@ -163,7 +164,7 @@ public:
   dwarf2_section_info debug_names {};
   dwarf2_section_info debug_aranges {};
 
-  VEC (dwarf2_section_info_def) *types = NULL;
+  std::vector<dwarf2_section_info> types;
 
   /* Back link.  */
   struct objfile *objfile = NULL;
@@ -193,7 +194,7 @@ public:
 
   /* A table mapping DW_AT_dwo_name values to struct dwo_file objects.
      This is NULL if the table hasn't been allocated yet.  */
-  htab_t dwo_files {};
+  htab_up dwo_files;
 
   /* True if we've checked for whether there is a DWP file.  */
   bool dwp_checked = false;
@@ -250,6 +251,12 @@ public:
   /* If we loaded the index from an external file, this contains the
      resources associated to the open file, memory mapping, etc.  */
   std::unique_ptr<index_cache_resource> index_cache_res;
+
+  /* Mapping from abstract origin DIE to concrete DIEs that reference it as
+     DW_AT_abstract_origin.  */
+  std::unordered_map<sect_offset, std::vector<sect_offset>, \
+		     gdb::hash_enum<sect_offset>> \
+    abstract_to_concrete;
 };
 
 /* Get the dwarf2_per_objfile associated to OBJFILE.  */
@@ -394,5 +401,45 @@ struct signatured_type
 
 typedef struct signatured_type *sig_type_ptr;
 DEF_VEC_P (sig_type_ptr);
+
+ULONGEST read_unsigned_leb128 (bfd *, const gdb_byte *, unsigned int *);
+
+/* This represents a '.dwz' file.  */
+
+struct dwz_file
+{
+  dwz_file (gdb_bfd_ref_ptr &&bfd)
+    : dwz_bfd (std::move (bfd))
+  {
+  }
+
+  const char *filename () const
+  {
+    return bfd_get_filename (this->dwz_bfd);
+  }
+
+  /* A dwz file can only contain a few sections.  */
+  struct dwarf2_section_info abbrev {};
+  struct dwarf2_section_info info {};
+  struct dwarf2_section_info str {};
+  struct dwarf2_section_info line {};
+  struct dwarf2_section_info macro {};
+  struct dwarf2_section_info gdb_index {};
+  struct dwarf2_section_info debug_names {};
+
+  /* The dwz's BFD.  */
+  gdb_bfd_ref_ptr dwz_bfd;
+
+  /* If we loaded the index from an external file, this contains the
+     resources associated to the open file, memory mapping, etc.  */
+  std::unique_ptr<index_cache_resource> index_cache_res;
+};
+
+/* Open the separate '.dwz' debug file, if needed.  Return NULL if
+   there is no .gnu_debugaltlink section in the file.  Error if there
+   is such a section but the file cannot be found.  */
+
+extern struct dwz_file *dwarf2_get_dwz_file
+    (struct dwarf2_per_objfile *dwarf2_per_objfile);
 
 #endif /* DWARF2READ_H */

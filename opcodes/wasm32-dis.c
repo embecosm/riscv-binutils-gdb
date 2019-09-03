@@ -1,5 +1,5 @@
 /* Opcode printing code for the WebAssembly target
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of libopcodes.
 
@@ -27,7 +27,7 @@
 #include "elf-bfd.h"
 #include "elf/internal.h"
 #include "elf/wasm32.h"
-#include <stdint.h>
+#include "bfd_stdint.h"
 
 /* Type names for blocks and signatures.  */
 #define BLOCK_TYPE_NONE              0x40

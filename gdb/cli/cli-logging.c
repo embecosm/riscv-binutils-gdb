@@ -1,6 +1,6 @@
 /* Command-line output logging for GDB, the GNU debugger.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -62,6 +62,7 @@ show_logging_overwrite (struct ui_file *file, int from_tty,
 
 /* Value as configured by the user.  */
 static int logging_redirect;
+static int debug_redirect;
 
 static void
 set_logging_redirect (const char *args,
@@ -81,29 +82,11 @@ show_logging_redirect (struct ui_file *file, int from_tty,
 static void
 pop_output_files (void)
 {
-  current_interp_set_logging (NULL, false);
+  current_interp_set_logging (NULL, false, false);
 
   /* Stay consistent with handle_redirections.  */
   if (!current_uiout->is_mi_like_p ())
     current_uiout->redirect (NULL);
-}
-
-/* See cli-interp.h.  */
-
-ui_file *
-make_logging_output (ui_file *curr_output, ui_file_up logfile,
-		     bool logging_redirect)
-{
-  if (logging_redirect)
-    return logfile.release ();
-  else
-    {
-      /* Note that the "tee" takes ownership of the log file.  */
-      ui_file *out = new tee_file (curr_output, false,
-				   logfile.get (), true);
-      logfile.release ();
-      return out;
-    }
 }
 
 /* This is a helper for the `set logging' command.  */
@@ -117,7 +100,7 @@ handle_redirections (int from_tty)
       return;
     }
 
-  stdio_file_up log (new stdio_file ());
+  stdio_file_up log (new no_terminal_escape_file ());
   if (!log->open (logging_filename, logging_overwrite ? "w" : "a"))
     perror_with_name (_("set logging"));
 
@@ -130,12 +113,20 @@ handle_redirections (int from_tty)
       else
 	fprintf_unfiltered (gdb_stdout, "Redirecting output to %s.\n",
 			    logging_filename);
+
+      if (!debug_redirect)
+	fprintf_unfiltered (gdb_stdout, "Copying debug output to %s.\n",
+			    logging_filename);
+      else
+	fprintf_unfiltered (gdb_stdout, "Redirecting debug output to %s.\n",
+			    logging_filename);
     }
 
   saved_filename = xstrdup (logging_filename);
 
   /* Let the interpreter do anything it needs.  */
-  current_interp_set_logging (std::move (log), logging_redirect);
+  current_interp_set_logging (std::move (log), logging_redirect,
+			      debug_redirect);
 
   /* Redirect the current ui-out object's output to the log.  Use
      gdb_stdout, not log, since the interpreter may have created a tee
@@ -203,6 +194,11 @@ show_logging_command (const char *args, int from_tty)
     printf_unfiltered (_("Output will be sent only to the log file.\n"));
   else
     printf_unfiltered (_("Output will be logged and displayed.\n"));
+
+  if (debug_redirect)
+    printf_unfiltered (_("Debug output will be sent only to the log file.\n"));
+  else
+    printf_unfiltered (_("Debug output will be logged and displayed.\n"));
 }
 
 void
@@ -211,10 +207,10 @@ _initialize_cli_logging (void)
   static struct cmd_list_element *set_logging_cmdlist, *show_logging_cmdlist;
 
   add_prefix_cmd ("logging", class_support, set_logging_command,
-		  _("Set logging options"), &set_logging_cmdlist,
+		  _("Set logging options."), &set_logging_cmdlist,
 		  "set logging ", 0, &setlist);
   add_prefix_cmd ("logging", class_support, show_logging_command,
-		  _("Show logging options"), &show_logging_cmdlist,
+		  _("Show logging options."), &show_logging_cmdlist,
 		  "show logging ", 0, &showlist);
   add_setshow_boolean_cmd ("overwrite", class_support, &logging_overwrite, _("\
 Set whether logging overwrites or appends to the log file."), _("\
@@ -228,6 +224,15 @@ Set the logging output mode."), _("\
 Show the logging output mode."), _("\
 If redirect is off, output will go to both the screen and the log file.\n\
 If redirect is on, output will go only to the log file."),
+			   set_logging_redirect,
+			   show_logging_redirect,
+			   &set_logging_cmdlist, &show_logging_cmdlist);
+  add_setshow_boolean_cmd ("debugredirect", class_support,
+			   &debug_redirect, _("\
+Set the logging debug output mode."), _("\
+Show the logging debug output mode."), _("\
+If debug redirect is off, debug will go to both the screen and the log file.\n\
+If debug redirect is on, debug will go only to the log file."),
 			   set_logging_redirect,
 			   show_logging_redirect,
 			   &set_logging_cmdlist, &show_logging_cmdlist);

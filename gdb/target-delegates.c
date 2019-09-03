@@ -6,9 +6,9 @@
 
 struct dummy_target : public target_ops
 {
-  dummy_target ();
-
   const target_info &info () const override;
+
+  strata stratum () const override;
 
   void post_attach (int arg0) override;
   void detach (inferior *arg0, int arg1) override;
@@ -35,8 +35,7 @@ struct dummy_target : public target_ops
   int insert_mask_watchpoint (CORE_ADDR arg0, CORE_ADDR arg1, enum target_hw_bp_type arg2) override;
   int remove_mask_watchpoint (CORE_ADDR arg0, CORE_ADDR arg1, enum target_hw_bp_type arg2) override;
   bool stopped_by_watchpoint () override;
-  int have_steppable_watchpoint () override;
-  bool have_continuable_watchpoint () override;
+  bool have_steppable_watchpoint () override;
   bool stopped_data_address (CORE_ADDR *arg0) override;
   bool watchpoint_addr_within_range (CORE_ADDR arg0, CORE_ADDR arg1, int arg2) override;
   int region_ok_for_hw_watchpoint (CORE_ADDR arg0, int arg1) override;
@@ -60,17 +59,18 @@ struct dummy_target : public target_ops
   int follow_fork (int arg0, int arg1) override;
   int insert_exec_catchpoint (int arg0) override;
   int remove_exec_catchpoint (int arg0) override;
-  void follow_exec (struct inferior *arg0, char *arg1) override;
+  void follow_exec (struct inferior *arg0, const char *arg1) override;
   int set_syscall_catchpoint (int arg0, bool arg1, int arg2, gdb::array_view<const int> arg3) override;
   void mourn_inferior () override;
-  void pass_signals (int arg0, unsigned char * arg1) override;
-  void program_signals (int arg0, unsigned char * arg1) override;
+  void pass_signals (gdb::array_view<const unsigned char> arg0) override;
+  void program_signals (gdb::array_view<const unsigned char> arg0) override;
   bool thread_alive (ptid_t arg0) override;
   void update_thread_list () override;
-  const char *pid_to_str (ptid_t arg0) override;
+  std::string pid_to_str (ptid_t arg0) override;
   const char *extra_thread_info (thread_info *arg0) override;
   const char *thread_name (thread_info *arg0) override;
   thread_info *thread_handle_to_thread_info (const gdb_byte *arg0, int arg1, inferior *arg2) override;
+  gdb::byte_vector thread_info_to_thread_handle (struct thread_info *arg0) override;
   void stop (ptid_t arg0) override;
   void interrupt () override;
   void pass_ctrlc () override;
@@ -174,9 +174,9 @@ struct dummy_target : public target_ops
 
 struct debug_target : public target_ops
 {
-  debug_target ();
-
   const target_info &info () const override;
+
+  strata stratum () const override;
 
   void post_attach (int arg0) override;
   void detach (inferior *arg0, int arg1) override;
@@ -203,8 +203,7 @@ struct debug_target : public target_ops
   int insert_mask_watchpoint (CORE_ADDR arg0, CORE_ADDR arg1, enum target_hw_bp_type arg2) override;
   int remove_mask_watchpoint (CORE_ADDR arg0, CORE_ADDR arg1, enum target_hw_bp_type arg2) override;
   bool stopped_by_watchpoint () override;
-  int have_steppable_watchpoint () override;
-  bool have_continuable_watchpoint () override;
+  bool have_steppable_watchpoint () override;
   bool stopped_data_address (CORE_ADDR *arg0) override;
   bool watchpoint_addr_within_range (CORE_ADDR arg0, CORE_ADDR arg1, int arg2) override;
   int region_ok_for_hw_watchpoint (CORE_ADDR arg0, int arg1) override;
@@ -228,17 +227,18 @@ struct debug_target : public target_ops
   int follow_fork (int arg0, int arg1) override;
   int insert_exec_catchpoint (int arg0) override;
   int remove_exec_catchpoint (int arg0) override;
-  void follow_exec (struct inferior *arg0, char *arg1) override;
+  void follow_exec (struct inferior *arg0, const char *arg1) override;
   int set_syscall_catchpoint (int arg0, bool arg1, int arg2, gdb::array_view<const int> arg3) override;
   void mourn_inferior () override;
-  void pass_signals (int arg0, unsigned char * arg1) override;
-  void program_signals (int arg0, unsigned char * arg1) override;
+  void pass_signals (gdb::array_view<const unsigned char> arg0) override;
+  void program_signals (gdb::array_view<const unsigned char> arg0) override;
   bool thread_alive (ptid_t arg0) override;
   void update_thread_list () override;
-  const char *pid_to_str (ptid_t arg0) override;
+  std::string pid_to_str (ptid_t arg0) override;
   const char *extra_thread_info (thread_info *arg0) override;
   const char *thread_name (thread_info *arg0) override;
   thread_info *thread_handle_to_thread_info (const gdb_byte *arg0, int arg1, inferior *arg2) override;
+  gdb::byte_vector thread_info_to_thread_handle (struct thread_info *arg0) override;
   void stop (ptid_t arg0) override;
   void interrupt () override;
   void pass_ctrlc () override;
@@ -991,50 +991,25 @@ debug_target::stopped_by_watchpoint ()
   return result;
 }
 
-int
+bool
 target_ops::have_steppable_watchpoint ()
 {
   return this->beneath ()->have_steppable_watchpoint ();
 }
 
-int
+bool
 dummy_target::have_steppable_watchpoint ()
 {
   return false;
 }
 
-int
+bool
 debug_target::have_steppable_watchpoint ()
 {
-  int result;
+  bool result;
   fprintf_unfiltered (gdb_stdlog, "-> %s->have_steppable_watchpoint (...)\n", this->beneath ()->shortname ());
   result = this->beneath ()->have_steppable_watchpoint ();
   fprintf_unfiltered (gdb_stdlog, "<- %s->have_steppable_watchpoint (", this->beneath ()->shortname ());
-  fputs_unfiltered (") = ", gdb_stdlog);
-  target_debug_print_int (result);
-  fputs_unfiltered ("\n", gdb_stdlog);
-  return result;
-}
-
-bool
-target_ops::have_continuable_watchpoint ()
-{
-  return this->beneath ()->have_continuable_watchpoint ();
-}
-
-bool
-dummy_target::have_continuable_watchpoint ()
-{
-  return false;
-}
-
-bool
-debug_target::have_continuable_watchpoint ()
-{
-  bool result;
-  fprintf_unfiltered (gdb_stdlog, "-> %s->have_continuable_watchpoint (...)\n", this->beneath ()->shortname ());
-  result = this->beneath ()->have_continuable_watchpoint ();
-  fprintf_unfiltered (gdb_stdlog, "<- %s->have_continuable_watchpoint (", this->beneath ()->shortname ());
   fputs_unfiltered (") = ", gdb_stdlog);
   target_debug_print_bool (result);
   fputs_unfiltered ("\n", gdb_stdlog);
@@ -1610,25 +1585,25 @@ debug_target::remove_exec_catchpoint (int arg0)
 }
 
 void
-target_ops::follow_exec (struct inferior *arg0, char *arg1)
+target_ops::follow_exec (struct inferior *arg0, const char *arg1)
 {
   this->beneath ()->follow_exec (arg0, arg1);
 }
 
 void
-dummy_target::follow_exec (struct inferior *arg0, char *arg1)
+dummy_target::follow_exec (struct inferior *arg0, const char *arg1)
 {
 }
 
 void
-debug_target::follow_exec (struct inferior *arg0, char *arg1)
+debug_target::follow_exec (struct inferior *arg0, const char *arg1)
 {
   fprintf_unfiltered (gdb_stdlog, "-> %s->follow_exec (...)\n", this->beneath ()->shortname ());
   this->beneath ()->follow_exec (arg0, arg1);
   fprintf_unfiltered (gdb_stdlog, "<- %s->follow_exec (", this->beneath ()->shortname ());
   target_debug_print_struct_inferior_p (arg0);
   fputs_unfiltered (", ", gdb_stdlog);
-  target_debug_print_char_p (arg1);
+  target_debug_print_const_char_p (arg1);
   fputs_unfiltered (")\n", gdb_stdlog);
 }
 
@@ -1686,48 +1661,44 @@ debug_target::mourn_inferior ()
 }
 
 void
-target_ops::pass_signals (int arg0, unsigned char * arg1)
+target_ops::pass_signals (gdb::array_view<const unsigned char> arg0)
 {
-  this->beneath ()->pass_signals (arg0, arg1);
+  this->beneath ()->pass_signals (arg0);
 }
 
 void
-dummy_target::pass_signals (int arg0, unsigned char * arg1)
+dummy_target::pass_signals (gdb::array_view<const unsigned char> arg0)
 {
 }
 
 void
-debug_target::pass_signals (int arg0, unsigned char * arg1)
+debug_target::pass_signals (gdb::array_view<const unsigned char> arg0)
 {
   fprintf_unfiltered (gdb_stdlog, "-> %s->pass_signals (...)\n", this->beneath ()->shortname ());
-  this->beneath ()->pass_signals (arg0, arg1);
+  this->beneath ()->pass_signals (arg0);
   fprintf_unfiltered (gdb_stdlog, "<- %s->pass_signals (", this->beneath ()->shortname ());
-  target_debug_print_int (arg0);
-  fputs_unfiltered (", ", gdb_stdlog);
-  target_debug_print_signals (arg1);
+  target_debug_print_signals (arg0);
   fputs_unfiltered (")\n", gdb_stdlog);
 }
 
 void
-target_ops::program_signals (int arg0, unsigned char * arg1)
+target_ops::program_signals (gdb::array_view<const unsigned char> arg0)
 {
-  this->beneath ()->program_signals (arg0, arg1);
+  this->beneath ()->program_signals (arg0);
 }
 
 void
-dummy_target::program_signals (int arg0, unsigned char * arg1)
+dummy_target::program_signals (gdb::array_view<const unsigned char> arg0)
 {
 }
 
 void
-debug_target::program_signals (int arg0, unsigned char * arg1)
+debug_target::program_signals (gdb::array_view<const unsigned char> arg0)
 {
   fprintf_unfiltered (gdb_stdlog, "-> %s->program_signals (...)\n", this->beneath ()->shortname ());
-  this->beneath ()->program_signals (arg0, arg1);
+  this->beneath ()->program_signals (arg0);
   fprintf_unfiltered (gdb_stdlog, "<- %s->program_signals (", this->beneath ()->shortname ());
-  target_debug_print_int (arg0);
-  fputs_unfiltered (", ", gdb_stdlog);
-  target_debug_print_signals (arg1);
+  target_debug_print_signals (arg0);
   fputs_unfiltered (")\n", gdb_stdlog);
 }
 
@@ -1777,28 +1748,28 @@ debug_target::update_thread_list ()
   fputs_unfiltered (")\n", gdb_stdlog);
 }
 
-const char *
+std::string
 target_ops::pid_to_str (ptid_t arg0)
 {
   return this->beneath ()->pid_to_str (arg0);
 }
 
-const char *
+std::string
 dummy_target::pid_to_str (ptid_t arg0)
 {
   return default_pid_to_str (this, arg0);
 }
 
-const char *
+std::string
 debug_target::pid_to_str (ptid_t arg0)
 {
-  const char * result;
+  std::string result;
   fprintf_unfiltered (gdb_stdlog, "-> %s->pid_to_str (...)\n", this->beneath ()->shortname ());
   result = this->beneath ()->pid_to_str (arg0);
   fprintf_unfiltered (gdb_stdlog, "<- %s->pid_to_str (", this->beneath ()->shortname ());
   target_debug_print_ptid_t (arg0);
   fputs_unfiltered (") = ", gdb_stdlog);
-  target_debug_print_const_char_p (result);
+  target_debug_print_std_string (result);
   fputs_unfiltered ("\n", gdb_stdlog);
   return result;
 }
@@ -1881,6 +1852,32 @@ debug_target::thread_handle_to_thread_info (const gdb_byte *arg0, int arg1, infe
   target_debug_print_inferior_p (arg2);
   fputs_unfiltered (") = ", gdb_stdlog);
   target_debug_print_thread_info_p (result);
+  fputs_unfiltered ("\n", gdb_stdlog);
+  return result;
+}
+
+gdb::byte_vector
+target_ops::thread_info_to_thread_handle (struct thread_info *arg0)
+{
+  return this->beneath ()->thread_info_to_thread_handle (arg0);
+}
+
+gdb::byte_vector
+dummy_target::thread_info_to_thread_handle (struct thread_info *arg0)
+{
+  return gdb::byte_vector ();
+}
+
+gdb::byte_vector
+debug_target::thread_info_to_thread_handle (struct thread_info *arg0)
+{
+  gdb::byte_vector result;
+  fprintf_unfiltered (gdb_stdlog, "-> %s->thread_info_to_thread_handle (...)\n", this->beneath ()->shortname ());
+  result = this->beneath ()->thread_info_to_thread_handle (arg0);
+  fprintf_unfiltered (gdb_stdlog, "<- %s->thread_info_to_thread_handle (", this->beneath ()->shortname ());
+  target_debug_print_struct_thread_info_p (arg0);
+  fputs_unfiltered (") = ", gdb_stdlog);
+  target_debug_print_gdb_byte_vector (result);
   fputs_unfiltered ("\n", gdb_stdlog);
   return result;
 }
@@ -2835,7 +2832,7 @@ target_ops::thread_architecture (ptid_t arg0)
 struct gdbarch *
 dummy_target::thread_architecture (ptid_t arg0)
 {
-  return default_thread_architecture (this, arg0);
+  return NULL;
 }
 
 struct gdbarch *
@@ -2861,7 +2858,7 @@ target_ops::thread_address_space (ptid_t arg0)
 struct address_space *
 dummy_target::thread_address_space (ptid_t arg0)
 {
-  return default_thread_address_space (this, arg0);
+  return NULL;
 }
 
 struct address_space *

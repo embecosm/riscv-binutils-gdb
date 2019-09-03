@@ -1,6 +1,6 @@
 # gas target specific configuration file.  This is a -*- sh -*- file.
 #
-#   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -182,6 +182,7 @@ case ${generic_target} in
   d30v-*-*)				fmt=elf ;;
   dlx-*-*)				fmt=elf ;;
 
+  bpf-*-*)				fmt=elf ;;
   epiphany-*-*)				fmt=elf ;;
 
   fr30-*-*)				fmt=elf ;;
@@ -218,7 +219,6 @@ case ${generic_target} in
   i386-*-elfiamcu)			fmt=elf arch=iamcu ;;
   i386-*-elf*)				fmt=elf ;;
   i386-*-fuchsia*)			fmt=elf ;;
-  i386-*-kaos*)				fmt=elf ;;
   i386-*-bsd*)				fmt=aout em=386bsd ;;
   i386-*-nacl*)				fmt=elf em=nacl
     case ${cpu} in
@@ -257,7 +257,6 @@ case ${generic_target} in
     esac ;;
   i386-*-nto-qnx*)			fmt=elf ;;
   i386-*-*nt*)				fmt=coff em=pe ;;
-  i386-*-chaos)				fmt=elf ;;
   i386-*-rdos*)				fmt=elf ;;
   i386-*-darwin*)			fmt=macho ;;
 
@@ -366,6 +365,8 @@ case ${generic_target} in
 
   riscv*-*-*)				fmt=elf endian=little ;;
 
+  rx-*-linux*)				fmt=elf em=linux ;;
+
   s390-*-linux-*)			fmt=elf em=linux ;;
   s390-*-tpf*)				fmt=elf ;;
 
@@ -423,7 +424,7 @@ case ${generic_target} in
   z8k-*-coff | z8k-*-sim)		fmt=coff ;;
 
   *-*-aout | *-*-scout)			fmt=aout ;;
-  *-*-cloudabi*)			fmt=elf ;;
+  *-*-cloudabi*)			fmt=elf em=cloudabi ;;
   *-*-dragonfly*)			fmt=elf em=dragonfly ;;
   *-*-freebsd* | *-*-kfreebsd*-gnu)	fmt=elf em=freebsd ;;
   *-*-generic)				fmt=generic ;;

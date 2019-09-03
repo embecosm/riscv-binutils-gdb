@@ -1,5 +1,5 @@
 /* IA-64 support for 64-bit ELF
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
    Contributed by David Mosberger-Tang <davidm@hpl.hp.com>
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -27,7 +27,6 @@
 #include "elf/ia64.h"
 #include "objalloc.h"
 #include "hashtab.h"
-#include "bfd_stdint.h"
 #include "elfxx-ia64.h"
 
 #define ARCH_SIZE	NN
@@ -1003,9 +1002,8 @@ elfNN_ia64_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
 /* The final processing done just before writing out an IA-64 ELF
    object file.  */
 
-static void
-elfNN_ia64_final_write_processing (bfd *abfd,
-				   bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+elfNN_ia64_final_write_processing (bfd *abfd)
 {
   Elf_Internal_Shdr *hdr;
   asection *s;
@@ -1037,6 +1035,7 @@ elfNN_ia64_final_write_processing (bfd *abfd,
       elf_elfheader(abfd)->e_flags = flags;
       elf_flags_init (abfd) = TRUE;
     }
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Hook called by the linker routine which adds symbols from an object
@@ -3873,7 +3872,7 @@ elfNN_ia64_relocate_section (bfd *output_bfd,
 	  ret_val = FALSE;
 	  continue;
 	}
-      
+
       r_symndx = ELFNN_R_SYM (rel->r_info);
       h = NULL;
       sym = NULL;

@@ -1,6 +1,6 @@
 /* Target-dependent code for OpenBSD/amd64.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -32,7 +32,7 @@
 #include "obsd-tdep.h"
 #include "amd64-tdep.h"
 #include "i387-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "solib-svr4.h"
 #include "bsd-uthread.h"
 

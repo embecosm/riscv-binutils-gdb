@@ -1,6 +1,6 @@
 /* Ada language support definitions for GDB, the GNU debugger.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -28,7 +28,7 @@ struct parser_state;
 #include "value.h"
 #include "gdbtypes.h"
 #include "breakpoint.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 
 /* Names of specific files known to be part of the runtime
    system and that might consider (confusing) debugging information.
@@ -194,6 +194,8 @@ extern void ada_printstr (struct ui_file *, struct type *, const gdb_byte *,
 struct value *ada_convert_actual (struct value *actual,
                                   struct type *formal_type0);
 
+extern bool ada_is_access_to_unconstrained_array (struct type *type);
+
 extern struct value *ada_value_subscript (struct value *, int,
                                           struct value **);
 
@@ -237,7 +239,7 @@ extern char *ada_fold_name (const char *);
 
 extern struct block_symbol ada_lookup_symbol (const char *,
 					      const struct block *,
-					      domain_enum, int *);
+					      domain_enum);
 
 extern void ada_lookup_encoded_symbol
   (const char *name, const struct block *block, domain_enum domain,
@@ -266,9 +268,9 @@ extern struct value *ada_value_primitive_packed_val (struct value *,
 
 extern struct type *ada_coerce_to_simple_array_type (struct type *);
 
-extern int ada_is_character_type (struct type *);
+extern bool ada_is_character_type (struct type *);
 
-extern int ada_is_string_type (struct type *);
+extern bool ada_is_string_type (struct type *);
 
 extern int ada_is_tagged_type (struct type *, int);
 
@@ -341,9 +343,6 @@ extern struct type *ada_find_parallel_type (struct type *,
 
 extern bool get_int_var_value (const char *, LONGEST &value);
 
-extern struct symbol *ada_find_renaming_symbol (struct symbol *name_sym,
-                                                const struct block *block);
-
 extern int ada_prefer_type (struct type *, struct type *);
 
 extern struct type *ada_get_base_type (struct type *);
@@ -379,6 +378,10 @@ extern void create_ada_exception_catchpoint
    const std::string &excep_string, const std::string &cond_string, int tempflag,
    int disabled, int from_tty);
 
+/* Return true if BP is an Ada catchpoint.  */
+
+extern bool is_ada_exception_catchpoint (breakpoint *bp);
+
 /* Some information about a given Ada exception.  */
 
 struct ada_exc_info
@@ -409,10 +412,8 @@ extern void iterate_over_live_ada_tasks
 
 extern const char *ada_get_tcb_types_info (void);
 
-extern int ada_build_task_list (void);
-
 extern void print_ada_task_info (struct ui_out *uiout,
-				 char *taskno_str,
+				 const char *taskno_str,
 				 struct inferior *inf);
 
 #endif

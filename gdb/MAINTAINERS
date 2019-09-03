@@ -151,8 +151,9 @@ The current global maintainers are (in alphabetical order):
 Pedro Alves                     palves@redhat.com
 Joel Brobecker			brobecker@adacore.com
 Kevin Buettner			kevinb@redhat.com
+Andrew Burgess			andrew.burgess@embecosm.com
 Doug Evans			dje@google.com
-Simon Marchi			simon.marchi@ericsson.com
+Simon Marchi			simon.marchi@polymtl.ca
 Yao Qi				qiyao@sourceware.org
 Tom Tromey			tom@tromey.com
 Ulrich Weigand			Ulrich.Weigand@de.ibm.com
@@ -235,9 +236,13 @@ The Target/Architecture maintainer works with the host maintainer when
 resolving build issues.  The Target/Architecture maintainer works with
 the native maintainer when resolving ABI issues.
 
+	aarch64		--target=aarch64-elf ,-Werror
+			Alan Hayward		alan.hayward@arm.com
+
 	alpha		--target=alpha-elf ,-Werror
 
 	arm		--target=arm-elf ,-Werror
+			Alan Hayward		alan.hayward@arm.com
 
 	avr		--target=avr ,-Werror
 
@@ -350,7 +355,7 @@ Darwin			Tristan Gingold		tgingold@free.fr
 djgpp native		Eli Zaretskii		eliz@gnu.org
 FreeBSD			John Baldwin		jhb@freebsd.org
 GNU/Linux m68k		Andreas Schwab		schwab@linux-m68k.org
-
+Solaris			Rainer Orth		ro@CeBiTec.Uni-Bielefeld.DE
 
 
 Core: Generic components used by all of GDB
@@ -444,11 +449,13 @@ Shrinivas Atre					shrinivasa@kpitcummins.com
 Sterling Augustine				saugustine@google.com
 John Baldwin					jhb@freebsd.org
 Scott Bambrough					scottb@netwinder.org
+Marco Barisione					mbarisione@undo.io
 Thiago Jung Bauermann				bauerman@br.ibm.com
 Jon Beniston					jon@beniston.com
 Gary Benson					gbenson@redhat.com
 Gabriel Krisman Bertazi				gabriel@krisman.be
 Jan Beulich					jbeulich@novell.com
+Christian Biesinger				cbiesinger@google.com
 Anton Blanchard					anton@samba.org
 Jim Blandy					jimb@codesourcery.com
 David Blaikie					dblaikie@gmail.com
@@ -539,7 +546,7 @@ Ruslan Kabatsayev				b7.10110111@gmail.com
 Geoff Keating					geoffk@redhat.com
 Mark Kettenis					kettenis@gnu.org
 Marc Khouzam					marc.khouzam@ericsson.com
-Toshihito Kikuchi					k.toshihito@yahoo.de
+Toshihito Kikuchi				k.toshihito@yahoo.de
 Jim Kingdon					kingdon@panix.com
 Anton Kolesov					anton.kolesov@synopsys.com
 Paul Koning					paul_koning@dell.com
@@ -556,7 +563,7 @@ Yan-Ting Lin					currygt52@gmail.com
 Robert Lipe					rjl@sco.com
 Lei Liu						lei.liu2@windriver.com
 Sandra Loosemore				sandra@codesourcery.com
-Carl Love                  cel@us.ibm.com
+Carl Love                  			cel@us.ibm.com
 H.J. Lu						hjl.tools@gmail.com
 Michal Ludvig                                   mludvig@suse.cz
 Edjunior B. Machado				emachado@linux.vnet.ibm.com
@@ -587,6 +594,7 @@ Nathanael Nerode				neroden@gcc.gnu.org
 Hans-Peter Nilsson				hp@bitrange.com
 David O'Brien					obrien@freebsd.org
 Alexandre Oliva					aoliva@redhat.com
+Rainer Orth					ro@cebitec.uni-bielefeld.de
 Karen Osmond					karen.osmond@gmail.com
 Pawandeep Oza					oza.pawandeep@gmail.com
 Patrick Palka					patrick@parcs.ath.cx
@@ -640,6 +648,7 @@ Petr Sorfa					petrs@caldera.com
 Andrew Stubbs					ams@codesourcery.com
 Emi Suzuki					emi-suzuki@tjsys.co.jp
 Alfred M. Szmidt				ams@gnu.org
+Ali Tamur					tamur@google.com
 David Taylor					david.taylor@emc.com
 Ian Lance Taylor				ian@airs.com
 Walfred Tedeschi				walfred.tedeschi@intel.com
@@ -653,6 +662,7 @@ Jon Turney					jon.turney@dronecode.org.uk
 David Ung					davidu@mips.com
 D Venkatasubramanian				dvenkat@noida.hcltech.com
 Corinna Vinschen				vinschen@redhat.com
+Jan Vrany					jan.vrany@fit.cvut.cz
 Tom de Vries					tdevries@suse.de
 Sami Wagiaalla					swagiaal@redhat.com
 Keith Walker					keith.walker@arm.com

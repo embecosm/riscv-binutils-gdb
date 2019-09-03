@@ -1,6 +1,6 @@
 /* Self tests for parsing connection specs for GDB, the GNU debugger.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,12 +18,11 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "defs.h"
-#include "selftest.h"
-#include "common/netstuff.h"
+#include "gdbsupport/selftest.h"
+#include "gdbsupport/netstuff.h"
 #include "diagnostics.h"
 #ifdef USE_WIN32API
-#include <winsock2.h>
-#include <wspiapi.h>
+#include <ws2tcpip.h>
 #else
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -209,18 +208,17 @@ test_conn (const parse_conn_test &c)
 
   memset (&hint, 0, sizeof (hint));
 
-  TRY
+  try
     {
       ret = parse_connection_spec (c.connspec, &hint);
     }
-  CATCH (ex, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &ex)
     {
       /* If we caught an error, we should check if this connection
 	 spec was supposed to fail.  */
       SELF_CHECK (c.should_fail);
       return;
     }
-  END_CATCH
 
   SELF_CHECK (!c.should_fail);
   SELF_CHECK (ret.host_str == c.expected_result.host_str);

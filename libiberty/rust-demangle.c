@@ -1,5 +1,5 @@
 /* Demangler for the Rust programming language
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
    Written by David Tolnay (dtolnay@gmail.com).
 
 This file is part of the libiberty library.
@@ -47,6 +47,7 @@ extern void *memset(void *s, int c, size_t n);
 
 #include <demangle.h>
 #include "libiberty.h"
+#include "rust-demangle.h"
 
 
 /* Mangled Rust symbols look like this:

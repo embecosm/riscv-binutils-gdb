@@ -1,6 +1,6 @@
 /* Native-dependent code for GNU/Linux i386.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -31,7 +31,7 @@
 #include "i387-tdep.h"
 #include "i386-tdep.h"
 #include "i386-linux-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 
 #include "x86-linux-nat.h"
 #include "nat/linux-ptrace.h"

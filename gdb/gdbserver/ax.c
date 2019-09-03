@@ -1,5 +1,5 @@
 /* Agent expression code for remote server.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,9 +18,9 @@
 
 #include "server.h"
 #include "ax.h"
-#include "format.h"
+#include "gdbsupport/format.h"
 #include "tracepoint.h"
-#include "rsp-low.h"
+#include "gdbsupport/rsp-low.h"
 
 static void ax_vdebug (const char *, ...) ATTRIBUTE_PRINTF (1, 2);
 
@@ -36,7 +36,11 @@ ax_vdebug (const char *fmt, ...)
 
   va_start (ap, fmt);
   vsprintf (buf, fmt, ap);
+#ifdef IN_PROCESS_AGENT
   fprintf (stderr, PROG "/ax: %s\n", buf);
+#else
+  debug_printf (PROG "/ax: %s\n", buf);
+#endif
   va_end (ap);
 }
 
@@ -56,7 +60,7 @@ enum gdb_agent_op
   {
 #define DEFOP(NAME, SIZE, DATA_SIZE, CONSUMED, PRODUCED, VALUE)  \
     gdb_agent_op_ ## NAME = VALUE,
-#include "ax.def"
+#include "gdbsupport/ax.def"
 #undef DEFOP
     gdb_agent_op_last
   };
@@ -65,7 +69,7 @@ static const char *gdb_agent_op_names [gdb_agent_op_last] =
   {
     "?undef?"
 #define DEFOP(NAME, SIZE, DATA_SIZE, CONSUMED, PRODUCED, VALUE)  , # NAME
-#include "ax.def"
+#include "gdbsupport/ax.def"
 #undef DEFOP
   };
 
@@ -74,7 +78,7 @@ static const unsigned char gdb_agent_op_sizes [gdb_agent_op_last] =
   {
     0
 #define DEFOP(NAME, SIZE, DATA_SIZE, CONSUMED, PRODUCED, VALUE)  , SIZE
-#include "ax.def"
+#include "gdbsupport/ax.def"
 #undef DEFOP
   };
 #endif

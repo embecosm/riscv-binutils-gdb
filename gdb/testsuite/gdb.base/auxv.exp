@@ -1,6 +1,6 @@
 # Test `info auxv' and related functionality.
 
-# Copyright (C) 1992-2018 Free Software Foundation, Inc.
+# Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -56,8 +56,9 @@ if {$core_works} {
     }
 }
 
-if { ![runto_main] } then {
-    gdb_suppress_tests
+if ![runto_main] then {
+    fail "can't run to main"
+    return 0
 }
 set print_core_line [gdb_get_line_number "ABORT;"]
 gdb_test "tbreak $print_core_line"

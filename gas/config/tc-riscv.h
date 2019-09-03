@@ -1,7 +1,10 @@
 /* tc-riscv.h -- header file for tc-riscv.c.
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
-   This file is part of GAS, the GNU Assembler.
+   Contributed by Andrew Waterman (andrew@sifive.com).
+   Based on MIPS target.
+
+   This file is part of GAS.
 
    GAS is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,12 +17,16 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, see <http://www.gnu.org/licenses/> */
+   along with this program; see the file COPYING3. If not,
+   see <http://www.gnu.org/licenses/>.  */
 
 #ifndef TC_RISCV
 #define TC_RISCV
 
-#include "write.h"
+#include "opcode/riscv.h"
+
+struct frag;
+struct expressionS;
 
 #define TARGET_BYTES_BIG_ENDIAN 0
 
@@ -31,34 +38,31 @@
 /* Symbols named FAKE_LABEL_NAME are emitted when generating DWARF, so make
    sure FAKE_LABEL_NAME is printable.  It still must be distinct from any
    real label name.  So, append a space, which other labels can't contain.  */
-#undef FAKE_LABEL_NAME  /* override prev definition in write.h.  */
-#define FAKE_LABEL_NAME ".L0 "
+#define FAKE_LABEL_NAME RISCV_FAKE_LABEL_NAME
 /* Changing the special character in FAKE_LABEL_NAME requires changing
    FAKE_LABEL_CHAR too.  */
-#undef FAKE_LABEL_CHAR
-#define FAKE_LABEL_CHAR ' '
+#define FAKE_LABEL_CHAR RISCV_FAKE_LABEL_CHAR
 
-#define md_after_parse_args() riscv_after_parse_args()
-extern void riscv_after_parse_args (void);
+#define md_relax_frag(segment, fragp, stretch) \
+  riscv_relax_frag (segment, fragp, stretch)
+extern int riscv_relax_frag (asection *, struct frag *, long);
 
-#define md_section_align(seg,size)        (size)
-#define md_undefined_symbol(name)         (0)
+#define md_section_align(seg,size)	(size)
+#define md_undefined_symbol(name)	(0)
 #define md_operand(x)
 
 extern bfd_boolean riscv_frag_align_code (int);
-#define md_do_align(N, FILL, LEN, MAX, LABEL)                           \
-  if ((N) != 0 && !(FILL) && !need_pass_2 && subseg_text_p (now_seg))   \
-    {                                                                   \
-      if (riscv_frag_align_code (N))                                    \
-	goto LABEL;                                                     \
+#define md_do_align(N, FILL, LEN, MAX, LABEL)				\
+  if ((N) != 0 && !(FILL) && !need_pass_2 && subseg_text_p (now_seg))	\
+    {									\
+      if (riscv_frag_align_code (N))					\
+	goto LABEL;							\
     }
 
 extern void riscv_handle_align (fragS *);
 #define HANDLE_ALIGN riscv_handle_align
 
 #define MAX_MEM_FOR_RS_ALIGN_CODE (3 + 4)
-
-#define md_cgen_record_fixup_exp riscv_record_fixup_exp
 
 /* The ISA of the target may change based on command-line arguments.  */
 #define TARGET_FORMAT riscv_target_format()
@@ -77,31 +81,17 @@ extern void riscv_pre_output_hook (void);
 #define tc_fix_adjustable(fixp) 0
 #define md_allow_local_subtract(l,r,s) 0
 
-/* Call md_pcrel_from_section(), not md_pcrel_from().  */
-extern long md_pcrel_from_section (struct fix *, segT);
-#define MD_PCREL_FROM_SECTION(FIX, SEC) md_pcrel_from_section (FIX, SEC)
-
-/* For 12 vs 20 bit branch selection.  */
-extern const struct relax_type md_relax_table[];
-#define TC_GENERIC_RELAX_TABLE md_relax_table
-
-/* By default the max length of an instruction when relaxing is equal to
-   CGEN_MAX_INSN_SIZE (which is currently 4). However, the relaxed form
-   of conditional branches is expanded to a branch+jump sequence, which
-   takes up 8 bytes. If the default behavior is used, then it seems that
-   fragments can end up without enough space allocated for the relaxed
-   instruction.  */
-#define TC_CGEN_MAX_RELAX(insn, len) 8
-
 /* Values passed to md_apply_fix don't include symbol values.  */
 #define MD_APPLY_SYM_VALUE(FIX) 0
 
 /* Global syms must not be resolved, to support ELF shared libraries.  */
-#define EXTERN_FORCE_RELOC                      \
+#define EXTERN_FORCE_RELOC			\
   (OUTPUT_FLAVOR == bfd_target_elf_flavour)
 
-#define TC_FORCE_RELOCATION_SUB_SAME(FIX, SEG)  \
-  (GENERIC_FORCE_RELOCATION_SUB_SAME (FIX, SEG) \
+/* Postpone text-section label subtraction calculation until linking, since
+   linker relaxations might change the deltas.  */
+#define TC_FORCE_RELOCATION_SUB_SAME(FIX, SEG)	\
+  (GENERIC_FORCE_RELOCATION_SUB_SAME (FIX, SEG)	\
    || ((SEG)->flags & SEC_CODE) != 0)
 #define TC_FORCE_RELOCATION_SUB_LOCAL(FIX, SEG) 1
 #define TC_VALIDATE_FIX_SUB(FIX, SEG) 1
@@ -109,14 +99,17 @@ extern const struct relax_type md_relax_table[];
 #define DIFF_EXPR_OK 1
 
 extern void riscv_pop_insert (void);
-#define md_pop_insert()         riscv_pop_insert ()
+#define md_pop_insert()		riscv_pop_insert ()
 
 #define TARGET_USE_CFIPOP 1
 
 #define tc_cfi_frame_initial_instructions riscv_cfi_frame_initial_instructions
 extern void riscv_cfi_frame_initial_instructions (void);
 
-#define DWARF2_DEFAULT_RETURN_COLUMN /*RA*/1
+#define tc_regname_to_dw2regnum tc_riscv_regname_to_dw2regnum
+extern int tc_riscv_regname_to_dw2regnum (char *);
+
+#define DWARF2_DEFAULT_RETURN_COLUMN X_RA
 
 /* Even on RV64, use 4-byte alignment, as F registers may be only 32 bits.  */
 #define DWARF2_CIE_DATA_ALIGNMENT -4
@@ -126,5 +119,11 @@ extern void riscv_elf_final_processing (void);
 
 /* Adjust debug_line after relaxation.  */
 #define DWARF2_USE_FIXED_ADVANCE_PC 1
+
+#define md_end riscv_md_end
+#define CONVERT_SYMBOLIC_ATTRIBUTE riscv_convert_symbolic_attribute
+
+extern void riscv_md_end (void);
+extern int riscv_convert_symbolic_attribute (const char *);
 
 #endif /* TC_RISCV */

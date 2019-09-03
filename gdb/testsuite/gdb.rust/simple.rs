@@ -1,4 +1,4 @@
-// Copyright (C) 2016-2018 Free Software Foundation, Inc.
+// Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -85,12 +85,20 @@ union Union {
     f2: u8,
 }
 
+struct StringAtOffset {
+    pub field1: &'static str,
+    pub field2: i32,
+    pub field3: &'static str,
+}
+
 // A simple structure whose layout won't be changed by the compiler,
 // so that ptype/o testing will work on any platform.
 struct SimpleLayout {
     f1: u16,
     f2: u16
 }
+
+enum EmptyEnum {}
 
 fn main () {
     let a = ();
@@ -144,6 +152,8 @@ fn main () {
     let to1 = &w[..3];
     let to2 = &slice[..1];
 
+    let st = StringAtOffset { field1: "hello", field2: 1, field3: "world" };
+
     // tests for enum optimizations
 
     let str_some = Some("hi".to_string());
@@ -166,7 +176,9 @@ fn main () {
     };
 
     let u = Union { f2: 255 };
-    let v = SimpleLayout { f1: 8, f2: 9 };
+    let simplelayout = SimpleLayout { f1: 8, f2: 9 };
+
+    let empty_enum_value: EmptyEnum;
 
     println!("{}, {}", x.0, x.1);        // set breakpoint here
     println!("{}", diff2(92, 45));

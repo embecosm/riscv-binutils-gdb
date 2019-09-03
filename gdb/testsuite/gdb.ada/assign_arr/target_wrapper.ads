@@ -1,4 +1,4 @@
---  Copyright 2016-2018 Free Software Foundation, Inc.
+--  Copyright 2016-2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -21,6 +21,6 @@ package target_wrapper is
       u2 : Float_Array_3;
    end record;
 
-   input : parameters;
+   Assign_Arr_Input : parameters;
 
 end target_wrapper;

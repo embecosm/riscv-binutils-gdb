@@ -1,5 +1,5 @@
 /* Linux-specific PROCFS manipulation routines.
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,8 +16,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef COMMON_LINUX_PROCFS_H
-#define COMMON_LINUX_PROCFS_H
+#ifndef NAT_LINUX_PROCFS_H
+#define NAT_LINUX_PROCFS_H
 
 #include <unistd.h>
 
@@ -85,4 +85,4 @@ extern char *linux_proc_pid_to_exec_file (int pid);
 
 extern void linux_proc_init_warnings ();
 
-#endif /* COMMON_LINUX_PROCFS_H */
+#endif /* NAT_LINUX_PROCFS_H */

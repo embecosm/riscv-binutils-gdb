@@ -1,6 +1,6 @@
 /* Target description support for GDB.
 
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    Contributed by CodeSourcery.
 
@@ -26,7 +26,7 @@
 #include "reggroups.h"
 #include "target.h"
 #include "target-descriptions.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "xml-support.h"
 #include "xml-tdesc.h"
 #include "osabi.h"
@@ -119,6 +119,11 @@ make_gdb_type (struct gdbarch *gdbarch, struct tdesc_type *ttype)
 
       switch (e->kind)
 	{
+	case TDESC_TYPE_IEEE_HALF:
+	  m_type = arch_float_type (m_gdbarch, -1, "builtin_type_ieee_half",
+				    floatformats_ieee_half);
+	  return;
+
 	case TDESC_TYPE_IEEE_SINGLE:
 	  m_type = arch_float_type (m_gdbarch, -1, "builtin_type_ieee_single",
 				    floatformats_ieee_single);
@@ -630,7 +635,7 @@ tdesc_architecture (const struct target_desc *target_desc)
   return target_desc->arch;
 }
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 const char *
 tdesc_architecture_name (const struct target_desc *target_desc)
@@ -647,7 +652,7 @@ tdesc_osabi (const struct target_desc *target_desc)
   return target_desc->osabi;
 }
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 const char *
 tdesc_osabi_name (const struct target_desc *target_desc)
@@ -854,12 +859,11 @@ tdesc_register_name (struct gdbarch *gdbarch, int regno)
 {
   struct tdesc_reg *reg = tdesc_find_register (gdbarch, regno);
   int num_regs = gdbarch_num_regs (gdbarch);
-  int num_pseudo_regs = gdbarch_num_pseudo_regs (gdbarch);
 
   if (reg != NULL)
     return reg->name.c_str ();
 
-  if (regno >= num_regs && regno < num_regs + num_pseudo_regs)
+  if (regno >= num_regs && regno < gdbarch_num_cooked_regs (gdbarch))
     {
       struct tdesc_arch_data *data
 	= (struct tdesc_arch_data *) gdbarch_data (gdbarch, tdesc_data);
@@ -1121,7 +1125,7 @@ tdesc_use_registers (struct gdbarch *gdbarch,
   set_gdbarch_register_reggroup_p (gdbarch, tdesc_register_reggroup_p);
 }
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 struct tdesc_feature *
 tdesc_create_feature (struct target_desc *tdesc, const char *name)
@@ -1139,18 +1143,10 @@ allocate_target_description (void)
   return new target_desc ();
 }
 
-static void
-free_target_description (void *arg)
+void
+target_desc_deleter::operator() (struct target_desc *target_desc) const
 {
-  struct target_desc *target_desc = (struct target_desc *) arg;
-
   delete target_desc;
-}
-
-struct cleanup *
-make_cleanup_free_target_description (struct target_desc *target_desc)
-{
-  return make_cleanup (free_target_description, target_desc);
 }
 
 void
@@ -1186,7 +1182,7 @@ set_tdesc_property (struct target_desc *target_desc,
   target_desc->properties.emplace_back (key, value);
 }
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 void
 set_tdesc_architecture (struct target_desc *target_desc,
@@ -1202,7 +1198,7 @@ set_tdesc_architecture (struct target_desc *target_desc,
   target_desc->arch = arch;
 }
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 void
 set_tdesc_osabi (struct target_desc *target_desc, const char *name)
@@ -1567,7 +1563,7 @@ public:
     printf_unfiltered ("  Original: %s */\n\n",
 		       lbasename (m_filename_after_features.c_str ()));
 
-    printf_unfiltered ("#include \"common/tdesc.h\"\n");
+    printf_unfiltered ("#include \"gdbsupport/tdesc.h\"\n");
     printf_unfiltered ("\n");
   }
 
@@ -1662,7 +1658,7 @@ private:
   int m_next_regnum = 0;
 };
 
-/* See common/tdesc.h.  */
+/* See gdbsupport/tdesc.h.  */
 
 const char *
 tdesc_get_features_xml (const target_desc *tdesc)
@@ -1717,8 +1713,10 @@ maint_print_c_tdesc_cmd (const char *args, int from_tty)
   if (startswith (filename_after_features.c_str (), "i386/32bit-")
       || startswith (filename_after_features.c_str (), "i386/64bit-")
       || startswith (filename_after_features.c_str (), "i386/x32-core.xml")
+      || startswith (filename_after_features.c_str (), "riscv/")
       || startswith (filename_after_features.c_str (), "tic6x-")
-      || startswith (filename_after_features.c_str (), "aarch64"))
+      || startswith (filename_after_features.c_str (), "aarch64")
+      || startswith (filename_after_features.c_str (), "arm/"))
     {
       print_c_feature v (filename_after_features);
 
@@ -1848,8 +1846,8 @@ Unset target description specific variables."),
   add_setshow_filename_cmd ("filename", class_obscure,
 			    &tdesc_filename_cmd_string,
 			    _("\
-Set the file to read for an XML target description"), _("\
-Show the file to read for an XML target description"), _("\
+Set the file to read for an XML target description."), _("\
+Show the file to read for an XML target description."), _("\
 When set, GDB will read the target description from a local\n\
 file instead of querying the remote target."),
 			    set_tdesc_filename_cmd,
@@ -1857,8 +1855,8 @@ file instead of querying the remote target."),
 			    &tdesc_set_cmdlist, &tdesc_show_cmdlist);
 
   add_cmd ("filename", class_obscure, unset_tdesc_filename_cmd, _("\
-Unset the file to read for an XML target description.  When unset,\n\
-GDB will read the description from the target."),
+Unset the file to read for an XML target description.\n\
+When unset, GDB will read the description from the target."),
 	   &tdesc_unset_cmdlist);
 
   add_cmd ("c-tdesc", class_maintenance, maint_print_c_tdesc_cmd, _("\
@@ -1869,6 +1867,7 @@ Print the current target description as a C source file."),
 
   cmd = add_cmd ("xml-descriptions", class_maintenance,
 		 maintenance_check_xml_descriptions, _("\
+Check equality of GDB target descriptions and XML created descriptions.\n\
 Check the target descriptions created in GDB equal the descriptions\n\
 created from XML files in the directory.\n\
 The parameter is the directory name."),

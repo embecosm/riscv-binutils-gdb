@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,7 +18,7 @@
 #include "defs.h"
 #include "osabi.h"
 #include "amd64-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "gdbtypes.h"
 #include "gdbcore.h"
 #include "regcache.h"
@@ -144,7 +144,7 @@ amd64_windows_store_arg_in_reg (struct regcache *regcache,
 
   gdb_assert (TYPE_LENGTH (type) <= 8);
   memset (buf, 0, sizeof buf);
-  memcpy (buf, valbuf, std::min (TYPE_LENGTH (type), (unsigned int) 8));
+  memcpy (buf, valbuf, std::min (TYPE_LENGTH (type), (ULONGEST) 8));
   regcache->cooked_write (regno, buf);
 }
 
@@ -157,7 +157,7 @@ amd64_windows_store_arg_in_reg (struct regcache *regcache,
 static CORE_ADDR
 amd64_windows_push_arguments (struct regcache *regcache, int nargs,
 			      struct value **args, CORE_ADDR sp,
-			      int struct_return)
+			      function_call_return_method return_method)
 {
   int reg_idx = 0;
   int i;
@@ -180,7 +180,7 @@ amd64_windows_push_arguments (struct regcache *regcache, int nargs,
   }
 
   /* Reserve a register for the "hidden" argument.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     reg_idx++;
 
   for (i = 0; i < nargs; i++)
@@ -244,18 +244,18 @@ static CORE_ADDR
 amd64_windows_push_dummy_call
   (struct gdbarch *gdbarch, struct value *function,
    struct regcache *regcache, CORE_ADDR bp_addr,
-   int nargs, struct value **args,
-   CORE_ADDR sp, int struct_return, CORE_ADDR struct_addr)
+   int nargs, struct value **args, CORE_ADDR sp,
+   function_call_return_method return_method, CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   gdb_byte buf[8];
 
   /* Pass arguments.  */
   sp = amd64_windows_push_arguments (regcache, nargs, args, sp,
-				     struct_return);
+				     return_method);
 
   /* Pass "hidden" argument".  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       /* The "hidden" argument is passed throught the first argument
          register.  */
@@ -419,7 +419,7 @@ static const enum amd64_regnum amd64_windows_w2gdb_regnum[] =
   AMD64_R15_REGNUM
 };
 
-/* Return TRUE iff PC is the the range of the function corresponding to
+/* Return TRUE iff PC is the range of the function corresponding to
    CACHE.  */
 
 static int

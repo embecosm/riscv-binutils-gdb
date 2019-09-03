@@ -1,5 +1,5 @@
 /* BFD back-end for PDP-11 a.out binaries.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -66,6 +66,7 @@
 		     && N_MAGIC(x) != ZMAGIC)
 
 #include "sysdep.h"
+#include <limits.h>
 #include "bfd.h"
 
 #define external_exec pdp11_external_exec
@@ -1146,14 +1147,6 @@ NAME (aout, set_section_contents) (bfd *abfd,
       if (bfd_seek (abfd, section->filepos + offset, SEEK_SET) != 0
 	  || bfd_bwrite (location, count, abfd) != count)
 	return FALSE;
-
-      /* If necessary, pad the section to its aligned size.  */
-      if ((section == obj_datasec (abfd)
-	   || section == obj_textsec (abfd))
-	  && count < section->size
-	  && (bfd_seek (abfd, section->filepos + offset + section->size - 1, SEEK_SET) != 0
-	      || bfd_bwrite ("", 1, abfd) != 1))
-	return FALSE;
     }
 
   return TRUE;
@@ -1988,6 +1981,8 @@ NAME (aout, canonicalize_reloc) (bfd *abfd,
 long
 NAME (aout, get_reloc_upper_bound) (bfd *abfd, sec_ptr asect)
 {
+  bfd_size_type count;
+
   if (bfd_get_format (abfd) != bfd_object)
     {
       bfd_set_error (bfd_error_invalid_operation);
@@ -1995,28 +1990,25 @@ NAME (aout, get_reloc_upper_bound) (bfd *abfd, sec_ptr asect)
     }
 
   if (asect->flags & SEC_CONSTRUCTOR)
-    return (sizeof (arelent *) * (asect->reloc_count + 1));
+    count = asect->reloc_count;
+  else if (asect == obj_datasec (abfd))
+    count = exec_hdr (abfd)->a_drsize / obj_reloc_entry_size (abfd);
+  else if (asect == obj_textsec (abfd))
+    count = exec_hdr (abfd)->a_trsize / obj_reloc_entry_size (abfd);
+  else if (asect == obj_bsssec (abfd))
+    count = 0;
+  else
+    {
+      bfd_set_error (bfd_error_invalid_operation);
+      return -1;
+    }
 
-  if (asect == obj_datasec (abfd))
-    return (sizeof (arelent *)
-	    * ((exec_hdr (abfd)->a_drsize / obj_reloc_entry_size (abfd))
-	       + 1));
-
-  if (asect == obj_textsec (abfd))
-    return (sizeof (arelent *)
-	    * ((exec_hdr (abfd)->a_trsize / obj_reloc_entry_size (abfd))
-	       + 1));
-
-  /* TODO: why are there two if statements for obj_bsssec()? */
-
-  if (asect == obj_bsssec (abfd))
-    return sizeof (arelent *);
-
-  if (asect == obj_bsssec (abfd))
-    return 0;
-
-  bfd_set_error (bfd_error_invalid_operation);
-  return -1;
+  if (count >= LONG_MAX / sizeof (arelent *))
+    {
+      bfd_set_error (bfd_error_file_too_big);
+      return -1;
+    }
+  return (count + 1) * sizeof (arelent *);
 }
 
 

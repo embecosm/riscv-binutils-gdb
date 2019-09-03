@@ -1,5 +1,5 @@
 /* tc-score.c -- Assembler for Score
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
    Contributed by:
    Brain.lin (brain.lin@sunplusct.com)
    Mei Ligang (ligang@sunnorth.com.cn)
@@ -300,7 +300,6 @@ size_t md_longopts_size = sizeof (md_longopts);
                              ? s3_INSN16_SIZE : (s3_GET_INSN_CLASS (type) == INSN_CLASS_48) \
                                              ? s3_INSN48_SIZE : s3_INSN_SIZE)
 
-#define s3_MAX_LITTLENUMS 6
 #define s3_INSN_NAME_LEN 16
 
 /* Relax will need some padding for alignment.  */
@@ -4096,7 +4095,7 @@ s3_build_la_pic (int reg_rd, expressionS exp)
       /* Fix part
          For an external symbol: lw rD, <sym>($gp)
 	 (BFD_RELOC_SCORE_GOT15 or BFD_RELOC_SCORE_CALL15)  */
-      sprintf (tmp, "lw_pic r%d, %s", reg_rd, add_symbol->bsym->name);
+      sprintf (tmp, "lw_pic r%d, %s", reg_rd, S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
 	return;
 
@@ -4110,7 +4109,7 @@ s3_build_la_pic (int reg_rd, expressionS exp)
 	 addi rD, <sym>       (BFD_RELOC_GOT_LO16) */
       s3_inst.reloc.type = BFD_RELOC_SCORE_GOT15;
       memcpy (&var_insts[0], &s3_inst, sizeof (struct s3_score_it));
-      sprintf (tmp, "addi_s_pic r%d, %s", reg_rd, add_symbol->bsym->name);
+      sprintf (tmp, "addi_s_pic r%d, %s", reg_rd, S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
 	return;
 
@@ -4120,7 +4119,7 @@ s3_build_la_pic (int reg_rd, expressionS exp)
   else if (add_number >= -0x8000 && add_number <= 0x7fff)
     {
       /* Insn 1: lw rD, <sym>($gp)    (BFD_RELOC_SCORE_GOT15)  */
-      sprintf (tmp, "lw_pic r%d, %s", reg_rd, add_symbol->bsym->name);
+      sprintf (tmp, "lw_pic r%d, %s", reg_rd, S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, TRUE) == (int) s3_FAIL)
 	return;
 
@@ -4137,7 +4136,8 @@ s3_build_la_pic (int reg_rd, expressionS exp)
 
       /* Var part
  	 For a local symbol: addi rD, <sym>+<constant>    (BFD_RELOC_GOT_LO16)  */
-      sprintf (tmp, "addi_s_pic r%d, %s + %d", reg_rd, add_symbol->bsym->name, (int)add_number);
+      sprintf (tmp, "addi_s_pic r%d, %s + %d", reg_rd,
+	       S_GET_NAME (add_symbol), (int) add_number);
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
 	return;
 
@@ -4150,7 +4150,7 @@ s3_build_la_pic (int reg_rd, expressionS exp)
       int lo = add_number & 0x0000FFFF;
 
       /* Insn 1: lw rD, <sym>($gp)    (BFD_RELOC_SCORE_GOT15)  */
-      sprintf (tmp, "lw_pic r%d, %s", reg_rd, add_symbol->bsym->name);
+      sprintf (tmp, "lw_pic r%d, %s", reg_rd, S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, TRUE) == (int) s3_FAIL)
 	return;
 
@@ -4192,7 +4192,7 @@ s3_build_la_pic (int reg_rd, expressionS exp)
 
       /* Var part
   	 For a local symbol: addi r1, <sym>+LO%<constant>    (BFD_RELOC_GOT_LO16)  */
-      sprintf (tmp, "addi_u_pic r1, %s + %d", add_symbol->bsym->name, lo);
+      sprintf (tmp, "addi_u_pic r1, %s + %d", S_GET_NAME (add_symbol), lo);
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
 	return;
 
@@ -4860,7 +4860,7 @@ s3_build_lwst_pic (int reg_rd, expressionS exp, const char *insn_name)
       /* Fix part
          For an external symbol: lw rD, <sym>($gp)
 	 (BFD_RELOC_SCORE_GOT15)  */
-      sprintf (tmp, "lw_pic r1, %s", add_symbol->bsym->name);
+      sprintf (tmp, "lw_pic r1, %s", S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
         return;
 
@@ -4872,7 +4872,7 @@ s3_build_lwst_pic (int reg_rd, expressionS exp, const char *insn_name)
 	 addi rD, <sym>       (BFD_RELOC_GOT_LO16) */
       s3_inst.reloc.type = BFD_RELOC_SCORE_GOT15;
       memcpy (&var_insts[0], &s3_inst, sizeof (struct s3_score_it));
-      sprintf (tmp, "addi_s_pic r1, %s", add_symbol->bsym->name);
+      sprintf (tmp, "addi_s_pic r1, %s", S_GET_NAME (add_symbol));
       if (s3_append_insn (tmp, FALSE) == (int) s3_FAIL)
         return;
 
@@ -6656,7 +6656,7 @@ static const char *
 s3_atof (int type, char *litP, int *sizeP)
 {
   int prec;
-  LITTLENUM_TYPE words[s3_MAX_LITTLENUMS];
+  LITTLENUM_TYPE words[MAX_LITTLENUMS];
   char *t;
   int i;
 
@@ -6847,10 +6847,7 @@ s3_relax_branch_inst16 (fragS * fragp)
   if (s == NULL)
     frag_addr = 0;
   else
-    {
-      if (s->bsym != NULL)
-        symbol_address = (addressT) symbol_get_frag (s)->fr_address;
-    }
+    symbol_address = (addressT) symbol_get_frag (s)->fr_address;
 
   inst_value = s3_md_chars_to_number (fragp->fr_literal, s3_INSN16_SIZE);
   offset = (inst_value & 0x1ff) << 1;
@@ -6862,7 +6859,6 @@ s3_relax_branch_inst16 (fragS * fragp)
   if (relaxable_p
       && (!((value & 0xfffffe00) == 0 || (value & 0xfffffe00) == 0xfffffe00))
       && fragp->fr_fix == 2
-      && (s->bsym != NULL)
       && (S_IS_DEFINED (s)
           && !S_IS_COMMON (s)
           && !S_IS_EXTERNAL (s)))
@@ -6894,10 +6890,7 @@ s3_relax_cmpbranch_inst32 (fragS * fragp)
   if (s == NULL)
     frag_addr = 0;
   else
-    {
-      if (s->bsym != NULL)
-	symbol_address = (addressT) symbol_get_frag (s)->fr_address;
-    }
+    symbol_address = (addressT) symbol_get_frag (s)->fr_address;
 
   inst_value = s3_md_chars_to_number (fragp->fr_literal, s3_INSN_SIZE);
   offset = (inst_value & 0x1)
@@ -6921,8 +6914,7 @@ s3_relax_cmpbranch_inst32 (fragS * fragp)
   /* need to translate when extern or not defined or common symbol */
   else if ((relaxable_p
 	    && (!((value & 0xfffffe00) == 0 || (value & 0xfffffe00) == 0xfffffe00))
-	    && fragp->fr_fix == 4
-	    && (s->bsym != NULL))
+	    && fragp->fr_fix == 4)
 	   || !S_IS_DEFINED (s)
 	   ||S_IS_COMMON (s)
 	   ||S_IS_EXTERNAL (s))
@@ -7018,8 +7010,8 @@ s3_relax_frag (asection * sec ATTRIBUTE_UNUSED, fragS * fragp, long stretch ATTR
 static void
 s3_convert_frag (bfd * abfd ATTRIBUTE_UNUSED, segT sec ATTRIBUTE_UNUSED, fragS * fragp)
 {
-  int r_old;
-  int r_new;
+  unsigned int r_old;
+  unsigned int r_new;
   char backup[20];
   fixS *fixp;
 

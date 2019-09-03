@@ -1,5 +1,5 @@
 /* Handle FR-V (FDPIC) shared libraries for GDB, the GNU Debugger.
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -561,14 +561,13 @@ enable_break2 (void)
          mechanism to find the dynamic linker's base address.  */
 
       gdb_bfd_ref_ptr tmp_bfd;
-      TRY
+      try
         {
           tmp_bfd = solib_bfd_open (buf);
         }
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	}
-      END_CATCH
 
       if (tmp_bfd == NULL)
 	{

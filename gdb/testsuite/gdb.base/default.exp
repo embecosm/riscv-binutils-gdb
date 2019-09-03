@@ -1,4 +1,4 @@
-#   Copyright 1988-2018 Free Software Foundation, Inc.
+#   Copyright 1988-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,8 +24,6 @@ set timeout 60
 #
 # test default actions of gdb commands
 #
-
-#load_lib gdb.exp
 
 gdb_test "add-symbol-file" "add-symbol-file takes a file name and an address" "add-symbol-file"
 
@@ -603,7 +601,13 @@ set show_conv_list \
 	{$_probe_arg9 = <error: No frame selected>} \
 	{$_probe_arg10 = <error: No frame selected>} \
 	{$_probe_arg11 = <error: No frame selected>} \
+	{$_cimag = <internal function _cimag>} \
+	{$_creal = <internal function _creal>} \
 	{$_isvoid = <internal function _isvoid>} \
+	{$_gdb_major = 8} \
+	{$_gdb_minor = 4} \
+	{$_shell_exitsignal = void} \
+	{$_shell_exitcode = 0} \
     }
 if ![skip_python_tests] {
     append show_conv_list \

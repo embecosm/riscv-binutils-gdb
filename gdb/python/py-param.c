@@ -1,6 +1,6 @@
 /* GDB parameters implemented in Python
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -27,7 +27,6 @@
 #include "completer.h"
 #include "language.h"
 #include "arch-utils.h"
-#include "py-ref.h"
 
 /* Parameter constants and their values.  */
 struct parm_constant
@@ -396,10 +395,7 @@ get_set_value (const char *args, int from_tty,
     {
       set_doc_string = call_doc_function (obj, set_doc_func.get (), NULL);
       if (! set_doc_string)
-	{
-	  gdbpy_print_stack ();
-	  return;
-	}
+	gdbpy_handle_exception ();
     }
 
   const char *str = set_doc_string.get ();
@@ -730,23 +726,20 @@ parmpy_init (PyObject *self, PyObject *args, PyObject *kwds)
 
   Py_INCREF (self);
 
-  TRY
+  try
     {
       add_setshow_generic (parmclass, (enum command_class) cmdtype,
 			   cmd_name, obj,
 			   set_doc.get (), show_doc.get (),
 			   doc.get (), set_list, show_list);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       xfree (cmd_name);
       Py_DECREF (self);
-      PyErr_Format (except.reason == RETURN_QUIT
-		    ? PyExc_KeyboardInterrupt : PyExc_RuntimeError,
-		    "%s", except.message);
+      gdbpy_convert_exception (except);
       return -1;
     }
-  END_CATCH
 
   return 0;
 }

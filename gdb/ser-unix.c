@@ -1,6 +1,6 @@
 /* Serial interface for local (hardwired) serial ports on Un*x like systems
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -26,12 +26,13 @@
 #include <sys/types.h>
 #include "terminal.h"
 #include <sys/socket.h>
-#include "gdb_sys_time.h"
+#include "gdbsupport/gdb_sys_time.h"
 
 #include "gdb_select.h"
 #include "gdbcmd.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include <termios.h>
+#include "inflow.h"
 
 struct hardwire_ttystate
   {
@@ -164,6 +165,9 @@ hardwire_print_tty_state (struct serial *scb,
 static int
 hardwire_drain_output (struct serial *scb)
 {
+  /* Ignore SIGTTOU which may occur during the drain.  */
+  scoped_ignore_sigttou ignore_sigttou;
+
   return tcdrain (scb->fd);
 }
 

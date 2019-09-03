@@ -1,6 +1,6 @@
 /* Auxiliary vector support for GDB, the GNU debugger.
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,7 +25,7 @@
 #include "valprint.h"
 #include "gdbcore.h"
 #include "observable.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "objfiles.h"
 
 #include "auxv.h"
@@ -293,9 +293,6 @@ target_auxv_parse (gdb_byte **readptr,
 }
 
 
-/* Per-inferior data key for auxv.  */
-static const struct inferior_data *auxv_inferior_data;
-
 /*  Auxiliary Vector information structure.  This is used by GDB
     for caching purposes for each inferior.  This helps reduce the
     overhead of transfering data from a remote target to the local host.  */
@@ -304,32 +301,15 @@ struct auxv_info
   gdb::optional<gdb::byte_vector> data;
 };
 
-/* Handles the cleanup of the auxv cache for inferior INF.  ARG is ignored.
-   Frees whatever allocated space there is to be freed and sets INF's auxv cache
-   data pointer to NULL.
-
-   This function is called when the following events occur: inferior_appeared,
-   inferior_exit and executable_changed.  */
-
-static void
-auxv_inferior_data_cleanup (struct inferior *inf, void *arg)
-{
-  struct auxv_info *info;
-
-  info = (struct auxv_info *) inferior_data (inf, auxv_inferior_data);
-  if (info != NULL)
-    {
-      delete info;
-      set_inferior_data (inf, auxv_inferior_data, NULL);
-    }
-}
+/* Per-inferior data key for auxv.  */
+static const struct inferior_key<auxv_info> auxv_inferior_data;
 
 /* Invalidate INF's auxv cache.  */
 
 static void
 invalidate_auxv_cache_inf (struct inferior *inf)
 {
-  auxv_inferior_data_cleanup (inf, NULL);
+  auxv_inferior_data.clear (inf);
 }
 
 /* Invalidate current inferior's auxv cache.  */
@@ -350,12 +330,11 @@ get_auxv_inferior_data (struct target_ops *ops)
   struct auxv_info *info;
   struct inferior *inf = current_inferior ();
 
-  info = (struct auxv_info *) inferior_data (inf, auxv_inferior_data);
+  info = auxv_inferior_data.get (inf);
   if (info == NULL)
     {
-      info = new auxv_info;
+      info = auxv_inferior_data.emplace (inf);
       info->data = target_read_alloc (ops, TARGET_OBJECT_AUXV, NULL);
-      set_inferior_data (inf, auxv_inferior_data, info);
     }
 
   return info;
@@ -493,7 +472,7 @@ default_print_auxv_entry (struct gdbarch *gdbarch, struct ui_file *file,
 	   AUXV_FORMAT_STR);
       TAG (AT_SUN_LPAGESZ, _("Large pagesize"), AUXV_FORMAT_DEC);
       TAG (AT_SUN_PLATFORM, _("Platform name string"), AUXV_FORMAT_STR);
-      TAG (AT_SUN_HWCAP, _("Machine-dependent CPU capability hints"),
+      TAG (AT_SUN_CAP_HW1, _("Machine-dependent CPU capability hints"),
 	   AUXV_FORMAT_HEX);
       TAG (AT_SUN_IFLUSH, _("Should flush icache?"), AUXV_FORMAT_DEC);
       TAG (AT_SUN_CPU, _("CPU name string"), AUXV_FORMAT_STR);
@@ -507,6 +486,17 @@ default_print_auxv_entry (struct gdbarch *gdbarch, struct ui_file *file,
 	   AUXV_FORMAT_HEX);
       TAG (AT_SUN_AUXFLAGS,
 	   _("AF_SUN_ flags passed from the kernel"), AUXV_FORMAT_HEX);
+      TAG (AT_SUN_EMULATOR, _("Name of emulation binary for runtime linker"),
+	   AUXV_FORMAT_STR);
+      TAG (AT_SUN_BRANDNAME, _("Name of brand library"), AUXV_FORMAT_STR);
+      TAG (AT_SUN_BRAND_AUX1, _("Aux vector for brand modules 1"),
+	   AUXV_FORMAT_HEX);
+      TAG (AT_SUN_BRAND_AUX2, _("Aux vector for brand modules 2"),
+	   AUXV_FORMAT_HEX);
+      TAG (AT_SUN_BRAND_AUX3, _("Aux vector for brand modules 3"),
+	   AUXV_FORMAT_HEX);
+      TAG (AT_SUN_CAP_HW2, _("Machine-dependent CPU capability hints 2"),
+	   AUXV_FORMAT_HEX);
     }
 
   fprint_auxv_entry (file, name, description, format, type, val);
@@ -562,10 +552,6 @@ _initialize_auxv (void)
   add_info ("auxv", info_auxv_command,
 	    _("Display the inferior's auxiliary vector.\n\
 This is information provided by the operating system at program startup."));
-
-  /* Set an auxv cache per-inferior.  */
-  auxv_inferior_data
-    = register_inferior_data_with_cleanup (NULL, auxv_inferior_data_cleanup);
 
   /* Observers used to invalidate the auxv cache when needed.  */
   gdb::observers::inferior_exit.attach (invalidate_auxv_cache_inf);

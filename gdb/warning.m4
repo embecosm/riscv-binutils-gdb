@@ -1,5 +1,5 @@
 dnl Autoconf configure script for GDB, the GNU debugger.
-dnl Copyright (C) 1995-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 1995-2019 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GDB.
 dnl
@@ -40,12 +40,16 @@ build_warnings="-Wall -Wpointer-arith \
 -Wno-unused -Wunused-value -Wunused-variable -Wunused-function \
 -Wno-switch -Wno-char-subscripts \
 -Wempty-body -Wunused-but-set-parameter -Wunused-but-set-variable \
--Wno-sign-compare -Wno-narrowing -Wno-error=maybe-uninitialized \
+-Wno-sign-compare -Wno-error=maybe-uninitialized \
 -Wno-mismatched-tags \
 -Wno-error=deprecated-register \
 -Wsuggest-override \
 -Wimplicit-fallthrough=3 \
--Wduplicated-cond"
+-Wduplicated-cond \
+-Wshadow=local \
+-Wdeprecated-copy \
+-Wdeprecated-copy-dtor \
+-Wredundant-move"
 
 case "${host}" in
   *-*-mingw32*)
@@ -58,7 +62,10 @@ case "${host}" in
     build_warnings="$build_warnings -Wno-unknown-pragmas"
     # Solaris 11 <unistd.h> marks vfork deprecated.
     build_warnings="$build_warnings -Wno-deprecated-declarations" ;;
-  *) build_warnings="$build_warnings -Wformat-nonliteral" ;;
+  *)
+    # Note that gcc requires -Wformat for -Wformat-nonliteral to work,
+    # but there's a special case for this below.
+    build_warnings="$build_warnings -Wformat-nonliteral" ;;
 esac
 
 AC_ARG_ENABLE(build-warnings,
@@ -106,6 +113,12 @@ then
 	case $w in
 	-Wno-*)
 		wtest=`echo $w | sed 's/-Wno-/-W/g'` ;;
+        -Wformat-nonliteral)
+		# gcc requires -Wformat before -Wformat-nonliteral
+		# will work, so stick them together.
+		w="-Wformat $w"
+		wtest="$w"
+		;;
 	*)
 		wtest=$w ;;
 	esac

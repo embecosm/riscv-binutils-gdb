@@ -1,4 +1,4 @@
---  Copyright 2016-2018 Free Software Foundation, Inc.
+--  Copyright 2016-2019 Free Software Foundation, Inc.
 --
 --  This program is free software; you can redistribute it and/or modify
 --  it under the terms of the GNU General Public License as published by
@@ -21,9 +21,9 @@ package body Pkg is
       --  Create a new scope to check that the scope match algorithm is fine in
       --  the front-end.
       declare
-         B : Boolean renames Bits (I);
+         Rename_Subscript_Param_B : Boolean renames Bits (I);
       begin
-         B := not B; -- BREAK
+         Rename_Subscript_Param_B := not Rename_Subscript_Param_B; -- BREAK
          Do_Nothing (Bits'Address);
       end;
    end Flip;

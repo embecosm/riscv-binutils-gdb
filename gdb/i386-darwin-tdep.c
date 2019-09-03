@@ -1,5 +1,5 @@
 /* Darwin support for GDB, the GNU debugger.
-   Copyright (C) 1997-2018 Free Software Foundation, Inc.
+   Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
    Contributed by Apple Computer, Inc.
 
@@ -153,7 +153,8 @@ static CORE_ADDR
 i386_darwin_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			     struct regcache *regcache, CORE_ADDR bp_addr,
 			     int nargs, struct value **args, CORE_ADDR sp,
-			     int struct_return, CORE_ADDR struct_addr)
+			     function_call_return_method return_method,
+			     CORE_ADDR struct_addr)
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -169,7 +170,7 @@ i386_darwin_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
       int args_space = 0;
       int num_m128 = 0;
 
-      if (struct_return)
+      if (return_method == return_method_struct)
 	{
 	  if (write_pass)
 	    {

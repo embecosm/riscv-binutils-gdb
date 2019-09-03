@@ -1,7 +1,7 @@
 /* Target-dependent code for PowerPC systems using the SVR4 ABI
    for GDB, the GNU debugger.
 
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -62,7 +62,8 @@ CORE_ADDR
 ppc_sysv_abi_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			      struct regcache *regcache, CORE_ADDR bp_addr,
 			      int nargs, struct value **args, CORE_ADDR sp,
-			      int struct_return, CORE_ADDR struct_addr)
+			      function_call_return_method return_method,
+			      CORE_ADDR struct_addr)
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -107,7 +108,7 @@ ppc_sysv_abi_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
          (which will be passed in r3) is used for struct return
          address.  In that case we should advance one word and start
          from r4 register to copy parameters.  */
-      if (struct_return)
+      if (return_method == return_method_struct)
 	{
 	  if (write_pass)
 	    regcache_cooked_write_signed (regcache,
@@ -1540,7 +1541,8 @@ ppc64_sysv_abi_push_dummy_call (struct gdbarch *gdbarch,
 				struct value *function,
 				struct regcache *regcache, CORE_ADDR bp_addr,
 				int nargs, struct value **args, CORE_ADDR sp,
-				int struct_return, CORE_ADDR struct_addr)
+				function_call_return_method return_method,
+				CORE_ADDR struct_addr)
 {
   CORE_ADDR func_addr = find_function_addr (function, NULL);
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
@@ -1624,7 +1626,7 @@ ppc64_sysv_abi_push_dummy_call (struct gdbarch *gdbarch,
          containing the address of that struct..  In that case we
          should advance one word and start from r4 register to copy
          parameters.  This also consumes one on-stack parameter slot.  */
-      if (struct_return)
+      if (return_method == return_method_struct)
 	ppc64_sysv_abi_push_integer (gdbarch, struct_addr, &argpos);
 
       for (argno = 0; argno < nargs; argno++)
@@ -1907,7 +1909,7 @@ ppc64_sysv_abi_return_value (struct gdbarch *gdbarch, struct value *function,
   struct type *func_type = function ? value_type (function) : NULL;
   int opencl_abi = func_type? ppc_sysv_use_opencl_abi (func_type) : 0;
   struct type *eltype;
-  int nelt, i, ok;
+  int nelt, ok;
 
   /* This function exists to support a calling convention that
      requires floating-point registers.  It shouldn't be used on
@@ -1919,7 +1921,7 @@ ppc64_sysv_abi_return_value (struct gdbarch *gdbarch, struct value *function,
     {
       eltype = check_typedef (TYPE_TARGET_TYPE (valtype));
 
-      for (i = 0; i < 2; i++)
+      for (int i = 0; i < 2; i++)
 	{
 	  ok = ppc64_sysv_abi_return_value_base (gdbarch, eltype, regcache,
 						 readbuf, writebuf, i);
@@ -1945,7 +1947,7 @@ ppc64_sysv_abi_return_value (struct gdbarch *gdbarch, struct value *function,
 	eltype = register_type (gdbarch, tdep->ppc_vr0_regnum);
 
       nelt = TYPE_LENGTH (valtype) / TYPE_LENGTH (eltype);
-      for (i = 0; i < nelt; i++)
+      for (int i = 0; i < nelt; i++)
 	{
 	  ok = ppc64_sysv_abi_return_value_base (gdbarch, eltype, regcache,
 						 readbuf, writebuf, i);
@@ -2001,7 +2003,7 @@ ppc64_sysv_abi_return_value (struct gdbarch *gdbarch, struct value *function,
 	      && tdep->vector_abi == POWERPC_VEC_ALTIVEC
 	      && TYPE_LENGTH (eltype) == 16)))
     {
-      for (i = 0; i < nelt; i++)
+      for (int i = 0; i < nelt; i++)
 	{
 	  ok = ppc64_sysv_abi_return_value_base (gdbarch, eltype, regcache,
 						 readbuf, writebuf, i);
@@ -2027,9 +2029,8 @@ ppc64_sysv_abi_return_value (struct gdbarch *gdbarch, struct value *function,
     {
       int n_regs = ((TYPE_LENGTH (valtype) + tdep->wordsize - 1)
 		    / tdep->wordsize);
-      int i;
 
-      for (i = 0; i < n_regs; i++)
+      for (int i = 0; i < n_regs; i++)
 	{
 	  gdb_byte regval[PPC_MAX_REGISTER_SIZE];
 	  int regnum = tdep->ppc_gp0_regnum + 3 + i;

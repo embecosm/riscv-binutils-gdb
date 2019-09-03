@@ -1,6 +1,6 @@
 /* Caching of GDB/DWARF index files.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,7 +21,7 @@
 #define DWARF_INDEX_CACHE_H
 
 #include "dwarf-index-common.h"
-#include "common/array-view.h"
+#include "gdbsupport/array-view.h"
 #include "symfile.h"
 
 /* Base of the classes used to hold the resources of the indices loaded from

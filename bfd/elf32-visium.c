@@ -1,6 +1,6 @@
 /* Visium-specific support for 32-bit ELF.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -312,7 +312,6 @@ visium_elf_howto_parity_reloc (bfd * input_bfd, arelent *reloc_entry,
   bfd_vma relocation;
   bfd_byte *inplace_address;
   bfd_vma insn;
-  const bfd_vma signmask = 0xffff8000;
 
   /* This part is from bfd_elf_generic_reloc.
      If we're relocating, and this an external symbol, we don't want
@@ -351,19 +350,19 @@ visium_elf_howto_parity_reloc (bfd * input_bfd, arelent *reloc_entry,
 
   if (reloc_entry->howto->pc_relative)
     {
-      relocation -= input_section->output_section->vma
-	+ input_section->output_offset;
+      relocation -= input_section->output_section->vma;
+      relocation -= input_section->output_offset;
       relocation -= reloc_entry->address;
     }
 
   switch (reloc_entry->howto->type)
     {
     case R_VISIUM_PC16:
-      relocation >>= 2;
-      if (ret == bfd_reloc_ok && (relocation & signmask) != 0
-	  && (relocation & signmask) != signmask)
+      if (ret == bfd_reloc_ok
+	  && ((bfd_signed_vma) relocation < -0x20000
+	      || (bfd_signed_vma) relocation > 0x1ffff))
 	ret = bfd_reloc_overflow;
-      relocation &= 0xffff;
+      relocation = (relocation >> 2) & 0xffff;
       break;
     case R_VISIUM_HI16:
     case R_VISIUM_HI16_PCREL:
@@ -621,7 +620,7 @@ visium_elf_relocate_section (bfd *output_bfd,
 	     or sections discarded by a linker script, we just want the
 	     section contents zeroed.  Avoid any special processing.  */
 	  _bfd_clear_contents (howto, input_bfd, input_section,
-			       contents + rel->r_offset);
+			       contents, rel->r_offset);
 
 	  rel->r_info = 0;
 	  rel->r_addend = 0;
@@ -728,7 +727,6 @@ visium_elf_post_process_headers (bfd *abfd,
 				 struct bfd_link_info *info ATTRIBUTE_UNUSED)
 {
   Elf_Internal_Ehdr *i_ehdrp = elf_elfheader (abfd);
-  i_ehdrp->e_ident[EI_OSABI] = ELFOSABI_STANDALONE;
   i_ehdrp->e_ident[EI_ABIVERSION] = 1;
 }
 
@@ -853,6 +851,7 @@ visium_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
 #define ELF_ARCH		bfd_arch_visium
 #define ELF_MACHINE_CODE	EM_VISIUM
+#define ELF_OSABI		ELFOSABI_STANDALONE
 #define ELF_MAXPAGESIZE		1
 
 #define TARGET_BIG_SYM		visium_elf32_vec

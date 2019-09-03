@@ -1,5 +1,5 @@
 /* BFD library support routines for architectures.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Hacked by John Gilmore and Steve Chamberlain of Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -175,7 +175,9 @@ DESCRIPTION
 .#define bfd_mach_mips5			5
 .#define bfd_mach_mips_loongson_2e	3001
 .#define bfd_mach_mips_loongson_2f	3002
-.#define bfd_mach_mips_loongson_3a	3003
+.#define bfd_mach_mips_gs464		3003
+.#define bfd_mach_mips_gs464e		3004
+.#define bfd_mach_mips_gs264e		3005
 .#define bfd_mach_mips_sb1		12310201 {* octal 'SB', 01.  *}
 .#define bfd_mach_mips_octeon		6501
 .#define bfd_mach_mips_octeonp		6601
@@ -339,6 +341,7 @@ DESCRIPTION
 .#define bfd_mach_arm_8R        24
 .#define bfd_mach_arm_8M_BASE   25
 .#define bfd_mach_arm_8M_MAIN   26
+.#define bfd_mach_arm_8_1M_MAIN 27
 .  bfd_arch_nds32,     {* Andes NDS32.  *}
 .#define bfd_mach_n1		1
 .#define bfd_mach_n1h		2
@@ -412,6 +415,8 @@ DESCRIPTION
 . bfd_arch_iq2000,     {* Vitesse IQ2000.  *}
 .#define bfd_mach_iq2000	1
 .#define bfd_mach_iq10		2
+.  bfd_arch_bpf,       {* Linux eBPF.  *}
+.#define bfd_mach_bpf		1
 .  bfd_arch_epiphany,  {* Adapteva EPIPHANY.  *}
 .#define bfd_mach_epiphany16	1
 .#define bfd_mach_epiphany32	2
@@ -458,6 +463,8 @@ DESCRIPTION
 .#define bfd_mach_rl78		0x75
 .  bfd_arch_rx,	       {* Renesas RX.  *}
 .#define bfd_mach_rx		0x75
+.#define bfd_mach_rx_v2		0x76
+.#define bfd_mach_rx_v3		0x77
 .  bfd_arch_s390,      {* IBM s390.  *}
 .#define bfd_mach_s390_31	31
 .#define bfd_mach_s390_64	64
@@ -596,6 +603,7 @@ extern const bfd_arch_info_type bfd_csky_arch;
 extern const bfd_arch_info_type bfd_d10v_arch;
 extern const bfd_arch_info_type bfd_d30v_arch;
 extern const bfd_arch_info_type bfd_dlx_arch;
+extern const bfd_arch_info_type bfd_bpf_arch;
 extern const bfd_arch_info_type bfd_epiphany_arch;
 extern const bfd_arch_info_type bfd_fr30_arch;
 extern const bfd_arch_info_type bfd_frv_arch;
@@ -687,6 +695,7 @@ static const bfd_arch_info_type * const bfd_archures_list[] =
     &bfd_d10v_arch,
     &bfd_d30v_arch,
     &bfd_dlx_arch,
+    &bfd_bpf_arch,
     &bfd_epiphany_arch,
     &bfd_fr30_arch,
     &bfd_frv_arch,
@@ -894,12 +903,13 @@ bfd_arch_get_compatible (const bfd *abfd,
     /* Otherwise architecture-specific code has to decide.  */
     return abfd->arch_info->compatible (abfd->arch_info, bbfd->arch_info);
 
-  /* We can allow an unknown architecture if accept_unknowns
-     is true, or if the target is the "binary" format, which
-     has an unknown architecture.  Since the binary format can
+  /* We can allow an unknown architecture if accept_unknowns is true,
+     if UBFD is an IR object, or if the target is the "binary" format,
+     which has an unknown architecture.  Since the binary format can
      only be set by explicit request from the user, it is safe
      to assume that they know what they are doing.  */
   if (accept_unknowns
+      || ubfd->plugin_format == bfd_plugin_yes
       || strcmp (bfd_get_target (ubfd), "binary") == 0)
     return kbfd->arch_info;
   return NULL;

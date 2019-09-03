@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,7 +19,7 @@
 #include "lynx-low.h"
 #include <limits.h>
 #include <sys/ptrace.h>
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "arch/i386.h"
 #include "x86-tdesc.h"
 
@@ -331,7 +331,7 @@ static void
 lynx_i386_arch_setup (void)
 {
   struct target_desc *tdesc
-    = i386_create_target_description (X86_XSTATE_SSE_MASK, false);
+    = i386_create_target_description (X86_XSTATE_SSE_MASK, false, false);
 
   init_target_desc (tdesc, i386_expedite_regs);
 

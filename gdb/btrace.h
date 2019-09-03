@@ -1,6 +1,6 @@
 /* Branch trace support for GDB, the GNU debugger.
 
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
    Contributed by Intel Corp. <markus.t.metzger@intel.com>.
 
@@ -26,9 +26,9 @@
    inferior.  For presentation purposes, the branch trace is represented as a
    list of sequential control-flow blocks, one such list per thread.  */
 
-#include "btrace-common.h"
+#include "gdbsupport/btrace-common.h"
 #include "target/waitstatus.h" /* For enum target_stop_reason.  */
-#include "common/enum-flags.h"
+#include "gdbsupport/enum-flags.h"
 
 #if defined (HAVE_LIBIPT)
 #  include <intel-pt.h>
@@ -228,7 +228,7 @@ struct btrace_call_history
 };
 
 /* Branch trace thread flags.  */
-enum btrace_thread_flag
+enum btrace_thread_flag : unsigned
 {
   /* The thread is to be stepped forwards.  */
   BTHR_STEP = (1 << 0),

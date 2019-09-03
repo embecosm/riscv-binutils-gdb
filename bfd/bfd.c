@@ -1,5 +1,5 @@
 /* Generic BFD library interface and support routines.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -220,6 +220,9 @@ CODE_FRAGMENT
 .  {* Set if this is a thin archive.  *}
 .  unsigned int is_thin_archive : 1;
 .
+.  {* Set if this archive should not cache element positions.  *}
+.  unsigned int no_element_cache : 1;
+.
 .  {* Set if only required symbols should be added in the link hash table for
 .     this object.  Used by VMS linkers.  *}
 .  unsigned int selective_search : 1;
@@ -235,6 +238,9 @@ CODE_FRAGMENT
 .
 .  {* Set if this is a plugin output file.  *}
 .  unsigned int lto_output : 1;
+.
+.  {* Set if this is a slim LTO object not loaded with a compiler plugin.  *}
+.  unsigned int lto_slim_object : 1;
 .
 .  {* Set to dummy BFD created when claimed by a compiler plug-in
 .     library.  *}
@@ -2332,6 +2338,8 @@ bfd_update_compression_header (bfd *abfd, bfd_byte *contents,
 		  bfd_put_32 (abfd, sec->size, &echdr->ch_size);
 		  bfd_put_32 (abfd, 1 << sec->alignment_power,
 			      &echdr->ch_addralign);
+		  /* bfd_log2 (alignof (Elf32_Chdr)) */
+		  bfd_set_section_alignment (abfd, sec, 2);
 		}
 	      else
 		{
@@ -2342,6 +2350,8 @@ bfd_update_compression_header (bfd *abfd, bfd_byte *contents,
 		  bfd_put_64 (abfd, sec->size, &echdr->ch_size);
 		  bfd_put_64 (abfd, 1 << sec->alignment_power,
 			      &echdr->ch_addralign);
+		  /* bfd_log2 (alignof (Elf64_Chdr)) */
+		  bfd_set_section_alignment (abfd, sec, 3);
 		}
 	    }
 	  else
@@ -2354,6 +2364,8 @@ bfd_update_compression_header (bfd *abfd, bfd_byte *contents,
 		 order.  */
 	      memcpy (contents, "ZLIB", 4);
 	      bfd_putb64 (sec->size, contents + 4);
+	      /* No way to keep the original alignment, just use 1 always. */
+	      bfd_set_section_alignment (abfd, sec, 0);
 	    }
 	}
     }
@@ -2368,12 +2380,14 @@ bfd_update_compression_header (bfd *abfd, bfd_byte *contents,
    SYNOPSIS
 	bfd_boolean bfd_check_compression_header
 	  (bfd *abfd, bfd_byte *contents, asection *sec,
-	  bfd_size_type *uncompressed_size);
+	  bfd_size_type *uncompressed_size,
+	  unsigned int *uncompressed_alignment_power);
 
 DESCRIPTION
 	Check the compression header at CONTENTS of SEC in ABFD and
-	store the uncompressed size in UNCOMPRESSED_SIZE if the
-	compression header is valid.
+	store the uncompressed size in UNCOMPRESSED_SIZE and the
+	uncompressed data alignment in UNCOMPRESSED_ALIGNMENT_POWER
+	if the compression header is valid.
 
 RETURNS
 	Return TRUE if the compression header is valid.
@@ -2382,7 +2396,8 @@ RETURNS
 bfd_boolean
 bfd_check_compression_header (bfd *abfd, bfd_byte *contents,
 			      asection *sec,
-			      bfd_size_type *uncompressed_size)
+			      bfd_size_type *uncompressed_size,
+			      unsigned int *uncompressed_alignment_power)
 {
   if (bfd_get_flavour (abfd) == bfd_target_elf_flavour
       && (elf_section_flags (sec) & SHF_COMPRESSED) != 0)
@@ -2404,9 +2419,10 @@ bfd_check_compression_header (bfd *abfd, bfd_byte *contents,
 	  chdr.ch_addralign = bfd_get_64 (abfd, &echdr->ch_addralign);
 	}
       if (chdr.ch_type == ELFCOMPRESS_ZLIB
-	  && chdr.ch_addralign == 1U << sec->alignment_power)
+	  && chdr.ch_addralign == (1U << bfd_log2 (chdr.ch_addralign)))
 	{
 	  *uncompressed_size = chdr.ch_size;
+	  *uncompressed_alignment_power = bfd_log2 (chdr.ch_addralign);
 	  return TRUE;
 	}
     }

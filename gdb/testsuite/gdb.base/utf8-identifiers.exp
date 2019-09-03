@@ -2,7 +2,7 @@
 
 # This testcase is part of GDB, the GNU debugger.
 
-# Copyright 2017-2018 Free Software Foundation, Inc.
+# Copyright 2017-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,6 +55,14 @@ gdb_test "continue" \
 # Unload symbols from shared libraries to avoid random symbol and file
 # names getting in the way of completion.
 gdb_test_no_output "nosharedlibrary"
+
+# Tests below are about tab-completion, which doesn't work if readline
+# library isn't used.  Check it first.
+
+if { ![readline_is_used] } {
+    untested "no tab completion support without readline"
+    return -1
+}
 
 # Test linespec completion.
 

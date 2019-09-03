@@ -1,5 +1,5 @@
 /* BFD back-end for National Semiconductor's CR16 ELF
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
    Written by M R Swami Reddy.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -1673,9 +1673,8 @@ elf_cr16_mach (flagword flags)
    file.  This gets the CR16 architecture right based on the machine
    number.  */
 
-static void
-_bfd_cr16_elf_final_write_processing (bfd *abfd,
-				      bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+_bfd_cr16_elf_final_write_processing (bfd *abfd)
 {
   unsigned long val;
   switch (bfd_get_mach (abfd))
@@ -1685,9 +1684,8 @@ _bfd_cr16_elf_final_write_processing (bfd *abfd,
 	val = EM_CR16;
 	break;
     }
-
-
- elf_elfheader (abfd)->e_flags |= val;
+  elf_elfheader (abfd)->e_flags |= val;
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 

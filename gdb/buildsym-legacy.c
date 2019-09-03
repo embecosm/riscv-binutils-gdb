@@ -1,5 +1,5 @@
 /* Legacy support routines for building symbol tables in GDB's internal format.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,6 +18,7 @@
 
 #include "defs.h"
 #include "buildsym-legacy.h"
+#include "symtab.h"
 
 /* The work-in-progress of the compunit we are building.
    This is created first, before any subfiles by start_symtab.  */

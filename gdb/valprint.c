@@ -1,6 +1,6 @@
 /* Print values for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -35,7 +35,9 @@
 #include "typeprint.h"
 #include <ctype.h>
 #include <algorithm>
-#include "common/byte-vector.h"
+#include "gdbsupport/byte-vector.h"
+#include "cli/cli-option.h"
+#include "gdbarch.h"
 
 /* Maximum number of wchars returned from wchar_iterate.  */
 #define MAX_WCHARS 4
@@ -88,6 +90,7 @@ static void val_print_type_code_flags (struct type *type,
 				       struct ui_file *stream);
 
 #define PRINT_MAX_DEFAULT 200	/* Start print_max off at this value.  */
+#define PRINT_MAX_DEPTH_DEFAULT 20	/* Start print_max_depth off at this value. */
 
 struct value_print_options user_print_options =
 {
@@ -109,7 +112,9 @@ struct value_print_options user_print_options =
   1,				/* pascal_static_field_print */
   0,				/* raw */
   0,				/* summary */
-  1				/* symbol_print */
+  1,				/* symbol_print */
+  PRINT_MAX_DEPTH_DEFAULT,	/* max_depth */
+  1				/* finish_print */
 };
 
 /* Initialize *OPTS to be a copy of the user print options.  */
@@ -279,6 +284,18 @@ val_print_scalar_type_p (struct type *type)
     default:
       return 1;
     }
+}
+
+/* A helper function for val_print.  When printing with limited depth we
+   want to print string and scalar arguments, but not aggregate arguments.
+   This function distinguishes between the two.  */
+
+static bool
+val_print_scalar_or_string_type_p (struct type *type,
+				   const struct language_defn *language)
+{
+  return (val_print_scalar_type_p (type)
+	  || language->la_is_string_type_p (type));
 }
 
 /* See its definition in value.h.  */
@@ -986,7 +1003,6 @@ generic_val_print (struct type *type,
       error (_("Unhandled type code %d in symbol table."),
 	     TYPE_CODE (type));
     }
-  gdb_flush (stream);
 }
 
 /* Print using the given LANGUAGE the data of type TYPE located at
@@ -1032,7 +1048,6 @@ val_print (struct type *type, LONGEST embedded_offset,
   if (TYPE_STUB (real_type))
     {
       fprintf_filtered (stream, _("<incomplete type>"));
-      gdb_flush (stream);
       return;
     }
 
@@ -1056,17 +1071,38 @@ val_print (struct type *type, LONGEST embedded_offset,
       return;
     }
 
-  TRY
+  /* If this value is too deep then don't print it.  */
+  if (!val_print_scalar_or_string_type_p (type, language)
+      && val_print_check_max_depth (stream, recurse, options, language))
+    return;
+
+  try
     {
       language->la_val_print (type, embedded_offset, address,
 			      stream, recurse, val,
 			      &local_opts);
     }
-  CATCH (except, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &except)
     {
       fprintf_filtered (stream, _("<error reading variable>"));
     }
-  END_CATCH
+}
+
+/* See valprint.h.  */
+
+bool
+val_print_check_max_depth (struct ui_file *stream, int recurse,
+			   const struct value_print_options *options,
+			   const struct language_defn *language)
+{
+  if (options->max_depth > -1 && recurse >= options->max_depth)
+    {
+      gdb_assert (language->la_struct_too_deep_ellipsis != NULL);
+      fputs_filtered (language->la_struct_too_deep_ellipsis, stream);
+      return true;
+    }
+
+  return false;
 }
 
 /* Check whether the value VAL is printable.  Return 1 if it is;
@@ -1604,6 +1640,7 @@ maybe_negate_by_bytes (const gdb_byte *bytes, unsigned len,
 		       gdb::byte_vector *out_vec)
 {
   gdb_byte sign_byte;
+  gdb_assert (len > 0);
   if (byte_order == BFD_ENDIAN_BIG)
     sign_byte = bytes[0];
   else
@@ -2360,13 +2397,13 @@ generic_emit_char (int c, struct type *type, struct ui_file *stream,
 {
   enum bfd_endian byte_order
     = gdbarch_byte_order (get_type_arch (type));
-  gdb_byte *buf;
+  gdb_byte *c_buf;
   int need_escape = 0;
 
-  buf = (gdb_byte *) alloca (TYPE_LENGTH (type));
-  pack_long (buf, type, c);
+  c_buf = (gdb_byte *) alloca (TYPE_LENGTH (type));
+  pack_long (c_buf, type, c);
 
-  wchar_iterator iter (buf, TYPE_LENGTH (type), encoding, TYPE_LENGTH (type));
+  wchar_iterator iter (c_buf, TYPE_LENGTH (type), encoding, TYPE_LENGTH (type));
 
   /* This holds the printable form of the wchar_t data.  */
   auto_obstack wchar_buf;
@@ -2512,7 +2549,7 @@ count_next_character (wchar_iterator *iter,
 
 /* Print the characters in CHARS to the OBSTACK.  QUOTE_CHAR is the quote
    character to use with string output.  WIDTH is the size of the output
-   character type.  BYTE_ORDER is the the target byte order.  OPTIONS
+   character type.  BYTE_ORDER is the target byte order.  OPTIONS
    is the user's print options.  */
 
 static void
@@ -2859,9 +2896,16 @@ val_print_string (struct type *elttype, const char *encoding,
       fprintf_filtered (stream, ">");
     }
 
-  gdb_flush (stream);
-
   return (bytes_read / width);
+}
+
+/* Handle 'show print max-depth'.  */
+
+static void
+show_print_max_depth (struct ui_file *file, int from_tty,
+		      struct cmd_list_element *c, const char *value)
+{
+  fprintf_filtered (file, _("Maximum print depth is %s.\n"), value);
 }
 
 
@@ -3027,10 +3071,186 @@ show_print_raw (const char *args, int from_tty)
   cmd_show_list (showprintrawlist, from_tty, "");
 }
 
+/* Controls printing of vtbl's.  */
+static void
+show_vtblprint (struct ui_file *file, int from_tty,
+		struct cmd_list_element *c, const char *value)
+{
+  fprintf_filtered (file, _("\
+Printing of C++ virtual function tables is %s.\n"),
+		    value);
+}
+
+/* Controls looking up an object's derived type using what we find in
+   its vtables.  */
+static void
+show_objectprint (struct ui_file *file, int from_tty,
+		  struct cmd_list_element *c,
+		  const char *value)
+{
+  fprintf_filtered (file, _("\
+Printing of object's derived type based on vtable info is %s.\n"),
+		    value);
+}
+
+static void
+show_static_field_print (struct ui_file *file, int from_tty,
+			 struct cmd_list_element *c,
+			 const char *value)
+{
+  fprintf_filtered (file,
+		    _("Printing of C++ static members is %s.\n"),
+		    value);
+}
+
 
+
+/* A couple typedefs to make writing the options a bit more
+   convenient.  */
+using boolean_option_def
+  = gdb::option::boolean_option_def<value_print_options>;
+using uinteger_option_def
+  = gdb::option::uinteger_option_def<value_print_options>;
+using zuinteger_unlimited_option_def
+  = gdb::option::zuinteger_unlimited_option_def<value_print_options>;
+
+/* Definions of options for the "print" and "compile print"
+   commands.  */
+static const gdb::option::option_def value_print_option_defs[] = {
+
+  boolean_option_def {
+    "address",
+    [] (value_print_options *opt) { return &opt->addressprint; },
+    show_addressprint, /* show_cmd_cb */
+    N_("Set printing of addresses."),
+    N_("Show printing of addresses."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "array",
+    [] (value_print_options *opt) { return &opt->prettyformat_arrays; },
+    show_prettyformat_arrays, /* show_cmd_cb */
+    N_("Set pretty formatting of arrays."),
+    N_("Show pretty formatting of arrays."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "array-indexes",
+    [] (value_print_options *opt) { return &opt->print_array_indexes; },
+    show_print_array_indexes, /* show_cmd_cb */
+    N_("Set printing of array indexes."),
+    N_("Show printing of array indexes."),
+    NULL, /* help_doc */
+  },
+
+  uinteger_option_def {
+    "elements",
+    [] (value_print_options *opt) { return &opt->print_max; },
+    show_print_max, /* show_cmd_cb */
+    N_("Set limit on string chars or array elements to print."),
+    N_("Show limit on string chars or array elements to print."),
+    N_("\"unlimited\" causes there to be no limit."),
+  },
+
+  zuinteger_unlimited_option_def {
+    "max-depth",
+    [] (value_print_options *opt) { return &opt->max_depth; },
+    show_print_max_depth, /* show_cmd_cb */
+    N_("Set maximum print depth for nested structures, unions and arrays."),
+    N_("Show maximum print depth for nested structures, unions, and arrays."),
+    N_("When structures, unions, or arrays are nested beyond this depth then they\n\
+will be replaced with either '{...}' or '(...)' depending on the language.\n\
+Use \"unlimited\" to print the complete structure.")
+  },
+
+  boolean_option_def {
+    "null-stop",
+    [] (value_print_options *opt) { return &opt->stop_print_at_null; },
+    show_stop_print_at_null, /* show_cmd_cb */
+    N_("Set printing of char arrays to stop at first null char."),
+    N_("Show printing of char arrays to stop at first null char."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "object",
+    [] (value_print_options *opt) { return &opt->objectprint; },
+    show_objectprint, /* show_cmd_cb */
+    _("Set printing of C++ virtual function tables."),
+    _("Show printing of C++ virtual function tables."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "pretty",
+    [] (value_print_options *opt) { return &opt->prettyformat_structs; },
+    show_prettyformat_structs, /* show_cmd_cb */
+    N_("Set pretty formatting of structures."),
+    N_("Show pretty formatting of structures."),
+    NULL, /* help_doc */
+  },
+
+  uinteger_option_def {
+    "repeats",
+    [] (value_print_options *opt) { return &opt->repeat_count_threshold; },
+    show_repeat_count_threshold, /* show_cmd_cb */
+    N_("Set threshold for repeated print elements."),
+    N_("Show threshold for repeated print elements."),
+    N_("\"unlimited\" causes all elements to be individually printed."),
+  },
+
+  boolean_option_def {
+    "static-members",
+    [] (value_print_options *opt) { return &opt->static_field_print; },
+    show_static_field_print, /* show_cmd_cb */
+    N_("Set printing of C++ static members."),
+    N_("Show printing of C++ static members."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "symbol",
+    [] (value_print_options *opt) { return &opt->symbol_print; },
+    show_symbol_print, /* show_cmd_cb */
+    N_("Set printing of symbol names when printing pointers."),
+    N_("Show printing of symbol names when printing pointers."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "union",
+    [] (value_print_options *opt) { return &opt->unionprint; },
+    show_unionprint, /* show_cmd_cb */
+    N_("Set printing of unions interior to structures."),
+    N_("Show printing of unions interior to structures."),
+    NULL, /* help_doc */
+  },
+
+  boolean_option_def {
+    "vtbl",
+    [] (value_print_options *opt) { return &opt->vtblprint; },
+    show_vtblprint, /* show_cmd_cb */
+    N_("Set printing of C++ virtual function tables."),
+    N_("Show printing of C++ virtual function tables."),
+    NULL, /* help_doc */
+  },
+};
+
+/* See valprint.h.  */
+
+gdb::option::option_def_group
+make_value_print_options_def_group (value_print_options *opts)
+{
+  return {{value_print_option_defs}, opts};
+}
+
 void
 _initialize_valprint (void)
 {
+  cmd_list_element *cmd;
+
   add_prefix_cmd ("print", no_class, set_print,
 		  _("Generic command for setting how things print."),
 		  &setprintlist, "set print ", 0, &setlist);
@@ -3044,79 +3264,22 @@ _initialize_valprint (void)
   add_alias_cmd ("p", "print", no_class, 1, &showlist);
   add_alias_cmd ("pr", "print", no_class, 1, &showlist);
 
-  add_prefix_cmd ("raw", no_class, set_print_raw,
-		  _("\
+  cmd = add_prefix_cmd ("raw", no_class, set_print_raw,
+			_("\
 Generic command for setting what things to print in \"raw\" mode."),
-		  &setprintrawlist, "set print raw ", 0, &setprintlist);
-  add_prefix_cmd ("raw", no_class, show_print_raw,
-		  _("Generic command for showing \"print raw\" settings."),
-		  &showprintrawlist, "show print raw ", 0, &showprintlist);
+			&setprintrawlist, "set print raw ", 0,
+			&setprintlist);
+  deprecate_cmd (cmd, nullptr);
 
-  add_setshow_uinteger_cmd ("elements", no_class,
-			    &user_print_options.print_max, _("\
-Set limit on string chars or array elements to print."), _("\
-Show limit on string chars or array elements to print."), _("\
-\"set print elements unlimited\" causes there to be no limit."),
-			    NULL,
-			    show_print_max,
-			    &setprintlist, &showprintlist);
+  cmd = add_prefix_cmd ("raw", no_class, show_print_raw,
+			_("Generic command for showing \"print raw\" settings."),
+			&showprintrawlist, "show print raw ", 0,
+			&showprintlist);
+  deprecate_cmd (cmd, nullptr);
 
-  add_setshow_boolean_cmd ("null-stop", no_class,
-			   &user_print_options.stop_print_at_null, _("\
-Set printing of char arrays to stop at first null char."), _("\
-Show printing of char arrays to stop at first null char."), NULL,
-			   NULL,
-			   show_stop_print_at_null,
-			   &setprintlist, &showprintlist);
-
-  add_setshow_uinteger_cmd ("repeats", no_class,
-			    &user_print_options.repeat_count_threshold, _("\
-Set threshold for repeated print elements."), _("\
-Show threshold for repeated print elements."), _("\
-\"set print repeats unlimited\" causes all elements to be individually printed."),
-			    NULL,
-			    show_repeat_count_threshold,
-			    &setprintlist, &showprintlist);
-
-  add_setshow_boolean_cmd ("pretty", class_support,
-			   &user_print_options.prettyformat_structs, _("\
-Set pretty formatting of structures."), _("\
-Show pretty formatting of structures."), NULL,
-			   NULL,
-			   show_prettyformat_structs,
-			   &setprintlist, &showprintlist);
-
-  add_setshow_boolean_cmd ("union", class_support,
-			   &user_print_options.unionprint, _("\
-Set printing of unions interior to structures."), _("\
-Show printing of unions interior to structures."), NULL,
-			   NULL,
-			   show_unionprint,
-			   &setprintlist, &showprintlist);
-
-  add_setshow_boolean_cmd ("array", class_support,
-			   &user_print_options.prettyformat_arrays, _("\
-Set pretty formatting of arrays."), _("\
-Show pretty formatting of arrays."), NULL,
-			   NULL,
-			   show_prettyformat_arrays,
-			   &setprintlist, &showprintlist);
-
-  add_setshow_boolean_cmd ("address", class_support,
-			   &user_print_options.addressprint, _("\
-Set printing of addresses."), _("\
-Show printing of addresses."), NULL,
-			   NULL,
-			   show_addressprint,
-			   &setprintlist, &showprintlist);
-
-  add_setshow_boolean_cmd ("symbol", class_support,
-			   &user_print_options.symbol_print, _("\
-Set printing of symbol names when printing pointers."), _("\
-Show printing of symbol names when printing pointers."),
-			   NULL, NULL,
-			   show_symbol_print,
-			   &setprintlist, &showprintlist);
+  gdb::option::add_setshow_cmds_for_options
+    (class_support, &user_print_options, value_print_option_defs,
+     &setprintlist, &showprintlist);
 
   add_setshow_zuinteger_cmd ("input-radix", class_support, &input_radix_1,
 			     _("\
@@ -3150,10 +3313,4 @@ Without an argument, sets both radices back to the default value of 10."),
 Show the default input and output number radices.\n\
 Use 'show input-radix' or 'show output-radix' to independently show each."),
 	   &showlist);
-
-  add_setshow_boolean_cmd ("array-indexes", class_support,
-                           &user_print_options.print_array_indexes, _("\
-Set printing of array indexes."), _("\
-Show printing of array indexes"), NULL, NULL, show_print_array_indexes,
-                           &setprintlist, &showprintlist);
 }

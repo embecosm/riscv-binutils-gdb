@@ -1,6 +1,6 @@
 /* Definitions for frame address handler, for GDB, the GNU debugger.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,6 +21,7 @@
 #include "frame-base.h"
 #include "frame.h"
 #include "gdb_obstack.h"
+#include "gdbarch.h"
 
 /* A default frame base implementations.  If it wasn't for the old
    DEPRECATED_FRAME_LOCALS_ADDRESS and DEPRECATED_FRAME_ARGS_ADDRESS,

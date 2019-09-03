@@ -1,6 +1,6 @@
 /* Self tests for gdb::observers, GDB notifications to observers.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,8 +18,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "defs.h"
-#include "selftest.h"
-#include "common/observable.h"
+#include "gdbsupport/selftest.h"
+#include "gdbsupport/observable.h"
 
 namespace selftests {
 namespace observers {
@@ -70,7 +70,7 @@ run_tests ()
      attached.  */
   notify_check_counters (0, 0, 0);
 
-  const gdb::observers::token token1, token2, token3;
+  const gdb::observers::token token1 {}, token2 {} , token3 {};
 
   /* Now, attach one observer, and send a notification.  */
   test_notification.attach (&test_second_notification_function, token2);

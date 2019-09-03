@@ -1,5 +1,5 @@
 /* i387-specific utility functions, for the remote server for GDB.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,7 +18,7 @@
 
 #include "server.h"
 #include "i387-fp.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 
 static const int num_mpx_bnd_registers = 4;
 static const int num_mpx_cfg_registers = 2;

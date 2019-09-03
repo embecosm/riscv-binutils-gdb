@@ -1,5 +1,5 @@
 /* Register support routines for the remote server for GDB.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,10 +16,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef REGCACHE_H
-#define REGCACHE_H
+#ifndef GDBSERVER_REGCACHE_H
+#define GDBSERVER_REGCACHE_H
 
-#include "common-regcache.h"
+#include "gdbsupport/common-regcache.h"
 
 struct thread_info;
 struct target_desc;
@@ -46,16 +46,16 @@ struct regcache : public reg_buffer_common
   unsigned char *register_status = nullptr;
 #endif
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   enum register_status get_register_status (int regnum) const override;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   void raw_supply (int regnum, const void *buf) override;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   void raw_collect (int regnum, void *buf) const override;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   bool raw_compare (int regnum, const void *buf, int offset) const override;
 };
 
@@ -102,7 +102,7 @@ void registers_to_string (struct regcache *regcache, char *buf);
 
 void registers_from_string (struct regcache *regcache, char *buf);
 
-/* For regcache_read_pc see common/common-regcache.h.  */
+/* For regcache_read_pc see gdbsupport/common-regcache.h.  */
 
 void regcache_write_pc (struct regcache *regcache, CORE_ADDR pc);
 
@@ -138,4 +138,4 @@ void collect_register_by_name (struct regcache *regcache,
 ULONGEST regcache_raw_get_unsigned_by_name (struct regcache *regcache,
 					    const char *name);
 
-#endif /* REGCACHE_H */
+#endif /* GDBSERVER_REGCACHE_H */

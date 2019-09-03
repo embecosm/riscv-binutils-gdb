@@ -1,5 +1,5 @@
 /* Intel 80386/80486-specific support for 32-bit ELF
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -370,7 +370,7 @@ elf_i386_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 }
 
 static reloc_howto_type *
-elf_i386_rtype_to_howto (bfd *abfd ATTRIBUTE_UNUSED, unsigned r_type)
+elf_i386_rtype_to_howto (unsigned r_type)
 {
   unsigned int indx;
 
@@ -395,7 +395,7 @@ elf_i386_info_to_howto_rel (bfd *abfd,
 {
   unsigned int r_type = ELF32_R_TYPE (dst->r_info);
 
-  if ((cache_ptr->howto = elf_i386_rtype_to_howto (abfd, r_type)) == NULL)
+  if ((cache_ptr->howto = elf_i386_rtype_to_howto (r_type)) == NULL)
     {
       /* xgettext:c-format */
       _bfd_error_handler (_("%pB: unsupported relocation type %#x"),
@@ -1151,8 +1151,8 @@ elf_i386_tls_transition (struct bfd_link_info *info, bfd *abfd,
       reloc_howto_type *from, *to;
       const char *name;
 
-      from = elf_i386_rtype_to_howto (abfd, from_type);
-      to = elf_i386_rtype_to_howto (abfd, to_type);
+      from = elf_i386_rtype_to_howto (from_type);
+      to = elf_i386_rtype_to_howto (to_type);
 
       if (h)
 	name = h->root.root.string;
@@ -1343,8 +1343,8 @@ convert_branch:
 		}
 	      else
 		{
-		  nop = link_info->call_nop_byte;
-		  if (link_info->call_nop_as_suffix)
+		  nop = htab->params->call_nop_byte;
+		  if (htab->params->call_nop_as_suffix)
 		    {
 		      nop_offset = roff + 3;
 		      irel->r_offset -= 1;
@@ -1575,10 +1575,6 @@ elf_i386_check_relocs (bfd *abfd,
 
 	  /* It is referenced by a non-shared object. */
 	  h->ref_regular = 1;
-
-	  if (h->type == STT_GNU_IFUNC)
-	    elf_tdata (info->output_bfd)->has_gnu_symbols
-	      |= elf_gnu_symbol_ifunc;
 	}
 
       if (r_type == R_386_GOT32X
@@ -1908,9 +1904,7 @@ do_size:
 	  /* This relocation describes which C++ vtable entries are actually
 	     used.  Record for later use during GC.  */
 	case R_386_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_offset))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_offset))
 	    goto error_return;
 	  break;
 
@@ -2028,7 +2022,11 @@ elf_i386_relocate_section (bfd *output_bfd,
   if (htab == NULL)
     return FALSE;
 
-  BFD_ASSERT (is_x86_elf (input_bfd, htab));
+  if (!is_x86_elf (input_bfd, htab))
+    {
+      bfd_set_error (bfd_error_wrong_format);
+      return FALSE;
+    }
 
   symtab_hdr = &elf_symtab_hdr (input_bfd);
   sym_hashes = elf_sym_hashes (input_bfd);
@@ -2076,14 +2074,9 @@ elf_i386_relocate_section (bfd *output_bfd,
 	  continue;
 	}
 
-      if ((indx = r_type) >= R_386_standard
-	  && ((indx = r_type - R_386_ext_offset) - R_386_standard
-	      >= R_386_ext - R_386_standard)
-	  && ((indx = r_type - R_386_tls_offset) - R_386_ext
-	      >= R_386_ext2 - R_386_ext))
+      howto = elf_i386_rtype_to_howto (r_type);
+      if (howto == NULL)
 	return _bfd_unrecognized_reloc (input_bfd, input_section, r_type);
-
-      howto = elf_howto_table + indx;
 
       r_symndx = ELF32_R_SYM (rel->r_info);
       h = NULL;
@@ -2197,7 +2190,7 @@ elf_i386_relocate_section (bfd *output_bfd,
       if (sec != NULL && discarded_section (sec))
 	{
 	  _bfd_clear_contents (howto, input_bfd, input_section,
-			       contents + rel->r_offset);
+			       contents, rel->r_offset);
 	  wrel->r_offset = rel->r_offset;
 	  wrel->r_info = 0;
 	  wrel->r_addend = 0;

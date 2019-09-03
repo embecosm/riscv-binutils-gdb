@@ -1,4 +1,4 @@
-##Copyright (C) 1991-2018 Free Software Foundation, Inc.
+##Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
 # Makefile for GDB documentation.
 # This file is part of GDB.
@@ -182,7 +182,7 @@ HAVE_NATIVE_GCORE_TARGET = @HAVE_NATIVE_GCORE_TARGET@
 
 ###
 
-all:
+all: info
 
 info: $(INFO_DEPS)
 dvi: gdb.dvi stabs.dvi refcard.dvi annotate.dvi

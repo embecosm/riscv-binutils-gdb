@@ -1,6 +1,6 @@
 /* Target-dependent code for DICOS running on x86-64's, for GDB.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,7 +20,7 @@
 #include "defs.h"
 #include "osabi.h"
 #include "amd64-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "dicos-tdep.h"
 
 static void

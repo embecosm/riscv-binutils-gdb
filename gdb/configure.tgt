@@ -48,7 +48,9 @@ amd64_tobjs="amd64-tdep.o arch/amd64.o ${x86_tobjs}"
 
 case "${targ}" in
 aarch64*-*-*)
-	cpu_obs="aarch64-tdep.o arch/aarch64-insn.o arch/aarch64.o";;
+	cpu_obs="aarch32-tdep.o aarch64-tdep.o arch/aarch32.o \
+		 arch/aarch64-insn.o arch/aarch64.o  ravenscar-thread.o \
+		 aarch64-ravenscar-thread.o";;
 
 alpha*-*-*)
 	# Target: Alpha
@@ -61,7 +63,8 @@ arc*-*-*)
 	;;
 
 arm*-*-*)
-	cpu_obs="arch/arm.o arch/arm-get-next-pcs.o arm-tdep.o";;
+	cpu_obs="aarch32-tdep.o arch/aarch32.o arch/arm.o \
+		 arch/arm-get-next-pcs.o arm-tdep.o";;
 
 hppa*-*-*)
 	# Target: HP PA-RISC
@@ -79,6 +82,9 @@ ia64*-*-*)
 	# Target: Intel IA-64
 	cpu_obs="ia64-tdep.o"
 	;;
+
+riscv*-*-*)
+	cpu_obs="riscv-tdep.o arch/riscv.o";;
 
 x86_64-*-*)
 	cpu_obs="${i386_tobjs} ${amd64_tobjs}";;
@@ -180,6 +186,7 @@ arm*-*-symbianelf*)
 	;;
 arm*-*-*)
 	# Target: ARM embedded system
+	gdb_target_obs="arm-pikeos-tdep.o"
 	gdb_sim=../sim/arm/libsim.a
 	;;
 
@@ -204,6 +211,17 @@ bfin-*-*)
 cris*)
 	# Target: CRIS
 	gdb_target_obs="cris-tdep.o cris-linux-tdep.o linux-tdep.o solib-svr4.o"
+	;;
+
+csky*-*-linux*)
+	# Target: CSKY running GNU/Linux
+	gdb_target_obs="csky-tdep.o csky-linux-tdep.o glibc-tdep.o \
+			linux-tdep.o solib-svr4.o"
+	;;
+
+csky*-*-*)
+	# Target: CSKY bare metal
+	gdb_target_obs="csky-tdep.o"
 	;;
 
 frv-*-*)
@@ -455,6 +473,14 @@ nios2*-*-*)
 	gdb_target_obs="nios2-tdep.o"
 	;;
 
+or1k*-*-linux*)
+	# Target: OpenCores OpenRISC 1000 32-bit running Linux
+	gdb_target_obs="or1k-tdep.o or1k-linux-tdep.o solib-svr4.o \
+			symfile-mem.o glibc-tdep.o linux-tdep.o"
+	gdb_sim=../sim/or1k/libsim.a
+	build_gdbserver=yes
+	;;
+
 or1k-*-* | or1knd-*-*)
 	# Target: OpenCores OpenRISC 1000 32-bit implementation bare metal
 	gdb_target_obs="or1k-tdep.o"
@@ -517,15 +543,20 @@ s390*-*-linux*)
 	build_gdbserver=yes
 	;;
 
+riscv*-*-freebsd*)
+	# Target: FreeBSD/riscv
+	gdb_target_obs="riscv-fbsd-tdep.o"
+	;;
+
 riscv*-*-linux*)
 	# Target: Linux/RISC-V
-	gdb_target_obs="riscv-linux-tdep.o riscv-tdep.o glibc-tdep.o \
+	gdb_target_obs="riscv-linux-tdep.o glibc-tdep.o \
  			linux-tdep.o solib-svr4.o symfile-mem.o linux-record.o"
 	;;
 
 riscv*-*-*)
 	# Target: RISC-V architecture
-	gdb_target_obs="riscv-tdep.o"
+	gdb_target_obs=""
 	gdb_sim=../sim/riscv/libsim.a
 	;;
 
@@ -644,6 +675,11 @@ spu*-*-*)
 	build_gdbserver=yes
 	;;
 
+s12z-*-*)
+	# Target: Freescale S12z
+	gdb_target_obs="s12z-tdep.o"
+	;;
+
 tic6x-*-*linux)
 	# Target: GNU/Linux TI C6x
 	gdb_target_obs="tic6x-tdep.o tic6x-linux-tdep.o solib-dsbt.o \
@@ -739,7 +775,7 @@ x86_64-*-openbsd*)
 x86_64-*-rtems*)
 	gdb_target_obs="${amd64_tobjs} ${i386_tobjs} i386-bsd-tdep.o"
 	;;
-xtensa*-*-linux*)
+xtensa*-*-*linux*)
 	# Target: GNU/Linux Xtensa
 	gdb_target_obs="xtensa-linux-tdep.o symfile-mem.o linux-tdep.o"
 	build_gdbserver=yes

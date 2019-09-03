@@ -1,6 +1,6 @@
 /* Target-dependent code for GNU/Linux on s390.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    Contributed by D.J. Barrow (djbarrow@de.ibm.com,barrow_dj@yahoo.com)
    for IBM Deutschland Entwicklung GmbH, IBM Corporation.
@@ -273,21 +273,22 @@ s390_iterate_over_regset_sections (struct gdbarch *gdbarch,
   const int gregset_size = (tdep->abi == ABI_LINUX_S390 ?
 			    s390_sizeof_gregset : s390x_sizeof_gregset);
 
-  cb (".reg", gregset_size, &s390_gregset, NULL, cb_data);
-  cb (".reg2", s390_sizeof_fpregset, &s390_fpregset, NULL, cb_data);
+  cb (".reg", gregset_size, gregset_size, &s390_gregset, NULL, cb_data);
+  cb (".reg2", s390_sizeof_fpregset, s390_sizeof_fpregset, &s390_fpregset, NULL,
+      cb_data);
 
   if (tdep->abi == ABI_LINUX_S390 && tdep->gpr_full_regnum != -1)
-    cb (".reg-s390-high-gprs", 16 * 4, &s390_upper_regset,
+    cb (".reg-s390-high-gprs", 16 * 4, 16 * 4, &s390_upper_regset,
 	"s390 GPR upper halves", cb_data);
 
   if (tdep->have_linux_v1)
-    cb (".reg-s390-last-break", 8,
+    cb (".reg-s390-last-break", 8, 8,
 	(gdbarch_ptr_bit (gdbarch) == 32
 	 ? &s390_last_break_regset : &s390x_last_break_regset),
 	"s390 last-break address", cb_data);
 
   if (tdep->have_linux_v2)
-    cb (".reg-s390-system-call", 4, &s390_system_call_regset,
+    cb (".reg-s390-system-call", 4, 4, &s390_system_call_regset,
 	"s390 system-call", cb_data);
 
   /* If regcache is set, we are in "write" (gcore) mode.  In this
@@ -297,14 +298,14 @@ s390_iterate_over_regset_sections (struct gdbarch *gdbarch,
       && (regcache == NULL
 	  || (REG_VALID
 	      == regcache->get_register_status (S390_TDB_DWORD0_REGNUM))))
-    cb (".reg-s390-tdb", s390_sizeof_tdbregset, &s390_tdb_regset,
-	"s390 TDB", cb_data);
+    cb (".reg-s390-tdb", s390_sizeof_tdbregset, s390_sizeof_tdbregset,
+	&s390_tdb_regset, "s390 TDB", cb_data);
 
   if (tdep->v0_full_regnum != -1)
     {
-      cb (".reg-s390-vxrs-low", 16 * 8, &s390_vxrs_low_regset,
+      cb (".reg-s390-vxrs-low", 16 * 8, 16 * 8, &s390_vxrs_low_regset,
 	  "s390 vector registers 0-15 lower half", cb_data);
-      cb (".reg-s390-vxrs-high", 16 * 16, &s390_vxrs_high_regset,
+      cb (".reg-s390-vxrs-high", 16 * 16, 16 * 16, &s390_vxrs_high_regset,
 	  "s390 vector registers 16-31", cb_data);
     }
 
@@ -314,12 +315,12 @@ s390_iterate_over_regset_sections (struct gdbarch *gdbarch,
     {
       if (regcache == NULL
 	  || REG_VALID == regcache->get_register_status (S390_GSD_REGNUM))
-	cb (".reg-s390-gs-cb", 4 * 8, &s390_gs_regset,
+	cb (".reg-s390-gs-cb", 4 * 8, 4 * 8, &s390_gs_regset,
 	    "s390 guarded-storage registers", cb_data);
 
       if (regcache == NULL
 	  || REG_VALID == regcache->get_register_status (S390_BC_GSD_REGNUM))
-	cb (".reg-s390-gs-bc", 4 * 8, &s390_gsbc_regset,
+	cb (".reg-s390-gs-bc", 4 * 8, 4 * 8, &s390_gsbc_regset,
 	    "s390 guarded-storage broadcast control", cb_data);
     }
 }
@@ -331,10 +332,9 @@ s390_core_read_description (struct gdbarch *gdbarch,
 			    struct target_ops *target, bfd *abfd)
 {
   asection *section = bfd_get_section_by_name (abfd, ".reg");
-  CORE_ADDR hwcap = 0;
+  CORE_ADDR hwcap = linux_get_hwcap (target);
   bool high_gprs, v1, v2, te, vx, gs;
 
-  target_auxv_search (target, AT_HWCAP, &hwcap);
   if (!section)
     return NULL;
 

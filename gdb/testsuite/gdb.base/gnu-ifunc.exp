@@ -1,4 +1,4 @@
-# Copyright (C) 2009-2018 Free Software Foundation, Inc.
+# Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,6 +14,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 if {[skip_shlib_tests]} {
+    return 0
+}
+
+if {[skip_ifunc_tests]} {
     return 0
 }
 
@@ -72,7 +76,7 @@ proc build {resolver_attr resolver_debug final_debug} {
 	lappend final_opts "debug"
     }
 
-    set final_o $final_file-$suffix.o
+    set final_o [standard_output_file $final_file-$suffix.o]
 
     if { [gdb_compile_shlib ${srcdir}/${subdir}/$libsrc \
 	      $lib_so $lib_opts] != ""
@@ -365,9 +369,10 @@ proc misc_tests {resolver_attr resolver_debug final_debug} {
 foreach_with_prefix resolver_attr {0 1} {
     foreach_with_prefix resolver_debug {0 1} {
 	foreach_with_prefix final_debug {0 1} {
-	    build $resolver_attr $resolver_debug $final_debug
-	    misc_tests $resolver_attr $resolver_debug $final_debug
-	    set-break $resolver_attr $resolver_debug $final_debug
+	    if { [build $resolver_attr $resolver_debug $final_debug] != 0 } {
+		misc_tests $resolver_attr $resolver_debug $final_debug
+		set-break $resolver_attr $resolver_debug $final_debug
+	    }
 	}
     }
 }

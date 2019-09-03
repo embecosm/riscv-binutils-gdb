@@ -1,6 +1,6 @@
 /* Native-dependent code for SPARC.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -24,7 +24,7 @@
 
 #include <signal.h>
 #include <sys/ptrace.h>
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #ifdef HAVE_MACHINE_REG_H
 #include <machine/reg.h>
 #endif

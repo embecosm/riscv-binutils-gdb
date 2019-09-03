@@ -1,6 +1,6 @@
 /* Symbol table definitions for GDB.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,11 +23,13 @@
 #include <array>
 #include <vector>
 #include <string>
-#include "gdb_vecs.h"
+#include "gdbsupport/gdb_vecs.h"
 #include "gdbtypes.h"
-#include "common/enum-flags.h"
-#include "common/function-view.h"
-#include "common/gdb_optional.h"
+#include "gdb_regex.h"
+#include "gdbsupport/enum-flags.h"
+#include "gdbsupport/function-view.h"
+#include "gdbsupport/gdb_optional.h"
+#include "gdbsupport/next-iterator.h"
 #include "completer.h"
 
 /* Opaque declarations.  */
@@ -492,10 +494,11 @@ extern void symbol_set_language (struct general_symbol_info *symbol,
 /* Set the linkage and natural names of a symbol, by demangling
    the linkage name.  */
 #define SYMBOL_SET_NAMES(symbol,linkage_name,len,copy_name,objfile)	\
-  symbol_set_names (&(symbol)->ginfo, linkage_name, len, copy_name, objfile)
+  symbol_set_names (&(symbol)->ginfo, linkage_name, len, copy_name, \
+		    (objfile)->per_bfd)
 extern void symbol_set_names (struct general_symbol_info *symbol,
 			      const char *linkage_name, int len, int copy_name,
-			      struct objfile *objfile);
+			      struct objfile_per_bfd_storage *per_bfd);
 
 /* Now come lots of name accessor macros.  Short version as to when to
    use which: Use SYMBOL_NATURAL_NAME to refer to the name of the
@@ -638,16 +641,8 @@ gdb_static_assert (nr_minsym_types <= (1 << MINSYM_TYPE_BITS));
    between names and addresses, and vice versa.  They are also sometimes
    used to figure out what full symbol table entries need to be read in.  */
 
-struct minimal_symbol
+struct minimal_symbol : public general_symbol_info
 {
-
-  /* The general symbol info required for all types of symbols.
-
-     The SYMBOL_VALUE_ADDRESS contains the address that this symbol
-     corresponds to.  */
-
-  struct general_symbol_info mginfo;
-
   /* Size of this symbol.  dbx_end_psymtab in dbxread.c uses this
      information to calculate the end of the partial symtab based on the
      address of the last symbol plus the size of the last symbol.  */
@@ -683,6 +678,14 @@ struct minimal_symbol
      the `next' pointer for the demangled hash table.  */
 
   struct minimal_symbol *demangled_hash_next;
+
+  /* True if this symbol is of some data type.  */
+
+  bool data_p () const;
+
+  /* True if MSYMBOL is of some text type.  */
+
+  bool text_p () const;
 };
 
 #define MSYMBOL_TARGET_FLAG_1(msymbol)  (msymbol)->target_flag_1
@@ -697,42 +700,38 @@ struct minimal_symbol
 #define MSYMBOL_HAS_SIZE(msymbol)	((msymbol)->has_size + 0)
 #define MSYMBOL_TYPE(msymbol)		(msymbol)->type
 
-#define MSYMBOL_VALUE(symbol)		(symbol)->mginfo.value.ivalue
+#define MSYMBOL_VALUE(symbol)		(symbol)->value.ivalue
 /* The unrelocated address of the minimal symbol.  */
-#define MSYMBOL_VALUE_RAW_ADDRESS(symbol) ((symbol)->mginfo.value.address + 0)
+#define MSYMBOL_VALUE_RAW_ADDRESS(symbol) ((symbol)->value.address + 0)
 /* The relocated address of the minimal symbol, using the section
    offsets from OBJFILE.  */
 #define MSYMBOL_VALUE_ADDRESS(objfile, symbol)				\
-  ((symbol)->mginfo.value.address					\
-   + ANOFFSET ((objfile)->section_offsets, ((symbol)->mginfo.section)))
+  ((symbol)->value.address					\
+   + ANOFFSET ((objfile)->section_offsets, ((symbol)->section)))
 /* For a bound minsym, we can easily compute the address directly.  */
 #define BMSYMBOL_VALUE_ADDRESS(symbol) \
   MSYMBOL_VALUE_ADDRESS ((symbol).objfile, (symbol).minsym)
 #define SET_MSYMBOL_VALUE_ADDRESS(symbol, new_value)	\
-  ((symbol)->mginfo.value.address = (new_value))
-#define MSYMBOL_VALUE_BYTES(symbol)	(symbol)->mginfo.value.bytes
-#define MSYMBOL_BLOCK_VALUE(symbol)	(symbol)->mginfo.value.block
-#define MSYMBOL_VALUE_CHAIN(symbol)	(symbol)->mginfo.value.chain
-#define MSYMBOL_LANGUAGE(symbol)	(symbol)->mginfo.language
-#define MSYMBOL_SECTION(symbol)		(symbol)->mginfo.section
+  ((symbol)->value.address = (new_value))
+#define MSYMBOL_VALUE_BYTES(symbol)	(symbol)->value.bytes
+#define MSYMBOL_BLOCK_VALUE(symbol)	(symbol)->value.block
+#define MSYMBOL_VALUE_CHAIN(symbol)	(symbol)->value.chain
+#define MSYMBOL_LANGUAGE(symbol)	(symbol)->language
+#define MSYMBOL_SECTION(symbol)		(symbol)->section
 #define MSYMBOL_OBJ_SECTION(objfile, symbol)			\
-  (((symbol)->mginfo.section >= 0)				\
-   ? (&(((objfile)->sections)[(symbol)->mginfo.section]))	\
+  (((symbol)->section >= 0)				\
+   ? (&(((objfile)->sections)[(symbol)->section]))	\
    : NULL)
 
 #define MSYMBOL_NATURAL_NAME(symbol) \
-  (symbol_natural_name (&(symbol)->mginfo))
-#define MSYMBOL_LINKAGE_NAME(symbol)	(symbol)->mginfo.name
+  (symbol_natural_name (symbol))
+#define MSYMBOL_LINKAGE_NAME(symbol)	(symbol)->name
 #define MSYMBOL_PRINT_NAME(symbol)					\
   (demangle ? MSYMBOL_NATURAL_NAME (symbol) : MSYMBOL_LINKAGE_NAME (symbol))
 #define MSYMBOL_DEMANGLED_NAME(symbol) \
-  (symbol_demangled_name (&(symbol)->mginfo))
-#define MSYMBOL_SET_LANGUAGE(symbol,language,obstack)	\
-  (symbol_set_language (&(symbol)->mginfo, (language), (obstack)))
+  (symbol_demangled_name (symbol))
 #define MSYMBOL_SEARCH_NAME(symbol)					 \
-   (symbol_search_name (&(symbol)->mginfo))
-#define MSYMBOL_SET_NAMES(symbol,linkage_name,len,copy_name,objfile)	\
-  symbol_set_names (&(symbol)->mginfo, linkage_name, len, copy_name, objfile)
+   (symbol_search_name (symbol))
 
 #include "minsyms.h"
 
@@ -983,7 +982,7 @@ struct symbol_computed_ops
      The generated C code must assign the location to a local
      variable; this variable's name is RESULT_NAME.  */
 
-  void (*generate_c_location) (struct symbol *symbol, string_file &stream,
+  void (*generate_c_location) (struct symbol *symbol, string_file *stream,
 			       struct gdbarch *gdbarch,
 			       unsigned char *registers_used,
 			       CORE_ADDR pc, const char *result_name);
@@ -1160,10 +1159,6 @@ struct block_symbol
 
 extern const struct symbol_impl *symbol_impls;
 
-/* For convenience.  All fields are NULL.  This means "there is no
-   symbol".  */
-extern const struct block_symbol null_block_symbol;
-
 /* Note: There is no accessor macro for symbol.owner because it is
    "private".  */
 
@@ -1326,16 +1321,6 @@ struct symtab
 
   const char *filename;
 
-  /* Total number of lines found in source file.  */
-
-  int nlines;
-
-  /* line_charpos[N] is the position of the (N-1)th line of the
-     source file.  "position" means something we can lseek() to; it
-     is not guaranteed to be useful any other way.  */
-
-  int *line_charpos;
-
   /* Language of this source file.  */
 
   enum language language;
@@ -1356,9 +1341,6 @@ struct symtab
 #define SYMTAB_PSPACE(symtab) (SYMTAB_OBJFILE (symtab)->pspace)
 #define SYMTAB_DIRNAME(symtab) \
   COMPUNIT_DIRNAME (SYMTAB_COMPUNIT (symtab))
-
-typedef struct symtab *symtab_ptr;
-DEF_VEC_P (symtab_ptr);
 
 /* Compunit symtabs contain the actual "symbol table", aka blockvector, as well
    as the list of all source files (what gdb has historically associated with
@@ -1487,10 +1469,16 @@ struct compunit_symtab
 #define COMPUNIT_CALL_SITE_HTAB(cust) ((cust)->call_site_htab)
 #define COMPUNIT_MACRO_TABLE(cust) ((cust)->macro_table)
 
-/* Iterate over all file tables (struct symtab) within a compunit.  */
+/* A range adapter to allowing iterating over all the file tables
+   within a compunit.  */
 
-#define ALL_COMPUNIT_FILETABS(cu, s) \
-  for ((s) = (cu) -> filetabs; (s) != NULL; (s) = (s) -> next)
+struct compunit_filetabs : public next_adapter<struct symtab>
+{
+  compunit_filetabs (struct compunit_symtab *cu)
+    : next_adapter<struct symtab> (cu->filetabs)
+  {
+  }
+};
 
 /* Return the primary symtab of CUST.  */
 
@@ -1500,9 +1488,6 @@ extern struct symtab *
 /* Return the language of CUST.  */
 
 extern enum language compunit_language (const struct compunit_symtab *cust);
-
-typedef struct compunit_symtab *compunit_symtab_ptr;
-DEF_VEC_P (compunit_symtab_ptr);
 
 
 
@@ -1694,10 +1679,61 @@ extern struct symbol *find_pc_sect_containing_function
 
 extern struct symbol *find_symbol_at_address (CORE_ADDR);
 
-/* lookup function from address, return name, start addr and end addr.  */
+/* Finds the "function" (text symbol) that is smaller than PC but
+   greatest of all of the potential text symbols in SECTION.  Sets
+   *NAME and/or *ADDRESS conditionally if that pointer is non-null.
+   If ENDADDR is non-null, then set *ENDADDR to be the end of the
+   function (exclusive).  If the optional parameter BLOCK is non-null,
+   then set *BLOCK to the address of the block corresponding to the
+   function symbol, if such a symbol could be found during the lookup;
+   nullptr is used as a return value for *BLOCK if no block is found. 
+   This function either succeeds or fails (not halfway succeeds).  If
+   it succeeds, it sets *NAME, *ADDRESS, and *ENDADDR to real
+   information and returns 1.  If it fails, it sets *NAME, *ADDRESS
+   and *ENDADDR to zero and returns 0.
+   
+   If the function in question occupies non-contiguous ranges,
+   *ADDRESS and *ENDADDR are (subject to the conditions noted above) set
+   to the start and end of the range in which PC is found.  Thus
+   *ADDRESS <= PC < *ENDADDR with no intervening gaps (in which ranges
+   from other functions might be found).
+   
+   This property allows find_pc_partial_function to be used (as it had
+   been prior to the introduction of non-contiguous range support) by
+   various tdep files for finding a start address and limit address
+   for prologue analysis.  This still isn't ideal, however, because we
+   probably shouldn't be doing prologue analysis (in which
+   instructions are scanned to determine frame size and stack layout)
+   for any range that doesn't contain the entry pc.  Moreover, a good
+   argument can be made that prologue analysis ought to be performed
+   starting from the entry pc even when PC is within some other range.
+   This might suggest that *ADDRESS and *ENDADDR ought to be set to the
+   limits of the entry pc range, but that will cause the 
+   *ADDRESS <= PC < *ENDADDR condition to be violated; many of the
+   callers of find_pc_partial_function expect this condition to hold. 
 
-extern int find_pc_partial_function (CORE_ADDR, const char **, CORE_ADDR *,
-				     CORE_ADDR *);
+   Callers which require the start and/or end addresses for the range
+   containing the entry pc should instead call
+   find_function_entry_range_from_pc.  */
+
+extern int find_pc_partial_function (CORE_ADDR pc, const char **name,
+				     CORE_ADDR *address, CORE_ADDR *endaddr,
+				     const struct block **block = nullptr);
+
+/* Like find_pc_partial_function, above, but *ADDRESS and *ENDADDR are
+   set to start and end addresses of the range containing the entry pc.
+
+   Note that it is not necessarily the case that (for non-NULL ADDRESS
+   and ENDADDR arguments) the *ADDRESS <= PC < *ENDADDR condition will
+   hold.
+
+   See comment for find_pc_partial_function, above, for further
+   explanation.  */
+
+extern bool find_function_entry_range_from_pc (CORE_ADDR pc,
+					       const char **name,
+					       CORE_ADDR *address,
+					       CORE_ADDR *endaddr);
 
 /* Return the type of a function with its first instruction exactly at
    the PC address.  Return NULL otherwise.  */
@@ -1835,30 +1871,6 @@ extern void resolve_sal_pc (struct symtab_and_line *);
 /* solib.c */
 
 extern void clear_solib (void);
-
-/* source.c */
-
-extern int identify_source_line (struct symtab *, int, int, CORE_ADDR);
-
-/* Flags passed as 4th argument to print_source_lines.  */
-
-enum print_source_lines_flag
-  {
-    /* Do not print an error message.  */
-    PRINT_SOURCE_LINES_NOERROR = (1 << 0),
-
-    /* Print the filename in front of the source lines.  */
-    PRINT_SOURCE_LINES_FILENAME = (1 << 1)
-  };
-DEF_ENUM_FLAGS_TYPE (enum print_source_lines_flag, print_source_lines_flags);
-
-extern void print_source_lines (struct symtab *, int, int,
-				print_source_lines_flags);
-
-extern void forget_cached_source_info_for_objfile (struct objfile *);
-extern void forget_cached_source_info (void);
-
-extern void select_source_symtab (struct symtab *);
 
 /* The reason we're calling into a completion match list collector
    function.  */
@@ -2012,23 +2024,28 @@ private:
 };
 
 extern std::vector<symbol_search> search_symbols (const char *,
-						  enum search_domain, int,
-						  const char **);
+						  enum search_domain,
+						  const char *,
+						  int,
+						  const char **,
+						  bool);
+extern bool treg_matches_sym_type_name (const compiled_regex &treg,
+					const struct symbol *sym);
 
-/* The name of the ``main'' function.
-   FIXME: cagney/2001-03-20: Can't make main_name() const since some
-   of the calling code currently assumes that the string isn't
-   const.  */
-extern /*const */ char *main_name (void);
+/* The name of the ``main'' function.  */
+extern const char *main_name ();
 extern enum language main_language (void);
 
-/* Lookup symbol NAME from DOMAIN in MAIN_OBJFILE's global blocks.
+/* Lookup symbol NAME from DOMAIN in MAIN_OBJFILE's global or static blocks,
+   as specified by BLOCK_INDEX.
    This searches MAIN_OBJFILE as well as any associated separate debug info
    objfiles of MAIN_OBJFILE.
+   BLOCK_INDEX can be GLOBAL_BLOCK or STATIC_BLOCK.
    Upon success fixes up the symbol's section if necessary.  */
 
 extern struct block_symbol
   lookup_global_symbol_from_objfile (struct objfile *main_objfile,
+				     enum block_enum block_index,
 				     const char *name,
 				     const domain_enum domain);
 
@@ -2073,7 +2090,7 @@ std::vector<CORE_ADDR> find_pcs_for_symtab_line
    true to indicate that LA_ITERATE_OVER_SYMBOLS should continue
    iterating, or false to indicate that the iteration should end.  */
 
-typedef bool (symbol_found_callback_ftype) (symbol *sym);
+typedef bool (symbol_found_callback_ftype) (struct block_symbol *bsym);
 
 void iterate_over_symbols (const struct block *block,
 			   const lookup_name_info &name,
@@ -2133,5 +2150,48 @@ void completion_list_add_name (completion_tracker &tracker,
 			       const char *symname,
 			       const lookup_name_info &lookup_name,
 			       const char *text, const char *word);
+
+/* A simple symbol searching class.  */
+
+class symbol_searcher
+{
+public:
+  /* Returns the symbols found for the search.  */
+  const std::vector<block_symbol> &
+  matching_symbols () const
+  {
+    return m_symbols;
+  }
+
+  /* Returns the minimal symbols found for the search.  */
+  const std::vector<bound_minimal_symbol> &
+  matching_msymbols () const
+  {
+    return m_minimal_symbols;
+  }
+
+  /* Search for all symbols named NAME in LANGUAGE with DOMAIN, restricting
+     search to FILE_SYMTABS and SEARCH_PSPACE, both of which may be NULL
+     to search all symtabs and program spaces.  */
+  void find_all_symbols (const std::string &name,
+			 const struct language_defn *language,
+			 enum search_domain search_domain,
+			 std::vector<symtab *> *search_symtabs,
+			 struct program_space *search_pspace);
+
+  /* Reset this object to perform another search.  */
+  void reset ()
+  {
+    m_symbols.clear ();
+    m_minimal_symbols.clear ();
+  }
+
+private:
+  /* Matching debug symbols.  */
+  std::vector<block_symbol>  m_symbols;
+
+  /* Matching non-debug symbols.  */
+  std::vector<bound_minimal_symbol> m_minimal_symbols;
+};
 
 #endif /* !defined(SYMTAB_H) */

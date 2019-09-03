@@ -1,6 +1,6 @@
 /* tc-msp430.c -- Assembler code for the Texas Instruments MSP430
 
-  Copyright (C) 2002-2018 Free Software Foundation, Inc.
+  Copyright (C) 2002-2019 Free Software Foundation, Inc.
   Contributed by Dmitry Diky <diwil@mail.ru>
 
   This file is part of GAS, the GNU Assembler.
@@ -209,9 +209,9 @@ static struct hash_control *msp430_hash;
 #define CEBL	4
 
 /* Length.  */
-#define STATE_BITS10	1	/* wild guess. short jump */
-#define STATE_WORD	2	/* 2 bytes pc rel. addr. more */
-#define STATE_UNDEF	3	/* cannot handle this yet. convert to word mode */
+#define STATE_BITS10	1	/* Wild guess. short jump.  */
+#define STATE_WORD	2	/* 2 bytes pc rel. addr. more.  */
+#define STATE_UNDEF	3	/* Cannot handle this yet. convert to word mode.  */
 
 #define ENCODE_RELAX(what,length) (((what) << 2) + (length))
 #define RELAX_STATE(s)            ((s) & 3)
@@ -415,6 +415,7 @@ parse_exp (char * s, expressionS * op)
   expression (op);
   if (op->X_op == O_absent)
     as_bad (_("missing operand"));
+
   /* Our caller is likely to check that the entire expression was parsed.
      If we have found a hex constant with an 'h' suffix, ilp will be left
      pointing at the 'h', so skip it here.  */
@@ -680,6 +681,9 @@ static bfd_boolean gen_interrupt_nops = FALSE;
 #define OPTION_WARN_INTR_NOPS 'y'
 #define OPTION_NO_WARN_INTR_NOPS 'Y'
 static bfd_boolean warn_interrupt_nops = TRUE;
+#define OPTION_UNKNOWN_INTR_NOPS 'u'
+#define OPTION_NO_UNKNOWN_INTR_NOPS 'U'
+static bfd_boolean do_unknown_interrupt_nops = TRUE;
 #define OPTION_MCPU 'c'
 #define OPTION_MOVE_DATA 'd'
 static bfd_boolean move_data = FALSE;
@@ -1454,6 +1458,13 @@ md_parse_option (int c, const char * arg)
       warn_interrupt_nops = FALSE;
       return 1;
 
+    case OPTION_UNKNOWN_INTR_NOPS:
+      do_unknown_interrupt_nops = TRUE;
+      return 1;
+    case OPTION_NO_UNKNOWN_INTR_NOPS:
+      do_unknown_interrupt_nops = FALSE;
+      return 1;
+
     case OPTION_MOVE_DATA:
       move_data = TRUE;
       return 1;
@@ -1484,13 +1495,16 @@ static void
 msp430_make_init_symbols (const char * name)
 {
   if (strncmp (name, ".bss", 4) == 0
+      || strncmp (name, ".lower.bss", 10) == 0
+      || strncmp (name, ".either.bss", 11) == 0
       || strncmp (name, ".gnu.linkonce.b.", 16) == 0)
     (void) symbol_find_or_make ("__crt0_init_bss");
 
   if (strncmp (name, ".data", 5) == 0
+      || strncmp (name, ".lower.data", 11) == 0
+      || strncmp (name, ".either.data", 12) == 0
       || strncmp (name, ".gnu.linkonce.d.", 16) == 0)
     (void) symbol_find_or_make ("__crt0_movedata");
-
   /* Note - data assigned to the .either.data section may end up being
      placed in the .upper.data section if the .lower.data section is
      full.  Hence the need to define the crt0 symbol.
@@ -1507,6 +1521,32 @@ msp430_make_init_symbols (const char * name)
       || strncmp (name, ".either.bss", 11) == 0
       || upper_data_region_in_use)
     (void) symbol_find_or_make ("__crt0_init_highbss");
+
+  /* The following symbols are for the crt0 functions that run through
+     the different .*_array sections and call the functions placed there.
+     - init_array stores global static C++ constructors to run before main.
+     - preinit_array is not expected to ever be used for MSP430.
+     GCC only places initialization functions for runtime "sanitizers"
+     (i.e. {a,l,t,u}san) and "virtual table verification" in preinit_array.
+     - fini_array stores global static C++ destructors to run after calling
+     exit() or returning from main.
+     __crt0_run_array is required to actually call the functions in the above
+     arrays.  */
+  if (strncmp (name, ".init_array", 11) == 0)
+    {
+      (void) symbol_find_or_make ("__crt0_run_init_array");
+      (void) symbol_find_or_make ("__crt0_run_array");
+    }
+  else if (strncmp (name, ".preinit_array", 14) == 0)
+    {
+      (void) symbol_find_or_make ("__crt0_run_preinit_array");
+      (void) symbol_find_or_make ("__crt0_run_array");
+    }
+  else if (strncmp (name, ".fini_array", 11) == 0)
+    {
+      (void) symbol_find_or_make ("__crt0_run_fini_array");
+      (void) symbol_find_or_make ("__crt0_run_array");
+    }
 }
 
 static void
@@ -1574,7 +1614,7 @@ const pseudo_typeS md_pseudo_table[] =
   {NULL, NULL, 0}
 };
 
-const char *md_shortopts = "mm:,mP,mQ,ml,mN,mn,my,mY";
+const char *md_shortopts = "mm:,mP,mQ,ml,mN,mn,my,mY,mu,mU";
 
 struct option md_longopts[] =
 {
@@ -1589,6 +1629,8 @@ struct option md_longopts[] =
   {"mn", no_argument, NULL, OPTION_INTR_NOPS},
   {"mY", no_argument, NULL, OPTION_NO_WARN_INTR_NOPS},
   {"my", no_argument, NULL, OPTION_WARN_INTR_NOPS},
+  {"mu", no_argument, NULL, OPTION_UNKNOWN_INTR_NOPS},
+  {"mU", no_argument, NULL, OPTION_NO_UNKNOWN_INTR_NOPS},
   {"md", no_argument, NULL, OPTION_MOVE_DATA},
   {"mdata-region", required_argument, NULL, OPTION_DATA_REGION},
   {NULL, no_argument, NULL, 0}
@@ -1620,6 +1662,13 @@ md_show_usage (FILE * stream)
 	   _("  -mY - do not warn about missing NOPs after changing interrupts\n"));
   fprintf (stream,
 	   _("  -my - warn about missing NOPs after changing interrupts (default)\n"));
+  fprintf (stream,
+	   _("  -mU - for an instruction which changes interrupt state, but where it is not\n"
+	     "        known how the state is changed, do not warn/insert NOPs\n"));
+  fprintf (stream,
+	   _("  -mu - for an instruction which changes interrupt state, but where it is not\n"
+	     "        known how the state is changed, warn/insert NOPs (default)\n"
+	     "        -mn and/or -my are required for this to have any effect\n"));
   fprintf (stream,
 	   _("  -md - Force copying of data from ROM to RAM at startup\n"));
   fprintf (stream,
@@ -1981,8 +2030,8 @@ msp430_srcoperand (struct msp430_operand_s * op,
     {
       char *h = l;
 
-      op->reg = 2;		/* reg 2 in absolute addr mode.  */
-      op->am = 1;		/* mode As == 01 bin.  */
+      op->reg = 2;		/* Reg 2 in absolute addr mode.  */
+      op->am = 1;		/* Mode As == 01 bin.  */
       op->ol = 1;		/* Immediate value followed by instruction.  */
       __tl = h + 1;
       end = parse_exp (__tl, &(op->exp));
@@ -2495,6 +2544,90 @@ static signed int check_for_nop = 0;
 
 #define is_opcode(NAME) (strcmp (opcode->name, NAME) == 0)
 
+/* is_{e,d}int only check the explicit enabling/disabling of interrupts.
+   For MOV insns, more sophisticated processing is needed to determine if they
+   result in enabling/disabling interrupts.  */
+#define is_dint(OPCODE, BIN) ((strcmp (OPCODE, "dint") == 0) \
+				   || ((strcmp (OPCODE, "bic") == 0) \
+				       && BIN == 0xc232) \
+				   || ((strcmp (OPCODE, "clr") == 0) \
+				       && BIN == 0x4302))
+
+#define is_eint(OPCODE, BIN) ((strcmp (OPCODE, "eint") == 0) \
+				   || ((strcmp (OPCODE, "bis") == 0) \
+				       && BIN == 0xd232))
+
+const char * const INSERT_NOP_BEFORE_EINT = "NOP inserted here, before an interrupt enable instruction";
+const char * const INSERT_NOP_AFTER_DINT = "NOP inserted here, after an interrupt disable instruction";
+const char * const INSERT_NOP_AFTER_EINT = "NOP inserted here, after an interrupt enable instruction";
+const char * const INSERT_NOP_BEFORE_UNKNOWN = "NOP inserted here, before this interrupt state change";
+const char * const INSERT_NOP_AFTER_UNKNOWN ="NOP inserted here, after the instruction that changed interrupt state";
+const char * const INSERT_NOP_AT_EOF = "NOP inserted after the interrupt state change at the end of the file";
+
+const char * const WARN_NOP_BEFORE_EINT = "a NOP might be needed here, before an interrupt enable instruction";
+const char * const WARN_NOP_AFTER_DINT = "a NOP might be needed here, after an interrupt disable instruction";
+const char * const WARN_NOP_AFTER_EINT = "a NOP might be needed here, after an interrupt enable instruction";
+const char * const WARN_NOP_BEFORE_UNKNOWN = "a NOP might be needed here, before this interrupt state change";
+const char * const WARN_NOP_AFTER_UNKNOWN = "a NOP might also be needed here, after the instruction that changed interrupt state";
+const char * const WARN_NOP_AT_EOF = "a NOP might be needed after the interrupt state change at the end of the file";
+
+static void
+gen_nop (void)
+{
+  char *frag;
+  frag = frag_more (2);
+  bfd_putl16 ((bfd_vma) 0x4303 /* NOP */, frag);
+  dwarf2_emit_insn (2);
+}
+
+/* Insert/inform about adding a NOP if this insn enables interrupts.  */
+
+static void
+warn_eint_nop (bfd_boolean prev_insn_is_nop, bfd_boolean prev_insn_is_dint)
+{
+  if (prev_insn_is_nop
+      /* If the last insn was a DINT, we will have already warned that a NOP is
+	 required after it.  */
+      || prev_insn_is_dint
+      /* 430 ISA does not require a NOP before EINT.  */
+      || (! target_is_430x ()))
+    return;
+
+  if (gen_interrupt_nops)
+    {
+      gen_nop ();
+      if (warn_interrupt_nops)
+	as_warn (_(INSERT_NOP_BEFORE_EINT));
+    }
+  else if (warn_interrupt_nops)
+    as_warn (_(WARN_NOP_BEFORE_EINT));
+}
+
+/* Use when unsure what effect the insn will have on the interrupt status,
+   to insert/warn about adding a NOP before the current insn.  */
+
+static void
+warn_unsure_interrupt (bfd_boolean prev_insn_is_nop,
+		       bfd_boolean prev_insn_is_dint)
+{
+  if (prev_insn_is_nop
+      /* If the last insn was a DINT, we will have already warned that a NOP is
+	 required after it.  */
+      || prev_insn_is_dint
+      /* 430 ISA does not require a NOP before EINT or DINT.  */
+      || (! target_is_430x ()))
+    return;
+
+  if (gen_interrupt_nops)
+    {
+      gen_nop ();
+      if (warn_interrupt_nops)
+	as_warn (_(INSERT_NOP_BEFORE_UNKNOWN));
+    }
+  else if (warn_interrupt_nops)
+    as_warn (_(WARN_NOP_BEFORE_UNKNOWN));
+}
+
 /* Parse instruction operands.
    Return binary opcode.  */
 
@@ -2519,6 +2652,12 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
   const char * error_message;
   static signed int repeat_count = 0;
   static bfd_boolean prev_insn_is_nop = FALSE;
+  static bfd_boolean prev_insn_is_dint = FALSE;
+  static bfd_boolean prev_insn_is_eint = FALSE;
+  /* We might decide before the end of the function that the current insn is
+     equivalent to DINT/EINT.  */
+  bfd_boolean this_insn_is_dint = FALSE;
+  bfd_boolean this_insn_is_eint = FALSE;
   bfd_boolean fix_emitted;
 
   /* Opcode is the one from opcodes table
@@ -2654,29 +2793,69 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
       repeat_count = 0;
     }
 
+  /* The previous instruction set this flag if it wants to check if this insn
+     is a NOP.  */
   if (check_for_nop)
     {
       if (! is_opcode ("nop"))
 	{
-	  bfd_boolean doit = FALSE;
-
 	  do
 	    {
 	      switch (check_for_nop & - check_for_nop)
 		{
 		case NOP_CHECK_INTERRUPT:
-		  if (warn_interrupt_nops)
+		  /* NOP_CHECK_INTERRUPT rules:
+		     1.  430 and 430x ISA require a NOP after DINT.
+		     2.  Only the 430x ISA requires NOP before EINT (this has
+			been dealt with in the previous call to this function).
+		     3.  Only the 430x ISA requires NOP after every EINT.
+			CPU42 errata.  */
+		  if (gen_interrupt_nops || warn_interrupt_nops)
 		    {
-		      if (gen_interrupt_nops)
-			as_warn (_("NOP inserted between two instructions that change interrupt state"));
+		      if (prev_insn_is_dint)
+			{
+			  if (gen_interrupt_nops)
+			    {
+			      gen_nop ();
+			      if (warn_interrupt_nops)
+				as_warn (_(INSERT_NOP_AFTER_DINT));
+			    }
+			  else
+			    as_warn (_(WARN_NOP_AFTER_DINT));
+			}
+		      else if (prev_insn_is_eint)
+			{
+			  if (gen_interrupt_nops)
+			    {
+			      gen_nop ();
+			      if (warn_interrupt_nops)
+				as_warn (_(INSERT_NOP_AFTER_EINT));
+			    }
+			  else
+			    as_warn (_(WARN_NOP_AFTER_EINT));
+			}
+		      /* If we get here it's because the last instruction was
+			 determined to either disable or enable interrupts, but
+			 we're not sure which.
+			 We have no information yet about what effect the
+			 current instruction has on interrupts, that has to be
+			 sorted out later.
+			 The last insn may have required a NOP after it, so we
+			 deal with that now.  */
 		      else
-			as_warn (_("a NOP might be needed here because of successive changes in interrupt state"));
+			{
+			  if (gen_interrupt_nops)
+			    {
+			      gen_nop ();
+			      if (warn_interrupt_nops)
+				as_warn (_(INSERT_NOP_AFTER_UNKNOWN));
+			    }
+			  else
+			    /* warn_unsure_interrupt was called on the previous
+			       insn.  */
+			    as_warn (_(WARN_NOP_AFTER_UNKNOWN));
+			}
 		    }
-
-		  if (gen_interrupt_nops)
-		    /* Emit a NOP between interrupt enable/disable.
-		       See 1.3.4.1 of the MSP430x5xx User Guide.  */
-		    doit = TRUE;
 		  break;
 
 		case NOP_CHECK_CPU12:
@@ -2684,7 +2863,7 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 		    as_warn (_("CPU12: CMP/BIT with PC destination ignores next instruction"));
 
 		  if (silicon_errata_fix & SILICON_ERRATA_CPU12)
-		    doit = TRUE;
+		    gen_nop ();
 		  break;
 
 		case NOP_CHECK_CPU19:
@@ -2692,7 +2871,7 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 		    as_warn (_("CPU19: Instruction setting CPUOFF must be followed by a NOP"));
 
 		  if (silicon_errata_fix & SILICON_ERRATA_CPU19)
-		    doit = TRUE;
+		    gen_nop ();
 		  break;
 		  
 		default:
@@ -2702,43 +2881,19 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 	      check_for_nop &= ~ (check_for_nop & - check_for_nop);
 	    }
 	  while (check_for_nop);
-	  
-	  if (doit)
-	    {
-	      frag = frag_more (2);
-	      bfd_putl16 ((bfd_vma) 0x4303 /* NOP */, frag);
-	      dwarf2_emit_insn (2);
-	    }
 	}
-
       check_for_nop = 0;
     }
 
   switch (fmt)
     {
-    case 0:			/* Emulated.  */
+    case 0:
+      /* Emulated.  */
       switch (opcode->insn_opnumb)
 	{
 	case 0:
 	  if (is_opcode ("eint"))
-	    {
-	      if (! prev_insn_is_nop)
-		{
-		  if (gen_interrupt_nops)
-		    {
-		      frag = frag_more (2);
-		      bfd_putl16 ((bfd_vma) 0x4303 /* NOP */, frag);
-		      dwarf2_emit_insn (2);
-
-		      if (warn_interrupt_nops)
-			as_warn (_("inserting a NOP before EINT"));
-		    }
-		  else if (warn_interrupt_nops)
-		    as_warn (_("a NOP might be needed before the EINT"));
-		}
-	    }
-	  else if (is_opcode ("dint"))
-	    check_for_nop |= NOP_CHECK_INTERRUPT;
+	    warn_eint_nop (prev_insn_is_nop, prev_insn_is_dint);
 
 	  /* Set/clear bits instructions.  */
 	  if (extended_op)
@@ -2796,9 +2951,6 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 		as_warn (_("CPU13: SR is destination of SR altering instruction"));
 	    }
 	  
-	  if (is_opcode ("clr") && bin == 0x4302 /* CLR R2*/)
-	    check_for_nop |= NOP_CHECK_INTERRUPT;
-
 	  /* Compute the entire instruction length, in bytes.  */
 	  op_length = (extended_op ? 2 : 0) + 2 + (op1.ol * 2);
 	  insn_length += op_length;
@@ -2896,6 +3048,8 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 	      /* ... and the opcode alters the SR.  */
 	      && (is_opcode ("rla") || is_opcode ("rlc")
 		  || is_opcode ("rlax") || is_opcode ("rlcx")
+		  || is_opcode ("sxt") || is_opcode ("sxtx")
+		  || is_opcode ("swpb")
 		  ))
 	    {
 	      if (silicon_errata_fix & SILICON_ERRATA_CPU13)
@@ -3447,6 +3601,12 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 	}
       break;
 
+      /* FIXME: Emit warning when dest reg SR(R2) is addressed with .B or .A.
+	 From f5 ref man 6.3.3:
+	   The 16-bit Status Register (SR, also called R2), used as a source or
+	   destination register, can only be used in register mode addressed
+	   with word instructions.  */
+
     case 1:			/* Format 1, double operand.  */
       line = extract_operand (line, l1, sizeof (l1));
       line = extract_operand (line, l2, sizeof (l2));
@@ -3501,20 +3661,9 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 	  else if (silicon_errata_warn & SILICON_ERRATA_CPU13)
 	    as_warn (_("CPU13: SR is destination of SR altering instruction"));
 	}
-	  
-      if (   (is_opcode ("bic") && bin == 0xc232)
-	  || (is_opcode ("bis") && bin == 0xd232)
-	  || (is_opcode ("mov") && op2.mode == OP_REG && op2.reg == 2))
-	{
-	  /* Avoid false checks when a constant value is being put into the SR.  */
-	  if (op1.mode == OP_EXP
-	      && op1.exp.X_op == O_constant
-	      && (op1.exp.X_add_number & 0x8) != 0x8)
-	    ;
-	  else
-	    check_for_nop |= NOP_CHECK_INTERRUPT;
-	}
 
+      /* Chain these checks for SR manipulations so we can warn if they are not
+	 caught.  */
       if (((is_opcode ("bis") && bin == 0xd032)
 	   || (is_opcode ("mov") && bin == 0x4032)
 	   || (is_opcode ("xor") && bin == 0xe032))
@@ -3522,6 +3671,60 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
 	  && op1.exp.X_op == O_constant
 	  && (op1.exp.X_add_number & 0x10) == 0x10)
 	check_for_nop |= NOP_CHECK_CPU19;
+      else if ((is_opcode ("mov") && op2.mode == OP_REG && op2.reg == 2))
+	{
+	  /* Any MOV with the SR as the destination either enables or disables
+	     interrupts.  */
+	  if (op1.mode == OP_EXP
+	      && op1.exp.X_op == O_constant)
+	    {
+	      if ((op1.exp.X_add_number & 0x8) == 0x8)
+		{
+		  /* The GIE bit is being set.  */
+		  warn_eint_nop (prev_insn_is_nop, prev_insn_is_dint);
+		  this_insn_is_eint = TRUE;
+		}
+	      else
+		/* The GIE bit is being cleared.  */
+		this_insn_is_dint = TRUE;
+	    }
+	  /* If an immediate value which is covered by the constant generator
+	     is the src, then op1 will have been changed to either R2 or R3 by
+	     this point.
+	     The only constants covered by CG1 and CG2, which have bit 3 set
+	     and therefore would enable interrupts when writing to the SR, are
+	     R2 with addresing mode 0b11 and R3 with 0b11.
+	     The addressing mode is in bits 5:4 of the binary opcode.  */
+	  else if (op1.mode == OP_REG
+		   && (op1.reg == 2 || op1.reg == 3)
+		   && (bin & 0x30) == 0x30)
+	    {
+	      warn_eint_nop (prev_insn_is_nop, prev_insn_is_dint);
+	      this_insn_is_eint = TRUE;
+	    }
+	  /* Any other use of the constant generator with destination R2, will
+	     disable interrupts.  */
+	  else if (op1.mode == OP_REG
+		   && (op1.reg == 2 || op1.reg == 3))
+	    this_insn_is_dint = TRUE;
+	  else if (do_unknown_interrupt_nops)
+	    {
+	      /* FIXME: Couldn't work out whether the insn is enabling or
+		 disabling interrupts, so for safety need to treat it as both
+		 a DINT and EINT.  */
+	      warn_unsure_interrupt (prev_insn_is_nop, prev_insn_is_dint);
+	      check_for_nop |= NOP_CHECK_INTERRUPT;
+	    }
+	}
+      else if (is_eint (opcode->name, bin))
+	warn_eint_nop (prev_insn_is_nop, prev_insn_is_dint);
+      else if ((bin & 0x32) == 0x32)
+	{
+	  /* Double-operand insn with the As==0b11 and Rdst==0x2 will result in
+	   * an interrupt state change if a write happens.  */
+	  /* FIXME: How strict to be here? */
+	  ;
+	}
 
       /* Compute the entire length of the instruction in bytes.  */
       op_length = (extended_op ? 2 : 0)	/* The extension word.  */
@@ -3959,11 +4162,34 @@ msp430_operands (struct msp430_opcode_s * opcode, char * line)
       as_bad (_("Illegal instruction or not implemented opcode."));
     }
 
-  if (is_opcode ("nop"))
-    prev_insn_is_nop = TRUE;
-  else
-    prev_insn_is_nop = FALSE;
-	    
+    if (is_opcode ("nop"))
+      {
+	prev_insn_is_nop = TRUE;
+	prev_insn_is_dint = FALSE;
+	prev_insn_is_eint = FALSE;
+      }
+    else if (this_insn_is_dint || is_dint (opcode->name, bin))
+      {
+	prev_insn_is_dint = TRUE;
+	prev_insn_is_eint = FALSE;
+	prev_insn_is_nop = FALSE;
+	check_for_nop |= NOP_CHECK_INTERRUPT;
+      }
+    /* NOP is not needed after EINT for 430 ISA.  */
+    else if (target_is_430x () && (this_insn_is_eint || is_eint (opcode->name, bin)))
+      {
+	prev_insn_is_eint = TRUE;
+	prev_insn_is_nop = FALSE;
+	prev_insn_is_dint = FALSE;
+	check_for_nop |= NOP_CHECK_INTERRUPT;
+      }
+    else
+      {
+	prev_insn_is_nop = FALSE;
+	prev_insn_is_dint = FALSE;
+	prev_insn_is_eint = FALSE;
+      }
+
   input_line_pointer = line;
   return 0;
 }
@@ -4699,7 +4925,16 @@ void
 msp430_md_end (void)
 {
   if (check_for_nop)
-    as_warn ("assembly finished without a possibly needed NOP instruction");
+    {
+      if (gen_interrupt_nops)
+	{
+	  gen_nop ();
+	  if (warn_interrupt_nops)
+	    as_warn (INSERT_NOP_AT_EOF);
+	}
+      else if (warn_interrupt_nops)
+	as_warn (_(WARN_NOP_AT_EOF));
+    }
 
   bfd_elf_add_proc_attr_int (stdoutput, OFBA_MSPABI_Tag_ISA,
 			     target_is_430x () ? 2 : 1);

@@ -1,6 +1,6 @@
 /* Block-related functions for the GNU debugger, GDB.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -65,29 +65,28 @@ block_gdbarch (const struct block *block)
   return get_objfile_arch (block_objfile (block));
 }
 
-/* Return Nonzero if block a is lexically nested within block b,
-   or if a and b have the same pc range.
-   Return zero otherwise.  */
+/* See block.h.  */
 
-int
-contained_in (const struct block *a, const struct block *b)
+bool
+contained_in (const struct block *a, const struct block *b,
+	      bool allow_nested)
 {
   if (!a || !b)
-    return 0;
+    return false;
 
   do
     {
       if (a == b)
-	return 1;
+	return true;
       /* If A is a function block, then A cannot be contained in B,
          except if A was inlined.  */
-      if (BLOCK_FUNCTION (a) != NULL && !block_inlined_p (a))
-        return 0;
+      if (!allow_nested && BLOCK_FUNCTION (a) != NULL && !block_inlined_p (a))
+        return false;
       a = BLOCK_SUPERBLOCK (a);
     }
   while (a != NULL);
 
-  return 0;
+  return true;
 }
 
 
@@ -131,16 +130,16 @@ block_inlined_p (const struct block *bl)
 /* A helper function that checks whether PC is in the blockvector BL.
    It returns the containing block if there is one, or else NULL.  */
 
-static struct block *
+static const struct block *
 find_block_in_blockvector (const struct blockvector *bl, CORE_ADDR pc)
 {
-  struct block *b;
+  const struct block *b;
   int bot, top, half;
 
   /* If we have an addrmap mapping code addresses to blocks, then use
      that.  */
   if (BLOCKVECTOR_MAP (bl))
-    return (struct block *) addrmap_find (BLOCKVECTOR_MAP (bl), pc);
+    return (const struct block *) addrmap_find (BLOCKVECTOR_MAP (bl), pc);
 
   /* Otherwise, use binary search to find the last block that starts
      before PC.
@@ -186,7 +185,7 @@ blockvector_for_pc_sect (CORE_ADDR pc, struct obj_section *section,
 			 struct compunit_symtab *cust)
 {
   const struct blockvector *bl;
-  struct block *b;
+  const struct block *b;
 
   if (cust == NULL)
     {
@@ -387,9 +386,9 @@ block_global_block (const struct block *block)
    zero/NULL.  This is useful for creating "dummy" blocks that don't
    correspond to actual source files.
 
-   Warning: it sets the block's BLOCK_DICT to NULL, which isn't a
+   Warning: it sets the block's BLOCK_MULTIDICT to NULL, which isn't a
    valid value.  If you really don't want the block to have a
-   dictionary, then you should subsequently set its BLOCK_DICT to
+   dictionary, then you should subsequently set its BLOCK_MULTIDICT to
    dict_create_linear (obstack, NULL).  */
 
 struct block *
@@ -544,10 +543,11 @@ block_iterator_step (struct block_iterator *iterator, int first)
 
 	  block = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust),
 				     iterator->which);
-	  sym = dict_iterator_first (BLOCK_DICT (block), &iterator->dict_iter);
+	  sym = mdict_iterator_first (BLOCK_MULTIDICT (block),
+				      &iterator->mdict_iter);
 	}
       else
-	sym = dict_iterator_next (&iterator->dict_iter);
+	sym = mdict_iterator_next (&iterator->mdict_iter);
 
       if (sym != NULL)
 	return sym;
@@ -569,7 +569,7 @@ block_iterator_first (const struct block *block,
   initialize_block_iterator (block, iterator);
 
   if (iterator->which == FIRST_LOCAL_BLOCK)
-    return dict_iterator_first (block->dict, &iterator->dict_iter);
+    return mdict_iterator_first (block->multidict, &iterator->mdict_iter);
 
   return block_iterator_step (iterator, 1);
 }
@@ -580,7 +580,7 @@ struct symbol *
 block_iterator_next (struct block_iterator *iterator)
 {
   if (iterator->which == FIRST_LOCAL_BLOCK)
-    return dict_iterator_next (&iterator->dict_iter);
+    return mdict_iterator_next (&iterator->mdict_iter);
 
   return block_iterator_step (iterator, 0);
 }
@@ -612,11 +612,11 @@ block_iter_match_step (struct block_iterator *iterator,
 
 	  block = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust),
 				     iterator->which);
-	  sym = dict_iter_match_first (BLOCK_DICT (block), name,
-				       &iterator->dict_iter);
+	  sym = mdict_iter_match_first (BLOCK_MULTIDICT (block), name,
+					&iterator->mdict_iter);
 	}
       else
-	sym = dict_iter_match_next (name, &iterator->dict_iter);
+	sym = mdict_iter_match_next (name, &iterator->mdict_iter);
 
       if (sym != NULL)
 	return sym;
@@ -639,7 +639,8 @@ block_iter_match_first (const struct block *block,
   initialize_block_iterator (block, iterator);
 
   if (iterator->which == FIRST_LOCAL_BLOCK)
-    return dict_iter_match_first (block->dict, name, &iterator->dict_iter);
+    return mdict_iter_match_first (block->multidict, name,
+				   &iterator->mdict_iter);
 
   return block_iter_match_step (iterator, name, 1);
 }
@@ -651,7 +652,7 @@ block_iter_match_next (const lookup_name_info &name,
 		       struct block_iterator *iterator)
 {
   if (iterator->which == FIRST_LOCAL_BLOCK)
-    return dict_iter_match_next (name, &iterator->dict_iter);
+    return mdict_iter_match_next (name, &iterator->mdict_iter);
 
   return block_iter_match_step (iterator, name, 0);
 }
@@ -731,7 +732,7 @@ block_lookup_symbol_primary (const struct block *block, const char *name,
 			     const domain_enum domain)
 {
   struct symbol *sym, *other;
-  struct dict_iterator dict_iter;
+  struct mdict_iterator mdict_iter;
 
   lookup_name_info lookup_name (name, symbol_name_match_type::FULL);
 
@@ -740,9 +741,10 @@ block_lookup_symbol_primary (const struct block *block, const char *name,
 	      || BLOCK_SUPERBLOCK (BLOCK_SUPERBLOCK (block)) == NULL);
 
   other = NULL;
-  for (sym = dict_iter_match_first (block->dict, lookup_name, &dict_iter);
+  for (sym
+	 = mdict_iter_match_first (block->multidict, lookup_name, &mdict_iter);
        sym != NULL;
-       sym = dict_iter_match_next (lookup_name, &dict_iter))
+       sym = mdict_iter_match_next (lookup_name, &mdict_iter))
     {
       if (SYMBOL_DOMAIN (sym) == domain)
 	return sym;
@@ -807,3 +809,24 @@ block_find_non_opaque_type_preferred (struct symbol *sym, void *data)
   *best = sym;
   return 0;
 }
+
+/* See block.h.  */
+
+struct blockranges *
+make_blockranges (struct objfile *objfile,
+                  const std::vector<blockrange> &rangevec)
+{
+  struct blockranges *blr;
+  size_t n = rangevec.size();
+
+  blr = (struct blockranges *)
+    obstack_alloc (&objfile->objfile_obstack,
+                   sizeof (struct blockranges)
+		   + (n - 1) * sizeof (struct blockrange));
+
+  blr->nranges = n;
+  for (int i = 0; i < n; i++)
+    blr->range[i] = rangevec[i];
+  return blr;
+}
+

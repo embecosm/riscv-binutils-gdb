@@ -1,4 +1,4 @@
-# Copyright 2018 Free Software Foundation, Inc.
+# Copyright 2018-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,46 +13,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# Check whether finish respects the print pretty user setting when printing the
-# function result.
+# Test whether info prog crashes gdb at a catch point in follow-exec-mode new.
 
 standard_testfile
-
-if {[build_executable "failed to prepare" $testfile $srcfile debug] == -1} {
-    return -1
-}
-
-if { ![remote_file target exists /bin/bash] } {
-    unsupported "no bash"
-    return
-}
 
 if { ![remote_file target exists /bin/ls] } {
     unsupported "no ls"
     return
 }
 
+if { [prepare_for_testing "failed to prepare" $testfile $srcfile debug] } {
+    return
+}
+
 proc catch_follow_exec { } {
-    global binfile
-    global GDB
-
-    set test "catch-follow-exec"
-
-    append FLAGS " \"$binfile\""
-    append FLAGS " -batch"
-    append FLAGS " -ex \"catch exec\""
-    append FLAGS " -ex \"set follow-exec-mode new\""
-    append FLAGS " -ex \"run\""
-    append FLAGS " -ex \"info prog\""
-
-    catch {exec /bin/bash -c "$GDB $FLAGS"} catchlog
-    send_log "$catchlog\n"
-
-    if { [regexp {No selected thread} $catchlog] } {
-	pass $test
-    } else {
-	fail $test
+    if { ![runto_main] } {
+	untested "could not run to main"
+	return -1
     }
+
+    gdb_test "catch exec" \
+	{Catchpoint [0-9]+ \(exec\)}
+
+    gdb_test_no_output "set follow-exec-mode new"
+
+    gdb_test "continue" \
+	".*hit Catchpoint.*"
+
+    gdb_test "info prog" \
+	"No selected thread."
 }
 
 catch_follow_exec

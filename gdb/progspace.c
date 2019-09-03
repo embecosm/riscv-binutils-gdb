@@ -1,6 +1,6 @@
 /* Program and address space management, for GDB, the GNU debugger.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -272,7 +272,7 @@ print_program_space (struct ui_out *uiout, int requested)
       else
 	uiout->field_skip ("current");
 
-      uiout->field_int ("id", pspace->num);
+      uiout->field_signed ("id", pspace->num);
 
       if (pspace->pspace_exec_filename)
 	uiout->field_string ("exec", pspace->pspace_exec_filename);
@@ -293,12 +293,12 @@ print_program_space (struct ui_out *uiout, int requested)
 		printed_header = 1;
 		printf_filtered ("\n\tBound inferiors: ID %d (%s)",
 				 inf->num,
-				 target_pid_to_str (ptid_t (inf->pid)));
+				 target_pid_to_str (ptid_t (inf->pid)).c_str ());
 	      }
 	    else
 	      printf_filtered (", ID %d (%s)",
 			       inf->num,
-			       target_pid_to_str (ptid_t (inf->pid)));
+			       target_pid_to_str (ptid_t (inf->pid)).c_str ());
 	  }
 
       uiout->text ("\n");

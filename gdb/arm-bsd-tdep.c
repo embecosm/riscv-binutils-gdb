@@ -1,6 +1,6 @@
 /* Target-dependent code for ARM BSD's.
 
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -117,6 +117,8 @@ armbsd_iterate_over_regset_sections (struct gdbarch *gdbarch,
 				     void *cb_data,
 				     const struct regcache *regcache)
 {
-  cb (".reg", ARMBSD_SIZEOF_GREGS, &armbsd_gregset, NULL, cb_data);
-  cb (".reg2", ARMBSD_SIZEOF_FPREGS, &armbsd_fpregset, NULL, cb_data);
+  cb (".reg", ARMBSD_SIZEOF_GREGS, ARMBSD_SIZEOF_GREGS, &armbsd_gregset, NULL,
+      cb_data);
+  cb (".reg2", ARMBSD_SIZEOF_FPREGS, ARMBSD_SIZEOF_FPREGS, &armbsd_fpregset,
+      NULL, cb_data);
 }

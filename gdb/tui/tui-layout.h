@@ -1,6 +1,6 @@
 /* TUI layout window management.
 
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
    Contributed by Hewlett-Packard Company.
 
@@ -19,17 +19,15 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef TUI_LAYOUT_H
-#define TUI_LAYOUT_H
+#ifndef TUI_TUI_LAYOUT_H
+#define TUI_TUI_LAYOUT_H
 
 #include "tui/tui.h"
 #include "tui/tui-data.h"
 
 extern void tui_add_win_to_layout (enum tui_win_type);
-extern int tui_default_win_height (enum tui_win_type, 
-				   enum tui_layout_type);
 extern int tui_default_win_viewport_height (enum tui_win_type,
 					    enum tui_layout_type);
-extern enum tui_status tui_set_layout (enum tui_layout_type);
+extern void tui_set_layout (enum tui_layout_type);
 
-#endif /*TUI_LAYOUT_H */
+#endif /* TUI_TUI_LAYOUT_H */

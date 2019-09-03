@@ -1,6 +1,6 @@
 /* Top level stuff for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -40,13 +40,14 @@
 #include "maint.h"
 
 #include "filenames.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include <signal.h>
 #include "event-top.h"
 #include "infrun.h"
-#include "signals-state-save-restore.h"
+#include "gdbsupport/signals-state-save-restore.h"
 #include <vector>
-#include "common/pathstuff.h"
+#include "gdbsupport/pathstuff.h"
+#include "cli/cli-style.h"
 
 /* The selected interpreter.  This will be used as a set command
    variable, so it should always be malloc'ed - since
@@ -208,7 +209,7 @@ get_init_files (const char **system_gdbinit,
   if (!initialized)
     {
       struct stat homebuf, cwdbuf, s;
-      char *homedir;
+      const char *homedir;
 
       if (SYSTEM_GDBINIT[0])
 	{
@@ -259,7 +260,7 @@ get_init_files (const char **system_gdbinit,
 
       if (homedir)
 	{
-	  homeinit = xstrprintf ("%s/%s", homedir, gdbinit);
+	  homeinit = xstrprintf ("%s/%s", homedir, GDBINIT);
 	  if (stat (homeinit, &homebuf) != 0)
 	    {
 	      xfree (homeinit);
@@ -267,12 +268,12 @@ get_init_files (const char **system_gdbinit,
 	    }
 	}
 
-      if (stat (gdbinit, &cwdbuf) == 0)
+      if (stat (GDBINIT, &cwdbuf) == 0)
 	{
 	  if (!homeinit
 	      || memcmp ((char *) &homebuf, (char *) &cwdbuf,
 			 sizeof (struct stat)))
-	    localinit = gdbinit;
+	    localinit = GDBINIT;
 	}
       
       initialized = 1;
@@ -329,14 +330,6 @@ captured_command_loop ()
   /* Now it's time to start the event loop.  */
   start_event_loop ();
 
-  /* FIXME: cagney/1999-11-05: A correct command_loop() implementaton
-     would clean things up (restoring the cleanup chain) to the state
-     they were just prior to the call.  Technically, this means that
-     the do_cleanups() below is redundant.  Unfortunately, many FUNCs
-     are not that well behaved.  do_cleanups should either be replaced
-     with a do_cleanups call (to cover the problem) or an assertion
-     check to detect bad FUNCs code.  */
-  do_cleanups (all_cleanups ());
   /* If the command_loop returned, normally (rather than threw an
      error) we try to quit.  If the quit is aborted, our caller
      catches the signal and restarts the command loop.  */
@@ -346,7 +339,7 @@ captured_command_loop ()
 /* Handle command errors thrown from within catch_command_errors.  */
 
 static int
-handle_command_errors (struct gdb_exception e)
+handle_command_errors (const struct gdb_exception &e)
 {
   if (e.reason < 0)
     {
@@ -372,7 +365,7 @@ static int
 catch_command_errors (catch_command_errors_const_ftype command,
 		      const char *arg, int from_tty)
 {
-  TRY
+  try
     {
       int was_sync = current_ui->prompt_state == PROMPT_BLOCKED;
 
@@ -380,11 +373,10 @@ catch_command_errors (catch_command_errors_const_ftype command,
 
       maybe_wait_sync_command_done (was_sync);
     }
-  CATCH (e, RETURN_MASK_ALL)
+  catch (const gdb_exception &e)
     {
       return handle_command_errors (e);
     }
-  END_CATCH
 
   return 1;
 }
@@ -485,7 +477,7 @@ captured_main_1 (struct captured_main_args *context)
 
   int i;
   int save_auto_load;
-  struct objfile *objfile;
+  int ret = 1;
 
 #ifdef HAVE_USEFUL_SBRK
   /* Set this before constructing scoped_command_stats.  */
@@ -505,10 +497,7 @@ captured_main_1 (struct captured_main_args *context)
   textdomain (PACKAGE);
 #endif
 
-  bfd_init ();
   notice_open_fds ();
-
-  saved_command_line = (char *) xstrdup ("");
 
 #ifdef __MINGW32__
   /* Ensure stderr is unbuffered.  A Cygwin pty or pipe is implemented
@@ -516,11 +505,16 @@ captured_main_1 (struct captured_main_args *context)
   setvbuf (stderr, NULL, _IONBF, BUFSIZ);
 #endif
 
+  /* Note: `error' cannot be called before this point, because the
+     caller will crash when trying to print the exception.  */
   main_ui = new ui (stdin, stdout, stderr);
   current_ui = main_ui;
 
   gdb_stdtargerr = gdb_stderr;	/* for moment */
   gdb_stdtargin = gdb_stdin;	/* for moment */
+
+  if (bfd_init () != BFD_INIT_MAGIC)
+    error (_("fatal error: libbfd ABI mismatch"));
 
 #ifdef __MINGW32__
   /* On Windows, argv[0] is not necessarily set to absolute form when
@@ -800,28 +794,28 @@ captured_main_1 (struct captured_main_args *context)
 	    break;
 	  case 'b':
 	    {
-	      int i;
+	      int rate;
 	      char *p;
 
-	      i = strtol (optarg, &p, 0);
-	      if (i == 0 && p == optarg)
+	      rate = strtol (optarg, &p, 0);
+	      if (rate == 0 && p == optarg)
 		warning (_("could not set baud rate to `%s'."),
 			 optarg);
 	      else
-		baud_rate = i;
+		baud_rate = rate;
 	    }
             break;
 	  case 'l':
 	    {
-	      int i;
+	      int timeout;
 	      char *p;
 
-	      i = strtol (optarg, &p, 0);
-	      if (i == 0 && p == optarg)
+	      timeout = strtol (optarg, &p, 0);
+	      if (timeout == 0 && p == optarg)
 		warning (_("could not set timeout limit to `%s'."),
 			 optarg);
 	      else
-		remote_timeout = i;
+		remote_timeout = timeout;
 	    }
 	    break;
 
@@ -846,7 +840,12 @@ captured_main_1 (struct captured_main_args *context)
       }
 
     if (batch_flag)
-      quiet = 1;
+      {
+	quiet = 1;
+
+	/* Disable all output styling when running in batch mode.  */
+	cli_styling = 0;
+      }
   }
 
   save_original_signals_state (quiet);
@@ -986,7 +985,7 @@ captured_main_1 (struct captured_main_args *context)
      processed; it sets global parameters, which are independent of
      what file you are debugging or what directory you are in.  */
   if (system_gdbinit && !inhibit_gdbinit)
-    catch_command_errors (source_script, system_gdbinit, 0);
+    ret = catch_command_errors (source_script, system_gdbinit, 0);
 
   /* Read and execute $HOME/.gdbinit file, if it exists.  This is done
      *before* all the command line arguments are processed; it sets
@@ -994,7 +993,7 @@ captured_main_1 (struct captured_main_args *context)
      debugging or what directory you are in.  */
 
   if (home_gdbinit && !inhibit_gdbinit && !inhibit_home_gdbinit)
-    catch_command_errors (source_script, home_gdbinit, 0);
+    ret = catch_command_errors (source_script, home_gdbinit, 0);
 
   /* Process '-ix' and '-iex' options early.  */
   for (i = 0; i < cmdarg_vec.size (); i++)
@@ -1004,12 +1003,12 @@ captured_main_1 (struct captured_main_args *context)
       switch (cmdarg_p.type)
 	{
 	case CMDARG_INIT_FILE:
-	  catch_command_errors (source_script, cmdarg_p.string,
-				!batch_flag);
+	  ret = catch_command_errors (source_script, cmdarg_p.string,
+				      !batch_flag);
 	  break;
 	case CMDARG_INIT_COMMAND:
-	  catch_command_errors (execute_command, cmdarg_p.string,
-				!batch_flag);
+	  ret = catch_command_errors (execute_command, cmdarg_p.string,
+				      !batch_flag);
 	  break;
 	}
     }
@@ -1017,11 +1016,11 @@ captured_main_1 (struct captured_main_args *context)
   /* Now perform all the actions indicated by the arguments.  */
   if (cdarg != NULL)
     {
-      catch_command_errors (cd_command, cdarg, 0);
+      ret = catch_command_errors (cd_command, cdarg, 0);
     }
 
   for (i = 0; i < dirarg.size (); i++)
-    catch_command_errors (directory_switch, dirarg[i], 0);
+    ret = catch_command_errors (directory_switch, dirarg[i], 0);
 
   /* Skip auto-loading section-specified scripts until we've sourced
      local_gdbinit (which is often used to augment the source search
@@ -1036,19 +1035,20 @@ captured_main_1 (struct captured_main_args *context)
       /* The exec file and the symbol-file are the same.  If we can't
          open it, better only print one error message.
          catch_command_errors returns non-zero on success!  */
-      if (catch_command_errors (exec_file_attach, execarg,
-				!batch_flag))
-	catch_command_errors (symbol_file_add_main_adapter, symarg,
-			      !batch_flag);
+      ret = catch_command_errors (exec_file_attach, execarg,
+				  !batch_flag);
+      if (ret != 0)
+	ret = catch_command_errors (symbol_file_add_main_adapter,
+				    symarg, !batch_flag);
     }
   else
     {
       if (execarg != NULL)
-	catch_command_errors (exec_file_attach, execarg,
-			      !batch_flag);
+	ret = catch_command_errors (exec_file_attach, execarg,
+				    !batch_flag);
       if (symarg != NULL)
-	catch_command_errors (symbol_file_add_main_adapter, symarg,
-			      !batch_flag);
+	ret = catch_command_errors (symbol_file_add_main_adapter,
+				    symarg, !batch_flag);
     }
 
   if (corearg && pidarg)
@@ -1056,9 +1056,14 @@ captured_main_1 (struct captured_main_args *context)
 	     "a core file at the same time."));
 
   if (corearg != NULL)
-    catch_command_errors (core_file_command, corearg, !batch_flag);
+    {
+      ret = catch_command_errors (core_file_command, corearg,
+				  !batch_flag);
+    }
   else if (pidarg != NULL)
-    catch_command_errors (attach_command, pidarg, !batch_flag);
+    {
+      ret = catch_command_errors (attach_command, pidarg, !batch_flag);
+    }
   else if (pid_or_core_arg)
     {
       /* The user specified 'gdb program pid' or gdb program core'.
@@ -1067,14 +1072,20 @@ captured_main_1 (struct captured_main_args *context)
 
       if (isdigit (pid_or_core_arg[0]))
 	{
-	  if (catch_command_errors (attach_command, pid_or_core_arg,
-				    !batch_flag) == 0)
-	    catch_command_errors (core_file_command, pid_or_core_arg,
-				  !batch_flag);
+	  ret = catch_command_errors (attach_command, pid_or_core_arg,
+				      !batch_flag);
+	  if (ret == 0)
+	    ret = catch_command_errors (core_file_command,
+					pid_or_core_arg,
+					!batch_flag);
 	}
-      else /* Can't be a pid, better be a corefile.  */
-	catch_command_errors (core_file_command, pid_or_core_arg,
-			      !batch_flag);
+      else
+	{
+	  /* Can't be a pid, better be a corefile.  */
+	  ret = catch_command_errors (core_file_command,
+				      pid_or_core_arg,
+				      !batch_flag);
+	}
     }
 
   if (ttyarg != NULL)
@@ -1098,7 +1109,7 @@ captured_main_1 (struct captured_main_args *context)
 	{
 	  auto_load_local_gdbinit_loaded = 1;
 
-	  catch_command_errors (source_script, local_gdbinit, 0);
+	  ret = catch_command_errors (source_script, local_gdbinit, 0);
 	}
     }
 
@@ -1107,7 +1118,7 @@ captured_main_1 (struct captured_main_args *context)
      We wait until now because it is common to add to the source search
      path in local_gdbinit.  */
   global_auto_load = save_auto_load;
-  ALL_OBJFILES (objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     load_auto_scripts_for_objfile (objfile);
 
   /* Process '-x' and '-ex' options.  */
@@ -1118,12 +1129,12 @@ captured_main_1 (struct captured_main_args *context)
       switch (cmdarg_p.type)
 	{
 	case CMDARG_FILE:
-	  catch_command_errors (source_script, cmdarg_p.string,
-				!batch_flag);
+	  ret = catch_command_errors (source_script, cmdarg_p.string,
+				      !batch_flag);
 	  break;
 	case CMDARG_COMMAND:
-	  catch_command_errors (execute_command, cmdarg_p.string,
-				!batch_flag);
+	  ret = catch_command_errors (execute_command, cmdarg_p.string,
+				      !batch_flag);
 	  break;
 	}
     }
@@ -1134,8 +1145,11 @@ captured_main_1 (struct captured_main_args *context)
 
   if (batch_flag)
     {
+      int error_status = EXIT_FAILURE;
+      int *exit_arg = ret == 0 ? &error_status : NULL;
+
       /* We have hit the end of the batch file.  */
-      quit_force (NULL, 0);
+      quit_force (exit_arg, 0);
     }
 }
 
@@ -1152,15 +1166,14 @@ captured_main (void *data)
      change - SET_TOP_LEVEL() - has been eliminated.  */
   while (1)
     {
-      TRY
+      try
 	{
 	  captured_command_loop ();
 	}
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	  exception_print (gdb_stderr, ex);
 	}
-      END_CATCH
     }
   /* No exit -- exit is through quit_command.  */
 }
@@ -1168,15 +1181,14 @@ captured_main (void *data)
 int
 gdb_main (struct captured_main_args *args)
 {
-  TRY
+  try
     {
       captured_main (args);
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       exception_print (gdb_stderr, ex);
     }
-  END_CATCH
 
   /* The only way to end up here is by an error (normal exit is
      handled by quit_force()), hence always return an error status.  */

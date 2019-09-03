@@ -1,6 +1,6 @@
 /* Self tests for format_pieces for GDB, the GNU debugger.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,8 +18,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "defs.h"
-#include "common/format.h"
-#include "common/selftest.h"
+#include "gdbsupport/format.h"
+#include "gdbsupport/selftest.h"
 
 namespace selftests {
 namespace format_pieces {

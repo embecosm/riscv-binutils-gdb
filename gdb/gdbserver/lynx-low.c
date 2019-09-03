@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,10 +25,10 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include <signal.h>
-#include "filestuff.h"
-#include "common-inferior.h"
+#include "gdbsupport/filestuff.h"
+#include "gdbsupport/common-inferior.h"
 #include "nat/fork-inferior.h"
 
 int using_threads = 1;
@@ -562,7 +562,7 @@ lynx_mourn (struct process_info *proc)
 /* Implement the join target_ops method.  */
 
 static void
-lynx_join (process_info *proc)
+lynx_join (int pid)
 {
   /* The PTRACE_DETACH is sufficient to detach from the process.
      So no need to do anything extra.  */

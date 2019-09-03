@@ -1,4 +1,4 @@
-/* Copyright (C) 2007-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,7 +18,7 @@
 #include "server.h"
 #include "win32-low.h"
 #include "x86-low.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #ifdef __x86_64__
 #include "arch/amd64.h"
 #endif
@@ -439,7 +439,7 @@ i386_arch_setup (void)
 					   false, false);
   const char **expedite_regs = amd64_expedite_regs;
 #else
-  tdesc = i386_create_target_description (X86_XSTATE_SSE_MASK, false);
+  tdesc = i386_create_target_description (X86_XSTATE_SSE_MASK, false, false);
   const char **expedite_regs = i386_expedite_regs;
 #endif
 

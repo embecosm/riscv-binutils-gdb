@@ -721,7 +721,7 @@ ac_user_opts='
 enable_option_checking
 enable_maintainer_mode
 enable_largefile
-enable_libmcheck
+enable_unit_tests
 with_ust
 with_ust_include
 with_ust_lib
@@ -1366,7 +1366,8 @@ Optional Features:
                           enable make rules and dependencies not useful (and
                           sometimes confusing) to the casual installer
   --disable-largefile     omit support for large files
-  --enable-libmcheck      Try linking with -lmcheck if available
+  --enable-unit-tests     Enable the inclusion of unit tests when compiling
+                          GDB
   --enable-werror         treat compile warnings as errors
   --enable-build-warnings enable build-time compiler warnings if gcc is used
   --enable-gdb-build-warnings
@@ -1753,52 +1754,6 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_header_compile
 
-# ac_fn_c_try_link LINENO
-# -----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded.
-ac_fn_c_try_link ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest$ac_exeext
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 test -x conftest$ac_exeext
-       }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
-  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
-  # interfere with the next link command; also delete a directory that is
-  # left behind by Apple's compiler.  We do this before executing the actions.
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_link
-
 # ac_fn_c_check_type LINENO TYPE VAR INCLUDES
 # -------------------------------------------
 # Tests whether TYPE exists after having included INCLUDES, setting cache
@@ -1852,6 +1807,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_type
+
+# ac_fn_c_try_link LINENO
+# -----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_link
 
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
@@ -5824,77 +5825,34 @@ fi
 # Set the 'development' global.
 . $srcdir/../../bfd/development.sh
 
-# Enable -lmcheck by default (it provides cheap-enough memory
-# mangling), but turn it off for releases.
-if $development; then
-  libmcheck_default=yes
+
+# Check whether we will enable the inclusion of unit tests when
+# compiling GDB.
+#
+# The default value of this option changes depending whether we're on
+# development mode (in which case it's "true") or not (in which case
+# it's "false").
+# Check whether --enable-unit-tests was given.
+if test "${enable_unit_tests+set}" = set; then :
+  enableval=$enable_unit_tests; case "${enableval}" in
+  yes)  enable_unittests=true  ;;
+  no)   enable_unittests=false ;;
+  *)    as_fn_error $? "bad value ${enableval} for --{enable,disable}-unit-tests option" "$LINENO" 5 ;;
+esac
 else
-  libmcheck_default=no
-fi
-
-  # Check whether --enable-libmcheck was given.
-if test "${enable_libmcheck+set}" = set; then :
-  enableval=$enable_libmcheck; case "${enableval}" in
-      yes | y) ENABLE_LIBMCHECK="yes" ;;
-      no | n)  ENABLE_LIBMCHECK="no" ;;
-      *) as_fn_error $? "bad value ${enableval} for --enable-libmcheck" "$LINENO" 5 ;;
-    esac
+  enable_unittests=$development
 fi
 
 
-  if test -z "${ENABLE_LIBMCHECK}"; then
-    ENABLE_LIBMCHECK=${libmcheck_default}
-  fi
-
-  if test "$ENABLE_LIBMCHECK" = "yes" ; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lmcheck" >&5
-$as_echo_n "checking for main in -lmcheck... " >&6; }
-if ${ac_cv_lib_mcheck_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmcheck  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_mcheck_main=yes
-else
-  ac_cv_lib_mcheck_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mcheck_main" >&5
-$as_echo "$ac_cv_lib_mcheck_main" >&6; }
-if test "x$ac_cv_lib_mcheck_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBMCHECK 1
-_ACEOF
-
-  LIBS="-lmcheck $LIBS"
-
-fi
-
-  fi
-
-
-if $development; then
-  srv_selftest_objs="common/selftest.o"
+if $enable_unittests; then
 
 $as_echo "#define GDB_SELF_TEST 1" >>confdefs.h
 
+
+  srv_selftest_objs="gdbsupport/selftest.o"
+
 fi
+
 
  case ${build_alias} in
   "") build_noncanonical=${build} ;;
@@ -5933,7 +5891,7 @@ ac_config_commands="$ac_config_commands depdir"
 
 
 # Create sub-directories for objects and dependencies.
-CONFIG_SRC_SUBDIR="arch common"
+CONFIG_SRC_SUBDIR="arch gdbsupport"
 
 
 ac_config_commands="$ac_config_commands gdbdepdir"
@@ -6048,7 +6006,7 @@ fi
 # "gnulib", to avoid the problem of both GDB and GDBserver wanting to
 # build it in the same directory, when building in the source dir.
 
-  in_src="../gnulib"
+  in_src="../../gnulib"
   in_build="build-gnulib-gdbserver"
   in_extra_args="$gnulib_extra_configure_args"
 
@@ -6849,7 +6807,7 @@ $as_echo "#define HAVE_LANGINFO_CODESET 1" >>confdefs.h
   fi
 
 
-  for ac_header in linux/perf_event.h locale.h memory.h signal.h 		   sys/resource.h sys/socket.h 		   sys/un.h sys/wait.h 		   thread_db.h wait.h 		   termios.h
+  for ac_header in linux/perf_event.h locale.h memory.h signal.h 		   sys/resource.h sys/socket.h 		   sys/un.h sys/wait.h 		   thread_db.h wait.h 		   termios.h 		   dlfcn.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -7240,12 +7198,16 @@ build_warnings="-Wall -Wpointer-arith \
 -Wno-unused -Wunused-value -Wunused-variable -Wunused-function \
 -Wno-switch -Wno-char-subscripts \
 -Wempty-body -Wunused-but-set-parameter -Wunused-but-set-variable \
--Wno-sign-compare -Wno-narrowing -Wno-error=maybe-uninitialized \
+-Wno-sign-compare -Wno-error=maybe-uninitialized \
 -Wno-mismatched-tags \
 -Wno-error=deprecated-register \
 -Wsuggest-override \
 -Wimplicit-fallthrough=3 \
--Wduplicated-cond"
+-Wduplicated-cond \
+-Wshadow=local \
+-Wdeprecated-copy \
+-Wdeprecated-copy-dtor \
+-Wredundant-move"
 
 case "${host}" in
   *-*-mingw32*)
@@ -7258,7 +7220,10 @@ case "${host}" in
     build_warnings="$build_warnings -Wno-unknown-pragmas"
     # Solaris 11 <unistd.h> marks vfork deprecated.
     build_warnings="$build_warnings -Wno-deprecated-declarations" ;;
-  *) build_warnings="$build_warnings -Wformat-nonliteral" ;;
+  *)
+    # Note that gcc requires -Wformat for -Wformat-nonliteral to work,
+    # but there's a special case for this below.
+    build_warnings="$build_warnings -Wformat-nonliteral" ;;
 esac
 
 # Check whether --enable-build-warnings was given.
@@ -7314,6 +7279,12 @@ $as_echo_n "checking compiler warning flags... " >&6; }
 	case $w in
 	-Wno-*)
 		wtest=`echo $w | sed 's/-Wno-/-W/g'` ;;
+        -Wformat-nonliteral)
+		# gcc requires -Wformat before -Wformat-nonliteral
+		# will work, so stick them together.
+		w="-Wformat $w"
+		wtest="$w"
+		;;
 	*)
 		wtest=$w ;;
 	esac
@@ -7382,11 +7353,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-case " $WARN_CFLAGS " in
-*" -Wmissing-prototypes "*)
-  WARN_CFLAGS="$WARN_CFLAGS -Wno-missing-prototypes"
-  ;;
-esac
 
 old_LIBS="$LIBS"
 LIBS="$LIBS -ldl"
@@ -7859,7 +7825,7 @@ esac
 . ${srcdir}/configure.srv
 
 # Add in the common host objects.
-. ${srcdir}/../common/common.host
+. ${srcdir}/../gdbsupport/common.host
 srv_host_obs="$common_host_obs"
 
 if test "${srv_mingwce}" = "yes"; then

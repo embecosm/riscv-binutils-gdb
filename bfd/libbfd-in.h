@@ -1,7 +1,7 @@
 /* libbfd.h -- Declarations used by bfd library *implementation*.
    (This include file is not for users of the library.)
 
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
 
    Written by Cygnus Support.
 
@@ -588,7 +588,7 @@ extern const struct dwarf_debug_section dwarf_debug_sections[] ATTRIBUTE_HIDDEN;
 extern bfd_boolean _bfd_dwarf2_find_nearest_line
   (bfd *, asymbol **, asymbol *, asection *, bfd_vma,
    const char **, const char **, unsigned int *, unsigned int *,
-   const struct dwarf_debug_section *, unsigned int, void **) ATTRIBUTE_HIDDEN;
+   const struct dwarf_debug_section *, void **) ATTRIBUTE_HIDDEN;
 
 /* Find the bias between DWARF addresses and real addresses.  */
 extern bfd_signed_vma _bfd_dwarf2_find_symbol_bias
@@ -697,8 +697,8 @@ extern bfd_reloc_status_type _bfd_relocate_contents
   (reloc_howto_type *, bfd *, bfd_vma, bfd_byte *) ATTRIBUTE_HIDDEN;
 
 /* Clear a given location using a given howto.  */
-extern void _bfd_clear_contents
-  (reloc_howto_type *, bfd *, asection *, bfd_byte *) ATTRIBUTE_HIDDEN;
+extern bfd_reloc_status_type _bfd_clear_contents
+  (reloc_howto_type *, bfd *, asection *, bfd_byte *, bfd_vma) ATTRIBUTE_HIDDEN;
 
 /* Link stabs in sections in the first pass.  */
 

@@ -1,5 +1,5 @@
 /* Meta support for 32-bit ELF
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
    Contributed by Imagination Technologies Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -1396,7 +1396,7 @@ metag_final_link_relocate (reloc_howto_type *howto,
 					      rel, relend, howto, contents) \
   {									\
     _bfd_clear_contents (howto, input_bfd, input_section,		\
-			 contents + rel->r_offset);			\
+			 contents, rel->r_offset);			\
 									\
     if (bfd_link_relocatable (info)					\
 	&& (input_section->flags & SEC_DEBUGGING))			\
@@ -2374,9 +2374,7 @@ elf_metag_check_relocs (bfd *abfd,
 	  /* This relocation describes which C++ vtable entries are actually
 	     used.  Record for later use during GC.  */
 	case R_METAG_GNU_VTENTRY:
-	  BFD_ASSERT (hh != NULL);
-	  if (hh != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, &hh->eh, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, &hh->eh, rel->r_addend))
 	    return FALSE;
 	  break;
 	}

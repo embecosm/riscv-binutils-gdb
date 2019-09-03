@@ -1,5 +1,40 @@
 -*- text -*-
 
+* Add support for the Armv8.1-M Mainline and M-profile Vector Extension (MVE)
+  instructions.
+
+* For MIPS, Add -m[no-]fix-loongson3-llsc option to fix (or not) Loongson3
+  LLSC Errata.  Add a --enable-mips-fix-loongson3-llsc=[yes|no] configure
+  time option to set the default behavior. Set the default if the configure
+  option is not used to "no".
+
+* Add support for the Arm Cortex-A76AE, Cortex-A77 and Cortex-M35P
+  processors.
+
+* Add support for the AArch64 Cortex-A34, Cortex-A65, Cortex-A65AE,
+  Cortex-A76AE, and Cortex-A77 processors.
+
+* Add .float16 directive for both Arm and AArch64 to allow encoding of 16-bit
+  floating point literals.  Add .float16_format directive and
+  -mfp16-format=[ieee|alternative] option for Arm to control the format of the
+  encoding.
+
+Changes in 2.32:
+
+* Add -mvexwig=[0|1] option to x86 assembler to control encoding of
+  VEX.W-ignored (WIG) VEX instructions.
+
+* Add -mx86-used-note=[yes|no] option to generate (or not) x86 GNU property
+  notes.  Add a --enable-x86-used-note configure time option to set the
+  default behavior.  Set the default if the configure option is not used
+  to "no".
+
+* Add support for the MIPS Loongson EXTensions R2 (EXT2) instructions.
+
+* Add support for the MIPS Loongson EXTensions (EXT) instructions.
+
+* Add support for the MIPS Loongson Content Address Memory (CAM) ASE.
+
 * Add support for the C-SKY processor series.
 
 * Add support for the MIPS Loongson MultiMedia extensions Instructions (MMI)
@@ -751,7 +786,7 @@ Changes in 1.93.01:
   of new CPUs and formats, lots of bugs fixed.
 
 
-Copyright (C) 2012-2018 Free Software Foundation, Inc.
+Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright

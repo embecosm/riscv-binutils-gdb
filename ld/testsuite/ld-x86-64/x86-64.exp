@@ -1,5 +1,5 @@
 # Expect script for ld-x86_64 tests
-#   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -33,6 +33,10 @@ if [istarget "*-*-nacl*"] {
 } else {
     set emul "elf_x86_64"
 }
+
+global ASFLAGS
+set saved_ASFLAGS "$ASFLAGS"
+set ASFLAGS "$ASFLAGS -mx86-used-note=no"
 
 # List contains test-items with 3 items followed by 2 lists:
 # 0:name 1:ld early options 2:ld late options 3:assembler options
@@ -353,6 +357,8 @@ run_dump_test "property-x86-4b"
 run_dump_test "property-x86-3-x32"
 run_dump_test "property-x86-4a-x32"
 run_dump_test "property-x86-4b-x32"
+run_dump_test "property-x86-5"
+run_dump_test "property-x86-5-x32"
 run_dump_test "property-x86-ibt1a"
 run_dump_test "property-x86-ibt1b"
 run_dump_test "property-x86-ibt1a-x32"
@@ -381,6 +387,26 @@ run_dump_test "property-x86-shstk4"
 run_dump_test "property-x86-shstk4-x32"
 run_dump_test "property-x86-shstk5"
 run_dump_test "property-x86-shstk5-x32"
+run_dump_test "property-x86-cet1"
+run_dump_test "property-x86-cet1-x32"
+run_dump_test "property-x86-cet2a"
+run_dump_test "property-x86-cet2a-x32"
+run_dump_test "property-x86-cet2b"
+run_dump_test "property-x86-cet2b-x32"
+run_dump_test "property-x86-cet3a"
+run_dump_test "property-x86-cet3a-x32"
+run_dump_test "property-x86-cet3b"
+run_dump_test "property-x86-cet3b-x32"
+run_dump_test "property-x86-cet4a"
+run_dump_test "property-x86-cet4a-x32"
+run_dump_test "property-x86-cet4b"
+run_dump_test "property-x86-cet4b-x32"
+run_dump_test "property-x86-cet5a"
+run_dump_test "property-x86-cet5a-x32"
+run_dump_test "property-x86-cet5b"
+run_dump_test "property-x86-cet5b-x32"
+run_dump_test "property-x86-cet6"
+run_dump_test "property-x86-cet6-x32"
 run_dump_test "pr21884"
 run_dump_test "pr21884-nacl"
 run_dump_test "pr22071"
@@ -403,10 +429,37 @@ run_dump_test "pr23372a"
 run_dump_test "pr23372a-x32"
 run_dump_test "pr23372b"
 run_dump_test "pr23372b-x32"
+run_dump_test "pr23372c"
+run_dump_test "pr23372c-x32"
+run_dump_test "pr23372d"
+run_dump_test "pr23372d-x32"
 run_dump_test "pr23486a"
 run_dump_test "pr23486a-x32"
 run_dump_test "pr23486b"
 run_dump_test "pr23486b-x32"
+run_dump_test "pr23486c"
+run_dump_test "pr23486c-x32"
+run_dump_test "pr23486d"
+run_dump_test "pr23486d-x32"
+run_dump_test "pr23854"
+run_dump_test "pr23930"
+run_dump_test "pr23930-x32"
+run_dump_test "pr24151a"
+run_dump_test "pr24151a-x32"
+run_dump_test "pr24322a"
+run_dump_test "pr24322a-x32"
+run_dump_test "pr24322b"
+run_dump_test "pr24322b-x32"
+run_dump_test "pr24458a"
+run_dump_test "pr24458a-x32"
+run_dump_test "pr24458b"
+run_dump_test "pr24458b-x32"
+run_dump_test "pr24458c"
+run_dump_test "pr24458c-x32"
+run_dump_test "pr24721"
+run_dump_test "pr24721-x32"
+run_dump_test "pr24905"
+run_dump_test "pr24905-x32"
 
 if { ![istarget "x86_64-*-linux*"] && ![istarget "x86_64-*-nacl*"]} {
     return
@@ -517,7 +570,8 @@ run_dump_test "pr17935-1"
 run_dump_test "pr17935-2"
 run_dump_test "pr18160"
 run_dump_test "pr18176"
-run_dump_test "pr18801"
+run_dump_test "pr18801a"
+run_dump_test "pr18801b"
 run_dump_test "pr18815"
 run_dump_test "pr19013"
 run_dump_test "pr19013-x32"
@@ -681,7 +735,7 @@ global PLT_CFLAGS
 global NOPIE_CFLAGS NOPIE_LDFLAGS
 
 # Must be native with the C compiler
-if { [isnative] && [which $CC] != 0 } {
+if { [isnative] && [check_compiler_available] } {
     run_cc_link_tests {
 	{"Helper X32 DSO from x86-64 object" "" "-m64 -fPIC -g"
 	 {simple.c} {} "libsimple.a"}
@@ -698,7 +752,8 @@ if { [isnative] && [which $CC] != 0 } {
 
     run_ld_link_tests {
 	{"X32 DSO from x86-64 object"
-	 "-shared -melf32_x86_64 tmpdir/simple-x32.o" "" "--x32"
+	 "-shared -melf32_x86_64 tmpdir/simple-x32.o" ""
+	 "--x32 -mx86-used-note=yes"
 	{dummy.s} {{readelf {-s --wide} x86-64-x32.rd}} "x86-64-x32"}
     }
 
@@ -706,7 +761,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build plt-lib.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { plt-lib.c } \
 	    {} \
 	    "libplt-lib.so" \
@@ -714,7 +769,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build libplt-main1.a" \
 	    "" \
-	    "-fPIC -Wa,-mrelax-relocations=yes" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
 	    { plt-main1.c } \
 	    {{readelf {-Wr} plt-main1.rd}} \
 	    "libplt-main1.a" \
@@ -722,7 +777,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build libplt-main2.a" \
 	    "" \
-	    "-fPIC -Wa,-mrelax-relocations=yes" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
 	    { plt-main2.c } \
 	    {{readelf {-Wr} plt-main2.rd}} \
 	    "libplt-main2.a" \
@@ -730,7 +785,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build libplt-main3.a" \
 	    "" \
-	    "-fPIC -Wa,-mrelax-relocations=yes $PLT_CFLAGS" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes $PLT_CFLAGS" \
 	    { plt-main3.c } \
 	    {{readelf {-Wr} plt-main3.rd}} \
 	    "libplt-main3.a" \
@@ -738,7 +793,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build libplt-main4.a" \
 	    "" \
-	    "-fPIC -Wa,-mrelax-relocations=yes $PLT_CFLAGS" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes $PLT_CFLAGS" \
 	    { plt-main4.c } \
 	    {{readelf {-Wr} plt-main4.rd}} \
 	    "libplt-main4.a" \
@@ -756,7 +811,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    "Build plt-main with PIE" \
 	    "tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 	     tmpdir/plt-main4.o tmpdir/libplt-lib.so -pie" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { plt-main5.c } \
 	    {{readelf {-Wr} plt-main.rd}} \
 	    "plt-main" \
@@ -764,7 +819,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build copyreloc-lib.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { copyreloc-lib.c } \
 	    {} \
 	    "copyreloc-lib.so" \
@@ -772,7 +827,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build libcopyreloc-main.a" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { copyreloc-main.S } \
 	    {} \
 	    "libcopyreloc-main.a" \
@@ -780,7 +835,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build copyreloc-main with PIE without -fPIE (1)" \
 	    "tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so -pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wr} copyreloc-main1.rd}} \
 	    "copyreloc-main" \
@@ -788,7 +843,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build copyreloc-main with PIE without -fPIE (2)" \
 	    "tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so -pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wr} copyreloc-main2.rd}} \
 	    "copyreloc-main" \
@@ -796,7 +851,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr17689.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr17689a.c } \
 	    {} \
 	    "pr17689.so" \
@@ -804,7 +859,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr17689now.so with -z now" \
 	    "-shared -Wl,-z,now" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr17689a.c } \
 	    {{readelf {-Wr} pr17689now.rd}} \
 	    "pr17689now.so" \
@@ -812,14 +867,14 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr17689b.o" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr17689b.S } \
 	    {} \
 	] \
 	[list \
 	    "Build pr17689 with PIE without -fPIE" \
 	    "tmpdir/pr17689b.o tmpdir/pr17689.so -pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wr} pr17689.rd}} \
 	    "pr17689" \
@@ -827,7 +882,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr17689 with PIE -z now without -fPIE" \
 	    "tmpdir/pr17689b.o tmpdir/pr17689.so -pie -Wl,-z,now" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wr} pr17689now.rd}} \
 	    "pr17689now" \
@@ -835,7 +890,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr17827 with PIE without -fPIE" \
 	    "-Wl,--as-needed tmpdir/pr17689b.o tmpdir/pr17689.so -pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wr} pr17827.rd}} \
 	    "pr17827" \
@@ -843,7 +898,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr18900.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr18900a.c } \
 	    "" \
 	    "pr18900.so" \
@@ -851,7 +906,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr18900.o" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr18900b.c pr18900c.c } \
 	    "" \
 	    "pr18900.o" \
@@ -859,7 +914,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr18900a" \
 	    "tmpdir/pr18900.o tmpdir/pr18900.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wrd} pr18900a.rd}} \
 	    "pr18900a" \
@@ -867,7 +922,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr18900b" \
 	    "-Wl,--as-needed tmpdir/pr18900.o tmpdir/pr18900.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    {{readelf {-Wrd} pr18900b.rd}} \
 	    "pr18900b" \
@@ -875,7 +930,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr19031.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr19031a.c } \
 	    "" \
 	    "pr19031.so" \
@@ -883,7 +938,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build gotpcrel1d.so" \
 	    "-shared" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { gotpcrel1d.S } \
 	    "" \
 	    "gotpcrel1d.so" \
@@ -891,7 +946,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build gotpcrel1a.o gotpcrel1b.o gotpcrel1c.o" \
 	    "" \
-	    "-Wa,-mrelax-relocations=yes" \
+	    "-Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
 	    { gotpcrel1a.S gotpcrel1b.c gotpcrel1c.c } \
 	] \
 	[list \
@@ -899,15 +954,15 @@ if { [isnative] && [which $CC] != 0 } {
 	    "$NOPIE_LDFLAGS -Wl,--as-needed tmpdir/gotpcrel1a.o \
 	     tmpdir/gotpcrel1b.o tmpdir/gotpcrel1c.o \
 	     tmpdir/gotpcrel1d.so" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
-	    "" \
 	    {{objdump {-dw} gotpcrel1.dd}} \
 	    "gotpcrel1" \
 	] \
 	[list \
 	    "Build pr19319.so" \
 	    "-shared" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr19319a.S } \
 	    "" \
 	    "pr19319.so" \
@@ -915,15 +970,24 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr19319" \
 	    "-pie -nostdlib -nostartfiles tmpdir/pr19319.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr19319b.S } \
 	    {{objdump {-dw} pr19319.dd}} \
 	    "pr19319" \
 	] \
 	[list \
+	    "Build pr24276.so" \
+	    "-shared -nostdlib -nostartfiles \
+	     -Ltmpdir $srcdir/$subdir/pr24276.dso" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr19319b.S } \
+	    {{warning_output pr24276.warn}} \
+	    "pr24276.so" \
+	] \
+	[list \
 	    "Build property 1" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=no" \
 	    {pass.c property-no-copy.S} \
 	    {{readelf {-n} property-1.r}} \
 	    "property-1" \
@@ -931,15 +995,15 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 1 (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-no-copy.S} \
-	    {{readelf {-n} property-1.r}} \
+	    {{readelf {-n} property-1a.r}} \
 	    "property-1.o" \
 	] \
 	[list \
 	    "Build property 1 (.so)" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=no" \
 	    {pass.c property-no-copy.S} \
 	    {{readelf {-n} property-1.r}} \
 	    "property-1.so" \
@@ -947,7 +1011,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 2" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=no" \
 	    {pass.c property-stack.S} \
 	    {{readelf {-n} property-2.r}} \
 	    "property-2" \
@@ -955,15 +1019,15 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 2 (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S} \
-	    {{readelf {-n} property-2.r}} \
+	    {{readelf {-n} property-2a.r}} \
 	    "property-2.o" \
 	] \
 	[list \
 	    "Build property 2 (.so)" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S} \
 	    {{readelf {-n} property-2.r}} \
 	    "property-2.so" \
@@ -971,7 +1035,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 3" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S} \
 	    {{readelf {-n} property-3.r}} \
 	    "property-3" \
@@ -979,15 +1043,15 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 3 (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-1.S property-stack.S} \
-	    {{readelf {-n} property-3.r}} \
+	    {{readelf {-n} property-3a.r}} \
 	    "property-3.o" \
 	] \
 	[list \
 	    "Build property 3 (.so)" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {property-x86-1.S pass.c property-stack.S} \
 	    {{readelf {-n} property-3.r}} \
 	    "property-3.so" \
@@ -995,7 +1059,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 4" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
 	    {{readelf {-n} property-4.r}} \
 	    "property-4" \
@@ -1003,15 +1067,15 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 4 (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
-	    {{readelf {-n} property-4.r}} \
+	    {{readelf {-n} property-4a.r}} \
 	    "property-4.o" \
 	] \
 	[list \
 	    "Build property 4 (.so)" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
 	    {{readelf {-n} property-4.r}} \
 	    "property-4.so" \
@@ -1019,7 +1083,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 4 (-Wl,-z,stack-size=0)" \
 	    "-Wl,-z,stack-size=0" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
 	    {{readelf {-n} property-4.r}} \
 	    "property-4" \
@@ -1027,7 +1091,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 5" \
 	    "-Wl,-z,stack-size=0x900000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
 	    {{readelf {-n} property-5.r}} \
 	    "property-5" \
@@ -1035,15 +1099,15 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property 5 (.o)" \
 	    "-r -nostdlib -Wl,-z,stack-size=0x900000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
-	    {{readelf {-n} property-5.r}} \
+	    {{readelf {-n} property-5a.r}} \
 	    "property-5.o" \
 	] \
 	[list \
 	    "Build property 5 (.so)" \
 	    "-shared -Wl,-z,stack-size=0x900000" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
 	    {{readelf {-n} property-5.r}} \
 	    "property-5.so" \
@@ -1051,7 +1115,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property-6.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {property-6a.c property-6c.S} \
 	    {{readelf {-n} property-6.r}} \
 	    "property-6.so" \
@@ -1059,39 +1123,39 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build property-6.o" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-6b.c property-stack.S} \
-	    {{readelf {-n} property-2.r}} \
+	    {{readelf {-n} property-2a.r}} \
 	    "property-6.o" \
 	] \
 	[list \
 	    "Build property-6" \
 	    "-Wl,--as-needed tmpdir/property-6.o tmpdir/property-6.so" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
-	    "" \
 	    {{readelf {-n} property-2.r}} \
 	    "property-6" \
 	] \
 	[list \
 	    "Build property 7a (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-unsorted-1.S} \
-	    {{readelf {-n} property-7.r}} \
+	    {{readelf {-n} property-7a.r}} \
 	    "property-7a.o" \
 	] \
 	[list \
 	    "Build property 7b (.o)" \
 	    "-r -nostdlib" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-unsorted-2.S} \
-	    {{readelf {-n} property-7.r}} \
+	    {{readelf {-n} property-7a.r}} \
 	    "property-7b.o" \
 	] \
 	[list \
 	    "Build pr22001-1.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr22001-1a.c } \
 	    {} \
 	    "pr22001-1.so" \
@@ -1099,7 +1163,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22001-1a" \
 	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    { pr22001-1b.c } \
 	    {{error_output "pr22001-1a.err"}} \
 	    "pr22001-1a" \
@@ -1107,7 +1171,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr21997-1.so" \
 	    "-shared" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { property-stack.S property-no-copy.S pr21997-1a.S } \
 	    {} \
 	    "pr21997-1.so" \
@@ -1115,7 +1179,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr21997-1a" \
 	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    { pr21997-1b.c } \
 	    {{error_output "pr21997-1a.err"}} \
 	    "pr21997-1a" \
@@ -1123,13 +1187,13 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22064a.o" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22064a.S } \
 	] \
 	[list \
 	    "Build pr22064.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr22064b.c } \
 	    {} \
 	    "pr22064.so" \
@@ -1137,7 +1201,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22393-3a.so" \
 	    "-shared -Wl,-z,separate-code,-z,max-page-size=0x1000" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {pr22393-3a.c} \
 	    {{readelf -lW pr22393-3a.rd} \
 	     {readelf -lW pr22393-3b.rd}} \
@@ -1146,7 +1210,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22393-3a-now.so" \
 	    "-shared -Wl,-z,separate-code,-z,now,-z,max-page-size=0x1000" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    {pr22393-3a.c} \
 	    {{readelf -lW pr22393-3a.rd} \
 	     {readelf -lW pr22393-3b.rd}} \
@@ -1155,7 +1219,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22393-3" \
 	    "$NOPIE_LDFLAGS -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a.so" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    {pr22393-3b.c} \
 	    {{readelf -lW pr22393-3a.rd} \
 	     {readelf -lW pr22393-3b.rd}} \
@@ -1164,7 +1228,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22393-3 (PIE)" \
 	    "-pie -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a-now.so" \
-	    "-fPIE" \
+	    "-fPIE -Wa,-mx86-used-note=yes" \
 	    {pr22393-3b.c} \
 	    {{readelf -lW pr22393-3a.rd} \
 	     {readelf -lW pr22393-3b.rd}} \
@@ -1173,7 +1237,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22393-3 (static)" \
 	    "-static -Wl,-z,separate-code,-z,max-page-size=0x1000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pr22393-3a.c pr22393-3b.c} \
 	    {{readelf -lW pr22393-3a.rd} \
 	     {readelf -lW pr22393-3b.rd}} \
@@ -1182,7 +1246,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22791-1.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr22791-1a.c } \
 	    {} \
 	    "pr22791-1.so" \
@@ -1190,7 +1254,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22791-1" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22791-1.so" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    { pr22791-1b.s } \
 	    {{error_output "pr22791-1.err"}} \
 	    "pr22791-1" \
@@ -1198,13 +1262,13 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22791-2a.o" \
 	    "" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    { pr22791-2a.s } \
 	] \
 	[list \
 	    "Build pr22791-2.so" \
 	    "-shared tmpdir/pr22791-2a.o" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr22791-2b.c } \
 	    {{readelf -drW pr22791-2.rd}} \
 	    "pr22791-2.so" \
@@ -1212,7 +1276,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22791-2" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22791-2.so" \
-	    "$NOPIE_CFLAGS" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 	    { pr22791-2c.s } \
 	    {{readelf -drW pr22791-2.rd}} \
 	    "pr22791-2" \
@@ -1220,7 +1284,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22842.so" \
 	    "-shared" \
-	    "-fPIC" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
 	    { pr22842a.c } \
 	    {} \
 	    "pr22842.so" \
@@ -1228,7 +1292,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Build pr22842" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22842.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22842b.S } \
 	    {{readelf -rW pr22842a.rd} \
 	     {readelf -rW pr22842b.rd}} \
@@ -1241,7 +1305,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Run pr22001-1b" \
 		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ pr22001-1c.c } \
 		"pr22001-1b" \
 		"pass.out" \
@@ -1250,7 +1314,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Run pr21997-1b" \
 		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ pr21997-1c.c } \
 		"pr21997-1b" \
 		"pass.out" \
@@ -1262,7 +1326,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Build pr22001-1b" \
 		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-		"$NOPIE_CFLAGS" \
+		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 		{ pr22001-1c.c } \
 		{{error_output "pr22001-1b.err"}} \
 		"pr22001-1b" \
@@ -1270,7 +1334,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Build pr21997-1b" \
 		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-		"$NOPIE_CFLAGS" \
+		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
 		{ pr21997-1c.c } \
 		{{error_output "pr21997-1b.err"}} \
 		"pr21997-1b" \
@@ -1283,7 +1347,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    "Run plt-main" \
 	    "-Wl,--no-as-needed tmpdir/plt-main1.o tmpdir/plt-main2.o \
 	     tmpdir/plt-main3.o tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { plt-main5.c } \
 	    "plt-main" \
 	    "plt-main.out" \
@@ -1292,7 +1356,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    "Run plt-main with PIE" \
 	    "-Wl,--no-as-needed -pie tmpdir/plt-main1.o tmpdir/plt-main2.o \
 	     tmpdir/plt-main3.o tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { plt-main5.c } \
 	    "plt-main-pie" \
 	    "plt-main.out" \
@@ -1301,7 +1365,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run copyreloc-main with PIE without -fPIE" \
 	    "-Wl,--as-needed -pie tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    "copyreloc-main" \
 	    "copyreloc-main.out" \
@@ -1309,7 +1373,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr17689 with PIE without -fPIE" \
 	    "-Wl,--no-as-needed -pie tmpdir/pr17689b.o tmpdir/pr17689.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    "pr17689" \
 	    "pr17689.out" \
@@ -1317,7 +1381,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr17689 with PIE -z now without -fPIE" \
 	    "-Wl,--as-needed,-z,now -pie tmpdir/pr17689b.o tmpdir/pr17689.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    "pr17689now" \
 	    "pr17689.out" \
@@ -1325,7 +1389,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr18900" \
 	    "-Wl,--no-as-needed tmpdir/pr18900.o tmpdir/pr18900.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    "pr18900" \
 	    "pr18900.out" \
@@ -1333,7 +1397,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr19031" \
 	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr19031.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr19031b.S pr19031c.c } \
 	    "pr19031" \
 	    "pr19031.out" \
@@ -1342,7 +1406,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run gotpcrel1" \
 	    "-Wl,--no-as-needed tmpdir/gotpcrel1d.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { gotpcrel1a.S gotpcrel1b.c gotpcrel1c.c } \
 	    "gotpcrel1" \
 	    "gotpcrel1.out" \
@@ -1350,112 +1414,112 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run property 1" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-no-copy.S} \
 	    "property-1" "pass.out" \
 	] \
 	[list \
 	    "Run property 1 (PIE)" \
 	    "-pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-no-copy.S} \
 	    "property-1-pie" "pass.out" "-fPIE" \
 	] \
 	[list \
 	    "Run property 1 (static)" \
 	    "-static" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-no-copy.S} \
 	    "property-1-static" "pass.out" \
 	] \
 	[list \
 	    "Run property 2" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S} \
 	    "property-2" "pass.out" \
 	] \
 	[list \
 	    "Run property 2 (PIE)" \
 	    "-pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S} \
 	    "property-2-pie" "pass.out" "-fPIE" \
 	] \
 	[list \
 	    "Run property 2 (static)" \
 	    "-static" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S} \
 	    "property-3-static" "pass.out" \
 	] \
 	[list \
 	    "Run property 3" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S} \
 	    "property-3" "pass.out" \
 	] \
 	[list \
 	    "Run property 3 (PIE)" \
 	    "-pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-1.S property-stack.S} \
 	    "property-3-pie" "pass.out" "-fPIE" \
 	] \
 	[list \
 	    "Run property 3 (static)" \
 	    "-static" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-x86-1.S pass.c property-stack.S} \
 	    "property-3-static" "pass.out" \
 	] \
 	[list \
 	    "Run property 4" \
 	    "" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
 	    "property-4" "pass.out" \
 	] \
 	[list \
 	    "Run property 4 (PIE)" \
 	    "-pie" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
 	    "property-4-pie" "pass.out" "-fPIE" \
 	] \
 	[list \
 	    "Run property 4 (static)" \
 	    "-static" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
 	    "property-4-static" "pass.out" \
 	] \
 	[list \
 	    "Run property 5" \
 	    "-Wl,-z,stack-size=0x900000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
 	    "property-5" "pass.out" \
 	] \
 	[list \
 	    "Run property 5 (PIE)" \
 	    "-pie -Wl,-z,stack-size=0x900000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
 	    "property-5-pie" "pass.out" "-fPIE" \
 	] \
 	[list \
 	    "Run property 5 (static)" \
 	    "-static -Wl,-z,stack-size=0x900000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
 	    "property-5-static" "pass.out" \
 	] \
 	[list \
 	    "Run pr22001-1a (PIC 1)" \
 	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22001-1b.c } \
 	    "pr22001-1a-pic-1" \
 	    "pass.out" \
@@ -1464,7 +1528,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22001-1a (PIC 2)" \
 	    "-pie -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22001-1b.c } \
 	    "pr22001-1a-pic-2" \
 	    "pass.out" \
@@ -1473,7 +1537,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22001-1b (PIC 1)" \
 	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22001-1c.c } \
 	    "pr22001-1b-pic-1" \
 	    "pass.out" \
@@ -1482,7 +1546,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22001-1b (PIC 2)" \
 	    "-pie -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22001-1c.c } \
 	    "pr22001-1b-pic-2" \
 	    "pass.out" \
@@ -1491,7 +1555,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr21997-1a (PIC 1)" \
 	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr21997-1b.c } \
 	    "pr21997-1a-pic-1" \
 	    "pass.out" \
@@ -1500,7 +1564,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr21997-1a (PIC 2)" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr21997-1b.c } \
 	    "pr21997-1a-pic-2" \
 	    "pass.out" \
@@ -1509,7 +1573,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr21997-1b (PIC 1)" \
 	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr21997-1c.c } \
 	    "pr21997-1b-pic-1" \
 	    "pass.out" \
@@ -1518,7 +1582,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr21997-1b (PIC 2)" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr21997-1.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr21997-1c.c } \
 	    "pr21997-1b-pic-2" \
 	    "pass.out" \
@@ -1527,7 +1591,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22064" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22064a.o tmpdir/pr22064.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { dummy.s } \
 	    "pr22064-pie" \
 	    "pass.out" \
@@ -1536,7 +1600,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22393-3" \
 	    "$NOPIE_LDFLAGS -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pr22393-3b.c} \
 	    "pr22393-3" \
 	    "pass.out" \
@@ -1545,7 +1609,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22393-3 (PIE)" \
 	    "-pie -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a-now.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pr22393-3b.c} \
 	    "pr22393-3-pie" \
 	    "pass.out" \
@@ -1554,7 +1618,7 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22393-3 (static)" \
 	    "-static -Wl,-z,separate-code,-z,max-page-size=0x1000" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    {pr22393-3a.c pr22393-3b.c} \
 	    "pr22393-3-static" \
 	    "pass.out" \
@@ -1562,18 +1626,26 @@ if { [isnative] && [which $CC] != 0 } {
 	[list \
 	    "Run pr22791-2" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22791-2.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22791-2c.s } \
 	    "pr22791-2" \
 	    "pass.out" \
 	    "$NOPIE_CFLAGS" \
 	] \
 	[list \
-	    "Build pr22842" \
+	    "Run pr22842" \
 	    "-pie -Wl,--no-as-needed tmpdir/pr22842.so" \
-	    "" \
+	    "-Wa,-mx86-used-note=yes" \
 	    { pr22842b.S } \
 	    "pr22842" \
+	    "pass.out" \
+	] \
+	[list \
+	    "Run pr23997" \
+	    "" \
+	    "" \
+	    { pr23997a.s pr23997b.c pr23997c.c } \
+	    "pr23997" \
 	    "pass.out" \
 	] \
     ]
@@ -1584,7 +1656,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Build libpr19784a.so" \
 		"-shared -Wl,-Bsymbolic-functions" \
-		"-fPIC -O2 -g" \
+		"-fPIC -O2 -g -Wa,-mx86-used-note=yes" \
 		{ pr19784b.c pr19784c.c } \
 		{} \
 		"libpr19784a.so" \
@@ -1592,7 +1664,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Build libpr19784b.so" \
 		"-shared -Wl,-Bsymbolic-functions" \
-		"-fPIC -O2 -g" \
+		"-fPIC -O2 -g -Wa,-mx86-used-note=yes" \
 		{ pr19784c.c pr19784b.c } \
 		{} \
 		"libpr19784b.so" \
@@ -1600,7 +1672,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Build pr19784a.o" \
 		"" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ pr19784a.c } \
 	    ] \
 	]
@@ -1609,7 +1681,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Run pr19784a" \
 		"-Wl,--no-as-needed tmpdir/pr19784a.o tmpdir/libpr19784a.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ dummy.s } \
 		"pr19784a" \
 		"pass.out" \
@@ -1617,7 +1689,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Run pr19784b" \
 		"-Wl,--as-needed tmpdir/pr19784a.o tmpdir/libpr19784b.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ dummy.s } \
 		"pr19784b" \
 		"pass.out" \
@@ -1634,7 +1706,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		{{objdump {-drw} plt-main-bnd.dd}} \
 		"plt-main-bnd" \
@@ -1644,7 +1716,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -pie \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		{{objdump {-drw} plt-main-bnd.dd}} \
 		"plt-main-pie-bnd" \
@@ -1654,7 +1726,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -z now \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		{{readelf {-SW} plt-main-bnd-now.rd} {objdump {-drw} plt-main-bnd.dd}} \
 		"plt-main-bnd-now" \
@@ -1664,7 +1736,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z bndplt -z now -pie \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		{{readelf {-SW} plt-main-bnd-now.rd} {objdump {-drw} plt-main-bnd.dd}} \
 		"plt-main-pie-bnd-now" \
@@ -1677,7 +1749,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,bndplt tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-bnd" \
 		"plt-main.out" \
@@ -1687,7 +1759,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,bndplt -pie tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-pie-bnd" \
 		"plt-main.out" \
@@ -1698,7 +1770,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,bndplt,-z,now tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-bnd-now" \
 		"plt-main.out" \
@@ -1708,7 +1780,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,bndplt,-z,now -pie tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-pie-bnd-now" \
 		"plt-main.out" \
@@ -1717,7 +1789,7 @@ if { [isnative] && [which $CC] != 0 } {
 	    [list \
 		"Run pr20800" \
 		"-Wl,-z,now -pie" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ pr20800a.S pr20800b.S } \
 		"pr20800" \
 		"pass.out" \
@@ -1728,7 +1800,7 @@ if { [isnative] && [which $CC] != 0 } {
 		[list \
 		    "Run pr21481a" \
 		    "$NOPIE_LDFLAGS -Wl,-z,bndplt" \
-		    "" \
+		    "-Wa,-mx86-used-note=yes" \
 		    { pr21481a.c pr21481b.S } \
 		    "pr21481a" \
 		    "pass.out" \
@@ -1737,7 +1809,7 @@ if { [isnative] && [which $CC] != 0 } {
 		[list \
 		    "Run pr21481b" \
 		    "$NOPIE_LDFLAGS -Wl,-z,bndplt,-z,now" \
-		    "" \
+		    "-Wa,-mx86-used-note=yes" \
 		    { pr21481a.c pr21481b.S } \
 		    "pr21481b" \
 		    "pass.out" \
@@ -1761,7 +1833,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		$pltdump \
 		"plt-main-ibt" \
@@ -1771,7 +1843,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -pie \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		$pltdump \
 		"plt-main-pie-ibt" \
@@ -1781,7 +1853,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -z now \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		$pltsecdump \
 		"plt-main-ibt-now" \
@@ -1791,7 +1863,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -z ibtplt -z now -pie \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		$pltsecdump \
 		"plt-main-pie-ibt-now" \
@@ -1800,7 +1872,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"Build libibtplt-lib.so with -z ibtplt" \
 		"-shared -z ibtplt \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
 		$pltdump \
 		"libibtplt-lib.so" \
@@ -1809,7 +1881,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"Build libibtplt--now-lib.so with -z ibtplt -z now" \
 		"-shared -z ibtplt -z now \
 		 -z noseparate-code -z max-page-size=0x200000" \
-		"-fPIC" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
 		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
 		$pltdump \
 		"libibtplt-now-lib.so" \
@@ -1822,7 +1894,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,ibtplt tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-ibt" \
 		"plt-main.out" \
@@ -1832,7 +1904,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,ibtplt -pie tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-pie-ibt" \
 		"plt-main.out" \
@@ -1843,7 +1915,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,ibtplt,-z,now tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-ibt-now" \
 		"plt-main.out" \
@@ -1853,7 +1925,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"-Wl,--no-as-needed,-z,ibtplt,-z,now -pie tmpdir/plt-main1.o \
 		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
 		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-pie-ibt-now" \
 		"plt-main.out" \
@@ -1863,7 +1935,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"Run plt-main with libibtplt-lib.so -z ibtplt" \
 		"-Wl,--no-as-needed,-z,ibtplt tmpdir/libibtplt-lib.so \
 		 tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-ibt-lib" \
 		"plt-main.out" \
@@ -1872,7 +1944,7 @@ if { [isnative] && [which $CC] != 0 } {
 		"Run plt-main with libibtplt-lib.so -z ibtplt -z now" \
 		"-Wl,--no-as-needed,-z,ibtplt,-z,now \
 		 tmpdir/libibtplt-now-lib.so tmpdir/libplt-lib.so" \
-		"" \
+		"-Wa,-mx86-used-note=yes" \
 		{ plt-main5.c } \
 		"plt-main-ibt-now-lib" \
 		"plt-main.out" \
@@ -1884,7 +1956,7 @@ if { [isnative] && [which $CC] != 0 } {
 		[list \
 		    "Run pr21481a" \
 		    "$NOPIE_LDFLAGS -Wl,-z,ibtplt" \
-		    "" \
+		    "-Wa,-mx86-used-note=yes" \
 		    { pr21481a.c pr21481b.S } \
 		    "pr21481a" \
 		    "pass.out" \
@@ -1893,7 +1965,7 @@ if { [isnative] && [which $CC] != 0 } {
 		[list \
 		    "Run pr21481b" \
 		    "$NOPIE_LDFLAGS -Wl,-z,ibtplt,-z,now" \
-		    "" \
+		    "-Wa,-mx86-used-note=yes" \
 		    { pr21481a.c pr21481b.S } \
 		    "pr21481b" \
 		    "pass.out" \
@@ -1911,6 +1983,7 @@ if { [isnative] && [which $CC] != 0 } {
 }
 
 if { ![istarget "x86_64-*-linux*"]} {
+    set ASFLAGS "$saved_ASFLAGS"
     return
 }
 
@@ -1929,7 +2002,7 @@ run_ld_link_tests [list \
 	"Build pr21626.so" \
 	"-shared -melf_x86_64" \
 	"" \
-	"--64 -defsym __64_bit__=1" \
+	"--64 -defsym __64_bit__=1 -mx86-used-note=yes" \
 	{property-x86-3.s} \
 	"" \
 	"pr21626.so" \
@@ -1938,7 +2011,7 @@ run_ld_link_tests [list \
 	"Build pr21626" \
 	"-melf_x86_64 tmpdir/pr21626.so" \
 	"" \
-	"--64" \
+	"--64 -mx86-used-note=yes" \
 	{start.s foo.s} \
 	"" \
 	"pr21626" \
@@ -1981,3 +2054,5 @@ run_dump_test "ibt-plt-3a-x32"
 run_dump_test "ibt-plt-3b-x32"
 run_dump_test "ibt-plt-3c-x32"
 run_dump_test "ibt-plt-3d-x32"
+
+set ASFLAGS "$saved_ASFLAGS"

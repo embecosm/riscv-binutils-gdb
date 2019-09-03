@@ -1,6 +1,6 @@
 /* Generic serial interface routines
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -213,7 +213,17 @@ serial_open (const char *name)
   else if (strchr (name, ':'))
     ops = serial_interface_lookup ("tcp");
   else
-    ops = serial_interface_lookup ("hardwire");
+    {
+#ifndef USE_WIN32API
+      /* Check to see if name is a socket.  If it is, then treat it
+         as such.  Otherwise assume that it's a character device.  */
+      struct stat sb;
+      if (stat (name, &sb) == 0 && (sb.st_mode & S_IFMT) == S_IFSOCK)
+	ops = serial_interface_lookup ("local");
+      else
+#endif
+	ops = serial_interface_lookup ("hardwire");
+    }
 
   if (!ops)
     return NULL;
@@ -434,16 +444,14 @@ serial_write (struct serial *scb, const void *buf, size_t count)
 }
 
 void
-serial_printf (struct serial *desc, const char *format,...)
+serial_printf (struct serial *desc, const char *format, ...)
 {
   va_list args;
-  char *buf;
   va_start (args, format);
 
-  buf = xstrvprintf (format, args);
-  serial_write (desc, buf, strlen (buf));
+  std::string buf = string_vprintf (format, args);
+  serial_write (desc, buf.c_str (), buf.length ());
 
-  xfree (buf);
   va_end (args);
 }
 
@@ -698,8 +706,8 @@ using remote targets."),
 
   add_setshow_enum_cmd ("parity", no_class, parity_enums,
                         &parity, _("\
-Set parity for remote serial I/O"), _("\
-Show parity for remote serial I/O"), NULL,
+Set parity for remote serial I/O."), _("\
+Show parity for remote serial I/O."), NULL,
                         set_parity,
                         NULL, /* FIXME: i18n: */
                         &serial_set_cmdlist, &serial_show_cmdlist);
@@ -715,8 +723,8 @@ by gdbserver."),
 
   add_setshow_enum_cmd ("remotelogbase", no_class, logbase_enums,
 			&serial_logbase, _("\
-Set numerical base for remote session logging"), _("\
-Show numerical base for remote session logging"), NULL,
+Set numerical base for remote session logging."), _("\
+Show numerical base for remote session logging."), NULL,
 			NULL,
 			NULL, /* FIXME: i18n: */
 			&setlist, &showlist);

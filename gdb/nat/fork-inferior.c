@@ -1,6 +1,6 @@
 /* Fork a Unix child process, and set up to debug it, for GDB and GDBserver.
 
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,22 +17,19 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "common-defs.h"
+#include "gdbsupport/common-defs.h"
 #include "fork-inferior.h"
 #include "target/waitstatus.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "target/target.h"
-#include "common-inferior.h"
-#include "common-gdbthread.h"
-#include "signals-state-save-restore.h"
-#include "gdb_tilde_expand.h"
+#include "gdbsupport/common-inferior.h"
+#include "gdbsupport/common-gdbthread.h"
+#include "gdbsupport/pathstuff.h"
+#include "gdbsupport/signals-state-save-restore.h"
+#include "gdbsupport/gdb_tilde_expand.h"
 #include <vector>
 
 extern char **environ;
-
-/* Default shell file to be used if 'startup-with-shell' is set but
-   $SHELL is not.  */
-#define SHELL_FILE "/bin/sh"
 
 /* Build the argument vector for execv(3).  */
 
@@ -265,22 +262,6 @@ execv_argv::init_for_shell (const char *exec_file,
   m_argv.push_back (NULL);
 }
 
-/* Return the shell that must be used to startup the inferior.  The
-   first attempt is the environment variable SHELL; if it is not set,
-   then we default to SHELL_FILE.  */
-
-static const char *
-get_startup_shell ()
-{
-  static const char *ret;
-
-  ret = getenv ("SHELL");
-  if (ret == NULL)
-    ret = SHELL_FILE;
-
-  return ret;
-}
-
 /* See nat/fork-inferior.h.  */
 
 pid_t
@@ -318,7 +299,7 @@ fork_inferior (const char *exec_file_arg, const std::string &allargs,
 
       /* Figure out what shell to start up the user program under.  */
       if (shell_file == NULL)
-	shell_file = get_startup_shell ();
+	shell_file = get_shell ();
 
       gdb_assert (shell_file != NULL);
     }
@@ -444,7 +425,7 @@ fork_inferior (const char *exec_file_arg, const std::string &allargs,
       for (i = 1; argv[i] != NULL; i++)
 	warning (" %s", argv[i]);
 
-      warning ("Error: %s\n", safe_strerror (save_errno));
+      warning ("Error: %s", safe_strerror (save_errno));
 
       _exit (0177);
     }

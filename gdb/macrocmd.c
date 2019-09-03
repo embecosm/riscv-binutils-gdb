@@ -1,5 +1,5 @@
 /* C preprocessor macro expansion commands for GDB.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
    Contributed by Red Hat, Inc.
 
    This file is part of GDB.
@@ -22,6 +22,7 @@
 #include "macrotab.h"
 #include "macroexp.h"
 #include "macroscope.h"
+#include "cli/cli-style.h"
 #include "cli/cli-utils.h"
 #include "command.h"
 #include "gdbcmd.h"
@@ -118,18 +119,16 @@ show_pp_source_pos (struct ui_file *stream,
                     struct macro_source_file *file,
                     int line)
 {
-  char *fullname;
-
-  fullname = macro_source_fullname (file);
-  fprintf_filtered (stream, "%s:%d\n", fullname, line);
-  xfree (fullname);
+  std::string fullname = macro_source_fullname (file);
+  fputs_styled (fullname.c_str (), file_name_style.style (), stream);
+  fprintf_filtered (stream, ":%d\n", line);
 
   while (file->included_by)
     {
       fullname = macro_source_fullname (file->included_by);
-      fprintf_filtered (gdb_stdout, "  included at %s:%d\n", fullname,
-                        file->included_at_line);
-      xfree (fullname);
+      fputs_filtered (_("  included at "), stream);
+      fputs_styled (fullname.c_str (), file_name_style.style (), stream);
+      fprintf_filtered (stream, ":%d\n", file->included_at_line);
       file = file->included_by;
     }
 }
@@ -199,13 +198,9 @@ info_macro_command (const char *args, int from_tty)
 	     e.g. Scheme's (defmacro ->foo () "bar\n")  */
 	processing_args = 0;
       else
-	{
-	  error (_("Unrecognized option '%.*s' to info macro command.  "
-		   "Try \"help info macro\"."),
-		 int (p - arg_start), arg_start);
-	}
+	report_unrecognized_option_error ("info macro", arg_start);
 
-        arg_start = skip_spaces (p);
+      arg_start = skip_spaces (p);
     }
 
   name = arg_start;
@@ -292,7 +287,7 @@ skip_ws (const char **expp)
    function will also allow "..." forms as used in varargs macro
    parameters.  */
 
-static char *
+static gdb::unique_xmalloc_ptr<char>
 extract_identifier (const char **expp, int is_parameter)
 {
   char *result;
@@ -321,7 +316,7 @@ extract_identifier (const char **expp, int is_parameter)
   memcpy (result, *expp, len);
   result[len] = '\0';
   *expp += len;
-  return result;
+  return gdb::unique_xmalloc_ptr<char> (result);
 }
 
 struct temporary_macro_definition : public macro_definition
@@ -350,14 +345,13 @@ static void
 macro_define_command (const char *exp, int from_tty)
 {
   temporary_macro_definition new_macro;
-  char *name = NULL;
 
   if (!exp)
     error (_("usage: macro define NAME[(ARGUMENT-LIST)] [REPLACEMENT-LIST]"));
 
   skip_ws (&exp);
-  name = extract_identifier (&exp, 0);
-  if (! name)
+  gdb::unique_xmalloc_ptr<char> name = extract_identifier (&exp, 0);
+  if (name == NULL)
     error (_("Invalid macro name."));
   if (*exp == '(')
     {
@@ -384,7 +378,7 @@ macro_define_command (const char *exp, int from_tty)
 	      /* Must update new_macro as well...  */
 	      new_macro.argv = (const char * const *) argv;
 	    }
-	  argv[new_macro.argc] = extract_identifier (&exp, 1);
+	  argv[new_macro.argc] = extract_identifier (&exp, 1).release ();
 	  if (! argv[new_macro.argc])
 	    error (_("Macro is missing an argument."));
 	  ++new_macro.argc;
@@ -408,14 +402,15 @@ macro_define_command (const char *exp, int from_tty)
       ++exp;
       skip_ws (&exp);
 
-      macro_define_function (macro_main (macro_user_macros), -1, name,
+      macro_define_function (macro_main (macro_user_macros), -1, name.get (),
 			     new_macro.argc, (const char **) new_macro.argv,
 			     exp);
     }
   else
     {
       skip_ws (&exp);
-      macro_define_object (macro_main (macro_user_macros), -1, name, exp);
+      macro_define_object (macro_main (macro_user_macros), -1, name.get (),
+			   exp);
     }
 }
 
@@ -423,17 +418,14 @@ macro_define_command (const char *exp, int from_tty)
 static void
 macro_undef_command (const char *exp, int from_tty)
 {
-  char *name;
-
   if (!exp)
     error (_("usage: macro undef NAME"));
 
   skip_ws (&exp);
-  name = extract_identifier (&exp, 0);
-  if (! name)
+  gdb::unique_xmalloc_ptr<char> name = extract_identifier (&exp, 0);
+  if (name == nullptr)
     error (_("Invalid macro name."));
-  macro_undef (macro_main (macro_user_macros), -1, name);
-  xfree (name);
+  macro_undef (macro_main (macro_user_macros), -1, name.get ());
 }
 
 

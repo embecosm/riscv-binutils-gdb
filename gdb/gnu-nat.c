@@ -1,5 +1,5 @@
 /* Interface GDB to the GNU Hurd.
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,6 +19,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/* Include this first, to pick up the <mach.h> 'thread_info' diversion.  */
+#include "gnu-nat.h"
 
 /* Mach/Hurd headers are not yet ready for C++ compilation.  */
 extern "C"
@@ -60,14 +63,14 @@ extern "C"
 #include "value.h"
 #include "language.h"
 #include "target.h"
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include "gdbcmd.h"
 #include "gdbcore.h"
 #include "gdbthread.h"
 #include "gdb_obstack.h"
 #include "tid-parse.h"
+#include "nat/fork-inferior.h"
 
-#include "gnu-nat.h"
 #include "inf-child.h"
 
 /* MIG stubs are not yet ready for C++ compilation.  */
@@ -1490,7 +1493,7 @@ gnu_nat_target::wait (ptid_t ptid, struct target_waitstatus *status,
 
   waiting_inf = inf;
 
-  inf_debug (inf, "waiting for: %s", target_pid_to_str (ptid));
+  inf_debug (inf, "waiting for: %s", target_pid_to_str (ptid).c_str ());
 
 rewait:
   if (proc_wait_pid != inf->pid && !inf->no_wait)
@@ -1644,15 +1647,9 @@ rewait:
       inf_update_suspends (inf);
     }
 
-  inf_debug (inf, "returning ptid = %s, status = %s (%d)",
-	     target_pid_to_str (ptid),
-	     status->kind == TARGET_WAITKIND_EXITED ? "EXITED"
-	     : status->kind == TARGET_WAITKIND_STOPPED ? "STOPPED"
-	     : status->kind == TARGET_WAITKIND_SIGNALLED ? "SIGNALLED"
-	     : status->kind == TARGET_WAITKIND_LOADED ? "LOADED"
-	     : status->kind == TARGET_WAITKIND_SPURIOUS ? "SPURIOUS"
-	     : "?",
-	     status->value.integer);
+  inf_debug (inf, "returning ptid = %s, %s",
+	     target_pid_to_str (ptid).c_str (),
+	     target_waitstatus_to_string (status).c_str ());
 
   return ptid;
 }
@@ -1877,17 +1874,19 @@ ILL_RPC (S_proc_setmsgport_reply,
 	 mach_port_t oldmsgport)
 ILL_RPC (S_proc_getmsgport_reply,
 	 mach_port_t reply_port, kern_return_t return_code,
-	 mach_port_t msgports)
+	 mach_port_t msgports, mach_msg_type_name_t msgportsPoly)
 ILL_RPC (S_proc_pid2task_reply,
 	 mach_port_t reply_port, kern_return_t return_code, mach_port_t task)
 ILL_RPC (S_proc_task2pid_reply,
 	 mach_port_t reply_port, kern_return_t return_code, pid_t pid)
 ILL_RPC (S_proc_task2proc_reply,
-	 mach_port_t reply_port, kern_return_t return_code, mach_port_t proc)
+	 mach_port_t reply_port, kern_return_t return_code,
+	 mach_port_t proc, mach_msg_type_name_t procPoly)
 ILL_RPC (S_proc_proc2task_reply,
 	 mach_port_t reply_port, kern_return_t return_code, mach_port_t task)
 ILL_RPC (S_proc_pid2proc_reply,
-	 mach_port_t reply_port, kern_return_t return_code, mach_port_t proc)
+	 mach_port_t reply_port, kern_return_t return_code,
+	 mach_port_t proc, mach_msg_type_name_t procPoly)
 ILL_RPC (S_proc_getprocinfo_reply,
 	 mach_port_t reply_port, kern_return_t return_code,
 	 int flags, procinfo_t procinfo, mach_msg_type_number_t procinfoCnt,
@@ -2007,7 +2006,7 @@ gnu_nat_target::resume (ptid_t ptid, int step, enum gdb_signal sig)
   struct inf *inf = gnu_current_inf;
 
   inf_debug (inf, "ptid = %s, step = %d, sig = %d",
-	     target_pid_to_str (ptid), step, sig);
+	     target_pid_to_str (ptid).c_str (), step, sig);
 
   inf_validate_procinfo (inf);
 
@@ -2053,8 +2052,9 @@ gnu_nat_target::resume (ptid_t ptid, int step, enum gdb_signal sig)
 
       if (!thread)
 	error (_("Can't run single thread id %s: no such thread!"),
-	       target_pid_to_str (ptid));
-      inf_debug (inf, "running one thread: %s", target_pid_to_str (ptid));
+	       target_pid_to_str (ptid).c_str ());
+      inf_debug (inf, "running one thread: %s",
+		 target_pid_to_str (ptid).c_str ());
       inf_set_threads_resume_sc (inf, thread, 0);
     }
 
@@ -2063,9 +2063,10 @@ gnu_nat_target::resume (ptid_t ptid, int step, enum gdb_signal sig)
       step_thread = inf_tid_to_thread (inf, ptid.lwp ());
       if (!step_thread)
 	warning (_("Can't step thread id %s: no such thread."),
-		 target_pid_to_str (ptid));
+		 target_pid_to_str (ptid).c_str ());
       else
-	inf_debug (inf, "stepping thread: %s", target_pid_to_str (ptid));
+	inf_debug (inf, "stepping thread: %s",
+		   target_pid_to_str (ptid).c_str ());
     }
   if (step_thread != inf->step_thread)
     inf_set_step_thread (inf, step_thread);
@@ -2212,8 +2213,6 @@ gnu_nat_target::attach (const char *args, int from_tty)
 			   exec_file, pid);
       else
 	printf_unfiltered ("Attaching to pid %d\n", pid);
-
-      gdb_flush (gdb_stdout);
     }
 
   inf_debug (inf, "attaching to pid: %d", pid);
@@ -2268,7 +2267,6 @@ gnu_nat_target::detach (inferior *inf, int from_tty)
 			   exec_file, gnu_current_inf->pid);
       else
 	printf_unfiltered ("Detaching from pid %d\n", gnu_current_inf->pid);
-      gdb_flush (gdb_stdout);
     }
 
   pid = gnu_current_inf->pid;
@@ -2276,9 +2274,9 @@ gnu_nat_target::detach (inferior *inf, int from_tty)
   inf_detach (gnu_current_inf);
 
   inferior_ptid = null_ptid;
-  detach_inferior (pid);
+  detach_inferior (find_inferior_pid (pid));
 
-  inf_child_maybe_unpush_target (ops);
+  maybe_unpush_target ();
 }
 
 
@@ -2358,7 +2356,7 @@ gnu_write_inferior (task_t task, CORE_ADDR addr,
   mach_msg_type_number_t copy_count;
   int deallocate = 0;
 
-  char *errstr = "Bug in gnu_write_inferior";
+  const char *errstr = "Bug in gnu_write_inferior";
 
   struct vm_region_list *region_element;
   struct vm_region_list *region_head = NULL;
@@ -2712,7 +2710,7 @@ proc_string (struct proc *proc)
   return tid_str;
 }
 
-const char *
+std::string
 gnu_nat_target::pid_to_str (ptid_t ptid)
 {
   struct inf *inf = gnu_current_inf;
@@ -2722,12 +2720,7 @@ gnu_nat_target::pid_to_str (ptid_t ptid)
   if (thread)
     return proc_string (thread);
   else
-    {
-      static char tid_str[80];
-
-      xsnprintf (tid_str, sizeof (tid_str), "bogus thread id %d", tid);
-      return tid_str;
-    }
+    return string_printf ("bogus thread id %d", tid);
 }
 
 
@@ -2775,7 +2768,7 @@ show_thread_default_cmd (const char *args, int from_tty)
 }
 
 static int
-parse_int_arg (const char *args, char *cmd_prefix)
+parse_int_arg (const char *args, const char *cmd_prefix)
 {
   if (args)
     {
@@ -2790,7 +2783,8 @@ parse_int_arg (const char *args, char *cmd_prefix)
 }
 
 static int
-_parse_bool_arg (const char *args, char *t_val, char *f_val, char *cmd_prefix)
+_parse_bool_arg (const char *args, const char *t_val, const char *f_val,
+		 const char *cmd_prefix)
 {
   if (!args || strcmp (args, t_val) == 0)
     return 1;
@@ -2806,7 +2800,7 @@ _parse_bool_arg (const char *args, char *t_val, char *f_val, char *cmd_prefix)
   _parse_bool_arg (args, "on", "off", cmd_prefix)
 
 static void
-check_empty (const char *args, char *cmd_prefix)
+check_empty (const char *args, const char *cmd_prefix)
 {
   if (args)
     error (_("Garbage after \"%s\" command: `%s'"), cmd_prefix, args);
@@ -3318,15 +3312,15 @@ This is the same as setting `task pause', `exceptions', and\n\
 
   /* Commands to show information about the task's ports.  */
   add_info ("send-rights", info_send_rights_cmd,
-	    _("Show information about the task's send rights"));
+	    _("Show information about the task's send rights."));
   add_info ("receive-rights", info_recv_rights_cmd,
-	    _("Show information about the task's receive rights"));
+	    _("Show information about the task's receive rights."));
   add_info ("port-rights", info_port_rights_cmd,
-	    _("Show information about the task's port rights"));
+	    _("Show information about the task's port rights."));
   add_info ("port-sets", info_port_sets_cmd,
-	    _("Show information about the task's port sets"));
+	    _("Show information about the task's port sets."));
   add_info ("dead-names", info_dead_names_cmd,
-	    _("Show information about the task's dead names"));
+	    _("Show information about the task's dead names."));
   add_info_alias ("ports", "port-rights", 1);
   add_info_alias ("port", "port-rights", 1);
   add_info_alias ("psets", "port-sets", 1);
@@ -3429,8 +3423,9 @@ thread_takeover_sc_cmd (const char *args, int from_tty)
   thread_basic_info_data_t _info;
   thread_basic_info_t info = &_info;
   mach_msg_type_number_t info_len = THREAD_BASIC_INFO_COUNT;
-  kern_return_t err =
-  thread_info (thread->port, THREAD_BASIC_INFO, (int *) &info, &info_len);
+  kern_return_t err
+    = mach_thread_info (thread->port, THREAD_BASIC_INFO,
+			(int *) &info, &info_len);
   if (err)
     error (("%s."), safe_strerror (err));
   thread->sc = info->suspend_count;

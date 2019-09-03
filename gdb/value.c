@@ -1,6 +1,6 @@
 /* Low level packing and unpacking of values for GDB, the GNU Debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -41,8 +41,8 @@
 #include "user-regs.h"
 #include <algorithm>
 #include "completer.h"
-#include "selftest.h"
-#include "common/array-view.h"
+#include "gdbsupport/selftest.h"
+#include "gdbsupport/array-view.h"
 
 /* Definition of a user function.  */
 struct internal_function
@@ -1405,15 +1405,14 @@ value_optimized_out (struct value *value)
      fetch it.  */
   if (value->optimized_out.empty () && value->lazy)
     {
-      TRY
+      try
 	{
 	  value_fetch_lazy (value);
 	}
-      CATCH (ex, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &ex)
 	{
 	  /* Fall back to checking value->optimized_out.  */
 	}
-      END_CATCH
     }
 
   return !value->optimized_out.empty ();
@@ -2015,11 +2014,7 @@ complete_internalvar (completion_tracker &tracker, const char *name)
 
   for (var = internalvars; var; var = var->next)
     if (strncmp (var->name, name, len) == 0)
-      {
-	gdb::unique_xmalloc_ptr<char> copy (xstrdup (var->name));
-
-	tracker.add_completion (std::move (copy));
-      }
+      tracker.add_completion (make_unique_xstrdup (var->name));
 }
 
 /* Create an internal variable with name NAME and with a void value.
@@ -2030,7 +2025,7 @@ create_internalvar (const char *name)
 {
   struct internalvar *var = XNEW (struct internalvar);
 
-  var->name = concat (name, (char *)NULL);
+  var->name = xstrdup (name);
   var->kind = INTERNALVAR_VOID;
   var->next = internalvars;
   internalvars = var;
@@ -2274,20 +2269,20 @@ set_internalvar (struct internalvar *var, struct value *val)
 
     default:
       new_kind = INTERNALVAR_VALUE;
-      new_data.value = value_copy (val);
-      new_data.value->modifiable = 1;
+      struct value *copy = value_copy (val);
+      copy->modifiable = 1;
 
       /* Force the value to be fetched from the target now, to avoid problems
 	 later when this internalvar is referenced and the target is gone or
 	 has changed.  */
-      if (value_lazy (new_data.value))
-       value_fetch_lazy (new_data.value);
+      if (value_lazy (copy))
+	value_fetch_lazy (copy);
 
       /* Release the value from the value chain to prevent it from being
 	 deleted by free_all_values.  From here on this function should not
 	 call error () until new_data is installed into the var->u to avoid
 	 leaking memory.  */
-      release_value (new_data.value).release ();
+      new_data.value = release_value (copy).release ();
 
       /* Internal variables which are created from values with a dynamic
          location don't need the location property of the origin anymore.
@@ -2535,18 +2530,17 @@ show_convenience (const char *ignore, int from_tty)
 	}
       printf_filtered (("$%s = "), var->name);
 
-      TRY
+      try
 	{
 	  struct value *val;
 
 	  val = value_of_internalvar (gdbarch, var);
 	  value_print (val, gdb_stdout, &opts);
 	}
-      CATCH (ex, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &ex)
 	{
-	  fprintf_filtered (gdb_stdout, _("<error: %s>"), ex.message);
+	  fprintf_filtered (gdb_stdout, _("<error: %s>"), ex.what ());
 	}
-      END_CATCH
 
       printf_filtered (("\n"));
     }
@@ -2583,24 +2577,23 @@ value_from_xmethod (xmethod_worker_up &&worker)
 /* Return the type of the result of TYPE_CODE_XMETHOD value METHOD.  */
 
 struct type *
-result_type_of_xmethod (struct value *method, int argc, struct value **argv)
+result_type_of_xmethod (struct value *method, gdb::array_view<value *> argv)
 {
   gdb_assert (TYPE_CODE (value_type (method)) == TYPE_CODE_XMETHOD
-	      && method->lval == lval_xcallable && argc > 0);
+	      && method->lval == lval_xcallable && !argv.empty ());
 
-  return method->location.xm_worker->get_result_type
-    (argv[0], argv + 1, argc - 1);
+  return method->location.xm_worker->get_result_type (argv[0], argv.slice (1));
 }
 
 /* Call the xmethod corresponding to the TYPE_CODE_XMETHOD value METHOD.  */
 
 struct value *
-call_xmethod (struct value *method, int argc, struct value **argv)
+call_xmethod (struct value *method, gdb::array_view<value *> argv)
 {
   gdb_assert (TYPE_CODE (value_type (method)) == TYPE_CODE_XMETHOD
-	      && method->lval == lval_xcallable && argc > 0);
+	      && method->lval == lval_xcallable && !argv.empty ());
 
-  return method->location.xm_worker->invoke (argv[0], argv + 1, argc - 1);
+  return method->location.xm_worker->invoke (argv[0], argv.slice (1));
 }
 
 /* Extract a value as a C number (either long or double).
@@ -3050,7 +3043,7 @@ value_fn_field (struct value **arg1p, struct fn_field *f,
   VALUE_LVAL (v) = lval_memory;
   if (sym)
     {
-      set_value_address (v, BLOCK_START (SYMBOL_BLOCK_VALUE (sym)));
+      set_value_address (v, BLOCK_ENTRY_PC (SYMBOL_BLOCK_VALUE (sym)));
     }
   else
     {
@@ -3431,6 +3424,19 @@ value_from_pointer (struct type *type, CORE_ADDR addr)
   return val;
 }
 
+/* Create and return a value object of TYPE containing the value D.  The
+   TYPE must be of TYPE_CODE_FLT, and must be large enough to hold D once
+   it is converted to target format.  */
+
+struct value *
+value_from_host_double (struct type *type, double d)
+{
+  struct value *value = allocate_value (type);
+  gdb_assert (TYPE_CODE (type) == TYPE_CODE_FLT);
+  target_float_from_host_double (value_contents_raw (value),
+				 value_type (value), d);
+  return value;
+}
 
 /* Create a value of type TYPE whose contents come from VALADDR, if it
    is non-null, and whose memory address (in the inferior) is
@@ -3921,6 +3927,44 @@ isvoid_internal_fn (struct gdbarch *gdbarch,
   return value_from_longest (builtin_type (gdbarch)->builtin_int, ret);
 }
 
+/* Implementation of the convenience function $_cimag.  Extracts the
+   real part from a complex number.  */
+
+static struct value *
+creal_internal_fn (struct gdbarch *gdbarch,
+		   const struct language_defn *language,
+		   void *cookie, int argc, struct value **argv)
+{
+  if (argc != 1)
+    error (_("You must provide one argument for $_creal."));
+
+  value *cval = argv[0];
+  type *ctype = check_typedef (value_type (cval));
+  if (TYPE_CODE (ctype) != TYPE_CODE_COMPLEX)
+    error (_("expected a complex number"));
+  return value_from_component (cval, TYPE_TARGET_TYPE (ctype), 0);
+}
+
+/* Implementation of the convenience function $_cimag.  Extracts the
+   imaginary part from a complex number.  */
+
+static struct value *
+cimag_internal_fn (struct gdbarch *gdbarch,
+		   const struct language_defn *language,
+		   void *cookie, int argc,
+		   struct value **argv)
+{
+  if (argc != 1)
+    error (_("You must provide one argument for $_cimag."));
+
+  value *cval = argv[0];
+  type *ctype = check_typedef (value_type (cval));
+  if (TYPE_CODE (ctype) != TYPE_CODE_COMPLEX)
+    error (_("expected a complex number"));
+  return value_from_component (cval, TYPE_TARGET_TYPE (ctype),
+			       TYPE_LENGTH (TYPE_TARGET_TYPE (ctype)));
+}
+
 #if GDB_SELF_TEST
 namespace selftests
 {
@@ -4102,6 +4146,20 @@ Usage: $_isvoid (expression)\n\
 Return 1 if the expression is void, zero otherwise."),
 			 isvoid_internal_fn, NULL);
 
+  add_internal_function ("_creal", _("\
+Extract the real part of a complex number.\n\
+Usage: $_creal (expression)\n\
+Return the real part of a complex number, the type depends on the\n\
+type of a complex number."),
+			 creal_internal_fn, NULL);
+
+  add_internal_function ("_cimag", _("\
+Extract the imaginary part of a complex number.\n\
+Usage: $_cimag (expression)\n\
+Return the imaginary part of a complex number, the type depends on the\n\
+type of a complex number."),
+			 cimag_internal_fn, NULL);
+
   add_setshow_zuinteger_unlimited_cmd ("max-value-size",
 				       class_support, &max_value_size, _("\
 Set maximum sized value gdb will load from the inferior."), _("\
@@ -4119,4 +4177,12 @@ prevents future values, larger than this size, from being allocated."),
   selftests::register_test ("insert_into_bit_range_vector",
 			    selftests::test_insert_into_bit_range_vector);
 #endif
+}
+
+/* See value.h.  */
+
+void
+finalize_values ()
+{
+  all_values.clear ();
 }

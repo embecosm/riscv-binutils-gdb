@@ -1,5 +1,5 @@
 /* BFD back-end for WebAssembly modules.
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    Based on srec.c, mmo.c, and binary.c
 
@@ -28,9 +28,7 @@
 #include "sysdep.h"
 #include "alloca-conf.h"
 #include "bfd.h"
-#include "sysdep.h"
 #include <limits.h>
-#include "bfd_stdint.h"
 #include "libiberty.h"
 #include "libbfd.h"
 #include "wasm-module.h"

@@ -1,4 +1,4 @@
-/* Copyright (C) 2009-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2019 Free Software Foundation, Inc.
    Contributed by ARM Ltd.
 
    This file is part of GDB.
@@ -16,10 +16,10 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef AARCH64_LINUX_HW_POINT_H
-#define AARCH64_LINUX_HW_POINT_H 1
+#ifndef NAT_AARCH64_LINUX_HW_POINT_H
+#define NAT_AARCH64_LINUX_HW_POINT_H
 
-#include "break-common.h" /* For enum target_hw_bp_type.  */
+#include "gdbsupport/break-common.h" /* For enum target_hw_bp_type.  */
 
 /* Macro definitions, data structures, and code for the hardware
    breakpoint and hardware watchpoint support follow.  We use the
@@ -182,6 +182,11 @@ int aarch64_handle_watchpoint (enum target_hw_bp_type type, CORE_ADDR addr,
 void aarch64_linux_set_debug_regs (struct aarch64_debug_reg_state *state,
 				   int tid, int watchpoint);
 
+/* Return TRUE if there are any hardware breakpoints.  If WATCHPOINT is TRUE,
+   check hardware watchpoints instead.  */
+bool aarch64_linux_any_set_debug_regs_state (aarch64_debug_reg_state *state,
+					     bool watchpoint);
+
 void aarch64_show_debug_reg_state (struct aarch64_debug_reg_state *state,
 				   const char *func, CORE_ADDR addr,
 				   int len, enum target_hw_bp_type type);
@@ -192,4 +197,4 @@ struct aarch64_debug_reg_state *aarch64_get_debug_reg_state (pid_t pid);
 
 int aarch64_linux_region_ok_for_watchpoint (CORE_ADDR addr, int len);
 
-#endif /* AARCH64_LINUX_HW_POINT_H */
+#endif /* NAT_AARCH64_LINUX_HW_POINT_H */

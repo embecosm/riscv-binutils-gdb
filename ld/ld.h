@@ -1,5 +1,5 @@
 /* ld.h -- general linker header file
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    This file is part of the GNU Binutils.
 
@@ -318,6 +318,9 @@ typedef struct
 
   /* The common page size for ELF.  */
   bfd_vma commonpagesize;
+
+  /* If set, print discarded sections in map file output.  */
+  bfd_boolean print_map_discarded;
 } ld_config_type;
 
 extern ld_config_type config;

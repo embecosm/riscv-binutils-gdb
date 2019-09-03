@@ -3,7 +3,7 @@
    Low level functions to implement Oeprating System specific
    code to manipulate x86 debug registers.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -71,13 +71,6 @@ template <typename BaseTarget>
 struct x86_nat_target : public BaseTarget
 {
   /* Hook in the x86 hardware watchpoints/breakpoints support.  */
-
-  /* After a watchpoint trap, the PC points to the instruction after
-     the one that caused the trap.  Therefore we don't need to step
-     over it.  But we do need to reset the status register to avoid
-     another trap.  */
-  bool have_continuable_watchpoint () override
-  { return true; }
 
   int can_use_hw_breakpoint (enum bptype type, int cnt, int othertype) override
   { return x86_can_use_hw_breakpoint (type, cnt, othertype); }

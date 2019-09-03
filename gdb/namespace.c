@@ -1,5 +1,5 @@
 /* Code dealing with "using" directives for GDB.
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -87,10 +87,8 @@ add_using_directive (struct using_direct **using_directives,
 
   if (copy_names)
     {
-      newobj->import_src
-	= (const char *) obstack_copy0 (obstack, src, strlen (src));
-      newobj->import_dest
-	= (const char *) obstack_copy0 (obstack, dest, strlen (dest));
+      newobj->import_src = obstack_strdup (obstack, src);
+      newobj->import_dest = obstack_strdup (obstack, dest);
     }
   else
     {
@@ -99,20 +97,18 @@ add_using_directive (struct using_direct **using_directives,
     }
 
   if (alias != NULL && copy_names)
-    newobj->alias
-      = (const char *) obstack_copy0 (obstack, alias, strlen (alias));
+    newobj->alias = obstack_strdup (obstack, alias);
   else
     newobj->alias = alias;
 
   if (declaration != NULL && copy_names)
-    newobj->declaration
-      = (const char *) obstack_copy0 (obstack, declaration,
-				      strlen (declaration));
+    newobj->declaration = obstack_strdup (obstack, declaration);
   else
     newobj->declaration = declaration;
 
-  memcpy (newobj->excludes, excludes.data (),
-	  excludes.size () * sizeof (*newobj->excludes));
+  if (!excludes.empty ())
+    memcpy (newobj->excludes, excludes.data (),
+	    excludes.size () * sizeof (*newobj->excludes));
   newobj->excludes[excludes.size ()] = NULL;
 
   newobj->next = *using_directives;

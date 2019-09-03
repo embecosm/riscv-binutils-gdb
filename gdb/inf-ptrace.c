@@ -1,6 +1,6 @@
 /* Low-level child interface to ptrace.
 
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -25,7 +25,7 @@
 #include "gdbcore.h"
 #include "regcache.h"
 #include "nat/gdb_ptrace.h"
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include <signal.h>
 
 #include "inf-ptrace.h"
@@ -33,6 +33,7 @@
 #include "gdbthread.h"
 #include "nat/fork-inferior.h"
 #include "utils.h"
+#include "gdbarch.h"
 
 
 
@@ -213,12 +214,10 @@ inf_ptrace_target::attach (const char *args, int from_tty)
 
       if (exec_file)
 	printf_unfiltered (_("Attaching to program: %s, %s\n"), exec_file,
-			   target_pid_to_str (ptid_t (pid)));
+			   target_pid_to_str (ptid_t (pid)).c_str ());
       else
 	printf_unfiltered (_("Attaching to %s\n"),
-			   target_pid_to_str (ptid_t (pid)));
-
-      gdb_flush (gdb_stdout);
+			   target_pid_to_str (ptid_t (pid)).c_str ());
     }
 
 #ifdef PT_ATTACH
@@ -626,10 +625,10 @@ inf_ptrace_target::files_info ()
 
   printf_filtered (_("\tUsing the running image of %s %s.\n"),
 		   inf->attach_flag ? "attached" : "child",
-		   target_pid_to_str (inferior_ptid));
+		   target_pid_to_str (inferior_ptid).c_str ());
 }
 
-const char *
+std::string
 inf_ptrace_target::pid_to_str (ptid_t ptid)
 {
   return normal_pid_to_str (ptid);

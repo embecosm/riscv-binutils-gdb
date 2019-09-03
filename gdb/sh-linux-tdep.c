@@ -1,6 +1,6 @@
 /* Target-dependent code for GNU/Linux Super-H.
 
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -29,6 +29,7 @@
 #include "glibc-tdep.h"
 #include "sh-tdep.h"
 #include "linux-tdep.h"
+#include "gdbarch.h"
 
 #define REGSx16(base) \
   {(base),      0}, \

@@ -1,5 +1,5 @@
 /* tc-csky.c -- Assembler for C-SKY
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
    Created by Lifang Xia (lifang_xia@c-sky.com)
    Contributed by C-SKY Microsystems and Mentor Graphics.
 
@@ -29,7 +29,6 @@
 #include "subsegs.h"
 #include "obstack.h"
 #include "libiberty.h"
-#include "struc-symbol.h"
 
 #ifdef OBJ_ELF
 #include "elf/csky.h"
@@ -4427,6 +4426,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec,  fragS *fragp)
 		buf[20] = (disp >> 8) & 0xff;
 		buf[21] = disp & 0xff;
 	      }
+	    buf[22] = 0;  /* initialise.  */
+	    buf[23] = 0;
 	    fragp->fr_fix += C32_LEN_PIC;
 
 	  } /* end if is_unaligned.  */
@@ -4920,7 +4921,9 @@ md_apply_fix (fixS   *fixP,
   /* We can handle these relocs.  */
   switch (fixP->fx_r_type)
     {
+    case BFD_RELOC_32_PCREL:
     case BFD_RELOC_CKCORE_PCREL32:
+      fixP->fx_r_type = BFD_RELOC_CKCORE_PCREL32;
       break;
     case BFD_RELOC_VTABLE_INHERIT:
       fixP->fx_r_type = BFD_RELOC_CKCORE_GNU_VTINHERIT;
@@ -5132,6 +5135,10 @@ arelent *
 tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixP)
 {
   arelent *rel;
+
+  if (fixP->fx_pcrel
+      && fixP->fx_r_type == BFD_RELOC_CKCORE_ADDR32)
+      fixP->fx_r_type = BFD_RELOC_CKCORE_PCREL32;
 
   rel = xmalloc (sizeof (arelent));
   rel->sym_ptr_ptr = xmalloc (sizeof (asymbol *));
@@ -5489,7 +5496,7 @@ get_macro_reg_vals (int *reg1, int *reg2, int *reg3)
   s += nlen;
   if (*s != '\0')
     {
-      csky_show_error (ERROR_BAD_END, 0, NULL, NULL);
+      csky_show_error (ERROR_BAD_END, 0, s, NULL);
       return FALSE;
     }
   if (*reg1 == -1 || *reg2 == -1 || *reg3 == -1)
@@ -6777,8 +6784,9 @@ v2_work_movih (void)
 	   || (csky_insn.e1.X_op == O_symbol && insn_reloc != BFD_RELOC_NONE))
     {
       if (csky_insn.e1.X_op_symbol != 0
-	  && csky_insn.e1.X_op_symbol->sy_value.X_op == O_constant
-	  && 16 == csky_insn.e1.X_op_symbol->sy_value.X_add_number)
+	  && symbol_constant_p (csky_insn.e1.X_op_symbol)
+	  && S_GET_SEGMENT (csky_insn.e1.X_op_symbol) == absolute_section
+	  && 16 == S_GET_VALUE (csky_insn.e1.X_op_symbol))
 	{
 	  csky_insn.e1.X_op = O_symbol;
 	  if (insn_reloc == BFD_RELOC_CKCORE_GOT32)
@@ -6827,8 +6835,9 @@ v2_work_ori (void)
     }
   else if (csky_insn.e1.X_op == O_bit_and)
     {
-      if (csky_insn.e1.X_op_symbol->sy_value.X_op == O_constant
-	  && 0xffff == csky_insn.e1.X_op_symbol->sy_value.X_add_number)
+      if (symbol_constant_p (csky_insn.e1.X_op_symbol)
+	  && S_GET_SEGMENT (csky_insn.e1.X_op_symbol) == absolute_section
+	  && 0xffff == S_GET_VALUE (csky_insn.e1.X_op_symbol))
 	{
 	  csky_insn.e1.X_op = O_symbol;
 	  if (insn_reloc == BFD_RELOC_CKCORE_GOT32)

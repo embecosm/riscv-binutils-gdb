@@ -1,6 +1,6 @@
 /* Support routines for manipulating internal types for GDB.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Support, using pieces from other GDB modules.
 
@@ -233,10 +233,19 @@ alloc_type_copy (const struct type *type)
 struct gdbarch *
 get_type_arch (const struct type *type)
 {
+  struct gdbarch *arch;
+
   if (TYPE_OBJFILE_OWNED (type))
-    return get_objfile_arch (TYPE_OWNER (type).objfile);
+    arch = get_objfile_arch (TYPE_OWNER (type).objfile);
   else
-    return TYPE_OWNER (type).gdbarch;
+    arch = TYPE_OWNER (type).gdbarch;
+
+  /* The ARCH can be NULL if TYPE is associated with neither an objfile nor
+     a gdbarch, however, this is very rare, and even then, in most cases
+     that get_type_arch is called, we assume that a non-NULL value is
+     returned.  */
+  gdb_assert (arch != NULL);
+  return arch;
 }
 
 /* See gdbtypes.h.  */
@@ -277,7 +286,7 @@ alloc_type_instance (struct type *oldtype)
   /* Allocate the structure.  */
 
   if (! TYPE_OBJFILE_OWNED (oldtype))
-    type = XCNEW (struct type);
+    type = GDBARCH_OBSTACK_ZALLOC (get_type_arch (oldtype), struct type);
   else
     type = OBSTACK_ZALLOC (&TYPE_OBJFILE (oldtype)->objfile_obstack,
 			   struct type);
@@ -565,7 +574,8 @@ lookup_function_type_with_arguments (struct type *type,
    return the integer flag defined in gdbtypes.h.  */
 
 int
-address_space_name_to_int (struct gdbarch *gdbarch, char *space_identifier)
+address_space_name_to_int (struct gdbarch *gdbarch,
+			   const char *space_identifier)
 {
   int type_flags;
 
@@ -904,6 +914,11 @@ create_range_type (struct type *result_type, struct type *index_type,
 		   const struct dynamic_prop *low_bound,
 		   const struct dynamic_prop *high_bound)
 {
+  /* The INDEX_TYPE should be a type capable of holding the upper and lower
+     bounds, as such a zero sized, or void type makes no sense.  */
+  gdb_assert (TYPE_CODE (index_type) != TYPE_CODE_VOID);
+  gdb_assert (TYPE_LENGTH (index_type) > 0);
+
   if (result_type == NULL)
     result_type = alloc_type_copy (index_type);
   TYPE_CODE (result_type) = TYPE_CODE_RANGE;
@@ -1519,7 +1534,7 @@ lookup_unsigned_typename (const struct language_defn *language,
 
   strcpy (uns, "unsigned ");
   strcpy (uns + 9, name);
-  return lookup_typename (language, gdbarch, uns, (struct block *) NULL, 0);
+  return lookup_typename (language, gdbarch, uns, NULL, 0);
 }
 
 struct type *
@@ -1531,11 +1546,11 @@ lookup_signed_typename (const struct language_defn *language,
 
   strcpy (uns, "signed ");
   strcpy (uns + 7, name);
-  t = lookup_typename (language, gdbarch, uns, (struct block *) NULL, 1);
+  t = lookup_typename (language, gdbarch, uns, NULL, 1);
   /* If we don't find "signed FOO" just try again with plain "FOO".  */
   if (t != NULL)
     return t;
-  return lookup_typename (language, gdbarch, name, (struct block *) NULL, 0);
+  return lookup_typename (language, gdbarch, name, NULL, 0);
 }
 
 /* Lookup a structure type named "struct NAME",
@@ -1609,7 +1624,7 @@ lookup_enum (const char *name, const struct block *block)
    visible in lexical block BLOCK.  */
 
 struct type *
-lookup_template_type (char *name, struct type *type, 
+lookup_template_type (const char *name, struct type *type, 
 		      const struct block *block)
 {
   struct symbol *sym;
@@ -1635,20 +1650,10 @@ lookup_template_type (char *name, struct type *type,
   return (SYMBOL_TYPE (sym));
 }
 
-/* Given a type TYPE, lookup the type of the component of type named
-   NAME.
+/* See gdbtypes.h.  */
 
-   TYPE can be either a struct or union, or a pointer or reference to
-   a struct or union.  If it is a pointer or reference, its target
-   type is automatically used.  Thus '.' and '->' are interchangable,
-   as specified for the definitions of the expression element types
-   STRUCTOP_STRUCT and STRUCTOP_PTR.
-
-   If NOERR is nonzero, return zero if NAME is not suitably defined.
-   If NAME is the name of a baseclass type, return that type.  */
-
-struct type *
-lookup_struct_elt_type (struct type *type, const char *name, int noerr)
+struct_elt
+lookup_struct_elt (struct type *type, const char *name, int noerr)
 {
   int i;
 
@@ -1669,57 +1674,51 @@ lookup_struct_elt_type (struct type *type, const char *name, int noerr)
 	     type_name.c_str ());
     }
 
-#if 0
-  /* FIXME: This change put in by Michael seems incorrect for the case
-     where the structure tag name is the same as the member name.
-     I.e. when doing "ptype bell->bar" for "struct foo { int bar; int
-     foo; } bell;" Disabled by fnf.  */
-  {
-    char *type_name;
-
-    type_name = TYPE_NAME (type);
-    if (type_name != NULL && strcmp (type_name, name) == 0)
-      return type;
-  }
-#endif
-
   for (i = TYPE_NFIELDS (type) - 1; i >= TYPE_N_BASECLASSES (type); i--)
     {
       const char *t_field_name = TYPE_FIELD_NAME (type, i);
 
       if (t_field_name && (strcmp_iw (t_field_name, name) == 0))
 	{
-	  return TYPE_FIELD_TYPE (type, i);
+	  return {&TYPE_FIELD (type, i), TYPE_FIELD_BITPOS (type, i)};
 	}
      else if (!t_field_name || *t_field_name == '\0')
 	{
-	  struct type *subtype 
-	    = lookup_struct_elt_type (TYPE_FIELD_TYPE (type, i), name, 1);
-
-	  if (subtype != NULL)
-	    return subtype;
+	  struct_elt elt
+	    = lookup_struct_elt (TYPE_FIELD_TYPE (type, i), name, 1);
+	  if (elt.field != NULL)
+	    {
+	      elt.offset += TYPE_FIELD_BITPOS (type, i);
+	      return elt;
+	    }
 	}
     }
 
   /* OK, it's not in this class.  Recursively check the baseclasses.  */
   for (i = TYPE_N_BASECLASSES (type) - 1; i >= 0; i--)
     {
-      struct type *t;
-
-      t = lookup_struct_elt_type (TYPE_BASECLASS (type, i), name, 1);
-      if (t != NULL)
-	{
-	  return t;
-	}
+      struct_elt elt = lookup_struct_elt (TYPE_BASECLASS (type, i), name, 1);
+      if (elt.field != NULL)
+	return elt;
     }
 
   if (noerr)
-    {
-      return NULL;
-    }
+    return {nullptr, 0};
 
   std::string type_name = type_to_string (type);
   error (_("Type %s has no component named %s."), type_name.c_str (), name);
+}
+
+/* See gdbtypes.h.  */
+
+struct type *
+lookup_struct_elt_type (struct type *type, const char *name, int noerr)
+{
+  struct_elt elt = lookup_struct_elt (type, name, noerr);
+  if (elt.field != NULL)
+    return FIELD_TYPE (*elt.field);
+  else
+    return NULL;
 }
 
 /* Store in *MAX the largest number representable by unsigned integer type
@@ -2071,10 +2070,7 @@ resolve_dynamic_array (struct type *type,
   prop = get_dyn_prop (DYN_PROP_BYTE_STRIDE, type);
   if (prop != NULL)
     {
-      int prop_eval_ok
-	= dwarf2_evaluate_property (prop, NULL, addr_stack, &value);
-
-      if (prop_eval_ok)
+      if (dwarf2_evaluate_property (prop, NULL, addr_stack, &value))
 	{
 	  remove_dyn_prop (DYN_PROP_BYTE_STRIDE, type);
 	  bit_stride = (unsigned int) (value * 8);
@@ -2578,15 +2574,14 @@ safe_parse_type (struct gdbarch *gdbarch, char *p, int length)
   gdb_stderr = &null_stream;
 
   /* Call parse_and_eval_type() without fear of longjmp()s.  */
-  TRY
+  try
     {
       type = parse_and_eval_type (p, length);
     }
-  CATCH (except, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &except)
     {
       type = builtin_type (gdbarch)->builtin_void;
     }
-  END_CATCH
 
   /* Stop suppressing error messages.  */
   gdb_stderr = saved_gdb_stderr;
@@ -2727,37 +2722,11 @@ check_stub_method_group (struct type *type, int method_id)
 {
   int len = TYPE_FN_FIELDLIST_LENGTH (type, method_id);
   struct fn_field *f = TYPE_FN_FIELDLIST1 (type, method_id);
-  int j, found_stub = 0;
 
-  for (j = 0; j < len; j++)
-    if (TYPE_FN_FIELD_STUB (f, j))
-      {
-	found_stub = 1;
-	check_stub_method (type, method_id, j);
-      }
-
-  /* GNU v3 methods with incorrect names were corrected when we read
-     in type information, because it was cheaper to do it then.  The
-     only GNU v2 methods with incorrect method names are operators and
-     destructors; destructors were also corrected when we read in type
-     information.
-
-     Therefore the only thing we need to handle here are v2 operator
-     names.  */
-  if (found_stub && !startswith (TYPE_FN_FIELD_PHYSNAME (f, 0), "_Z"))
+  for (int j = 0; j < len; j++)
     {
-      int ret;
-      char dem_opname[256];
-
-      ret = cplus_demangle_opname (TYPE_FN_FIELDLIST_NAME (type, 
-							   method_id),
-				   dem_opname, DMGL_ANSI);
-      if (!ret)
-	ret = cplus_demangle_opname (TYPE_FN_FIELDLIST_NAME (type, 
-							     method_id),
-				     dem_opname, 0);
-      if (ret)
-	TYPE_FN_FIELDLIST_NAME (type, method_id) = xstrdup (dem_opname);
+      if (TYPE_FN_FIELD_STUB (f, j))
+	check_stub_method (type, method_id, j);
     }
 }
 
@@ -3009,17 +2978,24 @@ type_raw_align (struct type *type)
 unsigned
 type_align (struct type *type)
 {
+  /* Check alignment provided in the debug information.  */
   unsigned raw_align = type_raw_align (type);
   if (raw_align != 0)
     return raw_align;
 
-  ULONGEST align = 0;
+  /* Allow the architecture to provide an alignment.  */
+  struct gdbarch *arch = get_type_arch (type);
+  ULONGEST align = gdbarch_type_align (arch, type);
+  if (align != 0)
+    return align;
+
   switch (TYPE_CODE (type))
     {
     case TYPE_CODE_PTR:
     case TYPE_CODE_FUNC:
     case TYPE_CODE_FLAGS:
     case TYPE_CODE_INT:
+    case TYPE_CODE_RANGE:
     case TYPE_CODE_FLT:
     case TYPE_CODE_ENUM:
     case TYPE_CODE_REF:
@@ -3027,10 +3003,9 @@ type_align (struct type *type)
     case TYPE_CODE_CHAR:
     case TYPE_CODE_BOOL:
     case TYPE_CODE_DECFLOAT:
-      {
-	struct gdbarch *arch = get_type_arch (type);
-	align = gdbarch_type_align (arch, type);
-      }
+    case TYPE_CODE_METHODPTR:
+    case TYPE_CODE_MEMBERPTR:
+      align = type_length_units (check_typedef (type));
       break;
 
     case TYPE_CODE_ARRAY:
@@ -3042,37 +3017,34 @@ type_align (struct type *type)
     case TYPE_CODE_STRUCT:
     case TYPE_CODE_UNION:
       {
-	if (TYPE_NFIELDS (type) == 0)
-	  {
-	    /* An empty struct has alignment 1.  */
-	    align = 1;
-	    break;
-	  }
+	int number_of_non_static_fields = 0;
 	for (unsigned i = 0; i < TYPE_NFIELDS (type); ++i)
 	  {
-	    ULONGEST f_align = type_align (TYPE_FIELD_TYPE (type, i));
-	    if (f_align == 0)
+	    if (!field_is_static (&TYPE_FIELD (type, i)))
 	      {
-		/* Don't pretend we know something we don't.  */
-		align = 0;
-		break;
+		number_of_non_static_fields++;
+		ULONGEST f_align = type_align (TYPE_FIELD_TYPE (type, i));
+		if (f_align == 0)
+		  {
+		    /* Don't pretend we know something we don't.  */
+		    align = 0;
+		    break;
+		  }
+		if (f_align > align)
+		  align = f_align;
 	      }
-	    if (f_align > align)
-	      align = f_align;
 	  }
+	/* A struct with no fields, or with only static fields has an
+	   alignment of 1.  */
+	if (number_of_non_static_fields == 0)
+	  align = 1;
       }
       break;
 
     case TYPE_CODE_SET:
-    case TYPE_CODE_RANGE:
     case TYPE_CODE_STRING:
       /* Not sure what to do here, and these can't appear in C or C++
 	 anyway.  */
-      break;
-
-    case TYPE_CODE_METHODPTR:
-    case TYPE_CODE_MEMBERPTR:
-      align = type_length_units (type);
       break;
 
     case TYPE_CODE_VOID:
@@ -3417,21 +3389,21 @@ compare_ranks (struct rank a, struct rank b)
    3 => A is worse than B  */
 
 int
-compare_badness (struct badness_vector *a, struct badness_vector *b)
+compare_badness (const badness_vector &a, const badness_vector &b)
 {
   int i;
   int tmp;
   short found_pos = 0;		/* any positives in c? */
   short found_neg = 0;		/* any negatives in c? */
 
-  /* differing lengths => incomparable */
-  if (a->length != b->length)
+  /* differing sizes => incomparable */
+  if (a.size () != b.size ())
     return 1;
 
   /* Subtract b from a */
-  for (i = 0; i < a->length; i++)
+  for (i = 0; i < a.size (); i++)
     {
-      tmp = compare_ranks (b->rank[i], a->rank[i]);
+      tmp = compare_ranks (b[i], a[i]);
       if (tmp > 0)
 	found_pos = 1;
       else if (tmp < 0)
@@ -3455,21 +3427,17 @@ compare_badness (struct badness_vector *a, struct badness_vector *b)
     }
 }
 
-/* Rank a function by comparing its parameter types (PARMS, length
-   NPARMS), to the types of an argument list (ARGS, length NARGS).
-   Return a pointer to a badness vector.  This has NARGS + 1
-   entries.  */
+/* Rank a function by comparing its parameter types (PARMS), to the
+   types of an argument list (ARGS).  Return the badness vector.  This
+   has ARGS.size() + 1 entries.  */
 
-struct badness_vector *
-rank_function (struct type **parms, int nparms, 
-	       struct value **args, int nargs)
+badness_vector
+rank_function (gdb::array_view<type *> parms,
+	       gdb::array_view<value *> args)
 {
-  int i;
-  struct badness_vector *bv = XNEW (struct badness_vector);
-  int min_len = nparms < nargs ? nparms : nargs;
-
-  bv->length = nargs + 1;	/* add 1 for the length-match rank.  */
-  bv->rank = XNEWVEC (struct rank, nargs + 1);
+  /* add 1 for the length-match rank.  */
+  badness_vector bv;
+  bv.reserve (1 + args.size ());
 
   /* First compare the lengths of the supplied lists.
      If there is a mismatch, set it to a high value.  */
@@ -3478,18 +3446,20 @@ rank_function (struct type **parms, int nparms,
      arguments and ellipsis parameter lists, we should consider those
      and rank the length-match more finely.  */
 
-  LENGTH_MATCH (bv) = (nargs != nparms)
-		      ? LENGTH_MISMATCH_BADNESS
-		      : EXACT_MATCH_BADNESS;
+  bv.push_back ((args.size () != parms.size ())
+		? LENGTH_MISMATCH_BADNESS
+		: EXACT_MATCH_BADNESS);
 
   /* Now rank all the parameters of the candidate function.  */
-  for (i = 1; i <= min_len; i++)
-    bv->rank[i] = rank_one_type (parms[i - 1], value_type (args[i - 1]),
-				 args[i - 1]);
+  size_t min_len = std::min (parms.size (), args.size ());
+
+  for (size_t i = 0; i < min_len; i++)
+    bv.push_back (rank_one_type (parms[i], value_type (args[i]),
+				 args[i]));
 
   /* If more arguments than parameters, add dummy entries.  */
-  for (i = min_len + 1; i <= nargs; i++)
-    bv->rank[i] = TOO_FEW_PARAMS_BADNESS;
+  for (size_t i = min_len; i < args.size (); i++)
+    bv.push_back (TOO_FEW_PARAMS_BADNESS);
 
   return bv;
 }
@@ -3748,7 +3718,7 @@ check_types_worklist (std::vector<type_equality_entry> *worklist,
 
       /* If the type pair has already been visited, we know it is
 	 ok.  */
-      bcache_full (&entry, sizeof (entry), cache, &added);
+      cache->insert (&entry, sizeof (entry), &added);
       if (!added)
 	continue;
 
@@ -3765,9 +3735,6 @@ check_types_worklist (std::vector<type_equality_entry> *worklist,
 bool
 types_deeply_equal (struct type *type1, struct type *type2)
 {
-  struct gdb_exception except = exception_none;
-  bool result = false;
-  struct bcache *cache;
   std::vector<type_equality_entry> worklist;
 
   gdb_assert (type1 != NULL && type2 != NULL);
@@ -3776,31 +3743,9 @@ types_deeply_equal (struct type *type1, struct type *type2)
   if (type1 == type2)
     return true;
 
-  cache = bcache_xmalloc (NULL, NULL);
-
+  struct bcache cache (nullptr, nullptr);
   worklist.emplace_back (type1, type2);
-
-  /* check_types_worklist calls several nested helper functions, some
-     of which can raise a GDB exception, so we just check and rethrow
-     here.  If there is a GDB exception, a comparison is not capable
-     (or trusted), so exit.  */
-  TRY
-    {
-      result = check_types_worklist (&worklist, cache);
-    }
-  CATCH (ex, RETURN_MASK_ALL)
-    {
-      except = ex;
-    }
-  END_CATCH
-
-  bcache_xfree (cache);
-
-  /* Rethrow if there was a problem.  */
-  if (except.reason < 0)
-    throw_exception (except);
-
-  return result;
+  return check_types_worklist (&worklist, &cache);
 }
 
 /* Allocated status of type TYPE.  Return zero if type TYPE is allocated.
@@ -3826,7 +3771,394 @@ type_not_associated (const struct type *type)
   return (prop && TYPE_DYN_PROP_KIND (prop) == PROP_CONST
          && !TYPE_DYN_PROP_ADDR (prop));
 }
-
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_PTR.  */
+
+static struct rank
+rank_one_type_parm_ptr (struct type *parm, struct type *arg, struct value *value)
+{
+  struct rank rank = {0,0};
+
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_PTR:
+
+      /* Allowed pointer conversions are:
+	 (a) pointer to void-pointer conversion.  */
+      if (TYPE_CODE (TYPE_TARGET_TYPE (parm)) == TYPE_CODE_VOID)
+	return VOID_PTR_CONVERSION_BADNESS;
+
+      /* (b) pointer to ancestor-pointer conversion.  */
+      rank.subrank = distance_to_ancestor (TYPE_TARGET_TYPE (parm),
+					   TYPE_TARGET_TYPE (arg),
+					   0);
+      if (rank.subrank >= 0)
+	return sum_ranks (BASE_PTR_CONVERSION_BADNESS, rank);
+
+      return INCOMPATIBLE_TYPE_BADNESS;
+    case TYPE_CODE_ARRAY:
+      {
+	struct type *t1 = TYPE_TARGET_TYPE (parm);
+	struct type *t2 = TYPE_TARGET_TYPE (arg);
+
+	if (types_equal (t1, t2))
+	  {
+	    /* Make sure they are CV equal.  */
+	    if (TYPE_CONST (t1) != TYPE_CONST (t2))
+	      rank.subrank |= CV_CONVERSION_CONST;
+	    if (TYPE_VOLATILE (t1) != TYPE_VOLATILE (t2))
+	      rank.subrank |= CV_CONVERSION_VOLATILE;
+	    if (rank.subrank != 0)
+	      return sum_ranks (CV_CONVERSION_BADNESS, rank);
+	    return EXACT_MATCH_BADNESS;
+	  }
+	return INCOMPATIBLE_TYPE_BADNESS;
+      }
+    case TYPE_CODE_FUNC:
+      return rank_one_type (TYPE_TARGET_TYPE (parm), arg, NULL);
+    case TYPE_CODE_INT:
+      if (value != NULL && TYPE_CODE (value_type (value)) == TYPE_CODE_INT)
+	{
+	  if (value_as_long (value) == 0)
+	    {
+	      /* Null pointer conversion: allow it to be cast to a pointer.
+		 [4.10.1 of C++ standard draft n3290]  */
+	      return NULL_POINTER_CONVERSION_BADNESS;
+	    }
+	  else
+	    {
+	      /* If type checking is disabled, allow the conversion.  */
+	      if (!strict_type_checking)
+		return NS_INTEGER_POINTER_CONVERSION_BADNESS;
+	    }
+	}
+      /* fall through  */
+    case TYPE_CODE_ENUM:
+    case TYPE_CODE_FLAGS:
+    case TYPE_CODE_CHAR:
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_BOOL:
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_ARRAY.  */
+
+static struct rank
+rank_one_type_parm_array (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_PTR:
+    case TYPE_CODE_ARRAY:
+      return rank_one_type (TYPE_TARGET_TYPE (parm),
+			    TYPE_TARGET_TYPE (arg), NULL);
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_FUNC.  */
+
+static struct rank
+rank_one_type_parm_func (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_PTR:	/* funcptr -> func */
+      return rank_one_type (parm, TYPE_TARGET_TYPE (arg), NULL);
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_INT.  */
+
+static struct rank
+rank_one_type_parm_int (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_INT:
+      if (TYPE_LENGTH (arg) == TYPE_LENGTH (parm))
+	{
+	  /* Deal with signed, unsigned, and plain chars and
+	     signed and unsigned ints.  */
+	  if (TYPE_NOSIGN (parm))
+	    {
+	      /* This case only for character types.  */
+	      if (TYPE_NOSIGN (arg))
+		return EXACT_MATCH_BADNESS;	/* plain char -> plain char */
+	      else		/* signed/unsigned char -> plain char */
+		return INTEGER_CONVERSION_BADNESS;
+	    }
+	  else if (TYPE_UNSIGNED (parm))
+	    {
+	      if (TYPE_UNSIGNED (arg))
+		{
+		  /* unsigned int -> unsigned int, or
+		     unsigned long -> unsigned long */
+		  if (integer_types_same_name_p (TYPE_NAME (parm),
+						 TYPE_NAME (arg)))
+		    return EXACT_MATCH_BADNESS;
+		  else if (integer_types_same_name_p (TYPE_NAME (arg),
+						      "int")
+			   && integer_types_same_name_p (TYPE_NAME (parm),
+							 "long"))
+		    /* unsigned int -> unsigned long */
+		    return INTEGER_PROMOTION_BADNESS;
+		  else
+		    /* unsigned long -> unsigned int */
+		    return INTEGER_CONVERSION_BADNESS;
+		}
+	      else
+		{
+		  if (integer_types_same_name_p (TYPE_NAME (arg),
+						 "long")
+		      && integer_types_same_name_p (TYPE_NAME (parm),
+						    "int"))
+		    /* signed long -> unsigned int */
+		    return INTEGER_CONVERSION_BADNESS;
+		  else
+		    /* signed int/long -> unsigned int/long */
+		    return INTEGER_CONVERSION_BADNESS;
+		}
+	    }
+	  else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
+	    {
+	      if (integer_types_same_name_p (TYPE_NAME (parm),
+					     TYPE_NAME (arg)))
+		return EXACT_MATCH_BADNESS;
+	      else if (integer_types_same_name_p (TYPE_NAME (arg),
+						  "int")
+		       && integer_types_same_name_p (TYPE_NAME (parm),
+						     "long"))
+		return INTEGER_PROMOTION_BADNESS;
+	      else
+		return INTEGER_CONVERSION_BADNESS;
+	    }
+	  else
+	    return INTEGER_CONVERSION_BADNESS;
+	}
+      else if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
+	return INTEGER_PROMOTION_BADNESS;
+      else
+	return INTEGER_CONVERSION_BADNESS;
+    case TYPE_CODE_ENUM:
+    case TYPE_CODE_FLAGS:
+    case TYPE_CODE_CHAR:
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_BOOL:
+      if (TYPE_DECLARED_CLASS (arg))
+	return INCOMPATIBLE_TYPE_BADNESS;
+      return INTEGER_PROMOTION_BADNESS;
+    case TYPE_CODE_FLT:
+      return INT_FLOAT_CONVERSION_BADNESS;
+    case TYPE_CODE_PTR:
+      return NS_POINTER_CONVERSION_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_ENUM.  */
+
+static struct rank
+rank_one_type_parm_enum (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_INT:
+    case TYPE_CODE_CHAR:
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_BOOL:
+    case TYPE_CODE_ENUM:
+      if (TYPE_DECLARED_CLASS (parm) || TYPE_DECLARED_CLASS (arg))
+	return INCOMPATIBLE_TYPE_BADNESS;
+      return INTEGER_CONVERSION_BADNESS;
+    case TYPE_CODE_FLT:
+      return INT_FLOAT_CONVERSION_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_CHAR.  */
+
+static struct rank
+rank_one_type_parm_char (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_BOOL:
+    case TYPE_CODE_ENUM:
+      if (TYPE_DECLARED_CLASS (arg))
+	return INCOMPATIBLE_TYPE_BADNESS;
+      return INTEGER_CONVERSION_BADNESS;
+    case TYPE_CODE_FLT:
+      return INT_FLOAT_CONVERSION_BADNESS;
+    case TYPE_CODE_INT:
+      if (TYPE_LENGTH (arg) > TYPE_LENGTH (parm))
+	return INTEGER_CONVERSION_BADNESS;
+      else if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
+	return INTEGER_PROMOTION_BADNESS;
+      /* fall through */
+    case TYPE_CODE_CHAR:
+      /* Deal with signed, unsigned, and plain chars for C++ and
+	 with int cases falling through from previous case.  */
+      if (TYPE_NOSIGN (parm))
+	{
+	  if (TYPE_NOSIGN (arg))
+	    return EXACT_MATCH_BADNESS;
+	  else
+	    return INTEGER_CONVERSION_BADNESS;
+	}
+      else if (TYPE_UNSIGNED (parm))
+	{
+	  if (TYPE_UNSIGNED (arg))
+	    return EXACT_MATCH_BADNESS;
+	  else
+	    return INTEGER_PROMOTION_BADNESS;
+	}
+      else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
+	return EXACT_MATCH_BADNESS;
+      else
+	return INTEGER_CONVERSION_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_RANGE.  */
+
+static struct rank
+rank_one_type_parm_range (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_INT:
+    case TYPE_CODE_CHAR:
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_BOOL:
+    case TYPE_CODE_ENUM:
+      return INTEGER_CONVERSION_BADNESS;
+    case TYPE_CODE_FLT:
+      return INT_FLOAT_CONVERSION_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_BOOL.  */
+
+static struct rank
+rank_one_type_parm_bool (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+      /* n3290 draft, section 4.12.1 (conv.bool):
+
+	 "A prvalue of arithmetic, unscoped enumeration, pointer, or
+	 pointer to member type can be converted to a prvalue of type
+	 bool.  A zero value, null pointer value, or null member pointer
+	 value is converted to false; any other value is converted to
+	 true.  A prvalue of type std::nullptr_t can be converted to a
+	 prvalue of type bool; the resulting value is false."  */
+    case TYPE_CODE_INT:
+    case TYPE_CODE_CHAR:
+    case TYPE_CODE_ENUM:
+    case TYPE_CODE_FLT:
+    case TYPE_CODE_MEMBERPTR:
+    case TYPE_CODE_PTR:
+      return BOOL_CONVERSION_BADNESS;
+    case TYPE_CODE_RANGE:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    case TYPE_CODE_BOOL:
+      return EXACT_MATCH_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_FLOAT.  */
+
+static struct rank
+rank_one_type_parm_float (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_FLT:
+      if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
+	return FLOAT_PROMOTION_BADNESS;
+      else if (TYPE_LENGTH (arg) == TYPE_LENGTH (parm))
+	return EXACT_MATCH_BADNESS;
+      else
+	return FLOAT_CONVERSION_BADNESS;
+    case TYPE_CODE_INT:
+    case TYPE_CODE_BOOL:
+    case TYPE_CODE_ENUM:
+    case TYPE_CODE_RANGE:
+    case TYPE_CODE_CHAR:
+      return INT_FLOAT_CONVERSION_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_COMPLEX.  */
+
+static struct rank
+rank_one_type_parm_complex (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {		/* Strictly not needed for C++, but...  */
+    case TYPE_CODE_FLT:
+      return FLOAT_PROMOTION_BADNESS;
+    case TYPE_CODE_COMPLEX:
+      return EXACT_MATCH_BADNESS;
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_STRUCT.  */
+
+static struct rank
+rank_one_type_parm_struct (struct type *parm, struct type *arg, struct value *value)
+{
+  struct rank rank = {0, 0};
+
+  switch (TYPE_CODE (arg))
+    {
+    case TYPE_CODE_STRUCT:
+      /* Check for derivation */
+      rank.subrank = distance_to_ancestor (parm, arg, 0);
+      if (rank.subrank >= 0)
+	return sum_ranks (BASE_CONVERSION_BADNESS, rank);
+      /* fall through */
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
+/* rank_one_type helper for when PARM's type code is TYPE_CODE_SET.  */
+
+static struct rank
+rank_one_type_parm_set (struct type *parm, struct type *arg, struct value *value)
+{
+  switch (TYPE_CODE (arg))
+    {
+      /* Not in C++ */
+    case TYPE_CODE_SET:
+      return rank_one_type (TYPE_FIELD_TYPE (parm, 0),
+			    TYPE_FIELD_TYPE (arg, 0), NULL);
+    default:
+      return INCOMPATIBLE_TYPE_BADNESS;
+    }
+}
+
 /* Compare one type (PARM) for compatibility with another (ARG).
  * PARM is intended to be the parameter type of a function; and
  * ARG is the supplied argument's type.  This function tests if
@@ -3917,358 +4249,29 @@ rank_one_type (struct type *parm, struct type *arg, struct value *value)
   switch (TYPE_CODE (parm))
     {
     case TYPE_CODE_PTR:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_PTR:
-
-	  /* Allowed pointer conversions are:
-	     (a) pointer to void-pointer conversion.  */
-	  if (TYPE_CODE (TYPE_TARGET_TYPE (parm)) == TYPE_CODE_VOID)
-	    return VOID_PTR_CONVERSION_BADNESS;
-
-	  /* (b) pointer to ancestor-pointer conversion.  */
-	  rank.subrank = distance_to_ancestor (TYPE_TARGET_TYPE (parm),
-	                                       TYPE_TARGET_TYPE (arg),
-	                                       0);
-	  if (rank.subrank >= 0)
-	    return sum_ranks (BASE_PTR_CONVERSION_BADNESS, rank);
-
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	case TYPE_CODE_ARRAY:
-	  {
-	    struct type *t1 = TYPE_TARGET_TYPE (parm);
-	    struct type *t2 = TYPE_TARGET_TYPE (arg);
-
-	    if (types_equal (t1, t2))
-	      {
-		/* Make sure they are CV equal.  */
-		if (TYPE_CONST (t1) != TYPE_CONST (t2))
-		  rank.subrank |= CV_CONVERSION_CONST;
-		if (TYPE_VOLATILE (t1) != TYPE_VOLATILE (t2))
-		  rank.subrank |= CV_CONVERSION_VOLATILE;
-		if (rank.subrank != 0)
-		  return sum_ranks (CV_CONVERSION_BADNESS, rank);
-		return EXACT_MATCH_BADNESS;
-	      }
-	    return INCOMPATIBLE_TYPE_BADNESS;
-	  }
-	case TYPE_CODE_FUNC:
-	  return rank_one_type (TYPE_TARGET_TYPE (parm), arg, NULL);
-	case TYPE_CODE_INT:
-	  if (value != NULL && TYPE_CODE (value_type (value)) == TYPE_CODE_INT)
-	    {
-	      if (value_as_long (value) == 0)
-		{
-		  /* Null pointer conversion: allow it to be cast to a pointer.
-		     [4.10.1 of C++ standard draft n3290]  */
-		  return NULL_POINTER_CONVERSION_BADNESS;
-		}
-	      else
-		{
-		  /* If type checking is disabled, allow the conversion.  */
-		  if (!strict_type_checking)
-		    return NS_INTEGER_POINTER_CONVERSION_BADNESS;
-		}
-	    }
-	  /* fall through  */
-	case TYPE_CODE_ENUM:
-	case TYPE_CODE_FLAGS:
-	case TYPE_CODE_CHAR:
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_BOOL:
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
+      return rank_one_type_parm_ptr (parm, arg, value);
     case TYPE_CODE_ARRAY:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_PTR:
-	case TYPE_CODE_ARRAY:
-	  return rank_one_type (TYPE_TARGET_TYPE (parm), 
-				TYPE_TARGET_TYPE (arg), NULL);
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
+      return rank_one_type_parm_array (parm, arg, value);
     case TYPE_CODE_FUNC:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_PTR:	/* funcptr -> func */
-	  return rank_one_type (parm, TYPE_TARGET_TYPE (arg), NULL);
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
+      return rank_one_type_parm_func (parm, arg, value);
     case TYPE_CODE_INT:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_INT:
-	  if (TYPE_LENGTH (arg) == TYPE_LENGTH (parm))
-	    {
-	      /* Deal with signed, unsigned, and plain chars and
-	         signed and unsigned ints.  */
-	      if (TYPE_NOSIGN (parm))
-		{
-		  /* This case only for character types.  */
-		  if (TYPE_NOSIGN (arg))
-		    return EXACT_MATCH_BADNESS;	/* plain char -> plain char */
-		  else		/* signed/unsigned char -> plain char */
-		    return INTEGER_CONVERSION_BADNESS;
-		}
-	      else if (TYPE_UNSIGNED (parm))
-		{
-		  if (TYPE_UNSIGNED (arg))
-		    {
-		      /* unsigned int -> unsigned int, or 
-			 unsigned long -> unsigned long */
-		      if (integer_types_same_name_p (TYPE_NAME (parm), 
-						     TYPE_NAME (arg)))
-			return EXACT_MATCH_BADNESS;
-		      else if (integer_types_same_name_p (TYPE_NAME (arg), 
-							  "int")
-			       && integer_types_same_name_p (TYPE_NAME (parm),
-							     "long"))
-			/* unsigned int -> unsigned long */
-			return INTEGER_PROMOTION_BADNESS;
-		      else
-			/* unsigned long -> unsigned int */
-			return INTEGER_CONVERSION_BADNESS;
-		    }
-		  else
-		    {
-		      if (integer_types_same_name_p (TYPE_NAME (arg), 
-						     "long")
-			  && integer_types_same_name_p (TYPE_NAME (parm), 
-							"int"))
-			/* signed long -> unsigned int */
-			return INTEGER_CONVERSION_BADNESS;
-		      else
-			/* signed int/long -> unsigned int/long */
-			return INTEGER_CONVERSION_BADNESS;
-		    }
-		}
-	      else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
-		{
-		  if (integer_types_same_name_p (TYPE_NAME (parm), 
-						 TYPE_NAME (arg)))
-		    return EXACT_MATCH_BADNESS;
-		  else if (integer_types_same_name_p (TYPE_NAME (arg), 
-						      "int")
-			   && integer_types_same_name_p (TYPE_NAME (parm), 
-							 "long"))
-		    return INTEGER_PROMOTION_BADNESS;
-		  else
-		    return INTEGER_CONVERSION_BADNESS;
-		}
-	      else
-		return INTEGER_CONVERSION_BADNESS;
-	    }
-	  else if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
-	    return INTEGER_PROMOTION_BADNESS;
-	  else
-	    return INTEGER_CONVERSION_BADNESS;
-	case TYPE_CODE_ENUM:
-	case TYPE_CODE_FLAGS:
-	case TYPE_CODE_CHAR:
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_BOOL:
-	  if (TYPE_DECLARED_CLASS (arg))
-	    return INCOMPATIBLE_TYPE_BADNESS;
-	  return INTEGER_PROMOTION_BADNESS;
-	case TYPE_CODE_FLT:
-	  return INT_FLOAT_CONVERSION_BADNESS;
-	case TYPE_CODE_PTR:
-	  return NS_POINTER_CONVERSION_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_int (parm, arg, value);
     case TYPE_CODE_ENUM:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_INT:
-	case TYPE_CODE_CHAR:
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_BOOL:
-	case TYPE_CODE_ENUM:
-	  if (TYPE_DECLARED_CLASS (parm) || TYPE_DECLARED_CLASS (arg))
-	    return INCOMPATIBLE_TYPE_BADNESS;
-	  return INTEGER_CONVERSION_BADNESS;
-	case TYPE_CODE_FLT:
-	  return INT_FLOAT_CONVERSION_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_enum (parm, arg, value);
     case TYPE_CODE_CHAR:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_BOOL:
-	case TYPE_CODE_ENUM:
-	  if (TYPE_DECLARED_CLASS (arg))
-	    return INCOMPATIBLE_TYPE_BADNESS;
-	  return INTEGER_CONVERSION_BADNESS;
-	case TYPE_CODE_FLT:
-	  return INT_FLOAT_CONVERSION_BADNESS;
-	case TYPE_CODE_INT:
-	  if (TYPE_LENGTH (arg) > TYPE_LENGTH (parm))
-	    return INTEGER_CONVERSION_BADNESS;
-	  else if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
-	    return INTEGER_PROMOTION_BADNESS;
-	  /* fall through */
-	case TYPE_CODE_CHAR:
-	  /* Deal with signed, unsigned, and plain chars for C++ and
-	     with int cases falling through from previous case.  */
-	  if (TYPE_NOSIGN (parm))
-	    {
-	      if (TYPE_NOSIGN (arg))
-		return EXACT_MATCH_BADNESS;
-	      else
-		return INTEGER_CONVERSION_BADNESS;
-	    }
-	  else if (TYPE_UNSIGNED (parm))
-	    {
-	      if (TYPE_UNSIGNED (arg))
-		return EXACT_MATCH_BADNESS;
-	      else
-		return INTEGER_PROMOTION_BADNESS;
-	    }
-	  else if (!TYPE_NOSIGN (arg) && !TYPE_UNSIGNED (arg))
-	    return EXACT_MATCH_BADNESS;
-	  else
-	    return INTEGER_CONVERSION_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_char (parm, arg, value);
     case TYPE_CODE_RANGE:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_INT:
-	case TYPE_CODE_CHAR:
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_BOOL:
-	case TYPE_CODE_ENUM:
-	  return INTEGER_CONVERSION_BADNESS;
-	case TYPE_CODE_FLT:
-	  return INT_FLOAT_CONVERSION_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_range (parm, arg, value);
     case TYPE_CODE_BOOL:
-      switch (TYPE_CODE (arg))
-	{
-	  /* n3290 draft, section 4.12.1 (conv.bool):
-
-	     "A prvalue of arithmetic, unscoped enumeration, pointer, or
-	     pointer to member type can be converted to a prvalue of type
-	     bool.  A zero value, null pointer value, or null member pointer
-	     value is converted to false; any other value is converted to
-	     true.  A prvalue of type std::nullptr_t can be converted to a
-	     prvalue of type bool; the resulting value is false."  */
-	case TYPE_CODE_INT:
-	case TYPE_CODE_CHAR:
-	case TYPE_CODE_ENUM:
-	case TYPE_CODE_FLT:
-	case TYPE_CODE_MEMBERPTR:
-	case TYPE_CODE_PTR:
-	  return BOOL_CONVERSION_BADNESS;
-	case TYPE_CODE_RANGE:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	case TYPE_CODE_BOOL:
-	  return EXACT_MATCH_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_bool (parm, arg, value);
     case TYPE_CODE_FLT:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_FLT:
-	  if (TYPE_LENGTH (arg) < TYPE_LENGTH (parm))
-	    return FLOAT_PROMOTION_BADNESS;
-	  else if (TYPE_LENGTH (arg) == TYPE_LENGTH (parm))
-	    return EXACT_MATCH_BADNESS;
-	  else
-	    return FLOAT_CONVERSION_BADNESS;
-	case TYPE_CODE_INT:
-	case TYPE_CODE_BOOL:
-	case TYPE_CODE_ENUM:
-	case TYPE_CODE_RANGE:
-	case TYPE_CODE_CHAR:
-	  return INT_FLOAT_CONVERSION_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_float (parm, arg, value);
     case TYPE_CODE_COMPLEX:
-      switch (TYPE_CODE (arg))
-	{		/* Strictly not needed for C++, but...  */
-	case TYPE_CODE_FLT:
-	  return FLOAT_PROMOTION_BADNESS;
-	case TYPE_CODE_COMPLEX:
-	  return EXACT_MATCH_BADNESS;
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
+      return rank_one_type_parm_complex (parm, arg, value);
     case TYPE_CODE_STRUCT:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_STRUCT:
-	  /* Check for derivation */
-	  rank.subrank = distance_to_ancestor (parm, arg, 0);
-	  if (rank.subrank >= 0)
-	    return sum_ranks (BASE_CONVERSION_BADNESS, rank);
-	  /* fall through */
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
-    case TYPE_CODE_UNION:
-      switch (TYPE_CODE (arg))
-	{
-	case TYPE_CODE_UNION:
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
-    case TYPE_CODE_MEMBERPTR:
-      switch (TYPE_CODE (arg))
-	{
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
-    case TYPE_CODE_METHOD:
-      switch (TYPE_CODE (arg))
-	{
-
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
-    case TYPE_CODE_REF:
-      switch (TYPE_CODE (arg))
-	{
-
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-
-      break;
+      return rank_one_type_parm_struct (parm, arg, value);
     case TYPE_CODE_SET:
-      switch (TYPE_CODE (arg))
-	{
-	  /* Not in C++ */
-	case TYPE_CODE_SET:
-	  return rank_one_type (TYPE_FIELD_TYPE (parm, 0), 
-				TYPE_FIELD_TYPE (arg, 0), NULL);
-	default:
-	  return INCOMPATIBLE_TYPE_BADNESS;
-	}
-      break;
-    case TYPE_CODE_VOID:
+      return rank_one_type_parm_set (parm, arg, value);
     default:
       return INCOMPATIBLE_TYPE_BADNESS;
     }				/* switch (TYPE_CODE (arg)) */
@@ -4590,7 +4593,7 @@ recursive_dump_type (struct type *type, int spaces)
       break;
     }
   puts_filtered ("\n");
-  printfi_filtered (spaces, "length %d\n", TYPE_LENGTH (type));
+  printfi_filtered (spaces, "length %s\n", pulongest (TYPE_LENGTH (type)));
   if (TYPE_OBJFILE_OWNED (type))
     {
       printfi_filtered (spaces, "objfile ");
@@ -4903,7 +4906,8 @@ copy_type_recursive (struct objfile *objfile,
       int i, nfields;
 
       nfields = TYPE_NFIELDS (type);
-      TYPE_FIELDS (new_type) = XCNEWVEC (struct field, nfields);
+      TYPE_FIELDS (new_type) = (struct field *)
+        TYPE_ZALLOC (new_type, nfields * sizeof (struct field));
       for (i = 0; i < nfields; i++)
 	{
 	  TYPE_FIELD_ARTIFICIAL (new_type, i) = 
@@ -4946,7 +4950,8 @@ copy_type_recursive (struct objfile *objfile,
   /* For range types, copy the bounds information.  */
   if (TYPE_CODE (type) == TYPE_CODE_RANGE)
     {
-      TYPE_RANGE_DATA (new_type) = XNEW (struct range_bounds);
+      TYPE_RANGE_DATA (new_type) = (struct range_bounds *)
+        TYPE_ALLOC (new_type, sizeof (struct range_bounds));
       *TYPE_RANGE_DATA (new_type) = *TYPE_RANGE_DATA (type);
     }
 
@@ -5356,6 +5361,9 @@ gdbtypes_post_init (struct gdbarch *gdbarch)
   builtin_type->builtin_unsigned_long_long
     = arch_integer_type (gdbarch, gdbarch_long_long_bit (gdbarch),
 			 1, "unsigned long long");
+  builtin_type->builtin_half
+    = arch_float_type (gdbarch, gdbarch_half_bit (gdbarch),
+		       "half", gdbarch_half_format (gdbarch));
   builtin_type->builtin_float
     = arch_float_type (gdbarch, gdbarch_float_bit (gdbarch),
 		       "float", gdbarch_float_format (gdbarch));
@@ -5402,6 +5410,10 @@ gdbtypes_post_init (struct gdbarch *gdbarch)
     = arch_integer_type (gdbarch, 16, 0, "int16_t");
   builtin_type->builtin_uint16
     = arch_integer_type (gdbarch, 16, 1, "uint16_t");
+  builtin_type->builtin_int24
+    = arch_integer_type (gdbarch, 24, 0, "int24_t");
+  builtin_type->builtin_uint24
+    = arch_integer_type (gdbarch, 24, 1, "uint24_t");
   builtin_type->builtin_int32
     = arch_integer_type (gdbarch, 32, 0, "int32_t");
   builtin_type->builtin_uint32
@@ -5451,14 +5463,15 @@ gdbtypes_post_init (struct gdbarch *gdbarch)
 /* This set of objfile-based types is intended to be used by symbol
    readers as basic types.  */
 
-static const struct objfile_data *objfile_type_data;
+static const struct objfile_key<struct objfile_type,
+				gdb::noop_deleter<struct objfile_type>>
+  objfile_type_data;
 
 const struct objfile_type *
 objfile_type (struct objfile *objfile)
 {
   struct gdbarch *gdbarch;
-  struct objfile_type *objfile_type
-    = (struct objfile_type *) objfile_data (objfile, objfile_type_data);
+  struct objfile_type *objfile_type = objfile_type_data.get (objfile);
 
   if (objfile_type)
     return objfile_type;
@@ -5563,7 +5576,7 @@ objfile_type (struct objfile *objfile)
     = init_integer_type (objfile, gdbarch_addr_bit (gdbarch), 1,
 			 "__CORE_ADDR");
 
-  set_objfile_data (objfile, objfile_type_data, objfile_type);
+  objfile_type_data.set (objfile, objfile_type);
   return objfile_type;
 }
 
@@ -5571,7 +5584,6 @@ void
 _initialize_gdbtypes (void)
 {
   gdbtypes_data = gdbarch_data_register_post_init (gdbtypes_post_init);
-  objfile_type_data = register_objfile_data ();
 
   add_setshow_zuinteger_cmd ("overload", no_class, &overload_debug,
 			     _("Set debugging of C++ overloading."),

@@ -1,5 +1,5 @@
 /* BFD back-end for Intel 386 COFF files.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -661,7 +661,7 @@ const bfd_target
      bfd_getl16, bfd_getl_signed_16, bfd_putl16, /* hdrs */
 
 /* Note that we allow an object file to be treated as a core file as well.  */
-    
+
 #ifdef COFF_CHECK_FORMAT
   {				/* bfd_check_format */
     _bfd_dummy_target,

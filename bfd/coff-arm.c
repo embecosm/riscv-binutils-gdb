@@ -1,5 +1,5 @@
 /* BFD back-end for ARM COFF files.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -814,7 +814,7 @@ coff_thumb_pcrel_12 (bfd *abfd,
 				  b12);
 }
 
-static const struct reloc_howto_struct *
+static reloc_howto_type *
 coff_arm_reloc_type_lookup (bfd * abfd, bfd_reloc_code_real_type code)
 {
 #define ASTD(i,j)       case i: return aoutarm_std_reloc_howto + j

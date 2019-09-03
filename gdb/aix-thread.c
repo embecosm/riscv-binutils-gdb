@@ -1,6 +1,6 @@
 /* Low level interface for debugging AIX 4.3+ pthreads.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
    Written by Nick Duffek <nsd@redhat.com>.
 
    This file is part of GDB.
@@ -117,11 +117,10 @@ static const target_info aix_thread_target_info = {
 class aix_thread_target final : public target_ops
 {
 public:
-  aix_thread_target ()
-  { to_stratum = thread_stratum; }
-
   const target_info &info () const override
   { return aix_thread_target_info; }
+
+  strata stratum () const override { return thread_stratum; }
 
   void detach (inferior *, int) override;
   void resume (ptid_t, int, enum gdb_signal) override;
@@ -141,7 +140,7 @@ public:
 
   bool thread_alive (ptid_t ptid) override;
 
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
 
   const char *extra_thread_info (struct thread_info *) override;
 
@@ -671,8 +670,6 @@ giter_accum (struct thread_info *thread, void *bufp)
 static int
 ptid_cmp (ptid_t ptid1, ptid_t ptid2)
 {
-  int pid1, pid2;
-
   if (ptid1.pid () < ptid2.pid ())
     return -1;
   else if (ptid1.pid () > ptid2.pid ())
@@ -708,7 +705,6 @@ get_signaled_thread (void)
 {
   struct thrdsinfo64 thrinf;
   tid_t ktid = 0;
-  int result = 0;
 
   while (1)
   {
@@ -1333,8 +1329,6 @@ fetch_regs_kernel_thread (struct regcache *regcache, int regno,
 	}
       else
 	{
-	  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
-
 	  if (!ptrace32 (PTT_READ_SPRS, tid, (uintptr_t) &sprs32, 0, NULL))
 	    memset (&sprs32, 0, sizeof (sprs32));
 	  supply_sprs32 (regcache, sprs32.pt_iar, sprs32.pt_msr, sprs32.pt_cr,
@@ -1502,7 +1496,6 @@ store_regs_user_thread (const struct regcache *regcache, pthdb_pthread_t pdtid)
   pthdb_context_t ctx;
   uint32_t int32;
   uint64_t int64;
-  double   dbl;
 
   if (debug_aix_thread)
     fprintf_unfiltered (gdb_stdlog, 
@@ -1594,7 +1587,6 @@ store_regs_kernel_thread (const struct regcache *regcache, int regno,
   double fprs[ppc_num_fprs];
   struct ptxsprs sprs64;
   struct ptsprs  sprs32;
-  int i;
 
   if (debug_aix_thread)
     fprintf_unfiltered (gdb_stdlog, 
@@ -1754,20 +1746,13 @@ aix_thread_target::thread_alive (ptid_t ptid)
 /* Return a printable representation of composite PID for use in
    "info threads" output.  */
 
-const char *
+std::string
 aix_thread_target::pid_to_str (ptid_t ptid)
 {
-  static char *ret = NULL;
-
   if (!PD_TID (ptid))
     return beneath ()->pid_to_str (ptid);
 
-  /* Free previous return value; a new one will be allocated by
-     xstrprintf().  */
-  xfree (ret);
-
-  ret = xstrprintf (_("Thread %ld"), ptid.tid ());
-  return ret;
+  return string_printf (_("Thread %ld"), ptid.tid ());
 }
 
 /* Return a printable representation of extra information about

@@ -1,6 +1,6 @@
 /* Target-dependent code for OpenBSD/hppa
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -24,6 +24,7 @@
 
 #include "hppa-tdep.h"
 #include "hppa-bsd-tdep.h"
+#include "gdbarch.h"
 
 /* Core file support.  */
 
@@ -149,8 +150,10 @@ hppaobsd_iterate_over_regset_sections (struct gdbarch *gdbarch,
 				       void *cb_data,
 				       const struct regcache *regcache)
 {
-  cb (".reg", HPPAOBSD_SIZEOF_GREGS, &hppaobsd_gregset, NULL, cb_data);
-  cb (".reg2", HPPAOBSD_SIZEOF_FPREGS, &hppaobsd_fpregset, NULL, cb_data);
+  cb (".reg", HPPAOBSD_SIZEOF_GREGS, HPPAOBSD_SIZEOF_GREGS, &hppaobsd_gregset,
+      NULL, cb_data);
+  cb (".reg2", HPPAOBSD_SIZEOF_FPREGS, HPPAOBSD_SIZEOF_FPREGS,
+      &hppaobsd_fpregset, NULL, cb_data);
 }
 
 

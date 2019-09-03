@@ -1,5 +1,5 @@
 /* GDB variable objects API.
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 #include "symtab.h"
 #include "gdbtypes.h"
-#include "vec.h"
+#include "gdbsupport/vec.h"
 #include "value.h"
 
 /* Enumeration for the format types */

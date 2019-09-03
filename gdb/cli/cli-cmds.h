@@ -1,5 +1,5 @@
 /* Header file for GDB CLI command implementation library.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -14,11 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#if !defined (CLI_CMDS_H)
-#define CLI_CMDS_H 1
+#ifndef CLI_CLI_CMDS_H
+#define CLI_CLI_CMDS_H
 
-#include "common/filestuff.h"
-#include "common/gdb_optional.h"
+#include "gdbsupport/filestuff.h"
+#include "gdbsupport/gdb_optional.h"
+#include "completer.h"
 
 /* Chain containing all defined commands.  */
 
@@ -104,8 +105,6 @@ extern struct cmd_list_element *showchecklist;
 
 void init_cmd_lists (void);
 
-void init_cli_cmds (void);
-
 int is_complete_command (struct cmd_list_element *cmd);
 
 /* Exported to gdb/main.c */
@@ -142,4 +141,19 @@ extern gdb::optional<open_script>
 extern int source_verbose;
 extern int trace_commands;
 
-#endif /* !defined (CLI_CMDS_H) */
+/* Common code for the "with" and "maintenance with" commands.
+   SET_CMD_PREFIX is the spelling of the corresponding "set" command
+   prefix: i.e., "set " or "maintenance set ".  SETLIST is the command
+   element for the same "set" command prefix.  */
+extern void with_command_1 (const char *set_cmd_prefix,
+			    cmd_list_element *setlist,
+			    const char *args, int from_tty);
+
+/* Common code for the completers of the "with" and "maintenance with"
+   commands.  SET_CMD_PREFIX is the spelling of the corresponding
+   "set" command prefix: i.e., "set " or "maintenance set ".  */
+extern void with_command_completer_1 (const char *set_cmd_prefix,
+				      completion_tracker &tracker,
+				      const char *text);
+
+#endif /* CLI_CLI_CMDS_H */

@@ -1,5 +1,5 @@
 /* Handling of inferior events for the event loop for GDB, the GNU debugger.
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
    Written by Elena Zannoni <ezannoni@cygnus.com> of Cygnus Solutions.
 
    This file is part of GDB.
@@ -67,11 +67,11 @@ inferior_event_handler (enum inferior_event_type event_type,
 	  /* Don't propagate breakpoint commands errors.  Either we're
 	     stopping or some command resumes the inferior.  The user will
 	     be informed.  */
-	  TRY
+	  try
 	    {
 	      bpstat_do_actions ();
 	    }
-	  CATCH (e, RETURN_MASK_ALL)
+	  catch (const gdb_exception &e)
 	    {
 	      /* If the user was running a foreground execution
 		 command, then propagate the error so that the prompt
@@ -79,11 +79,10 @@ inferior_event_handler (enum inferior_event_type event_type,
 		 the prompt and is typing some unrelated command, so
 		 just inform the user and swallow the exception.  */
 	      if (current_ui->prompt_state == PROMPT_BLOCKED)
-		throw_exception (e);
+		throw;
 	      else
 		exception_print (gdb_stderr, e);
 	    }
-	  END_CATCH
 	}
       break;
 

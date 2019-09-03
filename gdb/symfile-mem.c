@@ -1,6 +1,6 @@
 /* Reading symbol files from memory.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -187,7 +187,7 @@ add_vsyscall_page (struct target_ops *target, int from_tty)
 
       char *name = xstrprintf ("system-supplied DSO at %s",
 			       paddress (target_gdbarch (), vsyscall_range.start));
-      TRY
+      try
 	{
 	  /* Pass zero for FROM_TTY, because the action of loading the
 	     vsyscall DSO was not triggered by the user, even if the
@@ -198,11 +198,10 @@ add_vsyscall_page (struct target_ops *target, int from_tty)
 				       name,
 				       0 /* from_tty */);
 	}
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	  exception_print (gdb_stderr, ex);
 	}
-      END_CATCH
     }
 }
 

@@ -1,6 +1,6 @@
 /* GDB/Scheme charset interface.
 
-   Copyright (C) 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -62,14 +62,12 @@ SCM
 gdbscm_scm_from_printf (const char *format, ...)
 {
   va_list args;
-  char *string;
   SCM result;
 
   va_start (args, format);
-  string = xstrvprintf (format, args);
+  std::string string = string_vprintf (format, args);
   va_end (args);
-  result = scm_from_latin1_string (string);
-  xfree (string);
+  result = scm_from_latin1_string (string.c_str ());
 
   return result;
 }

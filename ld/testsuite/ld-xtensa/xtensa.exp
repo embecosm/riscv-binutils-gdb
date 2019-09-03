@@ -1,5 +1,5 @@
 # Expect script for ld-xtensa tests
-#   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -23,6 +23,7 @@ if { !([istarget "xtensa*-*-*"]) } {
     return
 }
 
+run_dump_test "call_overflow"
 run_dump_test "coalesce"
 run_dump_test "diff_overflow"
 run_dump_test "lcall"
@@ -33,6 +34,7 @@ run_dump_test "relax-static-shared"
 run_dump_test "relax-static-local-shared"
 
 run_dump_test "relax-undef-weak-pie"
+run_dump_test "relax-undef-weak-pie-export-dynamic"
 run_dump_test "relax-undef-weak-local-pie"
 run_dump_test "relax-undef-weak-shared"
 run_dump_test "relax-undef-weak-local-shared"

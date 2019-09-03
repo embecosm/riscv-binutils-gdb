@@ -1,6 +1,6 @@
 /* Core dump and executable file functions above target vector, for GDB.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -32,6 +32,7 @@
 #include "completer.h"
 #include "observable.h"
 #include "cli/cli-utils.h"
+#include "gdbarch.h"
 
 /* You can have any number of hooks for `exec_file_command' command to
    call.  If there's only one hook, it is set in exec_file_display
@@ -138,7 +139,7 @@ validate_files (void)
     }
 }
 
-/* See common/common-inferior.h.  */
+/* See gdbsupport/common-inferior.h.  */
 
 char *
 get_exec_file (int err)

@@ -1,5 +1,5 @@
 /* Target operations for the remote server for GDB.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    Contributed by MontaVista Software.
 
@@ -18,8 +18,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef TARGET_H
-#define TARGET_H
+#ifndef GDBSERVER_TARGET_H
+#define GDBSERVER_TARGET_H
 
 #include <sys/types.h> /* for mode_t */
 #include "target/target.h"
@@ -27,7 +27,7 @@
 #include "target/wait.h"
 #include "target/waitstatus.h"
 #include "mem-break.h"
-#include "btrace-common.h"
+#include "gdbsupport/btrace-common.h"
 #include <vector>
 
 struct emit_ops;
@@ -103,9 +103,9 @@ struct target_ops
 
   void (*mourn) (struct process_info *proc);
 
-  /* Wait for process PROC to exit.  */
+  /* Wait for process PID to exit.  */
 
-  void (*join) (process_info *proc);
+  void (*join) (int pid);
 
   /* Return 1 iff the thread with process ID PID is alive.  */
 
@@ -167,7 +167,7 @@ struct target_ops
   int (*read_memory) (CORE_ADDR memaddr, unsigned char *myaddr, int len);
 
   /* Write memory to the inferior process.  This should generally be
-     called through write_inferior_memory, which handles breakpoint shadowing.
+     called through target_write_memory, which handles breakpoint shadowing.
 
      Write LEN bytes from the buffer at MYADDR to MEMADDR.
 
@@ -530,8 +530,8 @@ int kill_inferior (process_info *proc);
 #define store_inferior_registers(regcache, regno) \
   (*the_target->store_registers) (regcache, regno)
 
-#define join_inferior(proc) \
-  (*the_target->join) (proc)
+#define join_inferior(pid) \
+  (*the_target->join) (pid)
 
 #define target_supports_non_stop() \
   (the_target->supports_non_stop ? (*the_target->supports_non_stop ) () : 0)
@@ -726,9 +726,6 @@ void done_accessing_memory (void);
 
 int read_inferior_memory (CORE_ADDR memaddr, unsigned char *myaddr, int len);
 
-int write_inferior_memory (CORE_ADDR memaddr, const unsigned char *myaddr,
-			   int len);
-
 int set_desired_thread ();
 
 const char *target_pid_to_str (ptid_t);
@@ -737,4 +734,4 @@ int target_can_do_hardware_single_step (void);
 
 int default_breakpoint_kind_from_pc (CORE_ADDR *pcptr);
 
-#endif /* TARGET_H */
+#endif /* GDBSERVER_TARGET_H */

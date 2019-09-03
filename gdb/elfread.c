@@ -1,6 +1,6 @@
 /* Read ELF (Executable and Linking Format) object files for GDB.
 
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    Written by Fred Fish at Cygnus Support.
 
@@ -29,7 +29,6 @@
 #include "symfile.h"
 #include "objfiles.h"
 #include "stabsread.h"
-#include "gdb-stabs.h"
 #include "complaints.h"
 #include "demangle.h"
 #include "psympriv.h"
@@ -47,6 +46,7 @@
 #include "build-id.h"
 #include "location.h"
 #include "auxv.h"
+#include "mdebugread.h"
 
 /* Forward declarations.  */
 extern const struct sym_fns elf_sym_fns_gdb_index;
@@ -63,9 +63,13 @@ struct elfinfo
     asection *mdebugsect;	/* Section pointer for .mdebug section */
   };
 
+/* Type for per-BFD data.  */
+
+typedef std::vector<std::unique_ptr<probe>> elfread_data;
+
 /* Per-BFD data for probe info.  */
 
-static const struct bfd_data *probe_key = NULL;
+static const struct bfd_key<elfread_data> probe_key;
 
 /* Minimal symbols located at the GOT entries for .plt - that is the real
    pointer where the given entry will jump to.  It gets updated by the real
@@ -333,8 +337,8 @@ elf_symtab_read (minimal_symbol_reader &reader,
       if (sym->flags & BSF_FILE)
 	{
 	  filesymname
-	    = (const char *) bcache (sym->name, strlen (sym->name) + 1,
-				     objfile->per_bfd->filename_cache);
+	    = ((const char *) objfile->per_bfd->filename_cache.insert
+	       (sym->name, strlen (sym->name) + 1));
 	}
       else if (sym->flags & BSF_SECTION_SYM)
 	continue;
@@ -634,7 +638,8 @@ elf_rel_plt_read (minimal_symbol_reader &reader,
 
 /* The data pointer is htab_t for gnu_ifunc_record_cache_unchecked.  */
 
-static const struct objfile_data *elf_objfile_gnu_ifunc_cache_data;
+static const struct objfile_key<htab, htab_deleter>
+  elf_objfile_gnu_ifunc_cache_data;
 
 /* Map function names to CORE_ADDR in elf_objfile_gnu_ifunc_cache_data.  */
 
@@ -705,15 +710,13 @@ elf_gnu_ifunc_record_cache (const char *name, CORE_ADDR addr)
   if (len > 4 && strcmp (target_name + len - 4, "@plt") == 0)
     return 0;
 
-  htab = (htab_t) objfile_data (objfile, elf_objfile_gnu_ifunc_cache_data);
+  htab = elf_objfile_gnu_ifunc_cache_data.get (objfile);
   if (htab == NULL)
     {
-      htab = htab_create_alloc_ex (1, elf_gnu_ifunc_cache_hash,
-				   elf_gnu_ifunc_cache_eq,
-				   NULL, &objfile->objfile_obstack,
-				   hashtab_obstack_allocate,
-				   dummy_obstack_deallocate);
-      set_objfile_data (objfile, elf_objfile_gnu_ifunc_cache_data, htab);
+      htab = htab_create_alloc (1, elf_gnu_ifunc_cache_hash,
+				elf_gnu_ifunc_cache_eq,
+				NULL, xcalloc, xfree);
+      elf_objfile_gnu_ifunc_cache_data.set (objfile, htab);
     }
 
   entry_local.addr = addr;
@@ -758,15 +761,13 @@ elf_gnu_ifunc_record_cache (const char *name, CORE_ADDR addr)
 static int
 elf_gnu_ifunc_resolve_by_cache (const char *name, CORE_ADDR *addr_p)
 {
-  struct objfile *objfile;
-
-  ALL_PSPACE_OBJFILES (current_program_space, objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
       htab_t htab;
       struct elf_gnu_ifunc_cache *entry_p;
       void **slot;
 
-      htab = (htab_t) objfile_data (objfile, elf_objfile_gnu_ifunc_cache_data);
+      htab = elf_objfile_gnu_ifunc_cache_data.get (objfile);
       if (htab == NULL)
 	continue;
 
@@ -800,13 +801,12 @@ static int
 elf_gnu_ifunc_resolve_by_got (const char *name, CORE_ADDR *addr_p)
 {
   char *name_got_plt;
-  struct objfile *objfile;
   const size_t got_suffix_len = strlen (SYMBOL_GOT_PLT_SUFFIX);
 
   name_got_plt = (char *) alloca (strlen (name) + got_suffix_len + 1);
   sprintf (name_got_plt, "%s" SYMBOL_GOT_PLT_SUFFIX, name);
 
-  ALL_PSPACE_OBJFILES (current_program_space, objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
       bfd *obfd = objfile->obfd;
       struct gdbarch *gdbarch = get_objfile_arch (objfile);
@@ -904,7 +904,7 @@ elf_gnu_ifunc_resolve_addr (struct gdbarch *gdbarch, CORE_ADDR pc)
   target_auxv_search (current_top_target (), AT_HWCAP, &hwcap);
   hwcap_val = value_from_longest (builtin_type (gdbarch)
 				  ->builtin_unsigned_long, hwcap);
-  address_val = call_function_by_hand (function, NULL, 1, &hwcap_val);
+  address_val = call_function_by_hand (function, NULL, hwcap_val);
   address = value_as_address (address_val);
   address = gdbarch_convert_from_func_ptr_addr (gdbarch, address, current_top_target ());
   address = gdbarch_addr_bits_remove (gdbarch, address);
@@ -1038,7 +1038,6 @@ elf_read_minimal_symbols (struct objfile *objfile, int symfile_flags,
   long symcount = 0, dynsymcount = 0, synthcount, storage_needed;
   asymbol **symbol_table = NULL, **dyn_symbol_table = NULL;
   asymbol *synthsyms;
-  struct dbx_symfile_info *dbx;
 
   if (symtab_create_debug)
     {
@@ -1063,10 +1062,6 @@ elf_read_minimal_symbols (struct objfile *objfile, int symfile_flags,
     }
 
   minimal_symbol_reader reader (objfile);
-
-  /* Allocate struct to keep track of the symfile.  */
-  dbx = XCNEW (struct dbx_symfile_info);
-  set_objfile_data (objfile, dbx_objfile_data_key, dbx);
 
   /* Process the normal ELF symbol table first.  */
 
@@ -1296,9 +1291,9 @@ elf_symfile_read (struct objfile *objfile, symfile_add_flags symfile_flags)
 
       if (!debugfile.empty ())
 	{
-	  gdb_bfd_ref_ptr abfd (symfile_bfd_open (debugfile.c_str ()));
+	  gdb_bfd_ref_ptr debug_bfd (symfile_bfd_open (debugfile.c_str ()));
 
-	  symbol_file_add_separate (abfd.get (), debugfile.c_str (),
+	  symbol_file_add_separate (debug_bfd.get (), debugfile.c_str (),
 				    symfile_flags, objfile);
 	}
     }
@@ -1315,15 +1310,11 @@ read_psyms (struct objfile *objfile)
 
 /* Initialize anything that needs initializing when a completely new symbol
    file is specified (not just adding some symbols from another file, e.g. a
-   shared library).
-
-   We reinitialize buildsym, since we may be reading stabs from an ELF
-   file.  */
+   shared library).  */
 
 static void
 elf_new_init (struct objfile *ignore)
 {
-  stabsread_new_init ();
 }
 
 /* Perform any local cleanups required when we are done with a particular
@@ -1349,41 +1340,22 @@ elf_symfile_init (struct objfile *objfile)
 
 /* Implementation of `sym_get_probes', as documented in symfile.h.  */
 
-static const std::vector<probe *> &
+static const elfread_data &
 elf_get_probes (struct objfile *objfile)
 {
-  std::vector<probe *> *probes_per_bfd;
-
-  /* Have we parsed this objfile's probes already?  */
-  probes_per_bfd = (std::vector<probe *> *) bfd_data (objfile->obfd, probe_key);
+  elfread_data *probes_per_bfd = probe_key.get (objfile->obfd);
 
   if (probes_per_bfd == NULL)
     {
-      probes_per_bfd = new std::vector<probe *>;
+      probes_per_bfd = probe_key.emplace (objfile->obfd);
 
       /* Here we try to gather information about all types of probes from the
 	 objfile.  */
       for (const static_probe_ops *ops : all_static_probe_ops)
 	ops->get_probes (probes_per_bfd, objfile);
-
-      set_bfd_data (objfile->obfd, probe_key, probes_per_bfd);
     }
 
   return *probes_per_bfd;
-}
-
-/* Helper function used to free the space allocated for storing SystemTap
-   probe information.  */
-
-static void
-probe_key_free (bfd *abfd, void *d)
-{
-  std::vector<probe *> *probes = (std::vector<probe *> *) d;
-
-  for (probe *p : *probes)
-    delete p;
-
-  delete probes;
 }
 
 
@@ -1477,9 +1449,7 @@ static const struct gnu_ifunc_fns elf_gnu_ifunc_fns =
 void
 _initialize_elfread (void)
 {
-  probe_key = register_bfd_data_with_cleanup (NULL, probe_key_free);
   add_symtab_fns (bfd_target_elf_flavour, &elf_sym_fns);
 
-  elf_objfile_gnu_ifunc_cache_data = register_objfile_data ();
   gnu_ifunc_fns_p = &elf_gnu_ifunc_fns;
 }

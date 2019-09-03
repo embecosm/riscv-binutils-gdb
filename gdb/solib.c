@@ -1,6 +1,6 @@
 /* Handle shared libraries for GDB, the GNU Debugger.
 
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -31,7 +31,7 @@
 #include "frame.h"
 #include "gdb_regex.h"
 #include "inferior.h"
-#include "environ.h"
+#include "gdbsupport/environ.h"
 #include "language.h"
 #include "gdbcmd.h"
 #include "completer.h"
@@ -45,7 +45,7 @@
 #include "interps.h"
 #include "filesystem.h"
 #include "gdb_bfd.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "source.h"
 
 /* Architecture-specific operations.  */
@@ -233,7 +233,7 @@ solib_find_1 (const char *in_pathname, int *fd, int is_solib)
         | target:some/dir |           | /foo/bar.dll   |
 
 	IOW, we don't need to add a separator if IN_PATHNAME already
-	has one, or when the the sysroot is exactly "target:".
+	has one, or when the sysroot is exactly "target:".
 	There's no need to check for drive spec explicitly, as we only
 	get here if IN_PATHNAME is considered an absolute path.  */
       need_dir_separator = !(IS_DIR_SEPARATOR (in_pathname[0])
@@ -674,14 +674,18 @@ solib_read_symbols (struct so_list *so, symfile_add_flags flags)
 
       flags |= current_inferior ()->symfile_flags;
 
-      TRY
+      try
 	{
 	  /* Have we already loaded this shared object?  */
-	  ALL_OBJFILES (so->objfile)
+	  so->objfile = nullptr;
+	  for (objfile *objfile : current_program_space->objfiles ())
 	    {
-	      if (filename_cmp (objfile_name (so->objfile), so->so_name) == 0
-		  && so->objfile->addr_low == so->addr_low)
-		break;
+	      if (filename_cmp (objfile_name (objfile), so->so_name) == 0
+		  && objfile->addr_low == so->addr_low)
+		{
+		  so->objfile = objfile;
+		  break;
+		}
 	    }
 	  if (so->objfile == NULL)
 	    {
@@ -696,13 +700,12 @@ solib_read_symbols (struct so_list *so, symfile_add_flags flags)
 
 	  so->symbols_loaded = 1;
 	}
-      CATCH (e, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &e)
 	{
 	  exception_fprintf (gdb_stderr, e, _("Error while reading shared"
 					      " library symbols for %s:\n"),
 			     so->so_name);
 	}
-      END_CATCH
 
       return 1;
     }
@@ -744,17 +747,16 @@ update_solib_list (int from_tty)
 	 symbols now!  */
       if (inf->attach_flag && symfile_objfile == NULL)
 	{
-	  TRY
+	  try
 	    {
 	      ops->open_symbol_file_object (from_tty);
 	    }
-	  CATCH (ex, RETURN_MASK_ALL)
+	  catch (const gdb_exception &ex)
 	    {
 	      exception_fprintf (gdb_stderr, ex,
 				 "Error reading attached "
 				 "process's symbol file.\n");
 	    }
-	  END_CATCH
 	}
     }
 
@@ -864,7 +866,7 @@ update_solib_list (int from_tty)
 	  i->pspace = current_program_space;
 	  current_program_space->added_solibs.push_back (i);
 
-	  TRY
+	  try
 	    {
 	      /* Fill in the rest of the `struct so_list' node.  */
 	      if (!solib_map_sections (i))
@@ -875,13 +877,12 @@ update_solib_list (int from_tty)
 		}
 	    }
 
-	  CATCH (e, RETURN_MASK_ERROR)
+	  catch (const gdb_exception_error &e)
 	    {
 	      exception_fprintf (gdb_stderr, e,
 				 _("Error while mapping shared "
 				   "library sections:\n"));
 	    }
-	  END_CATCH
 
 	  /* Notify any observer that the shared object has been
 	     loaded now that we've added it to GDB's tables.  */
@@ -1103,7 +1104,7 @@ info_sharedlibrary_command (const char *pattern, int from_tty)
 	else
 	  uiout->field_string ("syms-read", so->symbols_loaded ? "Yes" : "No");
 
-	uiout->field_string ("name", so->so_name);
+	uiout->field_string ("name", so->so_name, ui_out_style_kind::FILE);
 
 	uiout->text ("\n");
       }
@@ -1329,19 +1330,18 @@ reload_shared_libraries_1 (int from_tty)
 	{
 	  int got_error = 0;
 
-	  TRY
+	  try
 	    {
 	      solib_map_sections (so);
 	    }
 
-	  CATCH (e, RETURN_MASK_ERROR)
+	  catch (const gdb_exception_error &e)
 	    {
 	      exception_fprintf (gdb_stderr, e,
 				 _("Error while mapping "
 				   "shared library sections:\n"));
 	      got_error = 1;
 	    }
-	  END_CATCH
 
 	    if (!got_error
 		&& (auto_solib_add || was_loaded || libpthread_solib_p (so)))
@@ -1453,7 +1453,7 @@ solib_global_lookup (struct objfile *objfile,
 
   if (ops->lookup_lib_global_symbol != NULL)
     return ops->lookup_lib_global_symbol (objfile, name, domain);
-  return (struct block_symbol) {NULL, NULL};
+  return {};
 }
 
 /* Lookup the value for a specific symbol from dynamic symbol table.  Look
@@ -1497,9 +1497,8 @@ gdb_bfd_lookup_symbol_from_symtab (bfd *abfd,
 	      if (bfd_get_flavour (abfd) == bfd_target_elf_flavour
 		  && gdbarch_elf_make_msymbol_special_p (gdbarch))
 		{
-		  struct minimal_symbol msym;
+		  struct minimal_symbol msym {};
 
-		  memset (&msym, 0, sizeof (msym));
 		  SET_MSYMBOL_VALUE_ADDRESS (&msym, symaddr);
 		  gdbarch_elf_make_msymbol_special (gdbarch, sym, &msym);
 		  symaddr = MSYMBOL_VALUE_RAW_ADDRESS (&msym);

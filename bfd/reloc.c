@@ -1,5 +1,5 @@
 /* BFD support for handling relocation entries.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -94,6 +94,7 @@ CODE_FRAGMENT
 . }
 . bfd_reloc_status_type;
 .
+.typedef const struct reloc_howto_struct reloc_howto_type;
 .
 .typedef struct reloc_cache_entry
 .{
@@ -279,51 +280,39 @@ SUBSUBSECTION
 	information that libbfd needs to know to tie up a back end's data.
 
 CODE_FRAGMENT
-.struct bfd_symbol;		{* Forward declaration.  *}
-.
 .struct reloc_howto_struct
 .{
-.  {*  The type field has mainly a documentary use - the back end can
-.      do what it wants with it, though normally the back end's
-.      external idea of what a reloc number is stored
-.      in this field.  For example, a PC relative word relocation
-.      in a coff environment has the type 023 - because that's
-.      what the outside world calls a R_PCRWORD reloc.  *}
+.  {* The type field has mainly a documentary use - the back end can
+.     do what it wants with it, though normally the back end's idea of
+.     an external reloc number is stored in this field.  *}
 .  unsigned int type;
 .
-.  {*  The value the final relocation is shifted right by.  This drops
-.      unwanted data from the relocation.  *}
-.  unsigned int rightshift;
+.  {* The encoded size of the item to be relocated.  This is *not* a
+.     power-of-two measure.  Use bfd_get_reloc_size to find the size
+.     of the item in bytes.  *}
+.  unsigned int size:3;
 .
-.  {*  The size of the item to be relocated.  This is *not* a
-.      power-of-two measure.  To get the number of bytes operated
-.      on by a type of relocation, use bfd_get_reloc_size.  *}
-.  int size;
+.  {* The number of bits in the field to be relocated.  This is used
+.     when doing overflow checking.  *}
+.  unsigned int bitsize:7;
 .
-.  {*  The number of bits in the item to be relocated.  This is used
-.      when doing overflow checking.  *}
-.  unsigned int bitsize;
+.  {* The value the final relocation is shifted right by.  This drops
+.     unwanted data from the relocation.  *}
+.  unsigned int rightshift:6;
 .
-.  {*  The relocation is relative to the field being relocated.  *}
-.  bfd_boolean pc_relative;
-.
-.  {*  The bit position of the reloc value in the destination.
-.      The relocated value is left shifted by this amount.  *}
-.  unsigned int bitpos;
+.  {* The bit position of the reloc value in the destination.
+.     The relocated value is left shifted by this amount.  *}
+.  unsigned int bitpos:6;
 .
 .  {* What type of overflow error should be checked for when
 .     relocating.  *}
-.  enum complain_overflow complain_on_overflow;
+.  ENUM_BITFIELD (complain_overflow) complain_on_overflow:2;
 .
-.  {* If this field is non null, then the supplied function is
-.     called rather than the normal function.  This allows really
-.     strange relocation methods to be accommodated.  *}
-.  bfd_reloc_status_type (*special_function)
-.    (bfd *, arelent *, struct bfd_symbol *, void *, asection *,
-.     bfd *, char **);
+.  {* The relocation value should be negated before applying.  *}
+.  unsigned int negate:1;
 .
-.  {* The textual name of the relocation type.  *}
-.  char *name;
+.  {* The relocation is relative to the item being relocated.  *}
+.  unsigned int pc_relative:1;
 .
 .  {* Some formats record a relocation addend in the section contents
 .     rather than with the relocation.  For ELF formats this is the
@@ -340,21 +329,7 @@ CODE_FRAGMENT
 .     USE_REL targets set this field to TRUE.  Why this is so is peculiar
 .     to each particular target.  For relocs that aren't used in partial
 .     links (e.g. GOT stuff) it doesn't matter what this is set to.  *}
-.  bfd_boolean partial_inplace;
-.
-.  {* src_mask selects the part of the instruction (or data) to be used
-.     in the relocation sum.  If the target relocations don't have an
-.     addend in the reloc, eg. ELF USE_REL, src_mask will normally equal
-.     dst_mask to extract the addend from the section contents.  If
-.     relocations do have an addend in the reloc, eg. ELF USE_RELA, this
-.     field should be zero.  Non-zero values for ELF USE_RELA targets are
-.     bogus as in those cases the value in the dst_mask part of the
-.     section contents should be treated as garbage.  *}
-.  bfd_vma src_mask;
-.
-.  {* dst_mask selects which parts of the instruction (or data) are
-.     replaced with a relocated value.  *}
-.  bfd_vma dst_mask;
+.  unsigned int partial_inplace:1;
 .
 .  {* When some formats create PC relative instructions, they leave
 .     the value of the pc of the place being relocated in the offset
@@ -362,7 +337,31 @@ CODE_FRAGMENT
 .     be made just by adding in an ordinary offset (e.g., sun3 a.out).
 .     Some formats leave the displacement part of an instruction
 .     empty (e.g., ELF); this flag signals the fact.  *}
-.  bfd_boolean pcrel_offset;
+.  unsigned int pcrel_offset:1;
+.
+.  {* src_mask selects the part of the instruction (or data) to be used
+.     in the relocation sum.  If the target relocations don't have an
+.     addend in the reloc, eg. ELF USE_REL, src_mask will normally equal
+.     dst_mask to extract the addend from the section contents.  If
+.     relocations do have an addend in the reloc, eg. ELF USE_RELA, this
+.     field should normally be zero.  Non-zero values for ELF USE_RELA
+.     targets should be viewed with suspicion as normally the value in
+.     the dst_mask part of the section contents should be ignored.  *}
+.  bfd_vma src_mask;
+.
+.  {* dst_mask selects which parts of the instruction (or data) are
+.     replaced with a relocated value.  *}
+.  bfd_vma dst_mask;
+.
+.  {* If this field is non null, then the supplied function is
+.     called rather than the normal function.  This allows really
+.     strange relocation methods to be accommodated.  *}
+.  bfd_reloc_status_type (*special_function)
+.    (bfd *, arelent *, struct bfd_symbol *, void *, asection *,
+.     bfd *, char **);
+.
+.  {* The textual name of the relocation type.  *}
+.  char *name;
 .};
 .
 */
@@ -372,19 +371,13 @@ FUNCTION
 	The HOWTO Macro
 
 DESCRIPTION
-	The HOWTO define is horrible and will go away.
+	The HOWTO macro fills in a reloc_howto_type (a typedef for
+	const struct reloc_howto_struct).
 
-.#define HOWTO(C, R, S, B, P, BI, O, SF, NAME, INPLACE, MASKSRC, MASKDST, PC) \
-.  { (unsigned) C, R, S, B, P, BI, O, SF, NAME, INPLACE, MASKSRC, MASKDST, PC }
-
-DESCRIPTION
-	And will be replaced with the totally magic way. But for the
-	moment, we are compatible, so do it this way.
-
-.#define NEWHOWTO(FUNCTION, NAME, SIZE, REL, IN) \
-.  HOWTO (0, 0, SIZE, 0, REL, 0, complain_overflow_dont, FUNCTION, \
-.	  NAME, FALSE, 0, 0, IN)
-.
+.#define HOWTO(type, right, size, bits, pcrel, left, ovf, func, name,	\
+.              inplace, src_mask, dst_mask, pcrel_off)			\
+.  { (unsigned) type, size < 0 ? -size : size, bits, right, left, ovf,	\
+.    size < 0, pcrel, inplace, pcrel_off, src_mask, dst_mask, func, name }
 
 DESCRIPTION
 	This is used to fill in an empty howto entry in an array.
@@ -392,25 +385,6 @@ DESCRIPTION
 .#define EMPTY_HOWTO(C) \
 .  HOWTO ((C), 0, 0, 0, FALSE, 0, complain_overflow_dont, NULL, \
 .	  NULL, FALSE, 0, 0, FALSE)
-.
-
-DESCRIPTION
-	Helper routine to turn a symbol into a relocation value.
-
-.#define HOWTO_PREPARE(relocation, symbol)		\
-.  {							\
-.    if (symbol != NULL)				\
-.      {						\
-.	 if (bfd_is_com_section (symbol->section))	\
-.	   {						\
-.	     relocation = 0;				\
-.	   }						\
-.	 else						\
-.	   {						\
-.	     relocation = symbol->value;		\
-.	   }						\
-.      }						\
-.  }
 .
 */
 
@@ -432,14 +406,11 @@ bfd_get_reloc_size (reloc_howto_type *howto)
   switch (howto->size)
     {
     case 0: return 1;
-    case 1:
-    case -1: return 2;
-    case 2:
-    case -2: return 4;
+    case 1: return 2;
+    case 2: return 4;
     case 3: return 0;
     case 4: return 8;
     case 5: return 3;
-    case 8: return 16;
     default: abort ();
     }
 }
@@ -586,11 +557,9 @@ read_reloc (bfd *abfd, bfd_byte *data, reloc_howto_type *howto)
       return bfd_get_8 (abfd, data);
 
     case 1:
-    case -1:
       return bfd_get_16 (abfd, data);
 
     case 2:
-    case -2:
       return bfd_get_32 (abfd, data);
 
     case 3:
@@ -623,12 +592,10 @@ write_reloc (bfd *abfd, bfd_vma val, bfd_byte *data, reloc_howto_type *howto)
       break;
 
     case 1:
-    case -1:
       bfd_put_16 (abfd, val, data);
       break;
 
     case 2:
-    case -2:
       bfd_put_32 (abfd, val, data);
       break;
 
@@ -659,7 +626,7 @@ apply_reloc (bfd *abfd, bfd_byte *data, reloc_howto_type *howto,
 {
   bfd_vma val = read_reloc (abfd, data, howto);
 
-  if (howto->size < 0)
+  if (howto->negate)
     relocation = -relocation;
 
   val = ((val & ~howto->dst_mask)
@@ -1418,9 +1385,7 @@ _bfd_relocate_contents (reloc_howto_type *howto,
   unsigned int rightshift = howto->rightshift;
   unsigned int bitpos = howto->bitpos;
 
-  /* If the size is negative, negate RELOCATION.  This isn't very
-     general.  */
-  if (howto->size < 0)
+  if (howto->negate)
     relocation = -relocation;
 
   /* Get the value we are going to relocate.  */
@@ -1539,15 +1504,21 @@ _bfd_relocate_contents (reloc_howto_type *howto,
    relocations against discarded symbols, to make ignorable debug or unwind
    information more obvious.  */
 
-void
+bfd_reloc_status_type
 _bfd_clear_contents (reloc_howto_type *howto,
 		     bfd *input_bfd,
 		     asection *input_section,
-		     bfd_byte *location)
+		     bfd_byte *buf,
+		     bfd_vma off)
 {
   bfd_vma x;
+  bfd_byte *location;
+
+  if (!bfd_reloc_offset_in_range (howto, input_bfd, input_section, off))
+    return bfd_reloc_outofrange;
 
   /* Get the value we are going to relocate.  */
+  location = buf + off;
   x = read_reloc (input_bfd, location, howto);
 
   /* Zero out the unwanted bits of X.  */
@@ -1562,6 +1533,7 @@ _bfd_clear_contents (reloc_howto_type *howto,
 
   /* Put the relocated value back in the object file.  */
   write_reloc (input_bfd, x, location, howto);
+  return bfd_reloc_ok;
 }
 
 /*
@@ -2889,11 +2861,57 @@ ENUMX
 ENUMX
   BFD_RELOC_PPC64_ADDR16_HIGHA
 ENUMX
+  BFD_RELOC_PPC64_REL16_HIGH
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHA
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHER
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHERA
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHEST
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHESTA
+ENUMX
   BFD_RELOC_PPC64_ADDR64_LOCAL
 ENUMX
   BFD_RELOC_PPC64_ENTRY
 ENUMX
   BFD_RELOC_PPC64_REL24_NOTOC
+ENUMX
+  BFD_RELOC_PPC64_D34
+ENUMX
+  BFD_RELOC_PPC64_D34_LO
+ENUMX
+  BFD_RELOC_PPC64_D34_HI30
+ENUMX
+  BFD_RELOC_PPC64_D34_HA30
+ENUMX
+  BFD_RELOC_PPC64_PCREL34
+ENUMX
+  BFD_RELOC_PPC64_GOT_PCREL34
+ENUMX
+  BFD_RELOC_PPC64_PLT_PCREL34
+ENUMX
+  BFD_RELOC_PPC64_ADDR16_HIGHER34
+ENUMX
+  BFD_RELOC_PPC64_ADDR16_HIGHERA34
+ENUMX
+  BFD_RELOC_PPC64_ADDR16_HIGHEST34
+ENUMX
+  BFD_RELOC_PPC64_ADDR16_HIGHESTA34
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHER34
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHERA34
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHEST34
+ENUMX
+  BFD_RELOC_PPC64_REL16_HIGHESTA34
+ENUMX
+  BFD_RELOC_PPC64_D28
+ENUMX
+  BFD_RELOC_PPC64_PCREL28
 ENUMDOC
   Power(rs6000) and PowerPC relocations.
 
@@ -2962,6 +2980,10 @@ ENUMX
 ENUMX
   BFD_RELOC_PPC64_TPREL16_LO_DS
 ENUMX
+  BFD_RELOC_PPC64_TPREL16_HIGH
+ENUMX
+  BFD_RELOC_PPC64_TPREL16_HIGHA
+ENUMX
   BFD_RELOC_PPC64_TPREL16_HIGHER
 ENUMX
   BFD_RELOC_PPC64_TPREL16_HIGHERA
@@ -2974,6 +2996,10 @@ ENUMX
 ENUMX
   BFD_RELOC_PPC64_DTPREL16_LO_DS
 ENUMX
+  BFD_RELOC_PPC64_DTPREL16_HIGH
+ENUMX
+  BFD_RELOC_PPC64_DTPREL16_HIGHA
+ENUMX
   BFD_RELOC_PPC64_DTPREL16_HIGHER
 ENUMX
   BFD_RELOC_PPC64_DTPREL16_HIGHERA
@@ -2982,13 +3008,19 @@ ENUMX
 ENUMX
   BFD_RELOC_PPC64_DTPREL16_HIGHESTA
 ENUMX
-  BFD_RELOC_PPC64_TPREL16_HIGH
+  BFD_RELOC_PPC64_TPREL34
 ENUMX
-  BFD_RELOC_PPC64_TPREL16_HIGHA
+  BFD_RELOC_PPC64_DTPREL34
 ENUMX
-  BFD_RELOC_PPC64_DTPREL16_HIGH
+  BFD_RELOC_PPC64_GOT_TLSGD34
 ENUMX
-  BFD_RELOC_PPC64_DTPREL16_HIGHA
+  BFD_RELOC_PPC64_GOT_TLSLD34
+ENUMX
+  BFD_RELOC_PPC64_GOT_TPREL34
+ENUMX
+  BFD_RELOC_PPC64_GOT_DTPREL34
+ENUMX
+  BFD_RELOC_PPC64_TLS_PCREL
 ENUMDOC
   PowerPC and PowerPC64 thread-local storage relocations.
 
@@ -3029,6 +3061,36 @@ ENUM
   BFD_RELOC_ARM_PCREL_JUMP
 ENUMDOC
   ARM 26-bit pc-relative branch for B or conditional BL instruction.
+
+ENUM
+  BFD_RELOC_THUMB_PCREL_BRANCH5
+ENUMDOC
+  ARM 5-bit pc-relative branch for Branch Future instructions.
+
+ENUM
+  BFD_RELOC_THUMB_PCREL_BFCSEL
+ENUMDOC
+  ARM 6-bit pc-relative branch for BFCSEL instruction.
+
+ENUM
+  BFD_RELOC_ARM_THUMB_BF17
+ENUMDOC
+  ARM 17-bit pc-relative branch for Branch Future instructions.
+
+ENUM
+  BFD_RELOC_ARM_THUMB_BF13
+ENUMDOC
+  ARM 13-bit pc-relative branch for BFCSEL instruction.
+
+ENUM
+  BFD_RELOC_ARM_THUMB_BF19
+ENUMDOC
+  ARM 19-bit pc-relative branch for Branch Future Link instruction.
+
+ENUM
+  BFD_RELOC_ARM_THUMB_LOOP12
+ENUMDOC
+  ARM 12-bit pc-relative branch for Low Overhead Loop instructions.
 
 ENUM
   BFD_RELOC_THUMB_PCREL_BRANCH7
@@ -3278,6 +3340,8 @@ ENUMX
   BFD_RELOC_ARM_T32_CP_OFF_IMM
 ENUMX
   BFD_RELOC_ARM_T32_CP_OFF_IMM_S2
+ENUMX
+  BFD_RELOC_ARM_T32_VLDR_VSTR_OFF_IMM
 ENUMX
   BFD_RELOC_ARM_ADR_IMM
 ENUMX
@@ -4277,21 +4341,11 @@ ENUMDOC
 ENUM
   BFD_RELOC_NDS32_TPOFF
 ENUMX
+  BFD_RELOC_NDS32_GOTTPOFF
+ENUMX
   BFD_RELOC_NDS32_TLS_LE_HI20
 ENUMX
   BFD_RELOC_NDS32_TLS_LE_LO12
-ENUMX
-  BFD_RELOC_NDS32_TLS_LE_ADD
-ENUMX
-  BFD_RELOC_NDS32_TLS_LE_LS
-ENUMX
-  BFD_RELOC_NDS32_GOTTPOFF
-ENUMX
-  BFD_RELOC_NDS32_TLS_IE_HI20
-ENUMX
-  BFD_RELOC_NDS32_TLS_IE_LO12S2
-ENUMX
-  BFD_RELOC_NDS32_TLS_TPOFF
 ENUMX
   BFD_RELOC_NDS32_TLS_LE_20
 ENUMX
@@ -4300,8 +4354,52 @@ ENUMX
   BFD_RELOC_NDS32_TLS_LE_15S1
 ENUMX
   BFD_RELOC_NDS32_TLS_LE_15S2
+ENUMX
+  BFD_RELOC_NDS32_TLS_LE_ADD
+ENUMX
+  BFD_RELOC_NDS32_TLS_LE_LS
+ENUMX
+  BFD_RELOC_NDS32_TLS_IE_HI20
+ENUMX
+  BFD_RELOC_NDS32_TLS_IE_LO12
+ENUMX
+  BFD_RELOC_NDS32_TLS_IE_LO12S2
+ENUMX
+  BFD_RELOC_NDS32_TLS_IEGP_HI20
+ENUMX
+  BFD_RELOC_NDS32_TLS_IEGP_LO12
+ENUMX
+  BFD_RELOC_NDS32_TLS_IEGP_LO12S2
+ENUMX
+  BFD_RELOC_NDS32_TLS_IEGP_LW
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_HI20
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_LO12
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_20
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_SDA17S2
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_ADD
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_FUNC
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_CALL
+ENUMX
+  BFD_RELOC_NDS32_TLS_DESC_MEM
+ENUMX
+  BFD_RELOC_NDS32_REMOVE
+ENUMX
+  BFD_RELOC_NDS32_GROUP
 ENUMDOC
   For TLS.
+ENUM
+  BFD_RELOC_NDS32_LSI
+ENUMDOC
+  For floating load store relaxation.
 
 
 ENUM
@@ -6135,17 +6233,29 @@ ENUMDOC
 ENUM
   BFD_RELOC_OR1K_REL_26
 ENUMX
+  BFD_RELOC_OR1K_SLO16
+ENUMX
+  BFD_RELOC_OR1K_PCREL_PG21
+ENUMX
+  BFD_RELOC_OR1K_LO13
+ENUMX
+  BFD_RELOC_OR1K_SLO13
+ENUMX
   BFD_RELOC_OR1K_GOTPC_HI16
 ENUMX
   BFD_RELOC_OR1K_GOTPC_LO16
 ENUMX
   BFD_RELOC_OR1K_GOT16
 ENUMX
+  BFD_RELOC_OR1K_GOT_PG21
+ENUMX
+  BFD_RELOC_OR1K_GOT_LO13
+ENUMX
   BFD_RELOC_OR1K_PLT26
 ENUMX
-  BFD_RELOC_OR1K_GOTOFF_HI16
+  BFD_RELOC_OR1K_PLTA26
 ENUMX
-  BFD_RELOC_OR1K_GOTOFF_LO16
+  BFD_RELOC_OR1K_GOTOFF_SLO16
 ENUMX
   BFD_RELOC_OR1K_COPY
 ENUMX
@@ -6159,9 +6269,17 @@ ENUMX
 ENUMX
   BFD_RELOC_OR1K_TLS_GD_LO16
 ENUMX
+  BFD_RELOC_OR1K_TLS_GD_PG21
+ENUMX
+  BFD_RELOC_OR1K_TLS_GD_LO13
+ENUMX
   BFD_RELOC_OR1K_TLS_LDM_HI16
 ENUMX
   BFD_RELOC_OR1K_TLS_LDM_LO16
+ENUMX
+  BFD_RELOC_OR1K_TLS_LDM_PG21
+ENUMX
+  BFD_RELOC_OR1K_TLS_LDM_LO13
 ENUMX
   BFD_RELOC_OR1K_TLS_LDO_HI16
 ENUMX
@@ -6169,11 +6287,21 @@ ENUMX
 ENUMX
   BFD_RELOC_OR1K_TLS_IE_HI16
 ENUMX
+  BFD_RELOC_OR1K_TLS_IE_AHI16
+ENUMX
   BFD_RELOC_OR1K_TLS_IE_LO16
+ENUMX
+  BFD_RELOC_OR1K_TLS_IE_PG21
+ENUMX
+  BFD_RELOC_OR1K_TLS_IE_LO13
 ENUMX
   BFD_RELOC_OR1K_TLS_LE_HI16
 ENUMX
+  BFD_RELOC_OR1K_TLS_LE_AHI16
+ENUMX
   BFD_RELOC_OR1K_TLS_LE_LO16
+ENUMX
+  BFD_RELOC_OR1K_TLS_LE_SLO16
 ENUMX
   BFD_RELOC_OR1K_TLS_TPOFF
 ENUMX
@@ -7803,6 +7931,19 @@ ENUMDOC
   Tilera TILE-Gx Relocations.
 
 ENUM
+  BFD_RELOC_BPF_64
+ENUMX
+  BFD_RELOC_BPF_32
+ENUMX
+  BFD_RELOC_BPF_16
+ENUMX
+  BFD_RELOC_BPF_DISP16
+ENUMX
+  BFD_RELOC_BPF_DISP32
+ENUMDOC
+  Linux eBPF relocations.
+
+ENUM
   BFD_RELOC_EPIPHANY_SIMM8
 ENUMDOC
   Adapteva EPIPHANY - 8 bit signed pc-relative displacement
@@ -8003,6 +8144,11 @@ ENUMX
   BFD_RELOC_CKCORE_PCREL_BLOOP_IMM12BY4
 ENUMDOC
   C-SKY relocations.
+
+ENUM
+  BFD_RELOC_S12Z_OPR
+ENUMDOC
+  S12Z relocations.
 
 ENDSENUM
   BFD_RELOC_UNUSED
@@ -8282,16 +8428,27 @@ bfd_generic_get_relocated_section_contents (bfd *abfd,
 	      goto error_return;
 	    }
 
-	  if (symbol->section && discarded_section (symbol->section))
+	  /* Zap reloc field when the symbol is from a discarded
+	     section, ignoring any addend.  Do the same when called
+	     from bfd_simple_get_relocated_section_contents for
+	     undefined symbols in debug sections.  This is to keep
+	     debug info reasonably sane, in particular so that
+	     DW_FORM_ref_addr to another file's .debug_info isn't
+	     confused with an offset into the current file's
+	     .debug_info.  */
+	  if ((symbol->section != NULL && discarded_section (symbol->section))
+	      || (symbol->section == bfd_und_section_ptr
+		  && (input_section->flags & SEC_DEBUGGING) != 0
+		  && link_info->input_bfds == link_info->output_bfd))
 	    {
-	      bfd_byte *p;
+	      bfd_vma off;
 	      static reloc_howto_type none_howto
 		= HOWTO (0, 0, 0, 0, FALSE, 0, complain_overflow_dont, NULL,
 			 "unused", FALSE, 0, 0, FALSE);
 
-	      p = data + (*parent)->address * bfd_octets_per_byte (input_bfd);
-	      _bfd_clear_contents ((*parent)->howto, input_bfd, input_section,
-				   p);
+	      off = (*parent)->address * bfd_octets_per_byte (input_bfd);
+	      _bfd_clear_contents ((*parent)->howto, input_bfd,
+				   input_section, data, off);
 	      (*parent)->sym_ptr_ptr = bfd_abs_section_ptr->symbol_ptr_ptr;
 	      (*parent)->addend = 0;
 	      (*parent)->howto = &none_howto;

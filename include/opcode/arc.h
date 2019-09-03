@@ -1,5 +1,5 @@
 /* Opcode table for the ARC.
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
    Contributed by Claudiu Zissulescu (claziss@synopsys.com)
 
@@ -59,6 +59,7 @@ typedef enum
   EI,
   ENTER,
   FLOAT,
+  FASTMATH,
   INVALID,
   JLI,
   JUMP,
@@ -79,6 +80,7 @@ typedef enum
   SJLI,
   STORE,
   SUB,
+  SWITCH,
   ULTRAIP,
   XY
 } insn_class_t;

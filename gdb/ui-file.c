@@ -1,6 +1,6 @@
 /* UI_FILE - a generic STDIO like output stream.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,7 +23,7 @@
 #include "ui-file.h"
 #include "gdb_obstack.h"
 #include "gdb_select.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 
 null_file null_stream;
 
@@ -101,6 +101,33 @@ ui_file_isatty (struct ui_file *file)
   return file->isatty ();
 }
 
+/* true if the gdb terminal supports styling, and styling is enabled.  */
+
+static bool
+term_cli_styling ()
+{
+  extern int cli_styling;
+
+  if (!cli_styling)
+    return false;
+
+  const char *term = getenv ("TERM");
+  /* Windows doesn't by default define $TERM, but can support styles
+     regardless.  */
+#ifndef _WIN32
+  if (term == nullptr || !strcmp (term, "dumb"))
+    return false;
+#else
+  /* But if they do define $TERM, let us behave the same as on Posix
+     platforms, for the benefit of programs which invoke GDB as their
+     back-end.  */
+  if (term && !strcmp (term, "dumb"))
+    return false;
+#endif
+  return true;
+}
+
+
 void
 ui_file_write (struct ui_file *file,
 		const char *buf,
@@ -138,6 +165,22 @@ void
 string_file::write (const char *buf, long length_buf)
 {
   m_string.append (buf, length_buf);
+}
+
+/* See ui-file.h.  */
+
+bool
+string_file::term_out ()
+{
+  return m_term_out;
+}
+
+/* See ui-file.h.  */
+
+bool
+string_file::can_emit_style_escape ()
+{
+  return m_term_out && term_cli_styling ();
 }
 
 
@@ -236,6 +279,12 @@ stdio_file::write_async_safe (const char *buf, long length_buf)
 void
 stdio_file::puts (const char *linebuffer)
 {
+  /* This host-dependent function (with implementations in
+     posix-hdep.c and mingw-hdep.c) is given the opportunity to
+     process the output first in host-dependent way.  If it does, it
+     should return non-zero, to avoid calling fputs below.  */
+  if (gdb_console_fputs (linebuffer, m_file))
+    return;
   /* Calling error crashes when we are called from the exception framework.  */
   if (fputs (linebuffer, m_file))
     {
@@ -247,6 +296,16 @@ bool
 stdio_file::isatty ()
 {
   return ::isatty (m_fd);
+}
+
+/* See ui-file.h.  */
+
+bool
+stdio_file::can_emit_style_escape ()
+{
+  return (this == gdb_stdout
+	  && this->isatty ()
+	  && term_cli_styling ());
 }
 
 
@@ -277,20 +336,13 @@ stderr_file::stderr_file (FILE *stream)
 
 
 
-tee_file::tee_file (ui_file *one, bool close_one,
-		    ui_file *two, bool close_two)
+tee_file::tee_file (ui_file *one, ui_file_up &&two)
   : m_one (one),
-    m_two (two),
-    m_close_one (close_one),
-    m_close_two (close_two)
+    m_two (std::move (two))
 {}
 
 tee_file::~tee_file ()
 {
-  if (m_close_one)
-    delete m_one;
-  if (m_close_two)
-    delete m_two;
 }
 
 void
@@ -325,4 +377,54 @@ bool
 tee_file::isatty ()
 {
   return m_one->isatty ();
+}
+
+/* See ui-file.h.  */
+
+bool
+tee_file::term_out ()
+{
+  return m_one->term_out ();
+}
+
+/* See ui-file.h.  */
+
+bool
+tee_file::can_emit_style_escape ()
+{
+  return (this == gdb_stdout
+	  && m_one->term_out ()
+	  && term_cli_styling ());
+}
+
+/* See ui-file.h.  */
+
+void
+no_terminal_escape_file::write (const char *buf, long length_buf)
+{
+  std::string copy (buf, length_buf);
+  this->puts (copy.c_str ());
+}
+
+/* See ui-file.h.  */
+
+void
+no_terminal_escape_file::puts (const char *buf)
+{
+  while (*buf != '\0')
+    {
+      const char *esc = strchr (buf, '\033');
+      if (esc == nullptr)
+	break;
+
+      int n_read = 0;
+      if (!skip_ansi_escape (esc, &n_read))
+	++esc;
+
+      this->stdio_file::write (buf, esc - buf);
+      buf = esc + n_read;
+    }
+
+  if (*buf != '\0')
+    this->stdio_file::write (buf, strlen (buf));
 }

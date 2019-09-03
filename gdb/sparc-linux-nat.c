@@ -1,5 +1,5 @@
 /* Native-dependent code for GNU/Linux SPARC.
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -35,7 +35,7 @@ public:
   void fetch_registers (struct regcache *regcache, int regnum) override
   { sparc_fetch_inferior_registers (regcache, regnum); }
 
-  void store_registers (struct regcache *regcache, int regnum) override;
+  void store_registers (struct regcache *regcache, int regnum) override
   { sparc_store_inferior_registers (regcache, regnum); }
 };
 

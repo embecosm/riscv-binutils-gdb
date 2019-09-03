@@ -1,6 +1,6 @@
 /* Target-dependent code for GNU/Linux UltraSPARC.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -64,9 +64,9 @@ static const struct tramp_frame sparc64_linux_rt_sigframe =
   SIGTRAMP_FRAME,
   4,
   {
-    { 0x82102065, -1 },		/* mov __NR_rt_sigreturn, %g1 */
-    { 0x91d0206d, -1 },		/* ta  0x6d */
-    { TRAMP_SENTINEL_INSN, -1 }
+    { 0x82102065, ULONGEST_MAX },		/* mov __NR_rt_sigreturn, %g1 */
+    { 0x91d0206d, ULONGEST_MAX },		/* ta  0x6d */
+    { TRAMP_SENTINEL_INSN, ULONGEST_MAX }
   },
   sparc64_linux_sigframe_init
 };
@@ -130,7 +130,7 @@ sparc64_linux_handle_segmentation_fault (struct gdbarch *gdbarch,
   CORE_ADDR addr = 0;
   long si_code = 0;
 
-  TRY
+  try
     {
       /* Evaluate si_code to see if the segfault is ADI related.  */
       si_code = parse_and_eval_long ("$_siginfo.si_code\n");
@@ -138,11 +138,10 @@ sparc64_linux_handle_segmentation_fault (struct gdbarch *gdbarch,
       if (si_code >= SEGV_ACCADI && si_code <= SEGV_ADIPERR)
         addr = parse_and_eval_long ("$_siginfo._sifields._sigfault.si_addr");
     }
-  CATCH (exception, RETURN_MASK_ALL)
+  catch (const gdb_exception &exception)
     {
       return;
     }
-  END_CATCH
 
   /* Print out ADI event based on sig_code value */
   switch (si_code)
@@ -151,19 +150,19 @@ sparc64_linux_handle_segmentation_fault (struct gdbarch *gdbarch,
       uiout->text ("\n");
       uiout->field_string ("sigcode-meaning", _("ADI disabled"));
       uiout->text (_(" while accessing address "));
-      uiout->field_fmt ("bound-access", "%s", paddress (gdbarch, addr));
+      uiout->field_core_addr ("bound-access", gdbarch, addr);
       break;
     case SEGV_ADIDERR:	/* disrupting mismatch */
       uiout->text ("\n");
       uiout->field_string ("sigcode-meaning", _("ADI deferred mismatch"));
       uiout->text (_(" while accessing address "));
-      uiout->field_fmt ("bound-access", "%s", paddress (gdbarch, addr));
+      uiout->field_core_addr ("bound-access", gdbarch, addr);
       break;
     case SEGV_ADIPERR:	/* precise mismatch */
       uiout->text ("\n");
       uiout->field_string ("sigcode-meaning", _("ADI precise mismatch"));
       uiout->text (_(" while accessing address "));
-      uiout->field_fmt ("bound-access", "%s", paddress (gdbarch, addr));
+      uiout->field_core_addr ("bound-access", gdbarch, addr);
       break;
     default:
       break;

@@ -1,6 +1,6 @@
 /* PPC GNU/Linux native support.
 
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -31,10 +31,12 @@
 #include <signal.h>
 #include <sys/user.h>
 #include <sys/ioctl.h>
-#include "gdb_wait.h"
+#include <sys/uio.h>
+#include "gdbsupport/gdb_wait.h"
 #include <fcntl.h>
 #include <sys/procfs.h>
 #include "nat/gdb_ptrace.h"
+#include "nat/linux-ptrace.h"
 #include "inf-ptrace.h"
 
 /* Prototypes for supply_gregset etc.  */
@@ -49,6 +51,7 @@
 #include "arch/ppc-linux-common.h"
 #include "arch/ppc-linux-tdesc.h"
 #include "nat/ppc-linux.h"
+#include "linux-tdep.h"
 
 /* Similarly for the hardware watchpoint support.  These requests are used
    when the PowerPC HWDEBUG ptrace interface is not available.  */
@@ -528,10 +531,83 @@ fetch_spe_register (struct regcache *regcache, int tid, int regno)
     regcache->raw_supply (tdep->ppc_spefscr_regnum, &evrregs.spefscr);
 }
 
+/* Use ptrace to fetch all registers from the register set with note
+   type REGSET_ID, size REGSIZE, and layout described by REGSET, from
+   process/thread TID and supply their values to REGCACHE.  If ptrace
+   returns ENODATA to indicate the regset is unavailable, mark the
+   registers as unavailable in REGCACHE.  */
+
+static void
+fetch_regset (struct regcache *regcache, int tid,
+	      int regset_id, int regsetsize, const struct regset *regset)
+{
+  void *buf = alloca (regsetsize);
+  struct iovec iov;
+
+  iov.iov_base = buf;
+  iov.iov_len = regsetsize;
+
+  if (ptrace (PTRACE_GETREGSET, tid, regset_id, &iov) < 0)
+    {
+      if (errno == ENODATA)
+	regset->supply_regset (regset, regcache, -1, NULL, regsetsize);
+      else
+	perror_with_name (_("Couldn't get register set"));
+    }
+  else
+    regset->supply_regset (regset, regcache, -1, buf, regsetsize);
+}
+
+/* Use ptrace to store register REGNUM of the regset with note type
+   REGSET_ID, size REGSETSIZE, and layout described by REGSET, from
+   REGCACHE back to process/thread TID.  If REGNUM is -1 all registers
+   in the set are collected and stored.  */
+
+static void
+store_regset (const struct regcache *regcache, int tid, int regnum,
+	      int regset_id, int regsetsize, const struct regset *regset)
+{
+  void *buf = alloca (regsetsize);
+  struct iovec iov;
+
+  iov.iov_base = buf;
+  iov.iov_len = regsetsize;
+
+  /* Make sure that the buffer that will be stored has up to date values
+     for the registers that won't be collected.  */
+  if (ptrace (PTRACE_GETREGSET, tid, regset_id, &iov) < 0)
+    perror_with_name (_("Couldn't get register set"));
+
+  regset->collect_regset (regset, regcache, regnum, buf, regsetsize);
+
+  if (ptrace (PTRACE_SETREGSET, tid, regset_id, &iov) < 0)
+    perror_with_name (_("Couldn't set register set"));
+}
+
+/* Check whether the kernel provides a register set with number
+   REGSET_ID of size REGSETSIZE for process/thread TID.  */
+
+static bool
+check_regset (int tid, int regset_id, int regsetsize)
+{
+  void *buf = alloca (regsetsize);
+  struct iovec iov;
+
+  iov.iov_base = buf;
+  iov.iov_len = regsetsize;
+
+  if (ptrace (PTRACE_GETREGSET, tid, regset_id, &iov) >= 0
+      || errno == ENODATA)
+    return true;
+  else
+    return false;
+}
+
 static void
 fetch_register (struct regcache *regcache, int tid, int regno)
 {
   struct gdbarch *gdbarch = regcache->arch ();
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   /* This isn't really an address.  But ptrace thinks of it as one.  */
   CORE_ADDR regaddr = ppc_register_u_addr (gdbarch, regno);
   int bytes_transferred;
@@ -552,7 +628,7 @@ fetch_register (struct regcache *regcache, int tid, int regno)
         AltiVec registers, fall through and return zeroes, because
         regaddr will be -1 in this case.  */
     }
-  if (vsx_register_p (gdbarch, regno))
+  else if (vsx_register_p (gdbarch, regno))
     {
       if (have_ptrace_getsetvsxregs)
 	{
@@ -563,6 +639,127 @@ fetch_register (struct regcache *regcache, int tid, int regno)
   else if (spe_register_p (gdbarch, regno))
     {
       fetch_spe_register (regcache, tid, regno);
+      return;
+    }
+  else if (regno == PPC_DSCR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_dscr_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_DSCR,
+		    PPC_LINUX_SIZEOF_DSCRREGSET,
+		    &ppc32_linux_dscrregset);
+      return;
+    }
+  else if (regno == PPC_PPR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_ppr_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_PPR,
+		    PPC_LINUX_SIZEOF_PPRREGSET,
+		    &ppc32_linux_pprregset);
+      return;
+    }
+  else if (regno == PPC_TAR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_tar_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_TAR,
+		    PPC_LINUX_SIZEOF_TARREGSET,
+		    &ppc32_linux_tarregset);
+      return;
+    }
+  else if (PPC_IS_EBB_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_ebb);
+
+      fetch_regset (regcache, tid, NT_PPC_EBB,
+		    PPC_LINUX_SIZEOF_EBBREGSET,
+		    &ppc32_linux_ebbregset);
+      return;
+    }
+  else if (PPC_IS_PMU_REGNUM (regno))
+    {
+      gdb_assert (tdep->ppc_mmcr0_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_PMU,
+		    PPC_LINUX_SIZEOF_PMUREGSET,
+		    &ppc32_linux_pmuregset);
+      return;
+    }
+  else if (PPC_IS_TMSPR_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_spr);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_SPR,
+		    PPC_LINUX_SIZEOF_TM_SPRREGSET,
+		    &ppc32_linux_tm_sprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTGP_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_core);
+
+      const struct regset *cgprregset = ppc_linux_cgprregset (gdbarch);
+      fetch_regset (regcache, tid, NT_PPC_TM_CGPR,
+		    (tdep->wordsize == 4?
+		     PPC32_LINUX_SIZEOF_CGPRREGSET
+		     : PPC64_LINUX_SIZEOF_CGPRREGSET),
+		    cgprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTFP_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_fpu);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_CFPR,
+		    PPC_LINUX_SIZEOF_CFPRREGSET,
+		    &ppc32_linux_cfprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTVMX_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_altivec);
+
+      const struct regset *cvmxregset = ppc_linux_cvmxregset (gdbarch);
+      fetch_regset (regcache, tid, NT_PPC_TM_CVMX,
+		    PPC_LINUX_SIZEOF_CVMXREGSET,
+		    cvmxregset);
+      return;
+    }
+  else if (PPC_IS_CKPTVSX_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_vsx);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_CVSX,
+		    PPC_LINUX_SIZEOF_CVSXREGSET,
+		    &ppc32_linux_cvsxregset);
+      return;
+    }
+  else if (regno == PPC_CPPR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_cppr_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_CPPR,
+		    PPC_LINUX_SIZEOF_CPPRREGSET,
+		    &ppc32_linux_cpprregset);
+      return;
+    }
+  else if (regno == PPC_CDSCR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_cdscr_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_CDSCR,
+		    PPC_LINUX_SIZEOF_CDSCRREGSET,
+		    &ppc32_linux_cdscrregset);
+      return;
+    }
+  else if (regno == PPC_CTAR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_ctar_regnum != -1);
+
+      fetch_regset (regcache, tid, NT_PPC_TM_CTAR,
+		    PPC_LINUX_SIZEOF_CTARREGSET,
+		    &ppc32_linux_ctarregset);
       return;
     }
 
@@ -758,6 +955,66 @@ fetch_ppc_registers (struct regcache *regcache, int tid)
       fetch_vsx_registers (regcache, tid, -1);
   if (tdep->ppc_ev0_upper_regnum >= 0)
     fetch_spe_register (regcache, tid, -1);
+  if (tdep->ppc_ppr_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_PPR,
+		  PPC_LINUX_SIZEOF_PPRREGSET,
+		  &ppc32_linux_pprregset);
+  if (tdep->ppc_dscr_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_DSCR,
+		  PPC_LINUX_SIZEOF_DSCRREGSET,
+		  &ppc32_linux_dscrregset);
+  if (tdep->ppc_tar_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_TAR,
+		  PPC_LINUX_SIZEOF_TARREGSET,
+		  &ppc32_linux_tarregset);
+  if (tdep->have_ebb)
+    fetch_regset (regcache, tid, NT_PPC_EBB,
+		  PPC_LINUX_SIZEOF_EBBREGSET,
+		  &ppc32_linux_ebbregset);
+  if (tdep->ppc_mmcr0_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_PMU,
+		  PPC_LINUX_SIZEOF_PMUREGSET,
+		  &ppc32_linux_pmuregset);
+  if (tdep->have_htm_spr)
+    fetch_regset (regcache, tid, NT_PPC_TM_SPR,
+		  PPC_LINUX_SIZEOF_TM_SPRREGSET,
+		  &ppc32_linux_tm_sprregset);
+  if (tdep->have_htm_core)
+    {
+      const struct regset *cgprregset = ppc_linux_cgprregset (gdbarch);
+      fetch_regset (regcache, tid, NT_PPC_TM_CGPR,
+		    (tdep->wordsize == 4?
+		     PPC32_LINUX_SIZEOF_CGPRREGSET
+		     : PPC64_LINUX_SIZEOF_CGPRREGSET),
+		    cgprregset);
+    }
+  if (tdep->have_htm_fpu)
+    fetch_regset (regcache, tid, NT_PPC_TM_CFPR,
+		  PPC_LINUX_SIZEOF_CFPRREGSET,
+		  &ppc32_linux_cfprregset);
+  if (tdep->have_htm_altivec)
+    {
+      const struct regset *cvmxregset = ppc_linux_cvmxregset (gdbarch);
+      fetch_regset (regcache, tid, NT_PPC_TM_CVMX,
+		    PPC_LINUX_SIZEOF_CVMXREGSET,
+		    cvmxregset);
+    }
+  if (tdep->have_htm_vsx)
+    fetch_regset (regcache, tid, NT_PPC_TM_CVSX,
+		  PPC_LINUX_SIZEOF_CVSXREGSET,
+		  &ppc32_linux_cvsxregset);
+  if (tdep->ppc_cppr_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_TM_CPPR,
+		  PPC_LINUX_SIZEOF_CPPRREGSET,
+		  &ppc32_linux_cpprregset);
+  if (tdep->ppc_cdscr_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_TM_CDSCR,
+		  PPC_LINUX_SIZEOF_CDSCRREGSET,
+		  &ppc32_linux_cdscrregset);
+  if (tdep->ppc_ctar_regnum != -1)
+    fetch_regset (regcache, tid, NT_PPC_TM_CTAR,
+		  PPC_LINUX_SIZEOF_CTARREGSET,
+		  &ppc32_linux_ctarregset);
 }
 
 /* Fetch registers from the child process.  Fetch all registers if
@@ -928,7 +1185,7 @@ store_register (const struct regcache *regcache, int tid, int regno)
       store_altivec_registers (regcache, tid, regno);
       return;
     }
-  if (vsx_register_p (gdbarch, regno))
+  else if (vsx_register_p (gdbarch, regno))
     {
       store_vsx_registers (regcache, tid, regno);
       return;
@@ -936,6 +1193,127 @@ store_register (const struct regcache *regcache, int tid, int regno)
   else if (spe_register_p (gdbarch, regno))
     {
       store_spe_register (regcache, tid, regno);
+      return;
+    }
+  else if (regno == PPC_DSCR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_dscr_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_DSCR,
+		    PPC_LINUX_SIZEOF_DSCRREGSET,
+		    &ppc32_linux_dscrregset);
+      return;
+    }
+  else if (regno == PPC_PPR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_ppr_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_PPR,
+		    PPC_LINUX_SIZEOF_PPRREGSET,
+		    &ppc32_linux_pprregset);
+      return;
+    }
+  else if (regno == PPC_TAR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_tar_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_TAR,
+		    PPC_LINUX_SIZEOF_TARREGSET,
+		    &ppc32_linux_tarregset);
+      return;
+    }
+  else if (PPC_IS_EBB_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_ebb);
+
+      store_regset (regcache, tid, regno, NT_PPC_EBB,
+		    PPC_LINUX_SIZEOF_EBBREGSET,
+		    &ppc32_linux_ebbregset);
+      return;
+    }
+  else if (PPC_IS_PMU_REGNUM (regno))
+    {
+      gdb_assert (tdep->ppc_mmcr0_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_PMU,
+		    PPC_LINUX_SIZEOF_PMUREGSET,
+		    &ppc32_linux_pmuregset);
+      return;
+    }
+  else if (PPC_IS_TMSPR_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_spr);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_SPR,
+		    PPC_LINUX_SIZEOF_TM_SPRREGSET,
+		    &ppc32_linux_tm_sprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTGP_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_core);
+
+      const struct regset *cgprregset = ppc_linux_cgprregset (gdbarch);
+      store_regset (regcache, tid, regno, NT_PPC_TM_CGPR,
+		    (tdep->wordsize == 4?
+		     PPC32_LINUX_SIZEOF_CGPRREGSET
+		     : PPC64_LINUX_SIZEOF_CGPRREGSET),
+		    cgprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTFP_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_fpu);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_CFPR,
+		    PPC_LINUX_SIZEOF_CFPRREGSET,
+		    &ppc32_linux_cfprregset);
+      return;
+    }
+  else if (PPC_IS_CKPTVMX_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_altivec);
+
+      const struct regset *cvmxregset = ppc_linux_cvmxregset (gdbarch);
+      store_regset (regcache, tid, regno, NT_PPC_TM_CVMX,
+		    PPC_LINUX_SIZEOF_CVMXREGSET,
+		    cvmxregset);
+      return;
+    }
+  else if (PPC_IS_CKPTVSX_REGNUM (regno))
+    {
+      gdb_assert (tdep->have_htm_vsx);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_CVSX,
+		    PPC_LINUX_SIZEOF_CVSXREGSET,
+		    &ppc32_linux_cvsxregset);
+      return;
+    }
+  else if (regno == PPC_CPPR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_cppr_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_CPPR,
+		    PPC_LINUX_SIZEOF_CPPRREGSET,
+		    &ppc32_linux_cpprregset);
+      return;
+    }
+  else if (regno == PPC_CDSCR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_cdscr_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_CDSCR,
+		    PPC_LINUX_SIZEOF_CDSCRREGSET,
+		    &ppc32_linux_cdscrregset);
+      return;
+    }
+  else if (regno == PPC_CTAR_REGNUM)
+    {
+      gdb_assert (tdep->ppc_ctar_regnum != -1);
+
+      store_regset (regcache, tid, regno, NT_PPC_TM_CTAR,
+		    PPC_LINUX_SIZEOF_CTARREGSET,
+		    &ppc32_linux_ctarregset);
       return;
     }
 
@@ -1149,18 +1527,32 @@ store_ppc_registers (const struct regcache *regcache, int tid)
       store_vsx_registers (regcache, tid, -1);
   if (tdep->ppc_ev0_upper_regnum >= 0)
     store_spe_register (regcache, tid, -1);
-}
+  if (tdep->ppc_ppr_regnum != -1)
+    store_regset (regcache, tid, -1, NT_PPC_PPR,
+		  PPC_LINUX_SIZEOF_PPRREGSET,
+		  &ppc32_linux_pprregset);
+  if (tdep->ppc_dscr_regnum != -1)
+    store_regset (regcache, tid, -1, NT_PPC_DSCR,
+		  PPC_LINUX_SIZEOF_DSCRREGSET,
+		  &ppc32_linux_dscrregset);
+  if (tdep->ppc_tar_regnum != -1)
+    store_regset (regcache, tid, -1, NT_PPC_TAR,
+		  PPC_LINUX_SIZEOF_TARREGSET,
+		  &ppc32_linux_tarregset);
 
-/* Fetch the AT_HWCAP entry from the aux vector.  */
-static CORE_ADDR
-ppc_linux_get_hwcap (void)
-{
-  CORE_ADDR field;
+  if (tdep->ppc_mmcr0_regnum != -1)
+    store_regset (regcache, tid, -1, NT_PPC_PMU,
+		  PPC_LINUX_SIZEOF_PMUREGSET,
+		  &ppc32_linux_pmuregset);
 
-  if (target_auxv_search (current_top_target (), AT_HWCAP, &field) != 1)
-    return 0;
+  if (tdep->have_htm_spr)
+    store_regset (regcache, tid, -1, NT_PPC_TM_SPR,
+		  PPC_LINUX_SIZEOF_TM_SPRREGSET,
+		  &ppc32_linux_tm_sprregset);
 
-  return field;
+  /* Because the EBB and checkpointed HTM registers can be
+     unavailable, attempts to store them here would cause this
+     function to fail most of the time, so we ignore them.  */
 }
 
 /* The cached DABR value, to install in new threads.
@@ -1186,7 +1578,7 @@ struct hw_break_tuple
 /* This is an internal VEC created to store information about *points inserted
    for each thread.  This is used when PowerPC HWDEBUG ptrace interface is
    available.  */
-typedef struct thread_points
+struct thread_points
   {
     /* The TID to which this *point relates.  */
     int tid;
@@ -1197,10 +1589,9 @@ typedef struct thread_points
        size of these vector is MAX_SLOTS_NUMBER.  If the hw_break element of
        the tuple is NULL, then the position in the vector is free.  */
     struct hw_break_tuple *hw_breaks;
-  } *thread_points_p;
-DEF_VEC_P (thread_points_p);
+  };
 
-VEC(thread_points_p) *ppc_threads = NULL;
+static std::vector<thread_points *> ppc_threads;
 
 /* The version of the PowerPC HWDEBUG kernel interface that we will use, if
    available.  */
@@ -1319,7 +1710,7 @@ ppc_linux_nat_target::region_ok_for_hw_watchpoint (CORE_ADDR addr, int len)
          takes two hardware watchpoints though.  */
       if (len > 1
 	  && hwdebug_info.features & PPC_DEBUG_FEATURE_DATA_BP_RANGE
-	  && ppc_linux_get_hwcap () & PPC_FEATURE_BOOKE)
+	  && linux_get_hwcap (current_top_target ()) & PPC_FEATURE_BOOKE)
 	return 2;
       /* Check if the processor provides DAWR interface.  */
       if (hwdebug_info.features & PPC_DEBUG_FEATURE_DATA_BP_DAWR)
@@ -1339,7 +1730,7 @@ ppc_linux_nat_target::region_ok_for_hw_watchpoint (CORE_ADDR addr, int len)
      ptrace interface, DAC-based processors (i.e., embedded processors) will
      use addresses aligned to 4-bytes due to the way the read/write flags are
      passed in the old ptrace interface.  */
-  else if (((ppc_linux_get_hwcap () & PPC_FEATURE_BOOKE)
+  else if (((linux_get_hwcap (current_top_target ()) & PPC_FEATURE_BOOKE)
 	   && (addr + len) > (addr & ~3) + 4)
 	   || (addr + len) > (addr & ~7) + 8)
     return 0;
@@ -1366,14 +1757,13 @@ hwdebug_point_cmp (struct ppc_hw_breakpoint *a, struct ppc_hw_breakpoint *b)
 static struct thread_points *
 hwdebug_find_thread_points_by_tid (int tid, int alloc_new)
 {
-  int i;
-  struct thread_points *t;
+  for (thread_points *t : ppc_threads)
+    {
+      if (t->tid == tid)
+	return t;
+    }
 
-  for (i = 0; VEC_iterate (thread_points_p, ppc_threads, i, t); i++)
-    if (t->tid == tid)
-      return t;
-
-  t = NULL;
+  struct thread_points *t = NULL;
 
   /* Do we need to allocate a new point_item
      if the wanted one does not exist?  */
@@ -1382,7 +1772,7 @@ hwdebug_find_thread_points_by_tid (int tid, int alloc_new)
       t = XNEW (struct thread_points);
       t->hw_breaks = XCNEWVEC (struct hw_break_tuple, max_slots_number);
       t->tid = tid;
-      VEC_safe_push (thread_points_p, ppc_threads, t);
+      ppc_threads.push_back (t);
     }
 
   return t;
@@ -1412,12 +1802,14 @@ hwdebug_insert_point (struct ppc_hw_breakpoint *b, int tid)
 
   /* Find a free element in the hw_breaks vector.  */
   for (i = 0; i < max_slots_number; i++)
-    if (hw_breaks[i].hw_break == NULL)
-      {
-	hw_breaks[i].slot = slot;
-	hw_breaks[i].hw_break = p.release ();
-	break;
-      }
+    {
+      if (hw_breaks[i].hw_break == NULL)
+	{
+	  hw_breaks[i].slot = slot;
+	  hw_breaks[i].hw_break = p.release ();
+	  break;
+	}
+    }
 
   gdb_assert (i != max_slots_number);
 }
@@ -1878,7 +2270,7 @@ ppc_linux_nat_target::insert_watchpoint (CORE_ADDR addr, int len,
       long dabr_value;
       long read_mode, write_mode;
 
-      if (ppc_linux_get_hwcap () & PPC_FEATURE_BOOKE)
+      if (linux_get_hwcap (current_top_target ()) & PPC_FEATURE_BOOKE)
 	{
 	  /* PowerPC 440 requires only the read/write flags to be passed
 	     to the kernel.  */
@@ -1967,11 +2359,11 @@ ppc_linux_nat_target::low_new_thread (struct lwp_info *lp)
       struct thread_points *p;
       struct hw_break_tuple *hw_breaks;
 
-      if (VEC_empty (thread_points_p, ppc_threads))
+      if (ppc_threads.empty ())
 	return;
 
       /* Get a list of breakpoints from any thread.  */
-      p = VEC_last (thread_points_p, ppc_threads);
+      p = ppc_threads.back ();
       hw_breaks = p->hw_breaks;
 
       /* Copy that thread's breakpoints and watchpoints to the new thread.  */
@@ -2000,22 +2392,24 @@ ppc_linux_thread_exit (struct thread_info *tp, int silent)
   int i;
   int tid = tp->ptid.lwp ();
   struct hw_break_tuple *hw_breaks;
-  struct thread_points *t = NULL, *p;
+  struct thread_points *t = NULL;
 
   if (!have_ptrace_hwdebug_interface ())
     return;
 
-  for (i = 0; VEC_iterate (thread_points_p, ppc_threads, i, p); i++)
-    if (p->tid == tid)
-      {
-	t = p;
-	break;
-      }
+  for (i = 0; i < ppc_threads.size (); i++)
+    {
+      if (ppc_threads[i]->tid == tid)
+	{
+	  t = ppc_threads[i];
+	  break;
+	}
+    }
 
   if (t == NULL)
     return;
 
-  VEC_unordered_remove (thread_points_p, ppc_threads, i);
+  unordered_remove (ppc_threads, i);
 
   hw_breaks = t->hw_breaks;
 
@@ -2081,9 +2475,9 @@ ppc_linux_nat_target::watchpoint_addr_within_range (CORE_ADDR addr,
   int mask;
 
   if (have_ptrace_hwdebug_interface ()
-      && ppc_linux_get_hwcap () & PPC_FEATURE_BOOKE)
+      && linux_get_hwcap (current_top_target ()) & PPC_FEATURE_BOOKE)
     return start <= addr && start + length >= addr;
-  else if (ppc_linux_get_hwcap () & PPC_FEATURE_BOOKE)
+  else if (linux_get_hwcap (current_top_target ()) & PPC_FEATURE_BOOKE)
     mask = 3;
   else
     mask = 7;
@@ -2221,7 +2615,8 @@ ppc_linux_nat_target::read_description ()
 
   features.wordsize = ppc_linux_target_wordsize (tid);
 
-  CORE_ADDR hwcap = ppc_linux_get_hwcap ();
+  CORE_ADDR hwcap = linux_get_hwcap (current_top_target ());
+  CORE_ADDR hwcap2 = linux_get_hwcap2 (current_top_target ());
 
   if (have_ptrace_getsetvsxregs
       && (hwcap & PPC_FEATURE_HAS_VSX))
@@ -2255,6 +2650,26 @@ ppc_linux_nat_target::read_description ()
     features.cell = true;
 
   features.isa205 = ppc_linux_has_isa205 (hwcap);
+
+  if ((hwcap2 & PPC_FEATURE2_DSCR)
+      && check_regset (tid, NT_PPC_PPR, PPC_LINUX_SIZEOF_PPRREGSET)
+      && check_regset (tid, NT_PPC_DSCR, PPC_LINUX_SIZEOF_DSCRREGSET))
+    {
+      features.ppr_dscr = true;
+      if ((hwcap2 & PPC_FEATURE2_ARCH_2_07)
+	  && (hwcap2 & PPC_FEATURE2_TAR)
+	  && (hwcap2 & PPC_FEATURE2_EBB)
+	  && check_regset (tid, NT_PPC_TAR, PPC_LINUX_SIZEOF_TARREGSET)
+	  && check_regset (tid, NT_PPC_EBB, PPC_LINUX_SIZEOF_EBBREGSET)
+	  && check_regset (tid, NT_PPC_PMU, PPC_LINUX_SIZEOF_PMUREGSET))
+	{
+	  features.isa207 = true;
+	  if ((hwcap2 & PPC_FEATURE2_HTM)
+	      && check_regset (tid, NT_PPC_TM_SPR,
+			       PPC_LINUX_SIZEOF_TM_SPRREGSET))
+	    features.htm = true;
+	}
+    }
 
   return ppc_linux_match_description (features);
 }

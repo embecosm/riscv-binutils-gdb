@@ -2,7 +2,7 @@
 
 # Architecture commands for GDB, the GNU debugger.
 #
-# Copyright (C) 1998-2018 Free Software Foundation, Inc.
+# Copyright (C) 1998-2019 Free Software Foundation, Inc.
 #
 # This file is part of GDB.
 #
@@ -480,12 +480,20 @@ m;const char *;register_name;int regnr;regnr;;0
 # use "register_type".
 M;struct type *;register_type;int reg_nr;reg_nr
 
-M;struct frame_id;dummy_id;struct frame_info *this_frame;this_frame
+# Generate a dummy frame_id for THIS_FRAME assuming that the frame is
+# a dummy frame.  A dummy frame is created before an inferior call,
+# the frame_id returned here must match the frame_id that was built
+# for the inferior call.  Usually this means the returned frame_id's
+# stack address should match the address returned by
+# gdbarch_push_dummy_call, and the returned frame_id's code address
+# should match the address at which the breakpoint was set in the dummy
+# frame.
+m;struct frame_id;dummy_id;struct frame_info *this_frame;this_frame;;default_dummy_id;;0
 # Implement DUMMY_ID and PUSH_DUMMY_CALL, then delete
 # deprecated_fp_regnum.
 v;int;deprecated_fp_regnum;;;-1;-1;;0
 
-M;CORE_ADDR;push_dummy_call;struct value *function, struct regcache *regcache, CORE_ADDR bp_addr, int nargs, struct value **args, CORE_ADDR sp, int struct_return, CORE_ADDR struct_addr;function, regcache, bp_addr, nargs, args, sp, struct_return, struct_addr
+M;CORE_ADDR;push_dummy_call;struct value *function, struct regcache *regcache, CORE_ADDR bp_addr, int nargs, struct value **args, CORE_ADDR sp, function_call_return_method return_method, CORE_ADDR struct_addr;function, regcache, bp_addr, nargs, args, sp, return_method, struct_addr
 v;int;call_dummy_location;;;;AT_ENTRY_POINT;;0
 M;CORE_ADDR;push_dummy_code;CORE_ADDR sp, CORE_ADDR funaddr, struct value **args, int nargs, struct type *value_type, CORE_ADDR *real_pc, CORE_ADDR *bp_addr, struct regcache *regcache;sp, funaddr, args, nargs, value_type, real_pc, bp_addr, regcache
 
@@ -594,10 +602,18 @@ m;int;remote_register_number;int regno;regno;;default_remote_register_number;;0
 
 # Fetch the target specific address used to represent a load module.
 F;CORE_ADDR;fetch_tls_load_module_address;struct objfile *objfile;objfile
+
+# Return the thread-local address at OFFSET in the thread-local
+# storage for the thread PTID and the shared library or executable
+# file given by LM_ADDR.  If that block of thread-local storage hasn't
+# been allocated yet, this function may throw an error.  LM_ADDR may
+# be zero for statically linked multithreaded inferiors.
+
+M;CORE_ADDR;get_thread_local_address;ptid_t ptid, CORE_ADDR lm_addr, CORE_ADDR offset;ptid, lm_addr, offset
 #
 v;CORE_ADDR;frame_args_skip;;;0;;;0
-M;CORE_ADDR;unwind_pc;struct frame_info *next_frame;next_frame
-M;CORE_ADDR;unwind_sp;struct frame_info *next_frame;next_frame
+m;CORE_ADDR;unwind_pc;struct frame_info *next_frame;next_frame;;default_unwind_pc;;0
+m;CORE_ADDR;unwind_sp;struct frame_info *next_frame;next_frame;;default_unwind_sp;;0
 # DEPRECATED_FRAME_LOCALS_ADDRESS as been replaced by the per-frame
 # frame-base.  Enable frame-base before frame-unwind.
 F;int;frame_num_args;struct frame_info *frame;frame
@@ -707,6 +723,8 @@ f;CORE_ADDR;adjust_dwarf2_addr;CORE_ADDR pc;pc;;default_adjust_dwarf2_addr;;0
 # stop PC.
 f;CORE_ADDR;adjust_dwarf2_line;CORE_ADDR addr, int rel;addr, rel;;default_adjust_dwarf2_line;;0
 v;int;cannot_step_breakpoint;;;0;0;;0
+# See comment in target.h about continuable, steppable and
+# non-steppable watchpoints.
 v;int;have_nonsteppable_watchpoint;;;0;0;;0
 F;int;address_class_type_flags;int byte_size, int dwarf2_addr_class;byte_size, dwarf2_addr_class
 M;const char *;address_class_type_flags_to_name;int type_flags;type_flags
@@ -749,7 +767,7 @@ M;ULONGEST;core_xfer_shared_libraries;gdb_byte *readbuf, ULONGEST offset, ULONGE
 M;ULONGEST;core_xfer_shared_libraries_aix;gdb_byte *readbuf, ULONGEST offset, ULONGEST len;readbuf, offset, len
 
 # How the core target converts a PTID from a core file to a string.
-M;const char *;core_pid_to_str;ptid_t ptid;ptid
+M;std::string;core_pid_to_str;ptid_t ptid;ptid
 
 # How the core target extracts the name of a thread from a core file.
 M;const char *;core_thread_name;struct thread_info *thr;thr
@@ -1012,11 +1030,36 @@ M;int;stap_is_single_operand;const char *s;s
 # parser), and should advance the buffer pointer (p->arg).
 M;int;stap_parse_special_token;struct stap_parse_info *p;p
 
+# Perform arch-dependent adjustments to a register name.
+#
+# In very specific situations, it may be necessary for the register
+# name present in a SystemTap probe's argument to be handled in a
+# special way.  For example, on i386, GCC may over-optimize the
+# register allocation and use smaller registers than necessary.  In
+# such cases, the client that is reading and evaluating the SystemTap
+# probe (ourselves) will need to actually fetch values from the wider
+# version of the register in question.
+#
+# To illustrate the example, consider the following probe argument
+# (i386):
+#
+#    4@%ax
+#
+# This argument says that its value can be found at the %ax register,
+# which is a 16-bit register.  However, the argument's prefix says
+# that its type is "uint32_t", which is 32-bit in size.  Therefore, in
+# this case, GDB should actually fetch the probe's value from register
+# %eax, not %ax.  In this scenario, this function would actually
+# replace the register name from %ax to %eax.
+#
+# The rationale for this can be found at PR breakpoints/24541.
+M;std::string;stap_adjust_register;struct stap_parse_info *p, const std::string \&regname, int regnum;p, regname, regnum
+
 # DTrace related functions.
 
 # The expression to compute the NARTGth+1 argument to a DTrace USDT probe.
 # NARG must be >= 0.
-M;void;dtrace_parse_probe_argument;struct parser_state *pstate, int narg;pstate, narg
+M;void;dtrace_parse_probe_argument;struct expr_builder *builder, int narg;builder, narg
 
 # True if the given ADDR does not contain the instruction sequence
 # corresponding to a disabled DTrace is-enabled probe.
@@ -1161,8 +1204,14 @@ v;const char *;disassembler_options_implicit;;;0;0;;0;pstring (gdbarch->disassem
 v;char **;disassembler_options;;;0;0;;0;pstring_ptr (gdbarch->disassembler_options)
 v;const disasm_options_and_args_t *;valid_disassembler_options;;;0;0;;0;host_address_to_string (gdbarch->valid_disassembler_options)
 
-# Type alignment.
+# Type alignment override method.  Return the architecture specific
+# alignment required for TYPE.  If there is no special handling
+# required for TYPE then return the value 0, GDB will then apply the
+# default rules as laid out in gdbtypes.c:type_align.
 m;ULONGEST;type_align;struct type *type;type;;default_type_align;;0
+
+# Return a string containing any flags for the given PC in the given FRAME.
+f;std::string;get_pc_address_flags;frame_info *frame, CORE_ADDR pc;frame, pc;;default_get_pc_address_flags;;0
 
 EOF
 }
@@ -1217,7 +1266,7 @@ cat <<EOF
 
 /* Dynamic architecture support for GDB, the GNU debugger.
 
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -1284,7 +1333,7 @@ struct syscall;
 struct agent_expr;
 struct axs_value;
 struct stap_parse_info;
-struct parser_state;
+struct expr_builder;
 struct ravenscar_arch_ops;
 struct mem_range;
 struct syscalls_info;
@@ -1316,13 +1365,38 @@ typedef int (iterate_over_objfiles_in_search_order_cb_ftype)
 
 /* Callback type for regset section iterators.  The callback usually
    invokes the REGSET's supply or collect method, to which it must
-   pass a buffer with at least the given SIZE.  SECT_NAME is a BFD
-   section name, and HUMAN_NAME is used for diagnostic messages.
-   CB_DATA should have been passed unchanged through the iterator.  */
+   pass a buffer - for collects this buffer will need to be created using
+   COLLECT_SIZE, for supply the existing buffer being read from should
+   be at least SUPPLY_SIZE.  SECT_NAME is a BFD section name, and HUMAN_NAME
+   is used for diagnostic messages.  CB_DATA should have been passed
+   unchanged through the iterator.  */
 
 typedef void (iterate_over_regset_sections_cb)
-  (const char *sect_name, int size, const struct regset *regset,
-   const char *human_name, void *cb_data);
+  (const char *sect_name, int supply_size, int collect_size,
+   const struct regset *regset, const char *human_name, void *cb_data);
+
+/* For a function call, does the function return a value using a
+   normal value return or a structure return - passing a hidden
+   argument pointing to storage.  For the latter, there are two
+   cases: language-mandated structure return and target ABI
+   structure return.  */
+
+enum function_call_return_method
+{
+  /* Standard value return.  */
+  return_method_normal = 0,
+
+  /* Language ABI structure return.  This is handled
+     by passing the return location as the first parameter to
+     the function, even preceding "this".  */
+  return_method_hidden_param,
+
+  /* Target ABI struct return.  This is target-specific; for instance,
+     on ia64 the first argument is passed in out0 but the hidden
+     structure return pointer would normally be passed in r8.  */
+  return_method_struct,
+};
+
 EOF
 
 # function typedef's
@@ -1388,9 +1462,6 @@ done
 
 # close it off
 cat <<EOF
-
-/* Definition for an unknown syscall, used basically in error-cases.  */
-#define UNKNOWN_SYSCALL (-1)
 
 extern struct gdbarch_tdep *gdbarch_tdep (struct gdbarch *gdbarch);
 
@@ -1628,6 +1699,14 @@ extern unsigned int gdbarch_debug;
 
 extern void gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file);
 
+/* Return the number of cooked registers (raw + pseudo) for ARCH.  */
+
+static inline int
+gdbarch_num_cooked_regs (gdbarch *arch)
+{
+  return gdbarch_num_regs (arch) + gdbarch_num_pseudo_regs (arch);
+}
+
 #endif
 EOF
 exec 1>&2
@@ -1658,6 +1737,8 @@ cat <<EOF
 #include "regcache.h"
 #include "objfiles.h"
 #include "auxv.h"
+#include "frame-unwind.h"
+#include "dummy-frame.h"
 
 /* Static function declarations */
 

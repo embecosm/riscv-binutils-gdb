@@ -1,6 +1,6 @@
 /* Python interface to lazy strings.
 
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -113,7 +113,7 @@ stpy_convert_to_value (PyObject *self, PyObject *args)
       return NULL;
     }
 
-  TRY
+  try
     {
       struct type *type = type_object_to_type (self_string->type);
       struct type *realtype;
@@ -142,11 +142,10 @@ stpy_convert_to_value (PyObject *self, PyObject *args)
 	  break;
 	}
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       GDB_PY_HANDLE_EXCEPTION (except);
     }
-  END_CATCH
 
   return value_to_value_object (val);
 }

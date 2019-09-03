@@ -1,6 +1,6 @@
 /* Self tests for disassembler for GDB, the GNU debugger.
 
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,8 +21,9 @@
 #include "disasm.h"
 
 #if GDB_SELF_TEST
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 #include "selftest-arch.h"
+#include "gdbarch.h"
 
 namespace selftests {
 
@@ -77,12 +78,15 @@ print_one_insn_test (struct gdbarch *gdbarch)
       /* fall through */
     case bfd_arch_nios2:
     case bfd_arch_score:
-      /* nios2 and score need to know the current instruction to select
-	 breakpoint instruction.  Give the breakpoint instruction kind
-	 explicitly.  */
-      int bplen;
-      insn = gdbarch_sw_breakpoint_from_kind (gdbarch, 4, &bplen);
-      len = bplen;
+    case bfd_arch_riscv:
+      /* nios2, riscv, and score need to know the current instruction
+	 to select breakpoint instruction.  Give the breakpoint
+	 instruction kind explicitly.  */
+      {
+	int bplen;
+	insn = gdbarch_sw_breakpoint_from_kind (gdbarch, 4, &bplen);
+	len = bplen;
+      }
       break;
     default:
       {
@@ -189,16 +193,15 @@ memory_error_test (struct gdbarch *gdbarch)
   gdb_disassembler_test di (gdbarch);
   bool saw_memory_error = false;
 
-  TRY
+  try
     {
       di.print_insn (0);
     }
-  CATCH (ex, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &ex)
     {
       if (ex.error == MEMORY_ERROR)
 	saw_memory_error = true;
     }
-  END_CATCH
 
   /* Expect MEMORY_ERROR.  */
   SELF_CHECK (saw_memory_error);

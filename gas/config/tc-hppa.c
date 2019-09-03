@@ -1,5 +1,5 @@
 /* tc-hppa.c -- Assemble for the PA
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
 
    This file is part of GAS, the GNU Assembler.
 
@@ -23,7 +23,6 @@
 
 #include "as.h"
 #include "safe-ctype.h"
-#include "struc-symbol.h"
 #include "subsegs.h"
 #include "dw2gencfi.h"
 
@@ -5991,7 +5990,7 @@ pa_build_unwind_subspace (struct call_info *call_info)
     {
       symbolP = symbol_new (name, now_seg,
 			    S_GET_VALUE (call_info->start_symbol),
-			    call_info->start_symbol->sy_frag);
+			    symbol_get_frag (call_info->start_symbol));
       gas_assert (symbolP);
       S_CLEAR_EXTERNAL (symbolP);
       symbol_table_insert (symbolP);

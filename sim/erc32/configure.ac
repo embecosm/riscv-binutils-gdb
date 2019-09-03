@@ -1,4 +1,4 @@
-dnl Copyright (C) 1996-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 1996-2019 Free Software Foundation, Inc.
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -26,12 +26,11 @@ AC_CACHE_CHECK([for cygwin], sim_cv_os_cygwin,
 lose
 #endif],[sim_cv_os_cygwin=yes],[sim_cv_os_cygwin=no])])
 
+# Keep in sync with gdb's configure.ac list.
+AC_SEARCH_LIBS(tgetent, [termcap tinfo curses ncurses],
+  [TERMCAP=$ac_cv_search_tgetent], [TERMCAP=""])
 if test x$sim_cv_os_cygwin = xyes; then
-  TERMCAP='`if test -r ../../libtermcap/libtermcap.a; then echo ../../libtermcap/libtermcap.a; else echo -ltermcap; fi` -luser32'
-else
-  # Keep in sync with gdb's configure.ac list.
-  AC_SEARCH_LIBS(tgetent, [termcap tinfo curses ncurses],
-    [TERMCAP=$ac_cv_search_tgetent], [TERMCAP=""])
+  TERMCAP="${TERMCAP} -luser32"
 fi
 AC_SUBST(TERMCAP)
 

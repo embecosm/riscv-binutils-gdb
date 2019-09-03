@@ -1,7 +1,7 @@
 /* Target-dependent header for the RISC-V architecture, for GDB, the
    GNU Debugger.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,6 +21,8 @@
 #ifndef RISCV_TDEP_H
 #define RISCV_TDEP_H
 
+#include "arch/riscv.h"
+
 /* RiscV register numbers.  */
 enum
 {
@@ -33,6 +35,8 @@ enum
   RISCV_A0_REGNUM = 10,		/* First argument.  */
   RISCV_A1_REGNUM = 11,		/* Second argument.  */
   RISCV_PC_REGNUM = 32,		/* Program Counter.  */
+
+  RISCV_NUM_INTEGER_REGS = 32,
 
   RISCV_FIRST_FP_REGNUM = 33,	/* First Floating Point Register */
   RISCV_FA0_REGNUM = 43,
@@ -52,34 +56,60 @@ enum
   RISCV_LAST_REGNUM = RISCV_PRIV_REGNUM
 };
 
+/* RiscV DWARF register numbers.  */
+enum
+{
+  RISCV_DWARF_REGNUM_X0 = 0,
+  RISCV_DWARF_REGNUM_X31 = 31,
+  RISCV_DWARF_REGNUM_F0 = 32,
+  RISCV_DWARF_REGNUM_F31 = 63,
+};
+
 /* RISC-V specific per-architecture information.  */
 struct gdbarch_tdep
 {
-  union
-  {
-    /* Provide access to the whole ABI in one value.  */
-    unsigned value;
+  /* Features about the target hardware that impact how the gdbarch is
+     configured.  Two gdbarch instances are compatible only if this field
+     matches.  */
+  struct riscv_gdbarch_features isa_features;
 
-    struct
-    {
-      /* Encode the base machine length following the same rules as in the
-	 MISA register.  */
-      unsigned base_len : 2;
+  /* Features about the abi that impact how the gdbarch is configured.  Two
+     gdbarch instances are compatible only if this field matches.  */
+  struct riscv_gdbarch_features abi_features;
 
-      /* Encode which floating point ABI is in use following the same rules
-	 as the ELF e_flags field.  */
-      unsigned float_abi : 2;
-    } fields;
-  } abi;
-
-  /* Only the least significant 26 bits are (possibly) valid, and indicate
-     features that are supported on the target.  These could be cached from
-     the target, or read from the executable when available.  */
-  unsigned core_features;
+  /* ISA-specific data types.  */
+  struct type *riscv_fpreg_d_type = nullptr;
 };
 
-/* Return the width in bytes of the general purpose registers for GDBARCH.  */
+
+/* Return the width in bytes  of the general purpose registers for GDBARCH.
+   Possible return values are 4, 8, or 16 for RiscV variants RV32, RV64, or
+   RV128.  */
 extern int riscv_isa_xlen (struct gdbarch *gdbarch);
+
+/* Return the width in bytes of the hardware floating point registers for
+   GDBARCH.  If this architecture has no floating point registers, then
+   return 0.  Possible values are 4, 8, or 16 for depending on which of
+   single, double or quad floating point support is available.  */
+extern int riscv_isa_flen (struct gdbarch *gdbarch);
+
+/* Return the width in bytes of the general purpose register abi for
+   GDBARCH.  This can be equal to, or less than RISCV_ISA_XLEN and reflects
+   how the binary was compiled rather than the hardware that is available.
+   It is possible that a binary compiled for RV32 is being run on an RV64
+   target, in which case the isa xlen is 8-bytes, and the abi xlen is
+   4-bytes.  This will impact how inferior functions are called.  */
+extern int riscv_abi_xlen (struct gdbarch *gdbarch);
+
+/* Return the width in bytes of the floating point register abi for
+   GDBARCH.  This reflects how the binary was compiled rather than the
+   hardware that is available.  It is possible that a binary is compiled
+   for single precision floating point, and then run on a target with
+   double precision floating point.  A return value of 0 indicates that no
+   floating point abi is in use (floating point arguments will be passed
+   in integer registers) other possible return value are 4, 8, or 16 as
+   with RISCV_ISA_FLEN.  */
+extern int riscv_abi_flen (struct gdbarch *gdbarch);
 
 /* Single step based on where the current instruction will take us.  */
 extern std::vector<CORE_ADDR> riscv_software_single_step

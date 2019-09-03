@@ -1,6 +1,6 @@
 /* Definitions for BFD wrappers used by GDB.
 
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,7 +21,7 @@
 #define GDB_BFD_H
 
 #include "registry.h"
-#include "common/gdb_ref_ptr.h"
+#include "gdbsupport/gdb_ref_ptr.h"
 
 DECLARE_REGISTRY (bfd);
 
@@ -161,11 +161,6 @@ gdb_bfd_ref_ptr gdb_bfd_openr_iovec (const char *filename, const char *target,
 
 gdb_bfd_ref_ptr gdb_bfd_openr_next_archived_file (bfd *archive, bfd *previous);
 
-/* A wrapper for bfd_fdopenr that initializes the gdb-specific
-   reference count.  */
-
-gdb_bfd_ref_ptr gdb_bfd_fdopenr (const char *filename, const char *target,
-				 int fd);
 
 
 

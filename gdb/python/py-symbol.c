@@ -1,6 +1,6 @@
 /* Python interface to symbols.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,7 +23,6 @@
 #include "symtab.h"
 #include "python-internal.h"
 #include "objfiles.h"
-#include "py-ref.h"
 
 typedef struct sympy_symbol_object {
   PyObject_HEAD
@@ -197,15 +196,14 @@ sympy_needs_frame (PyObject *self, void *closure)
 
   SYMPY_REQUIRE_VALID (self, symbol);
 
-  TRY
+  try
     {
       result = symbol_read_needs_frame (symbol);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       GDB_PY_HANDLE_EXCEPTION (except);
     }
-  END_CATCH
 
   if (result)
     Py_RETURN_TRUE;
@@ -267,7 +265,7 @@ sympy_value (PyObject *self, PyObject *args)
       return NULL;
     }
 
-  TRY
+  try
     {
       if (frame_obj != NULL)
 	{
@@ -285,11 +283,10 @@ sympy_value (PyObject *self, PyObject *args)
 	 can happen with nested functions).  */
       value = read_var_value (symbol, NULL, frame_info);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       GDB_PY_HANDLE_EXCEPTION (except);
     }
-  END_CATCH
 
   return value_to_value_object (value);
 }
@@ -389,28 +386,26 @@ gdbpy_lookup_symbol (PyObject *self, PyObject *args, PyObject *kw)
     {
       struct frame_info *selected_frame;
 
-      TRY
+      try
 	{
 	  selected_frame = get_selected_frame (_("No frame selected."));
 	  block = get_frame_block (selected_frame, NULL);
 	}
-      CATCH (except, RETURN_MASK_ALL)
+      catch (const gdb_exception &except)
 	{
 	  GDB_PY_HANDLE_EXCEPTION (except);
 	}
-      END_CATCH
     }
 
-  TRY
+  try
     {
       symbol = lookup_symbol (name, block, (domain_enum) domain,
 			      &is_a_field_of_this).symbol;
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       GDB_PY_HANDLE_EXCEPTION (except);
     }
-  END_CATCH
 
   gdbpy_ref<> ret_tuple (PyTuple_New (2));
   if (ret_tuple == NULL)
@@ -452,15 +447,54 @@ gdbpy_lookup_global_symbol (PyObject *self, PyObject *args, PyObject *kw)
 					&domain))
     return NULL;
 
-  TRY
+  try
     {
       symbol = lookup_global_symbol (name, NULL, (domain_enum) domain).symbol;
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       GDB_PY_HANDLE_EXCEPTION (except);
     }
-  END_CATCH
+
+  if (symbol)
+    {
+      sym_obj = symbol_to_symbol_object (symbol);
+      if (!sym_obj)
+	return NULL;
+    }
+  else
+    {
+      sym_obj = Py_None;
+      Py_INCREF (Py_None);
+    }
+
+  return sym_obj;
+}
+
+/* Implementation of
+   gdb.lookup_static_symbol (name [, domain) -> symbol or None.  */
+
+PyObject *
+gdbpy_lookup_static_symbol (PyObject *self, PyObject *args, PyObject *kw)
+{
+  const char *name;
+  int domain = VAR_DOMAIN;
+  static const char *keywords[] = { "name", "domain", NULL };
+  struct symbol *symbol = NULL;
+  PyObject *sym_obj;
+
+  if (!gdb_PyArg_ParseTupleAndKeywords (args, kw, "s|i", keywords, &name,
+					&domain))
+    return NULL;
+
+  try
+    {
+      symbol = lookup_static_symbol (name, (domain_enum) domain).symbol;
+    }
+  catch (const gdb_exception &except)
+    {
+      GDB_PY_HANDLE_EXCEPTION (except);
+    }
 
   if (symbol)
     {
@@ -537,6 +571,8 @@ gdbpy_initialize_symbols (void)
 				  LOC_OPTIMIZED_OUT) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_LOC_COMPUTED",
 				  LOC_COMPUTED) < 0
+      || PyModule_AddIntConstant (gdb_module, "SYMBOL_LOC_COMMON_BLOCK",
+				  LOC_COMMON_BLOCK) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_LOC_REGPARM_ADDR",
 				  LOC_REGPARM_ADDR) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_UNDEF_DOMAIN",
@@ -545,14 +581,24 @@ gdbpy_initialize_symbols (void)
 				  VAR_DOMAIN) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_STRUCT_DOMAIN",
 				  STRUCT_DOMAIN) < 0
-      || PyModule_AddIntConstant (gdb_module, "SYMBOL_LABEL_DOMAIN",
-				  LABEL_DOMAIN) < 0
-      || PyModule_AddIntConstant (gdb_module, "SYMBOL_VARIABLES_DOMAIN",
-				  VARIABLES_DOMAIN) < 0
+      || PyModule_AddIntConstant (gdb_module, "SYMBOL_MODULE_DOMAIN",
+				  MODULE_DOMAIN) < 0
+      || PyModule_AddIntConstant (gdb_module, "SYMBOL_COMMON_BLOCK_DOMAIN",
+				  COMMON_BLOCK_DOMAIN) < 0)
+    return -1;
+
+  /* These remain defined for compatibility, but as they were never
+     correct, they are no longer documented.  Eventually we can remove
+     them.  These exist because at one time, enum search_domain and
+     enum domain_enum_tag were combined -- but different values were
+     used differently.  Here we try to give them values that will make
+     sense if they are passed to gdb.lookup_symbol.  */
+  if (PyModule_AddIntConstant (gdb_module, "SYMBOL_VARIABLES_DOMAIN",
+			       VAR_DOMAIN) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_FUNCTIONS_DOMAIN",
-				  FUNCTIONS_DOMAIN) < 0
+				  VAR_DOMAIN) < 0
       || PyModule_AddIntConstant (gdb_module, "SYMBOL_TYPES_DOMAIN",
-				  TYPES_DOMAIN) < 0)
+				  VAR_DOMAIN) < 0)
     return -1;
 
   return gdb_pymodule_addobject (gdb_module, "Symbol",

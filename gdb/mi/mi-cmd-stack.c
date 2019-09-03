@@ -1,5 +1,5 @@
 /* MI Command Set - stack commands.
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
    Contributed by Cygnus Solutions (a Red Hat company).
 
    This file is part of GDB.
@@ -34,11 +34,13 @@
 #include "extension.h"
 #include <ctype.h>
 #include "mi-parse.h"
-#include "common/gdb_optional.h"
+#include "gdbsupport/gdb_optional.h"
+#include "safe-ctype.h"
 
 enum what_to_list { locals, arguments, all };
 
-static void list_args_or_locals (enum what_to_list what,
+static void list_args_or_locals (const frame_print_options &fp_opts,
+				 enum what_to_list what,
 				 enum print_values values,
 				 struct frame_info *fi,
 				 int skip_unavailable);
@@ -174,7 +176,8 @@ mi_cmd_stack_list_frames (const char *command, char **argv, int argc)
 	  QUIT;
 	  /* Print the location and the address always, even for level 0.
 	     If args is 0, don't print the arguments.  */
-	  print_frame_info (fi, 1, LOC_AND_ADDRESS, 0 /* args */, 0);
+	  print_frame_info (user_frame_print_options,
+			    fi, 1, LOC_AND_ADDRESS, 0 /* args */, 0);
 	}
     }
 }
@@ -201,7 +204,7 @@ mi_cmd_stack_info_depth (const char *command, char **argv, int argc)
        i++, fi = get_prev_frame (fi))
     QUIT;
 
-  current_uiout->field_int ("depth", i);
+  current_uiout->field_signed ("depth", i);
 }
 
 /* Print a list of the locals for the current frame.  With argument of
@@ -274,7 +277,8 @@ mi_cmd_stack_list_locals (const char *command, char **argv, int argc)
       if "--no-frame-filters" has been specified from the command.  */
    if (! frame_filters || raw_arg  || result == EXT_LANG_BT_NO_FILTERS)
      {
-       list_args_or_locals (locals, print_value, frame,
+       list_args_or_locals (user_frame_print_options,
+			    locals, print_value, frame,
 			    skip_unavailable);
      }
 }
@@ -387,8 +391,9 @@ mi_cmd_stack_list_args (const char *command, char **argv, int argc)
 	{
 	  QUIT;
 	  ui_out_emit_tuple tuple_emitter (uiout, "frame");
-	  uiout->field_int ("level", i);
-	  list_args_or_locals (arguments, print_values, fi, skip_unavailable);
+	  uiout->field_signed ("level", i);
+	  list_args_or_locals (user_frame_print_options,
+			       arguments, print_values, fi, skip_unavailable);
 	}
     }
 }
@@ -464,7 +469,8 @@ mi_cmd_stack_list_variables (const char *command, char **argv, int argc)
       if "--no-frame-filters" has been specified from the command.  */
    if (! frame_filters || raw_arg  || result == EXT_LANG_BT_NO_FILTERS)
      {
-       list_args_or_locals (all, print_value, frame,
+       list_args_or_locals (user_frame_print_options,
+			    all, print_value, frame,
 			    skip_unavailable);
      }
 }
@@ -515,7 +521,7 @@ list_arg_or_local (const struct frame_arg *arg, enum what_to_list what,
   uiout->field_stream ("name", stb);
 
   if (what == all && SYMBOL_IS_ARGUMENT (arg->sym))
-    uiout->field_int ("arg", 1);
+    uiout->field_signed ("arg", 1);
 
   if (values == PRINT_SIMPLE_VALUES)
     {
@@ -526,13 +532,11 @@ list_arg_or_local (const struct frame_arg *arg, enum what_to_list what,
 
   if (arg->val || arg->error)
     {
-      const char *error_message = NULL;
-
       if (arg->error)
-	error_message = arg->error;
+	stb.printf (_("<error reading variable: %s>"), arg->error.get ());
       else
 	{
-	  TRY
+	  try
 	    {
 	      struct value_print_options opts;
 
@@ -541,14 +545,12 @@ list_arg_or_local (const struct frame_arg *arg, enum what_to_list what,
 	      common_val_print (arg->val, &stb, 0, &opts,
 				language_def (SYMBOL_LANGUAGE (arg->sym)));
 	    }
-	  CATCH (except, RETURN_MASK_ERROR)
+	  catch (const gdb_exception_error &except)
 	    {
-	      error_message = except.message;
+	      stb.printf (_("<error reading variable: %s>"),
+			  except.what ());
 	    }
-	  END_CATCH
 	}
-      if (error_message != NULL)
-	stb.printf (_("<error reading variable: %s>"), error_message);
       uiout->field_stream ("value", stb);
     }
 }
@@ -560,7 +562,8 @@ list_arg_or_local (const struct frame_arg *arg, enum what_to_list what,
    are available.  */
 
 static void
-list_args_or_locals (enum what_to_list what, enum print_values values,
+list_args_or_locals (const frame_print_options &fp_opts,
+		     enum what_to_list what, enum print_values values,
 		     struct frame_info *fi, int skip_unavailable)
 {
   const struct block *block;
@@ -638,10 +641,8 @@ list_args_or_locals (enum what_to_list what, enum print_values values,
 		sym2 = sym;
 	      gdb_assert (sym2 != NULL);
 
-	      memset (&arg, 0, sizeof (arg));
 	      arg.sym = sym2;
 	      arg.entry_kind = print_entry_values_no;
-	      memset (&entryarg, 0, sizeof (entryarg));
 	      entryarg.sym = sym2;
 	      entryarg.entry_kind = print_entry_values_no;
 
@@ -655,7 +656,7 @@ list_args_or_locals (enum what_to_list what, enum print_values values,
 		    {
 		case PRINT_ALL_VALUES:
 		  if (SYMBOL_IS_ARGUMENT (sym))
-		    read_frame_arg (sym2, fi, &arg, &entryarg);
+		    read_frame_arg (fp_opts, sym2, fi, &arg, &entryarg);
 		  else
 		    read_frame_local (sym2, fi, &arg);
 		    }
@@ -666,8 +667,6 @@ list_args_or_locals (enum what_to_list what, enum print_values values,
 		list_arg_or_local (&arg, what, values, skip_unavailable);
 	      if (entryarg.entry_kind != print_entry_values_no)
 		list_arg_or_local (&entryarg, what, values, skip_unavailable);
-	      xfree (arg.error);
-	      xfree (entryarg.error);
 	    }
 	}
 
@@ -678,13 +677,87 @@ list_args_or_locals (enum what_to_list what, enum print_values values,
     }
 }
 
+/* Read a frame specification from FRAME_EXP and return the selected frame.
+   Call error() if the specification is in any way invalid (so this
+   function never returns NULL).
+
+   The frame specification is usually an integer level number, however if
+   the number does not match a valid frame level then it will be treated as
+   a frame address.  The frame address will then be used to find a matching
+   frame in the stack.  If no matching frame is found then a new frame will
+   be created.
+
+   The use of FRAME_EXP as an address is undocumented in the GDB user
+   manual, this feature is supported here purely for backward
+   compatibility.  */
+
+static struct frame_info *
+parse_frame_specification (const char *frame_exp)
+{
+  gdb_assert (frame_exp != NULL);
+
+  /* NOTE: Parse and evaluate expression, but do not use
+     functions such as parse_and_eval_long or
+     parse_and_eval_address to also extract the value.
+     Instead value_as_long and value_as_address are used.
+     This avoids problems with expressions that contain
+     side-effects.  */
+  struct value *arg = parse_and_eval (frame_exp);
+
+  /* Assume ARG is an integer, and try using that to select a frame.  */
+  struct frame_info *fid;
+  int level = value_as_long (arg);
+
+  fid = find_relative_frame (get_current_frame (), &level);
+  if (level == 0)
+    /* find_relative_frame was successful.  */
+    return fid;
+
+  /* Convert the value into a corresponding address.  */
+  CORE_ADDR addr = value_as_address (arg);
+
+  /* Assume that ADDR is an address, use that to identify a frame with a
+     matching ID.  */
+  struct frame_id id = frame_id_build_wild (addr);
+
+  /* If (s)he specifies the frame with an address, he deserves
+     what (s)he gets.  Still, give the highest one that matches.
+     (NOTE: cagney/2004-10-29: Why highest, or outer-most, I don't
+     know).  */
+  for (fid = get_current_frame ();
+       fid != NULL;
+       fid = get_prev_frame (fid))
+    {
+      if (frame_id_eq (id, get_frame_id (fid)))
+	{
+	  struct frame_info *prev_frame;
+
+	  while (1)
+	    {
+	      prev_frame = get_prev_frame (fid);
+	      if (!prev_frame
+		  || !frame_id_eq (id, get_frame_id (prev_frame)))
+		break;
+	      fid = prev_frame;
+	    }
+	  return fid;
+	}
+    }
+
+  /* We couldn't identify the frame as an existing frame, but
+     perhaps we can create one with a single argument.  */
+  return create_new_frame (addr, 0);
+}
+
+/* Implement the -stack-select-frame MI command.  */
+
 void
 mi_cmd_stack_select_frame (const char *command, char **argv, int argc)
 {
   if (argc == 0 || argc > 1)
     error (_("-stack-select-frame: Usage: FRAME_SPEC"));
 
-  select_frame_command (argv[0], 1 /* not used */ );
+  select_frame_for_mi (parse_frame_specification (argv[0]));
 }
 
 void
@@ -693,5 +766,6 @@ mi_cmd_stack_info_frame (const char *command, char **argv, int argc)
   if (argc > 0)
     error (_("-stack-info-frame: No arguments allowed"));
 
-  print_frame_info (get_selected_frame (NULL), 1, LOC_AND_ADDRESS, 0, 1);
+  print_frame_info (user_frame_print_options,
+		    get_selected_frame (NULL), 1, LOC_AND_ADDRESS, 0, 1);
 }

@@ -1,5 +1,5 @@
 /* riscv.h.  RISC-V opcode list for GDB, the GNU debugger.
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
    Contributed by Andrew Waterman
 
    This file is part of GDB, GAS, and the GNU binutils.
@@ -247,10 +247,14 @@ static const char * const riscv_pred_succ[16] =
 #define OP_MASK_CRS2S 0x7
 #define OP_SH_CRS2S 2
 
+#define OP_MASK_CFUNCT6                0x3f
+#define OP_SH_CFUNCT6          10
 #define OP_MASK_CFUNCT4                0xf
 #define OP_SH_CFUNCT4          12
 #define OP_MASK_CFUNCT3                0x7
 #define OP_SH_CFUNCT3          13
+#define OP_MASK_CFUNCT2                0x3
+#define OP_SH_CFUNCT2          5
 
 /* ABI names for selected x-registers.  */
 
@@ -265,6 +269,12 @@ static const char * const riscv_pred_succ[16] =
 
 #define NGPR 32
 #define NFPR 32
+
+/* These fake label defines are use by both the assembler, and
+   libopcodes.  The assembler uses this when it needs to generate a fake
+   label, and libopcodes uses it to hide the fake labels in its output.  */
+#define RISCV_FAKE_LABEL_NAME ".L0 "
+#define RISCV_FAKE_LABEL_CHAR ' '
 
 /* Replace bits MASK << SHIFT of STRUCT with the equivalent bits in
    VALUE << SHIFT.  VALUE is evaluated exactly once.  */
@@ -281,14 +291,20 @@ static const char * const riscv_pred_succ[16] =
 #define EXTRACT_OPERAND(FIELD, INSN) \
   EXTRACT_BITS ((INSN), OP_MASK_##FIELD, OP_SH_##FIELD)
 
+/* The maximal number of subset can be required. */
+#define MAX_SUBSET_NUM 4
+
 /* This structure holds information for a particular instruction.  */
 
 struct riscv_opcode
 {
   /* The name of the instruction.  */
   const char *name;
-  /* The ISA subset name (I, M, A, F, D, Xextension).  */
-  const char *subset;
+  /* The requirement of xlen for the instruction, 0 if no requirement.  */
+  unsigned xlen_requirement;
+  /* An array of ISA subset name (I, M, A, F, D, Xextension), must ended
+     with a NULL pointer sential.  */
+  const char *subset[MAX_SUBSET_NUM];
   /* A string describing the arguments for this instruction.  */
   const char *args;
   /* The basic opcode for the instruction.  When assembling, this

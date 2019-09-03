@@ -1,6 +1,6 @@
 /* GDB/Scheme pretty-printing.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -427,19 +427,18 @@ ppscm_search_pp_list (SCM list, SCM value)
 static SCM
 ppscm_find_pretty_printer_from_objfiles (SCM value)
 {
-  struct objfile *objfile;
+  for (objfile *objfile : current_program_space->objfiles ())
+    {
+      objfile_smob *o_smob = ofscm_objfile_smob_from_objfile (objfile);
+      SCM pp
+	= ppscm_search_pp_list (ofscm_objfile_smob_pretty_printers (o_smob),
+				value);
 
-  ALL_OBJFILES (objfile)
-  {
-    objfile_smob *o_smob = ofscm_objfile_smob_from_objfile (objfile);
-    SCM pp = ppscm_search_pp_list (ofscm_objfile_smob_pretty_printers (o_smob),
-				   value);
-
-    /* Note: This will return if pp is a <gdb:exception> object,
-       which is what we want.  */
-    if (gdbscm_is_true (pp))
-      return pp;
-  }
+      /* Note: This will return if pp is a <gdb:exception> object,
+	 which is what we want.  */
+      if (gdbscm_is_true (pp))
+	return pp;
+    }
 
   return SCM_BOOL_F;
 }
@@ -525,7 +524,7 @@ ppscm_pretty_print_one_value (SCM printer, struct value **out_value,
   SCM result = SCM_BOOL_F;
 
   *out_value = NULL;
-  TRY
+  try
     {
       pretty_printer_worker_smob *w_smob
 	= (pretty_printer_worker_smob *) SCM_SMOB_DATA (printer);
@@ -559,10 +558,9 @@ ppscm_pretty_print_one_value (SCM printer, struct value **out_value,
 	    (_("invalid result from pretty-printer to-string"), result);
 	}
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
     }
-  END_CATCH
 
   return result;
 }
@@ -899,7 +897,18 @@ ppscm_print_children (SCM printer, enum display_hint hint,
 	      ppscm_print_exception_unless_memory_error (except_scm, stream);
 	      break;
 	    }
-	  common_val_print (value, stream, recurse + 1, options, language);
+	  else
+	    {
+	      /* When printing the key of a map we allow one additional
+		 level of depth.  This means the key will print before the
+		 value does.  */
+	      struct value_print_options opt = *options;
+	      if (is_map && i % 2 == 0
+		  && opt.max_depth != -1
+		  && opt.max_depth < INT_MAX)
+		++opt.max_depth;
+	      common_val_print (value, stream, recurse + 1, &opt, language);
+	    }
 	}
 
       if (is_map && i % 2 == 0)
@@ -985,6 +994,12 @@ gdbscm_apply_val_pretty_printer (const struct extension_language_defn *extlang,
       goto done;
     }
   gdb_assert (ppscm_is_pretty_printer_worker (printer));
+
+  if (val_print_check_max_depth (stream, recurse, options, language))
+    {
+      result = EXT_LANG_RC_OK;
+      goto done;
+    }
 
   /* If we are printing a map, we want some special formatting.  */
   hint = ppscm_get_display_hint_enum (printer);

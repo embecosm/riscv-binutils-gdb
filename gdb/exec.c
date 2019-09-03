@@ -1,6 +1,6 @@
 /* Work with executable files, for GDB. 
 
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -45,7 +45,7 @@
 #include <sys/stat.h>
 #include "solist.h"
 #include <algorithm>
-#include "common/pathstuff.h"
+#include "gdbsupport/pathstuff.h"
 
 void (*deprecated_file_changed_hook) (const char *);
 
@@ -60,11 +60,10 @@ Specify the filename of the executable file.")
 
 struct exec_target final : public target_ops
 {
-  exec_target ()
-  { to_stratum = file_stratum; }
-
   const target_info &info () const override
   { return exec_target_info; }
+
+  strata stratum () const override { return file_stratum; }
 
   void close () override;
   enum target_xfer_status xfer_partial (enum target_object object,
@@ -149,10 +148,7 @@ void
 try_open_exec_file (const char *exec_file_host, struct inferior *inf,
 		    symfile_add_flags add_flags)
 {
-  struct cleanup *old_chain;
-  struct gdb_exception prev_err = exception_none;
-
-  old_chain = make_cleanup (free_current_contents, &prev_err.message);
+  struct gdb_exception prev_err;
 
   /* exec_file_attach and symbol_file_add_main may throw an error if the file
      cannot be opened either locally or remotely.
@@ -165,40 +161,32 @@ try_open_exec_file (const char *exec_file_host, struct inferior *inf,
      Even without a symbol file, the remote-based debugging session should
      continue normally instead of ending abruptly.  Hence we catch thrown
      errors/exceptions in the following code.  */
-  TRY
+  try
     {
       /* We must do this step even if exec_file_host is NULL, so that
 	 exec_file_attach will clear state.  */
       exec_file_attach (exec_file_host, add_flags & SYMFILE_VERBOSE);
     }
-  CATCH (err, RETURN_MASK_ERROR)
+  catch (gdb_exception_error &err)
     {
       if (err.message != NULL)
-	warning ("%s", err.message);
+	warning ("%s", err.what ());
 
-      prev_err = err;
-
-      /* Save message so it doesn't get trashed by the catch below.  */
-      if (err.message != NULL)
-	prev_err.message = xstrdup (err.message);
+      prev_err = std::move (err);
     }
-  END_CATCH
 
   if (exec_file_host != NULL)
     {
-      TRY
+      try
 	{
 	  symbol_file_add_main (exec_file_host, add_flags);
 	}
-      CATCH (err, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &err)
 	{
 	  if (!exception_print_same (prev_err, err))
-	    warning ("%s", err.message);
+	    warning ("%s", err.what ());
 	}
-      END_CATCH
     }
-
-  do_cleanups (old_chain);
 }
 
 /* See gdbcore.h.  */
@@ -362,7 +350,7 @@ exec_file_attach (const char *filename, int from_tty)
 	  exec_close ();
 	  error (_("\"%s\": not in executable format: %s"),
 		 scratch_pathname,
-		 gdb_bfd_errmsg (bfd_get_error (), matching));
+		 gdb_bfd_errmsg (bfd_get_error (), matching).c_str ());
 	}
 
       if (build_section_table (exec_bfd, &sections, &sections_end))

@@ -1,5 +1,5 @@
 # Expect script for various ARM ELF tests.
-#   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -42,6 +42,11 @@ if {[istarget "arm-*-vxworks"]} {
 	 "" {vxworks2.s}
 	 {{readelf --segments vxworks2-static.sd}}
 	 "vxworks2"}
+	{"Branch future relocations for armv8.1-m.main target"
+	  "-static -T arm.ld"
+	  "" "" {bfs-0.s bfs-1.s}
+	  {{objdump -dw branch-futures.d}}
+	 "branch-futures"}
     }
     run_ld_link_tests $armvxworkstests
     run_dump_test "vxworks1-static"
@@ -260,6 +265,10 @@ set armelftests_common_3 {
     {"ADDS thumb1 relocations for armv7-m target" "-static -T arm.ld" "" "" {thumb1-adds-armv7-m.s}
      {{objdump -dw thumb1-adds.d}}
      "thumb1-adds"}
+    {"Branch future relocations for armv8.1-m.main target" "-static -T arm.ld"
+      "" "" {bfs-0.s bfs-1.s}
+      {{objdump -dw branch-futures.d}}
+     "branch-futures"}
 }
 
 run_ld_link_tests $armelftests_common_1
@@ -667,6 +676,16 @@ set armeabitests_nonacl {
      {{objdump -d armv4-bx.d}}
      "armv4-bx"}
 
+     {"Armv8.1-M Mainline BF" "-r -Ttext 0x1000 --section-start .foo=0x1001000" "" "-march=armv8.1-m.main" {bf.s}
+      {{objdump -dr bf.d}}
+     "bf"}
+     {"Armv8.1-M Mainline BFL" "-r -Ttext 0x1000 --section-start .foo=0x1001000" "" "-march=armv8.1-m.main" {bfl.s}
+      {{objdump -dr bfl.d}}
+     "bfl"}
+     {"Armv8.1-M Mainline BFCSEL" "-r -Ttext 0x1000 --section-start .foo=0x1001000" "" "-march=armv8.1-m.main" {bfcsel.s}
+      {{objdump -dr bfcsel.d}}
+     "bfcsel"}
+
     {"R_ARM_THM_JUMP24 Relocation veneers: Short 1"
      "--no-fix-arm1176 --section-start destsect=0x00009000 --section-start .text=0x8000" ""
      "-march=armv7-a -mthumb"
@@ -768,6 +787,12 @@ set armeabitests_nonacl {
      {cmse-implib.s}
      {{ld cmse-new-wrong-implib.out}}
      "cmse-new-wrong-implib"}
+    {"Secure gateway veneers:cmse functions debug information missing"
+      "--section-start .gnu.sgstubs=0x190000 --gc-sections -e0" ""
+      "-march=armv8-m.main -mthumb"
+      {cmse_main.s cmse_sec_debug.s}
+      {{objdump --dwarf=info cmse_main_sec_debug.d}}
+      "cmse_main_sec_debug"}
 
     {"R_ARM_THM_JUMP19 Relocation veneers: Short"
      "--section-start destsect=0x000108002 --section-start .text=0x8000" ""

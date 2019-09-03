@@ -1,5 +1,5 @@
 # Expect script for various ELF tests.
-#   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -47,6 +47,12 @@ if [istarget "tic6x-*-*"] {
 }
 if [istarget "sparc*-*-*"] {
     append AFLAGS_PIC " -K PIC"
+}
+
+# GAS options to disable program property note.
+set AFLAGS_NOTE ""
+if { [istarget "i?86-*-*"] || [istarget "x86_64-*-*"] } {
+    append AFLAGS_NOTE "-mx86-used-note=no"
 }
 
 # This target requires a non-default emulation for successful shared
@@ -352,14 +358,14 @@ run_ld_link_tests [list \
 ] "bfin-*-*"
 
 # Targets that use _bfd_generic_link_add_symbols won't pass pr21703 tests
-# Not will hppa64 with dot-symbols.
+# Nor will hppa64 with dot-symbols.
 run_ld_link_tests [list \
     [list "PR ld/21703 shared" \
 	"-shared --allow-multiple-definition --version-script pr21703.ver\
 	 tmpdir/pr21703-3.o tmpdir/pr21703-4.o" "" "$AFLAGS_PIC" \
 	{pr21703-3.s pr21703-4.s} {{readelf {--dyn-syms} pr21703-shared.sd}} \
 	"pr21703.so" ] \
-] "d30v-*-*" "dlx-*-*" "pj-*-*" "hppa64-*-*" "xgate-*-*"
+] \[is_generic\] hppa64-*-*
 
 # This target requires extra GAS options when building non-PIC code
 # for linking with shared libraries.
@@ -426,7 +432,8 @@ run_ld_link_tests [list \
     [list "Build pr20995-2.so" \
 	"-shared -z relro" "" "$AFLAGS_PIC" \
 	{pr20995c.s} {{readelf {-l --wide} pr20995-2so.r}} "pr20995-2.so"] \
-] "tic6x-*-*" "arm*-*-eabi*" "hppa*64*-*-hpux*" "aarch64*-*-elf*"
+] "tic6x-*-*" "arm*-*-eabi*" "hppa*64*-*-hpux*" "aarch64*-*-elf*" \
+  "*-*-lynxos*" "arm*-*-nto*" "i?86-*-nto*" "sh*-*-nto*"
 
 # These targets don't copy dynamic variables into .bss.
 setup_xfail "alpha-*-*" "bfin-*-*" "ia64-*-*" "xtensa-*-*"
@@ -446,13 +453,15 @@ run_ld_link_tests [list \
     [list \
 	"pr20995-2" \
 	"$LFLAGS" "tmpdir/pr20995-2.so" "$AFLAGS_NONPIC" \
-	{pr20995a.s} {{readelf {-S --wide} pr20995.r}} "pr20995-2"]]
+	{pr20995a.s} {{readelf {-S --wide} pr20995.r}} "pr20995-2"]
+] "*-*-lynxos*" "arm*-*-nto*" "i?86-*-nto*" "sh*-*-nto*"
 
 run_ld_link_tests [list \
     [list "Build pr22374 shared library" \
 	"-shared" "" "$AFLAGS_PIC" "pr22374b.s" {} "pr22374.so" ] \
 ]
 if { ![istarget "alpha-*-*"]
+     && ![istarget "csky-*-*"]
      && ![istarget "frv-*-*"]
      && ![istarget "hppa*-*-*"]
      && ![istarget "i?86-*-*"]
@@ -489,7 +498,7 @@ if { [istarget *-*-linux*]
 }
 
 # Check to see if the C compiler works
-if { [which $CC] == 0 } {
+if { ![check_compiler_available] } {
     return
 }
 
@@ -513,7 +522,7 @@ set build_tests {
    "-shared" "-fPIC"
   {beginwarn.c end.c}
   {{readelf {-S --wide} libbarw.rd}
-   {warning "^.*beginwarn.c:7: warning: function foo is deprecated$"}}
+   {warning "^.*beginwarn.c:7: warning: function foo is deprecated\n?$"}}
   "libbarw.so" "c"}
   {"Build hidden libbar.so"
    "-shared" "-fPIC"
@@ -735,12 +744,19 @@ set build_tests {
   {"Build libpr18458b.so"
    "-shared -Wl,-z,now tmpdir/libpr18458a.so" "-fPIC"
    {pr18458b.c} {} "libpr18458b.so"}
-  {"Build pr19073a.o"
-   "-r -nostdlib" ""
-   {pr19073.s} {} "pr19073a.o"}
-  {"Build libpr19073.so"
-   "-shared -Wl,--version-script=pr19073.map tmpdir/pr19073a.o" "-fPIC"
-   {dummy.c} {{readelf {--dyn-syms --wide} pr19073.rd}} "libpr19073.so"}
+}
+# pr19073.s uses .set, which has a different meaning on alpha.
+if { ![istarget alpha-*-*] } {
+    append build_tests {
+	{"Build pr19073a.o"
+	 "-r -nostdlib" ""
+	 {pr19073.s} {} "pr19073a.o"}
+	{"Build libpr19073.so"
+	 "-shared -Wl,--version-script=pr19073.map tmpdir/pr19073a.o" "-fPIC"
+	 {dummy.c} {{readelf {--dyn-syms --wide} pr19073.rd}} "libpr19073.so"}
+    }
+}
+append build_tests {
   {"Build pr21964-1a.so"
    "-shared" "-fPIC"
    {pr21964-1a.c} {} "pr21964-1a.so"}
@@ -792,7 +808,7 @@ set run_tests [list \
     [list "Run warn with versioned libfoo.so" \
      "-Wl,--no-as-needed tmpdir/beginwarn.o tmpdir/libfoov.so" "" \
      {main.c} "warn" "warn.out" \
-     "" "c" {^.*beginwarn.c:7: warning: function foo is deprecated$} ] \
+     "" "c" {^.*beginwarn.c:7: warning: function foo is deprecated\n?$} ] \
     [list "Run protected with versioned libfoo.so" \
      "-Wl,--no-as-needed tmpdir/begin.o tmpdir/libfoov.so tmpdir/endprotected.o" "" \
      {main.c} "protected" "normal.out" ] \
@@ -1474,3 +1490,18 @@ if { [istarget "i?86-*-*"]
 	] \
     ]
 }
+
+run_ld_link_tests [list \
+    [list "Build pr23658.so" \
+	"-shared" "" "$AFLAGS_PIC" \
+	{pr23658-1a.s} {} "pr23658.so"] \
+    [list \
+	"Build pr23658-2" \
+	"--dynamic-linker tmpdir/pr23658.so --no-as-needed tmpdir/pr23658.so" \
+	"" \
+	$AFLAGS_NOTE \
+	{ pr23658-1a.s pr23658-1b.s pr23658-1c.s pr23658-1d.s start.s } \
+	{{readelf {-lW} pr23658-2.rd}} \
+	"pr23658-2" \
+    ] \
+]

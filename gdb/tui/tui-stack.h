@@ -1,6 +1,6 @@
 /* TUI display locator.
 
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
    Contributed by Hewlett-Packard Company.
 
@@ -19,13 +19,42 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef TUI_STACK_H
-#define TUI_STACK_H
+#ifndef TUI_TUI_STACK_H
+#define TUI_TUI_STACK_H
+
+#include "tui/tui-data.h"
 
 struct frame_info;
+
+#ifdef PATH_MAX
+# define MAX_LOCATOR_ELEMENT_LEN        PATH_MAX
+#else
+# define MAX_LOCATOR_ELEMENT_LEN        1024
+#endif
+
+/* Locator window class.  */
+
+struct tui_locator_window : public tui_gen_win_info
+{
+  tui_locator_window ()
+    : tui_gen_win_info (LOCATOR_WIN)
+  {
+    full_name[0] = 0;
+    proc_name[0] = 0;
+  }
+
+  void rerender () override;
+
+  char full_name[MAX_LOCATOR_ELEMENT_LEN];
+  char proc_name[MAX_LOCATOR_ELEMENT_LEN];
+  int line_no = 0;
+  CORE_ADDR addr = 0;
+  /* Architecture associated with code at this location.  */
+  struct gdbarch *gdbarch = nullptr;
+};
 
 extern void tui_update_locator_fullname (const char *);
 extern void tui_show_locator_content (void);
 extern int tui_show_frame_info (struct frame_info *);
 
-#endif
+#endif /* TUI_TUI_STACK_H */

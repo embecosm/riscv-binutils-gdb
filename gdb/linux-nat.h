@@ -1,6 +1,6 @@
 /* Native debugging support for GNU/Linux (LWP layer).
 
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,6 +16,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef LINUX_NAT_H
+#define LINUX_NAT_H
 
 #include "nat/linux-nat.h"
 #include "inf-ptrace.h"
@@ -45,7 +48,7 @@ public:
 
   ptid_t wait (ptid_t, struct target_waitstatus *, int) override;
 
-  void pass_signals (int, unsigned char *) override;
+  void pass_signals (gdb::array_view<const unsigned char>) override;
 
   enum target_xfer_status xfer_partial (enum target_object object,
 					const char *annex,
@@ -61,7 +64,7 @@ public:
 
   void update_thread_list () override;
 
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
 
   const char *thread_name (struct thread_info *) override;
 
@@ -322,3 +325,5 @@ void linux_nat_switch_fork (ptid_t new_ptid);
    Return 1 if it was retrieved successfully, 0 otherwise (*SIGINFO is
    uninitialized in such case).  */
 int linux_nat_get_siginfo (ptid_t ptid, siginfo_t *siginfo);
+
+#endif /* LINUX_NAT_H */

@@ -1,6 +1,6 @@
 /* Caching of GDB/DWARF index files.
 
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,12 +23,12 @@
 #include "build-id.h"
 #include "cli/cli-cmds.h"
 #include "command.h"
-#include "common/scoped_mmap.h"
-#include "common/pathstuff.h"
+#include "gdbsupport/scoped_mmap.h"
+#include "gdbsupport/pathstuff.h"
 #include "dwarf-index-write.h"
 #include "dwarf2read.h"
 #include "objfiles.h"
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 #include <string>
 #include <stdlib.h>
 
@@ -44,53 +44,6 @@ index_cache global_index_cache;
 /* set/show index-cache commands.  */
 static cmd_list_element *set_index_cache_prefix_list;
 static cmd_list_element *show_index_cache_prefix_list;
-
-/* A cheap (as in low-quality) recursive mkdir.  Try to create all the parents
-   directories up to DIR and DIR itself.  Stop if we hit an error along the way.
-   There is no attempt to remove created directories in case of failure.  */
-
-static void
-mkdir_recursive (const char *dir)
-{
-  gdb::unique_xmalloc_ptr<char> holder (xstrdup (dir));
-  char * const start = holder.get ();
-  char *component_start = start;
-  char *component_end = start;
-
-  while (1)
-    {
-      /* Find the beginning of the next component.  */
-      while (*component_start == '/')
-	component_start++;
-
-      /* Are we done?  */
-      if (*component_start == '\0')
-	return;
-
-      /* Find the slash or null-terminator after this component.  */
-      component_end = component_start;
-      while (*component_end != '/' && *component_end != '\0')
-	component_end++;
-
-      /* Temporarily replace the slash with a null terminator, so we can create
-         the directory up to this component.  */
-      char saved_char = *component_end;
-      *component_end = '\0';
-
-      /* If we get EEXIST and the existing path is a directory, then we're
-         happy.  If it exists, but it's a regular file and this is not the last
-         component, we'll fail at the next component.  If this is the last
-         component, the caller will fail with ENOTDIR when trying to
-         open/create a file under that path.  */
-      if (mkdir (start, 0700) != 0)
-	if (errno != EEXIST)
-	  return;
-
-      /* Restore the overwritten char.  */
-      *component_end = saved_char;
-      component_start = component_end;
-    }
-}
 
 /* Default destructor of index_cache_resource.  */
 index_cache_resource::~index_cache_resource () = default;
@@ -140,6 +93,7 @@ index_cache::store (struct dwarf2_per_objfile *dwarf2_per_objfile)
   if (!enabled ())
     return;
 
+  /* Get build id of objfile.  */
   const bfd_build_id *build_id = build_id_bfd_get (obj->obfd);
   if (build_id == nullptr)
     {
@@ -149,35 +103,61 @@ index_cache::store (struct dwarf2_per_objfile *dwarf2_per_objfile)
       return;
     }
 
+  std::string build_id_str = build_id_to_string (build_id);
+
+  /* Get build id of dwz file, if present.  */
+  gdb::optional<std::string> dwz_build_id_str;
+  const dwz_file *dwz = dwarf2_get_dwz_file (dwarf2_per_objfile);
+  const char *dwz_build_id_ptr = NULL;
+
+  if (dwz != nullptr)
+    {
+      const bfd_build_id *dwz_build_id = build_id_bfd_get (dwz->dwz_bfd.get ());
+
+      if (dwz_build_id == nullptr)
+	{
+	  if (debug_index_cache)
+	    printf_unfiltered ("index cache: dwz objfile %s has no build id\n",
+			       dwz->filename ());
+	  return;
+	}
+
+      dwz_build_id_str = build_id_to_string (dwz_build_id);
+      dwz_build_id_ptr = dwz_build_id_str->c_str ();
+    }
+
   if (m_dir.empty ())
     {
       warning (_("The index cache directory name is empty, skipping store."));
       return;
     }
 
-  std::string build_id_str = build_id_to_string (build_id);
-
-  TRY
+  try
     {
       /* Try to create the containing directory.  */
-      mkdir_recursive (m_dir.c_str ());
+      if (!mkdir_recursive (m_dir.c_str ()))
+	{
+	  warning (_("index cache: could not make cache directory: %s"),
+		   safe_strerror (errno));
+	  return;
+	}
 
       if (debug_index_cache)
         printf_unfiltered ("index cache: writing index cache for objfile %s\n",
-			 objfile_name (obj));
+			   objfile_name (obj));
 
       /* Write the index itself to the directory, using the build id as the
          filename.  */
       write_psymtabs_to_index (dwarf2_per_objfile, m_dir.c_str (),
-			       build_id_str.c_str (), dw_index_kind::GDB_INDEX);
+			       build_id_str.c_str (), dwz_build_id_ptr,
+			       dw_index_kind::GDB_INDEX);
     }
-  CATCH (except, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &except)
     {
       if (debug_index_cache)
 	printf_unfiltered ("index cache: couldn't store index cache for objfile "
-			 "%s: %s", objfile_name (obj), except.message);
+			   "%s: %s", objfile_name (obj), except.what ());
     }
-  END_CATCH
 }
 
 #if HAVE_SYS_MMAN_H
@@ -214,7 +194,7 @@ index_cache::lookup_gdb_index (const bfd_build_id *build_id,
   /* Compute where we would expect a gdb index file for this build id to be.  */
   std::string filename = make_index_filename (build_id, INDEX4_SUFFIX);
 
-  TRY
+  try
     {
       if (debug_index_cache)
         printf_unfiltered ("index cache: trying to read %s\n",
@@ -231,13 +211,12 @@ index_cache::lookup_gdb_index (const bfd_build_id *build_id,
 	  ((const gdb_byte *) mmap_resource->mapping.get (),
 	   mmap_resource->mapping.size ());
     }
-  CATCH (except, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &except)
     {
       if (debug_index_cache)
 	printf_unfiltered ("index cache: couldn't read %s: %s\n",
-			 filename.c_str (), except.message);
+			   filename.c_str (), except.what ());
     }
-  END_CATCH
 
   return {};
 }
@@ -346,62 +325,6 @@ show_index_cache_stats_command (const char *arg, int from_tty)
 		     indent, global_index_cache.n_misses ());
 }
 
-#if GDB_SELF_TEST && defined (HAVE_MKDTEMP)
-namespace selftests
-{
-
-/* Try to create DIR using mkdir_recursive and make sure it exists.  */
-
-static bool
-create_dir_and_check (const char *dir)
-{
-  mkdir_recursive (dir);
-
-  struct stat st;
-  if (stat (dir, &st) != 0)
-    perror_with_name (("stat"));
-
-  return (st.st_mode & S_IFDIR) != 0;
-}
-
-/* Test mkdir_recursive.  */
-
-static void
-test_mkdir_recursive ()
-{
-  char base[] = "/tmp/gdb-selftests-XXXXXX";
-
-  if (mkdtemp (base) == NULL)
-    perror_with_name (("mkdtemp"));
-
-  /* Try not to leave leftover directories.  */
-  struct cleanup_dirs {
-    cleanup_dirs (const char *base)
-      : m_base (base)
-    {}
-
-    ~cleanup_dirs () {
-      rmdir (string_printf ("%s/a/b/c/d/e", m_base).c_str ());
-      rmdir (string_printf ("%s/a/b/c/d", m_base).c_str ());
-      rmdir (string_printf ("%s/a/b/c", m_base).c_str ());
-      rmdir (string_printf ("%s/a/b", m_base).c_str ());
-      rmdir (string_printf ("%s/a", m_base).c_str ());
-      rmdir (m_base);
-    }
-
-  private:
-    const char *m_base;
-  } cleanup_dirs (base);
-
-  std::string dir = string_printf ("%s/a/b", base);
-  SELF_CHECK (create_dir_and_check (dir.c_str ()));
-
-  dir = string_printf ("%s/a/b/c//d/e/", base);
-  SELF_CHECK (create_dir_and_check (dir.c_str ()));
-}
-}
-#endif /*  GDB_SELF_TEST && defined (HAVE_MKDTEMP) */
-
 void
 _initialize_index_cache ()
 {
@@ -417,12 +340,12 @@ _initialize_index_cache ()
 
   /* set index-cache */
   add_prefix_cmd ("index-cache", class_files, set_index_cache_command,
-		  _("Set index-cache options"), &set_index_cache_prefix_list,
+		  _("Set index-cache options."), &set_index_cache_prefix_list,
 		  "set index-cache ", false, &setlist);
 
   /* show index-cache */
   add_prefix_cmd ("index-cache", class_files, show_index_cache_command,
-		  _("Show index-cache options"), &show_index_cache_prefix_list,
+		  _("Show index-cache options."), &show_index_cache_prefix_list,
 		  "show index-cache ", false, &showlist);
 
   /* set index-cache on */
@@ -456,8 +379,4 @@ _initialize_index_cache ()
 When non-zero, debugging output for the index cache is displayed."),
 			    NULL, NULL,
 			    &setdebuglist, &showdebuglist);
-
-#if GDB_SELF_TEST && defined (HAVE_MKDTEMP)
-  selftests::register_test ("mkdir_recursive", selftests::test_mkdir_recursive);
-#endif
 }

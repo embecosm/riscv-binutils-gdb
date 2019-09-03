@@ -1,6 +1,6 @@
 /* Self tests for scoped_fd for GDB, the GNU debugger.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,12 +19,10 @@
 
 #include "defs.h"
 
-#include "common/scoped_fd.h"
+#include "gdbsupport/filestuff.h"
+#include "gdbsupport/scoped_fd.h"
 #include "config.h"
-
-#ifdef HAVE_UNISTD_H
-
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 
 namespace selftests {
 namespace scoped_fd {
@@ -34,7 +32,7 @@ static void
 test_destroy ()
 {
   char filename[] = "scoped_fd-selftest-XXXXXX";
-  int fd = mkstemp (filename);
+  int fd = gdb_mkostemp_cloexec (filename);
   SELF_CHECK (fd >= 0);
 
   unlink (filename);
@@ -53,7 +51,7 @@ static void
 test_release ()
 {
   char filename[] = "scoped_fd-selftest-XXXXXX";
-  int fd = mkstemp (filename);
+  int fd = gdb_mkostemp_cloexec (filename);
   SELF_CHECK (fd >= 0);
 
   unlink (filename);
@@ -67,24 +65,37 @@ test_release ()
   SELF_CHECK (close (fd) == 0 || errno != EBADF);
 }
 
+/* Test that the file descriptor can be converted to a FILE *.  */
+static void
+test_to_file ()
+{
+  char filename[] = "scoped_fd-selftest-XXXXXX";
+
+  ::scoped_fd sfd (gdb_mkostemp_cloexec (filename));
+  SELF_CHECK (sfd.get () >= 0);
+
+  unlink (filename);
+  
+  gdb_file_up file = sfd.to_file ("rw");
+  SELF_CHECK (file != nullptr);
+  SELF_CHECK (sfd.get () == -1);
+}
+
 /* Run selftests.  */
 static void
 run_tests ()
 {
   test_destroy ();
   test_release ();
+  test_to_file ();
 }
 
 } /* namespace scoped_fd */
 } /* namespace selftests */
 
-#endif /* HAVE_UNISTD_H */
-
 void
 _initialize_scoped_fd_selftests ()
 {
-#ifdef HAVE_UNISTD_H
   selftests::register_test ("scoped_fd",
 			    selftests::scoped_fd::run_tests);
-#endif
 }

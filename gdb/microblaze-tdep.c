@@ -1,6 +1,6 @@
 /* Target-dependent code for Xilinx MicroBlaze.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -34,8 +34,8 @@
 #include "dwarf2-frame.h"
 #include "osabi.h"
 #include "target-descriptions.h"
-#include "opcodes/microblaze-opcm.h"
-#include "opcodes/microblaze-dis.h"
+#include "../opcodes/microblaze-opcm.h"
+#include "../opcodes/microblaze-dis.h"
 #include "microblaze-tdep.h"
 #include "remote.h"
 
@@ -353,12 +353,13 @@ microblaze_analyze_prologue (struct gdbarch *gdbarch, CORE_ADDR pc,
 	 instruction.  */
 
       {
-	unsigned op = (unsigned)insn >> 26;
+	unsigned ctrl_op = (unsigned)insn >> 26;
 
 	/* continue if not control flow (branch, return).  */
-	if (op != 0x26 && op != 0x27 && op != 0x2d && op != 0x2e && op != 0x2f)
+	if (ctrl_op != 0x26 && ctrl_op != 0x27 && ctrl_op != 0x2d
+	    && ctrl_op != 0x2e && ctrl_op != 0x2f)
 	  continue;
-	else if (op == 0x2c)
+	else if (ctrl_op == 0x2c)
 	  continue;    /* continue if imm.  */
       }
 

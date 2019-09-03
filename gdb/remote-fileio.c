@@ -1,6 +1,6 @@
 /* Remote File-I/O communications
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,16 +22,16 @@
 #include "defs.h"
 #include "gdbcmd.h"
 #include "remote.h"
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include <sys/stat.h>
 #include "remote-fileio.h"
 #include "event-loop.h"
 #include "target.h"
 #include "filenames.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 
 #include <fcntl.h>
-#include "gdb_sys_time.h"
+#include "gdbsupport/gdb_sys_time.h"
 #ifdef __CYGWIN__
 #include <sys/cygwin.h>		/* For cygwin_conv_path.  */
 #endif
@@ -1185,18 +1185,17 @@ remote_fileio_request (remote_target *remote, char *buf, int ctrlc_pending_p)
     }
   else
     {
-      TRY
+      try
 	{
 	  do_remote_fileio_request (remote, buf);
 	}
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	  if (ex.reason == RETURN_QUIT)
 	    remote_fileio_reply (remote, -1, FILEIO_EINTR);
 	  else
 	    remote_fileio_reply (remote, -1, FILEIO_EIO);
 	}
-      END_CATCH
     }
 
   quit_handler = remote_fileio_o_quit_handler;

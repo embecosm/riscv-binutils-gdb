@@ -1,5 +1,5 @@
 /* Multi-process/thread control defs for GDB, the GNU debugger.
-   Copyright (C) 1987-2018 Free Software Foundation, Inc.
+   Copyright (C) 1987-2019 Free Software Foundation, Inc.
    Contributed by Lynx Real-Time Systems, Inc.  Los Gatos, CA.
    
 
@@ -26,22 +26,56 @@ struct symtab;
 #include "breakpoint.h"
 #include "frame.h"
 #include "ui-out.h"
-#include "inferior.h"
 #include "btrace.h"
-#include "common/vec.h"
+#include "gdbsupport/vec.h"
 #include "target/waitstatus.h"
 #include "cli/cli-utils.h"
-#include "common/refcounted-object.h"
-#include "common-gdbthread.h"
+#include "gdbsupport/refcounted-object.h"
+#include "gdbsupport/common-gdbthread.h"
+#include "gdbsupport/forward-scope-exit.h"
+
+struct inferior;
 
 /* Frontend view of the thread state.  Possible extensions: stepping,
-   finishing, until(ling),...  */
+   finishing, until(ling),...
+
+   NOTE: Since the thread state is not a boolean, most times, you do
+   not want to check it with negation.  If you really want to check if
+   the thread is stopped,
+
+    use (good):
+
+     if (tp->state == THREAD_STOPPED)
+
+    instead of (bad):
+
+     if (tp->state != THREAD_RUNNING)
+
+   The latter is also true for exited threads, most likely not what
+   you want.  */
 enum thread_state
 {
+  /* In the frontend's perpective, the thread is stopped.  */
   THREAD_STOPPED,
+
+  /* In the frontend's perpective, the thread is running.  */
   THREAD_RUNNING,
+
+  /* The thread is listed, but known to have exited.  We keep it
+     listed (but not visible) until it's safe to delete it.  */
   THREAD_EXITED,
 };
+
+/* STEP_OVER_ALL means step over all subroutine calls.
+   STEP_OVER_UNDEBUGGABLE means step over calls to undebuggable functions.
+   STEP_OVER_NONE means don't step over any subroutine calls.  */
+
+enum step_over_calls_kind
+  {
+    STEP_OVER_NONE,
+    STEP_OVER_ALL,
+    STEP_OVER_UNDEBUGGABLE
+  };
 
 /* Inferior thread specific part of `struct infcall_control_state'.
 
@@ -52,17 +86,17 @@ struct thread_control_state
   /* User/external stepping state.  */
 
   /* Step-resume or longjmp-resume breakpoint.  */
-  struct breakpoint *step_resume_breakpoint;
+  struct breakpoint *step_resume_breakpoint = nullptr;
 
   /* Exception-resume breakpoint.  */
-  struct breakpoint *exception_resume_breakpoint;
+  struct breakpoint *exception_resume_breakpoint = nullptr;
 
   /* Breakpoints used for software single stepping.  Plural, because
      it may have multiple locations.  E.g., if stepping over a
      conditional branch instruction we can't decode the condition for,
      we'll need to put a breakpoint at the branch destination, and
      another at the instruction after the branch.  */
-  struct breakpoint *single_step_breakpoints;
+  struct breakpoint *single_step_breakpoints = nullptr;
 
   /* Range to single step within.
 
@@ -74,11 +108,11 @@ struct thread_control_state
      wait_for_inferior in a minor way if this were changed to the
      address of the instruction and that address plus one.  But maybe
      not).  */
-  CORE_ADDR step_range_start;	/* Inclusive */
-  CORE_ADDR step_range_end;	/* Exclusive */
+  CORE_ADDR step_range_start = 0;	/* Inclusive */
+  CORE_ADDR step_range_end = 0;		/* Exclusive */
 
   /* Function the thread was in as of last it started stepping.  */
-  struct symbol *step_start_function;
+  struct symbol *step_start_function = nullptr;
 
   /* If GDB issues a target step request, and this is nonzero, the
      target should single-step this thread once, and then continue
@@ -86,16 +120,16 @@ struct thread_control_state
      thread stops in the step range above.  If this is zero, the
      target should ignore the step range, and only issue one single
      step.  */
-  int may_range_step;
+  int may_range_step = 0;
 
   /* Stack frame address as of when stepping command was issued.
      This is how we know when we step into a subroutine call, and how
      to set the frame for the breakpoint used to step out.  */
-  struct frame_id step_frame_id;
+  struct frame_id step_frame_id {};
 
   /* Similarly, the frame ID of the underlying stack frame (skipping
      any inlined frames).  */
-  struct frame_id step_stack_frame_id;
+  struct frame_id step_stack_frame_id {};
 
   /* Nonzero if we are presently stepping over a breakpoint.
 
@@ -119,29 +153,29 @@ struct thread_control_state
      wait_for_inferior, which calls handle_inferior_event in a loop,
      and until wait_for_inferior exits, this variable is changed only
      by keep_going.  */
-  int trap_expected;
+  int trap_expected = 0;
 
   /* Nonzero if the thread is being proceeded for a "finish" command
      or a similar situation when return value should be printed.  */
-  int proceed_to_finish;
+  int proceed_to_finish = 0;
 
   /* Nonzero if the thread is being proceeded for an inferior function
      call.  */
-  int in_infcall;
+  int in_infcall = 0;
 
-  enum step_over_calls_kind step_over_calls;
+  enum step_over_calls_kind step_over_calls = STEP_OVER_NONE;
 
   /* Nonzero if stopped due to a step command.  */
-  int stop_step;
+  int stop_step = 0;
 
   /* Chain containing status of breakpoint(s) the thread stopped
      at.  */
-  bpstat stop_bpstat;
+  bpstat stop_bpstat = nullptr;
 
   /* Whether the command that started the thread was a stepping
      command.  This is used to decide whether "set scheduler-locking
      step" behaves like "on" or "off".  */
-  int stepping_command;
+  int stepping_command = 0;
 };
 
 /* Inferior thread specific part of `struct infcall_suspend_state'.  */
@@ -155,16 +189,16 @@ struct thread_suspend_state
      "signal" command, which overrides "handle nopass".  If the signal
      should be suppressed, the core will take care of clearing this
      before the target is resumed.  */
-  enum gdb_signal stop_signal;
+  enum gdb_signal stop_signal = GDB_SIGNAL_0;
 
   /* The reason the thread last stopped, if we need to track it
      (breakpoint, watchpoint, etc.)  */
-  enum target_stop_reason stop_reason;
+  enum target_stop_reason stop_reason = TARGET_STOPPED_BY_NO_REASON;
 
   /* The waitstatus for this thread's last event.  */
-  struct target_waitstatus waitstatus;
+  struct target_waitstatus waitstatus {};
   /* If true WAITSTATUS hasn't been handled yet.  */
-  int waitstatus_pending_p;
+  int waitstatus_pending_p = 0;
 
   /* Record the pc of the thread the last time it stopped.  (This is
      not the current thread's PC as that may have changed since the
@@ -181,7 +215,7 @@ struct thread_suspend_state
 
      - If the thread is running, this is set to -1, to avoid leaving
        it with a stale value, to make it easier to catch bugs.  */
-  CORE_ADDR stop_pc;
+  CORE_ADDR stop_pc = 0;
 };
 
 /* Base class for target-specific thread data.  */
@@ -201,7 +235,7 @@ struct private_thread_info
    reverting back (e.g., due to a "kill" command).  If the thread
    meanwhile exits before being re-selected, then the thread object is
    left listed in the thread list, but marked with state
-   THREAD_EXITED.  (See make_cleanup_restore_current_thread and
+   THREAD_EXITED.  (See scoped_restore_current_thread and
    delete_thread).  All other thread references are considered weak
    references.  Placing a thread in the thread list is an implicit
    strong reference, and is thus not accounted for in the thread's
@@ -213,12 +247,7 @@ public:
   explicit thread_info (inferior *inf, ptid_t ptid);
   ~thread_info ();
 
-  bool deletable () const
-  {
-    /* If this is the current thread, or there's code out there that
-       relies on it existing (refcount > 0) we can't delete yet.  */
-    return (refcount () == 0 && ptid != inferior_ptid);
-  }
+  bool deletable () const;
 
   /* Mark this thread as running and notify observers.  */
   void set_running (bool running);
@@ -296,11 +325,11 @@ public:
 
   /* State of GDB control of inferior thread execution.
      See `struct thread_control_state'.  */
-  thread_control_state control {};
+  thread_control_state control;
 
   /* State of inferior thread to restore after GDB is done with an inferior
      call.  See `struct thread_suspend_state'.  */
-  thread_suspend_state suspend {};
+  thread_suspend_state suspend;
 
   int current_line = 0;
   struct symtab *current_symtab = NULL;
@@ -449,12 +478,16 @@ extern int valid_global_thread_id (int global_id);
 /* Search function to lookup a thread by 'pid'.  */
 extern struct thread_info *find_thread_ptid (ptid_t ptid);
 
+/* Search function to lookup a thread by 'ptid'.  Only searches in
+   threads of INF.  */
+extern struct thread_info *find_thread_ptid (inferior *inf, ptid_t ptid);
+
 /* Find thread by GDB global thread ID.  */
 struct thread_info *find_thread_global_id (int global_id);
 
 /* Find thread by thread library specific handle in inferior INF.  */
-struct thread_info *find_thread_by_handle (struct value *thread_handle,
-					   struct inferior *inf);
+struct thread_info *find_thread_by_handle
+  (gdb::array_view<const gdb_byte> handle, struct inferior *inf);
 
 /* Finds the first thread of the specified inferior.  */
 extern struct thread_info *first_thread_of_inferior (inferior *inf);
@@ -475,31 +508,60 @@ void thread_change_ptid (ptid_t old_ptid, ptid_t new_ptid);
 typedef int (*thread_callback_func) (struct thread_info *, void *);
 extern struct thread_info *iterate_over_threads (thread_callback_func, void *);
 
-/* Traverse all threads.  */
-#define ALL_THREADS(T)				\
-  for (T = thread_list; T; T = T->next)		\
+/* Pull in the internals of the inferiors/threads ranges and
+   iterators.  Must be done after struct thread_info is defined.  */
+#include "thread-iter.h"
 
-/* Traverse over all threads, sorted by inferior.  */
-#define ALL_THREADS_BY_INFERIOR(inf, tp) \
-  ALL_INFERIORS (inf) \
-    ALL_THREADS (tp) \
-      if (inf == tp->inf)
+/* Return a range that can be used to walk over all threads of all
+   inferiors, with range-for.  Used like this:
 
-/* Traverse all threads, except those that have THREAD_EXITED
-   state.  */
+       for (thread_info *thr : all_threads ())
+	 { .... }
+*/
+inline all_threads_range
+all_threads ()
+{
+  return {};
+}
 
-#define ALL_NON_EXITED_THREADS(T)				\
-  for (T = thread_list; T; T = T->next) \
-    if ((T)->state != THREAD_EXITED)
+/* Likewise, but accept a filter PTID.  */
 
-/* Traverse all threads, including those that have THREAD_EXITED
-   state.  Allows deleting the currently iterated thread.  */
-#define ALL_THREADS_SAFE(T, TMP)	\
-  for ((T) = thread_list;			\
-       (T) != NULL ? ((TMP) = (T)->next, 1): 0;	\
-       (T) = (TMP))
+inline all_matching_threads_range
+all_threads (ptid_t filter_ptid)
+{
+  return all_matching_threads_range (filter_ptid);
+}
+
+/* Return a range that can be used to walk over all non-exited threads
+   of all inferiors, with range-for.  FILTER_PTID can be used to
+   filter out thread that don't match.  */
+
+inline all_non_exited_threads_range
+all_non_exited_threads (ptid_t filter_ptid = minus_one_ptid)
+{
+  return all_non_exited_threads_range (filter_ptid);
+}
+
+/* Return a range that can be used to walk over all threads of all
+   inferiors, with range-for, safely.  I.e., it is safe to delete the
+   currently-iterated thread.  When combined with range-for, this
+   allow convenient patterns like this:
+
+     for (thread_info *t : all_threads_safe ())
+       if (some_condition ())
+	 delete f;
+*/
+
+inline all_threads_safe_range
+all_threads_safe ()
+{
+  return all_threads_safe_range ();
+}
 
 extern int thread_count (void);
+
+/* Return true if we have any thread in any inferior.  */
+extern bool any_thread_p ();
 
 /* Switch context to thread THR.  Also sets the STOP_PC global.  */
 extern void switch_to_thread (struct thread_info *thr);
@@ -526,31 +588,6 @@ extern void set_running (ptid_t ptid, int running);
    observer is called with PTID as argument.  */
 extern void set_stop_requested (ptid_t ptid, int stop);
 
-/* NOTE: Since the thread state is not a boolean, most times, you do
-   not want to check it with negation.  If you really want to check if
-   the thread is stopped,
-
-    use (good):
-
-     if (is_stopped (ptid))
-
-    instead of (bad):
-
-     if (!is_running (ptid))
-
-   The latter also returns true on exited threads, most likelly not
-   what you want.  */
-
-/* Reports if in the frontend's perpective, thread PTID is running.  */
-extern int is_running (ptid_t ptid);
-
-/* Is this thread listed, but known to have exited?  We keep it listed
-   (but not visible) until it's safe to delete.  */
-extern int is_exited (ptid_t ptid);
-
-/* In the frontend's perpective, is this thread stopped?  */
-extern int is_stopped (ptid_t ptid);
-
 /* Marks thread PTID as executing, or not.  If PTID is minus_one_ptid,
    marks all threads.
 
@@ -576,31 +613,8 @@ extern void finish_thread_state (ptid_t ptid);
 
 /* Calls finish_thread_state on scope exit, unless release() is called
    to disengage.  */
-class scoped_finish_thread_state
-{
-public:
-  explicit scoped_finish_thread_state (ptid_t ptid)
-    : m_ptid (ptid)
-  {}
-
-  ~scoped_finish_thread_state ()
-  {
-    if (!m_released)
-      finish_thread_state (m_ptid);
-  }
-
-  /* Disengage.  */
-  void release ()
-  {
-    m_released = true;
-  }
-
-  DISABLE_COPY_AND_ASSIGN (scoped_finish_thread_state);
-
-private:
-  bool m_released = false;
-  ptid_t m_ptid;
-};
+using scoped_finish_thread_state
+  = FORWARD_SCOPE_EXIT (finish_thread_state);
 
 /* Commands with a prefix of `thread'.  */
 extern struct cmd_list_element *thread_cmd_list;
@@ -618,7 +632,8 @@ extern int print_thread_events;
    all attached PIDs are printed.  If both REQUESTED_THREADS is not
    NULL and PID is not -1, then the thread is printed if it belongs to
    the specified process.  Otherwise, an error is raised.  */
-extern void print_thread_info (struct ui_out *uiout, char *requested_threads,
+extern void print_thread_info (struct ui_out *uiout,
+			       const char *requested_threads,
 			       int pid);
 
 /* Save/restore current inferior/thread/frame.  */
@@ -747,7 +762,5 @@ extern void print_selected_thread_frame (struct ui_out *uiout,
    was parsed from.  This is used in the error message if THR is not
    alive anymore.  */
 extern void thread_select (const char *tidstr, class thread_info *thr);
-
-extern struct thread_info *thread_list;
 
 #endif /* GDBTHREAD_H */

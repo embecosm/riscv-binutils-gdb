@@ -1,6 +1,6 @@
 /* Convert types from GDB to GCC
 
-   Copyright (C) 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -353,7 +353,7 @@ compile_c_instance::convert_type (struct type *type)
   type = check_typedef (type);
 
   gcc_type result;
-  if (get_cached_type (type, result))
+  if (get_cached_type (type, &result))
     return result;
 
   result = convert_type_basic (this, type);

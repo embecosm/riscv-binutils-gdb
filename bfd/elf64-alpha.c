@@ -1,5 +1,5 @@
 /* Alpha specific support for 64-bit ELF
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
    Contributed by Richard Henderson <rth@tamu.edu>.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -1467,7 +1467,7 @@ elf64_alpha_find_nearest_line (bfd *abfd, asymbol **symbols,
   if (_bfd_dwarf2_find_nearest_line (abfd, symbols, NULL, section, offset,
 				     filename_ptr, functionname_ptr,
 				     line_ptr, discriminator_ptr,
-				     dwarf_debug_sections, 0,
+				     dwarf_debug_sections,
 				     &elf_tdata (abfd)->dwarf2_find_line_info))
     return TRUE;
 
@@ -4724,7 +4724,7 @@ elf64_alpha_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 		  BFD_ASSERT (elf_hash_table (info)->tls_sec != NULL);
 		  if (r_type == R_ALPHA_GOTDTPREL)
 		    value -= dtp_base;
-		  else if (!bfd_link_pic (info))
+		  else if (bfd_link_executable (info))
 		    value -= tp_base;
 		  else
 		    {

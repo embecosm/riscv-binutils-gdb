@@ -1,6 +1,6 @@
 /* Target-dependent code for the Matsushita MN10300 for GDB, the GNU debugger.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -30,6 +30,7 @@
 #include "trad-frame.h"
 #include "tramp-frame.h"
 #include "linux-tdep.h"
+#include "gdbarch.h"
 
 /* Transliterated from <asm-mn10300/elf.h>...  */
 #define MN10300_ELF_NGREG 28
@@ -455,10 +456,10 @@ am33_iterate_over_regset_sections (struct gdbarch *gdbarch,
 				   void *cb_data,
 				   const struct regcache *regcache)
 {
-  cb (".reg", sizeof (mn10300_elf_gregset_t), &am33_gregset,
-      NULL, cb_data);
-  cb (".reg2", sizeof(mn10300_elf_fpregset_t), &am33_fpregset,
-      NULL, cb_data);
+  cb (".reg", sizeof (mn10300_elf_gregset_t), sizeof (mn10300_elf_gregset_t),
+      &am33_gregset, NULL, cb_data);
+  cb (".reg2", sizeof (mn10300_elf_fpregset_t), sizeof (mn10300_elf_fpregset_t),
+      &am33_fpregset, NULL, cb_data);
 }
 
 static void
@@ -472,13 +473,13 @@ static const struct tramp_frame am33_linux_sigframe = {
   1,
   {
     /* mov     119,d0 */
-    { 0x2c, -1 },
-    { 0x77, -1 },
-    { 0x00, -1 },
+    { 0x2c, ULONGEST_MAX },
+    { 0x77, ULONGEST_MAX },
+    { 0x00, ULONGEST_MAX },
     /* syscall 0 */
-    { 0xf0, -1 },
-    { 0xe0, -1 },
-    { TRAMP_SENTINEL_INSN, -1 }
+    { 0xf0, ULONGEST_MAX },
+    { 0xe0, ULONGEST_MAX },
+    { TRAMP_SENTINEL_INSN, ULONGEST_MAX }
   },
   am33_linux_sigframe_cache_init
 };
@@ -488,13 +489,13 @@ static const struct tramp_frame am33_linux_rt_sigframe = {
   1,
   {
     /* mov     173,d0 */
-    { 0x2c, -1 },
-    { 0xad, -1 },
-    { 0x00, -1 },
+    { 0x2c, ULONGEST_MAX },
+    { 0xad, ULONGEST_MAX },
+    { 0x00, ULONGEST_MAX },
     /* syscall 0 */
-    { 0xf0, -1 },
-    { 0xe0, -1 },
-    { TRAMP_SENTINEL_INSN, -1 }
+    { 0xf0, ULONGEST_MAX },
+    { 0xe0, ULONGEST_MAX },
+    { TRAMP_SENTINEL_INSN, ULONGEST_MAX }
   },
   am33_linux_sigframe_cache_init
 };

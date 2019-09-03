@@ -1,5 +1,5 @@
 /* Target-dependent code for GNU/Linux on Nios II.
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
    Contributed by Mentor Graphics, Inc.
 
    This file is part of GDB.
@@ -29,6 +29,7 @@
 #include "linux-tdep.h"
 #include "glibc-tdep.h"
 #include "nios2-tdep.h"
+#include "gdbarch.h"
 
 /* Core file and register set support.  */
 
@@ -106,7 +107,8 @@ nios2_iterate_over_regset_sections (struct gdbarch *gdbarch,
 				    void *cb_data,
 				    const struct regcache *regcache)
 {
-  cb (".reg", NIOS2_GREGS_SIZE, &nios2_core_regset, NULL, cb_data);
+  cb (".reg", NIOS2_GREGS_SIZE, NIOS2_GREGS_SIZE, &nios2_core_regset, NULL,
+      cb_data);
 }
 
 /* Initialize a trad-frame cache corresponding to the tramp-frame.
@@ -162,8 +164,8 @@ static struct tramp_frame nios2_r1_linux_rt_sigreturn_tramp_frame =
   SIGTRAMP_FRAME,
   4,
   {
-    { MATCH_R1_MOVI | SET_IW_I_B (2) | SET_IW_I_IMM16 (139), -1 },
-    { MATCH_R1_TRAP | SET_IW_R_IMM5 (0), -1},
+    { MATCH_R1_MOVI | SET_IW_I_B (2) | SET_IW_I_IMM16 (139), ULONGEST_MAX },
+    { MATCH_R1_TRAP | SET_IW_R_IMM5 (0), ULONGEST_MAX},
     { TRAMP_SENTINEL_INSN }
   },
   nios2_linux_rt_sigreturn_init
@@ -174,8 +176,8 @@ static struct tramp_frame nios2_r2_linux_rt_sigreturn_tramp_frame =
   SIGTRAMP_FRAME,
   4,
   {
-    { MATCH_R2_MOVI | SET_IW_F2I16_B (2) | SET_IW_F2I16_IMM16 (139), -1 },
-    { MATCH_R2_TRAP | SET_IW_X2L5_IMM5 (0), -1},
+    { MATCH_R2_MOVI | SET_IW_F2I16_B (2) | SET_IW_F2I16_IMM16 (139), ULONGEST_MAX },
+    { MATCH_R2_TRAP | SET_IW_X2L5_IMM5 (0), ULONGEST_MAX},
     { TRAMP_SENTINEL_INSN }
   },
   nios2_linux_rt_sigreturn_init
@@ -197,6 +199,17 @@ nios2_linux_syscall_next_pc (struct frame_info *frame,
     return frame_unwind_caller_pc (frame);
 
   return pc + op->size;
+}
+
+/* Return true if PC is a kernel helper, a function mapped by the kernel
+   into user space on an unwritable page.  Currently the only such function
+   is __kuser_cmpxchg at 0x1004.  See arch/nios2/kernel/entry.S in the Linux
+   kernel sources and sysdeps/unix/sysv/linux/nios2/atomic-machine.h in
+   GLIBC.  */
+static bool
+nios2_linux_is_kernel_helper (CORE_ADDR pc)
+{
+  return pc == 0x1004;
 }
 
 /* Hook function for gdbarch_register_osabi.  */
@@ -229,6 +242,7 @@ nios2_linux_init_abi (struct gdbarch_info info, struct gdbarch *gdbarch)
 				  &nios2_r1_linux_rt_sigreturn_tramp_frame);
 
   tdep->syscall_next_pc = nios2_linux_syscall_next_pc;
+  tdep->is_kernel_helper = nios2_linux_is_kernel_helper;
 
   /* Index of target address word in glibc jmp_buf.  */
   tdep->jb_pc = 10;

@@ -1,6 +1,6 @@
 /* Native-dependent code for FreeBSD.
 
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,14 +18,15 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "defs.h"
-#include "byte-vector.h"
+#include "gdbsupport/byte-vector.h"
 #include "gdbcore.h"
 #include "inferior.h"
 #include "regcache.h"
 #include "regset.h"
+#include "gdbarch.h"
 #include "gdbcmd.h"
 #include "gdbthread.h"
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include "inf-ptrace.h"
 #include <sys/types.h>
 #include <sys/procfs.h>
@@ -37,7 +38,7 @@
 #include <libutil.h>
 #endif
 #if !defined(HAVE_KINFO_GETVMMAP)
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #endif
 
 #include "elf-bfd.h"
@@ -231,6 +232,13 @@ fbsd_fetch_cmdline (pid_t pid)
   if (sysctl (mib, 4, cmdline.get (), &len, NULL, 0) == -1)
     return nullptr;
 
+  /* Join the arguments with spaces to form a single string.  */
+  char *cp = cmdline.get ();
+  for (size_t i = 0; i < len - 1; i++)
+    if (cp[i] == '\0')
+      cp[i] = ' ';
+  cp[len - 1] = '\0';
+
   return cmdline;
 }
 
@@ -261,11 +269,13 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
   int nfd = 0;
 #endif
   struct kinfo_proc kp;
-  char *tmp;
   pid_t pid;
   bool do_cmdline = false;
   bool do_cwd = false;
   bool do_exe = false;
+#ifdef HAVE_KINFO_GETFILE
+  bool do_files = false;
+#endif
 #ifdef HAVE_KINFO_GETVMMAP
   bool do_mappings = false;
 #endif
@@ -296,10 +306,18 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
     case IP_CWD:
       do_cwd = true;
       break;
+#ifdef HAVE_KINFO_GETFILE
+    case IP_FILES:
+      do_files = true;
+      break;
+#endif
     case IP_ALL:
       do_cmdline = true;
       do_cwd = true;
       do_exe = true;
+#ifdef HAVE_KINFO_GETFILE
+      do_files = true;
+#endif
 #ifdef HAVE_KINFO_GETVMMAP
       do_mappings = true;
 #endif
@@ -323,7 +341,7 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
 
   printf_filtered (_("process %d\n"), pid);
 #ifdef HAVE_KINFO_GETFILE
-  if (do_cwd || do_exe)
+  if (do_cwd || do_exe || do_files)
     fdtbl.reset (kinfo_getfile (pid, &nfd));
 #endif
 
@@ -375,6 +393,25 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
       else
 	warning (_("unable to fetch executable path name"));
     }
+#ifdef HAVE_KINFO_GETFILE
+  if (do_files)
+    {
+      struct kinfo_file *kf = fdtbl.get ();
+
+      if (nfd > 0)
+	{
+	  fbsd_info_proc_files_header ();
+	  for (int i = 0; i < nfd; i++, kf++)
+	    fbsd_info_proc_files_entry (kf->kf_type, kf->kf_fd, kf->kf_flags,
+					kf->kf_offset, kf->kf_vnode_type,
+					kf->kf_sock_domain, kf->kf_sock_type,
+					kf->kf_sock_protocol, &kf->kf_sa_local,
+					&kf->kf_sa_peer, kf->kf_path);
+	}
+      else
+	warning (_("unable to fetch list of open files"));
+    }
+#endif
 #ifdef HAVE_KINFO_GETVMMAP
   if (do_mappings)
     {
@@ -384,46 +421,15 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
 
       if (vmentl != nullptr)
 	{
-	  printf_filtered (_("Mapped address spaces:\n\n"));
-#ifdef __LP64__
-	  printf_filtered ("  %18s %18s %10s %10s %9s %s\n",
-			   "Start Addr",
-			   "  End Addr",
-			   "      Size", "    Offset", "Flags  ", "File");
-#else
-	  printf_filtered ("\t%10s %10s %10s %10s %9s %s\n",
-			   "Start Addr",
-			   "  End Addr",
-			   "      Size", "    Offset", "Flags  ", "File");
-#endif
+	  int addr_bit = TARGET_CHAR_BIT * sizeof (void *);
+	  fbsd_info_proc_mappings_header (addr_bit);
 
 	  struct kinfo_vmentry *kve = vmentl.get ();
 	  for (int i = 0; i < nvment; i++, kve++)
-	    {
-	      ULONGEST start, end;
-
-	      start = kve->kve_start;
-	      end = kve->kve_end;
-#ifdef __LP64__
-	      printf_filtered ("  %18s %18s %10s %10s %9s %s\n",
-			       hex_string (start),
-			       hex_string (end),
-			       hex_string (end - start),
-			       hex_string (kve->kve_offset),
-			       fbsd_vm_map_entry_flags (kve->kve_flags,
-							kve->kve_protection),
-			       kve->kve_path);
-#else
-	      printf_filtered ("\t%10s %10s %10s %10s %9s %s\n",
-			       hex_string (start),
-			       hex_string (end),
-			       hex_string (end - start),
-			       hex_string (kve->kve_offset),
-			       fbsd_vm_map_entry_flags (kve->kve_flags,
-							kve->kve_protection),
-			       kve->kve_path);
-#endif
-	    }
+	    fbsd_info_proc_mappings_entry (addr_bit, kve->kve_start,
+					   kve->kve_end, kve->kve_offset,
+					   kve->kve_flags, kve->kve_protection,
+					   kve->kve_path);
 	}
       else
 	warning (_("unable to fetch virtual memory map"));
@@ -534,9 +540,17 @@ fbsd_nat_target::info_proc (const char *args, enum info_proc_what what)
   return true;
 }
 
-#ifdef KERN_PROC_AUXV
+/*
+ * The current layout of siginfo_t on FreeBSD was adopted in SVN
+ * revision 153154 which shipped in FreeBSD versions 7.0 and later.
+ * Don't bother supporting the older layout on older kernels.  The
+ * older format was also never used in core dump notes.
+ */
+#if __FreeBSD_version >= 700009
+#define USE_SIGINFO
+#endif
 
-#ifdef PT_LWPINFO
+#ifdef USE_SIGINFO
 /* Return the size of siginfo for the current inferior.  */
 
 #ifdef __LP64__
@@ -678,7 +692,7 @@ fbsd_nat_target::xfer_partial (enum target_object object,
 
   switch (object)
     {
-#ifdef PT_LWPINFO
+#ifdef USE_SIGINFO
     case TARGET_OBJECT_SIGNAL_INFO:
       {
 	struct ptrace_lwpinfo pl;
@@ -710,6 +724,7 @@ fbsd_nat_target::xfer_partial (enum target_object object,
 	return TARGET_XFER_OK;
       }
 #endif
+#ifdef KERN_PROC_AUXV
     case TARGET_OBJECT_AUXV:
       {
 	gdb::byte_vector buf_storage;
@@ -751,13 +766,70 @@ fbsd_nat_target::xfer_partial (enum target_object object,
 	  }
 	return TARGET_XFER_E_IO;
       }
+#endif
+#if defined(KERN_PROC_VMMAP) && defined(KERN_PROC_PS_STRINGS)
+    case TARGET_OBJECT_FREEBSD_VMMAP:
+    case TARGET_OBJECT_FREEBSD_PS_STRINGS:
+      {
+	gdb::byte_vector buf_storage;
+	gdb_byte *buf;
+	size_t buflen;
+	int mib[4];
+
+	int proc_target;
+	uint32_t struct_size;
+	switch (object)
+	  {
+	  case TARGET_OBJECT_FREEBSD_VMMAP:
+	    proc_target = KERN_PROC_VMMAP;
+	    struct_size = sizeof (struct kinfo_vmentry);
+	    break;
+	  case TARGET_OBJECT_FREEBSD_PS_STRINGS:
+	    proc_target = KERN_PROC_PS_STRINGS;
+	    struct_size = sizeof (void *);
+	    break;
+	  }
+
+	if (writebuf != NULL)
+	  return TARGET_XFER_E_IO;
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_PROC;
+	mib[2] = proc_target;
+	mib[3] = pid;
+
+	if (sysctl (mib, 4, NULL, &buflen, NULL, 0) != 0)
+	  return TARGET_XFER_E_IO;
+	buflen += sizeof (struct_size);
+
+	if (offset >= buflen)
+	  {
+	    *xfered_len = 0;
+	    return TARGET_XFER_EOF;
+	  }
+
+	buf_storage.resize (buflen);
+	buf = buf_storage.data ();
+
+	memcpy (buf, &struct_size, sizeof (struct_size));
+	buflen -= sizeof (struct_size);
+	if (sysctl (mib, 4, buf + sizeof (struct_size), &buflen, NULL, 0) != 0)
+	  return TARGET_XFER_E_IO;
+	buflen += sizeof (struct_size);
+
+	if (buflen - offset < len)
+	  len = buflen - offset;
+	memcpy (readbuf, buf + offset, len);
+	*xfered_len = len;
+	return TARGET_XFER_OK;
+      }
+#endif
     default:
       return inf_ptrace_target::xfer_partial (object, annex,
 					      readbuf, writebuf, offset,
 					      len, xfered_len);
     }
 }
-#endif
 
 #ifdef PT_LWPINFO
 static int debug_fbsd_lwp;
@@ -826,10 +898,9 @@ fbsd_nat_target::thread_alive (ptid_t ptid)
   return true;
 }
 
-/* Convert PTID to a string.  Returns the string in a static
-   buffer.  */
+/* Convert PTID to a string.  */
 
-const char *
+std::string
 fbsd_nat_target::pid_to_str (ptid_t ptid)
 {
   lwpid_t lwp;
@@ -837,11 +908,9 @@ fbsd_nat_target::pid_to_str (ptid_t ptid)
   lwp = ptid.lwp ();
   if (lwp != 0)
     {
-      static char buf[64];
       int pid = ptid.pid ();
 
-      xsnprintf (buf, sizeof buf, "LWP %d of process %d", lwp, pid);
-      return buf;
+      return string_printf ("LWP %d of process %d", lwp, pid);
     }
 
   return normal_pid_to_str (ptid);
@@ -1105,13 +1174,11 @@ fbsd_nat_target::resume (ptid_t ptid, int step, enum gdb_signal signo)
   if (ptid.lwp_p ())
     {
       /* If ptid is a specific LWP, suspend all other LWPs in the process.  */
-      struct thread_info *tp;
-      int request;
+      inferior *inf = find_inferior_ptid (ptid);
 
-      ALL_NON_EXITED_THREADS (tp)
+      for (thread_info *tp : inf->non_exited_threads ())
         {
-	  if (tp->ptid.pid () != ptid.pid ())
-	    continue;
+	  int request;
 
 	  if (tp->ptid.lwp () == ptid.lwp ())
 	    request = PT_RESUME;
@@ -1126,16 +1193,9 @@ fbsd_nat_target::resume (ptid_t ptid, int step, enum gdb_signal signo)
     {
       /* If ptid is a wildcard, resume all matching threads (they won't run
 	 until the process is continued however).  */
-      struct thread_info *tp;
-
-      ALL_NON_EXITED_THREADS (tp)
-        {
-	  if (!tp->ptid.matches (ptid))
-	    continue;
-
-	  if (ptrace (PT_RESUME, tp->ptid.lwp (), NULL, 0) == -1)
-	    perror_with_name (("ptrace"));
-	}
+      for (thread_info *tp : all_non_exited_threads (ptid))
+	if (ptrace (PT_RESUME, tp->ptid.lwp (), NULL, 0) == -1)
+	  perror_with_name (("ptrace"));
       ptid = inferior_ptid;
     }
 
@@ -1183,8 +1243,14 @@ fbsd_handle_debug_trap (ptid_t ptid, const struct ptrace_lwpinfo &pl)
 {
 
   /* Ignore traps without valid siginfo or for signals other than
-     SIGTRAP.  */
-  if (! (pl.pl_flags & PL_FLAG_SI) || pl.pl_siginfo.si_signo != SIGTRAP)
+     SIGTRAP.
+
+     FreeBSD kernels prior to r341800 can return stale siginfo for at
+     least some events, but those events can be identified by
+     additional flags set in pl_flags.  True breakpoint and
+     single-step traps should not have other flags set in
+     pl_flags.  */
+  if (pl.pl_flags != PL_FLAG_SI || pl.pl_siginfo.si_signo != SIGTRAP)
     return false;
 
   /* Trace traps are either a single step or a hardware watchpoint or
@@ -1282,8 +1348,8 @@ fbsd_nat_target::wait (ptid_t ptid, struct target_waitstatus *ourstatus,
 					"FLWP: deleting thread for LWP %u\n",
 					pl.pl_lwpid);
 		  if (print_thread_events)
-		    printf_unfiltered (_("[%s exited]\n"), target_pid_to_str
-				       (wptid));
+		    printf_unfiltered (_("[%s exited]\n"),
+				       target_pid_to_str (wptid).c_str ());
 		  delete_thread (thr);
 		}
 	      if (ptrace (PT_CONTINUE, pid, (caddr_t) 1, 0) == -1)
@@ -1462,7 +1528,7 @@ fbsd_nat_target::stopped_by_sw_breakpoint ()
 	      sizeof pl) == -1)
     return false;
 
-  return ((pl.pl_flags & PL_FLAG_SI)
+  return (pl.pl_flags == PL_FLAG_SI
 	  && pl.pl_siginfo.si_signo == SIGTRAP
 	  && pl.pl_siginfo.si_code == TRAP_BRKPT);
 }

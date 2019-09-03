@@ -1,5 +1,5 @@
 /* IBM S/390-specific support for 64-bit ELF
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
    Contributed Martin Schwidefsky (schwidefsky@de.ibm.com).
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -1301,9 +1301,7 @@ elf_s390_check_relocs (bfd *abfd,
 	  /* This relocation describes which C++ vtable entries are actually
 	     used.  Record for later use during GC.  */
 	case R_390_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 
@@ -2119,7 +2117,11 @@ elf_s390_relocate_section (bfd *output_bfd,
   Elf_Internal_Rela *rel;
   Elf_Internal_Rela *relend;
 
-  BFD_ASSERT (is_s390_elf (input_bfd));
+  if (!is_s390_elf (input_bfd))
+    {
+      bfd_set_error (bfd_error_wrong_format);
+      return FALSE;
+    }
 
   htab = elf_s390_hash_table (info);
   if (htab == NULL)
@@ -2341,6 +2343,9 @@ elf_s390_relocate_section (bfd *output_bfd,
 			   && SYMBOL_REFERENCES_LOCAL (info, h))
 		       || resolved_to_zero)
 		{
+		  Elf_Internal_Sym *isym;
+		  asection *sym_sec;
+
 		  /* This is actually a static link, or it is a
 		     -Bsymbolic link and the symbol is defined
 		     locally, or the symbol was forced to be local
@@ -2362,6 +2367,10 @@ elf_s390_relocate_section (bfd *output_bfd,
 		      h->got.offset |= 1;
 		    }
 
+		  /* When turning a GOT slot dereference into a direct
+		     reference using larl we have to make sure that
+		     the symbol is 1. properly aligned and 2. it is no
+		     ABS symbol or will become one.  */
 		  if ((h->def_regular
 		       && bfd_link_pic (info)
 		       && SYMBOL_REFERENCES_LOCAL (info, h))
@@ -2376,8 +2385,17 @@ elf_s390_relocate_section (bfd *output_bfd,
 					      contents + rel->r_offset - 2)
 				  & 0xff00f000) == 0xe300c000
 			      && bfd_get_8 (input_bfd,
-					    contents + rel->r_offset + 3) == 0x04)))
-
+					    contents + rel->r_offset + 3) == 0x04))
+		      && (isym = bfd_sym_from_r_symndx (&htab->sym_cache,
+							input_bfd, r_symndx))
+		      && isym->st_shndx != SHN_ABS
+		      && h != htab->elf.hdynamic
+		      && h != htab->elf.hgot
+		      && h != htab->elf.hplt
+		      && !(isym->st_value & 1)
+		      && (sym_sec = bfd_section_from_elf_index (input_bfd,
+								isym->st_shndx))
+		      && sym_sec->alignment_power)
 		    {
 		      unsigned short new_insn =
 			(0xc000 | (bfd_get_8 (input_bfd,

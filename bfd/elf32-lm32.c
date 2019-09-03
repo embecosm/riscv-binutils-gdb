@@ -1,5 +1,5 @@
 /* Lattice Mico32-specific support for 32-bit ELF
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
    Contributed by Jon Beniston <jon@beniston.com>
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -555,8 +555,8 @@ lm32_elf_object_p (bfd *abfd)
 
 /* Set machine type flags just before file is written out. */
 
-static void
-lm32_elf_final_write_processing (bfd *abfd, bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+lm32_elf_final_write_processing (bfd *abfd)
 {
   elf_elfheader (abfd)->e_machine = EM_LATTICEMICO32;
   elf_elfheader (abfd)->e_flags &=~ EF_LM32_MACH;
@@ -568,6 +568,7 @@ lm32_elf_final_write_processing (bfd *abfd, bfd_boolean linker ATTRIBUTE_UNUSED)
       default:
 	abort ();
     }
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Set the GP value for OUTPUT_BFD.  Returns FALSE if this is a
@@ -1444,7 +1445,8 @@ lm32_elf_finish_dynamic_sections (bfd *output_bfd,
 	      FALSE, FALSE, TRUE);
       if (hend
 	  && (hend->type == bfd_link_hash_defined
-	      || hend->type == bfd_link_hash_defweak))
+	      || hend->type == bfd_link_hash_defweak)
+	  && hend->u.def.section->output_section != NULL)
 	{
 	  bfd_vma value =
 	    lm32fdpic_fixup32_section (info)->output_section->vma

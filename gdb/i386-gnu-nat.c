@@ -1,6 +1,6 @@
 /* Low level interface to i386 running the GNU Hurd.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,6 +16,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+/* Include this first, to pick up the <mach.h> 'thread_info' diversion.  */
+#include "gnu-nat.h"
 
 /* Mach/Hurd headers are not yet ready for C++ compilation.  */
 extern "C"
@@ -34,7 +37,6 @@ extern "C"
 
 #include "i386-tdep.h"
 
-#include "gnu-nat.h"
 #include "inf-child.h"
 #include "i387-tdep.h"
 
@@ -103,9 +105,8 @@ fetch_fpregs (struct regcache *regcache, struct proc *thread)
 }
 
 /* Fetch register REGNO, or all regs if REGNO is -1.  */
-static void
-gnu_fetch_registers (struct target_ops *ops,
-		     struct regcache *regcache, int regno)
+void
+i386_gnu_nat_target::fetch_registers (struct regcache *regcache, int regno)
 {
   struct proc *thread;
   ptid_t ptid = regcache->ptid ();
@@ -116,7 +117,7 @@ gnu_fetch_registers (struct target_ops *ops,
   thread = inf_tid_to_thread (gnu_current_inf, ptid.lwp ());
   if (!thread)
     error (_("Can't fetch registers from thread %s: No such thread"),
-	   target_pid_to_str (ptid));
+	   target_pid_to_str (ptid).c_str ());
 
   if (regno < I386_NUM_GREGS || regno == -1)
     {
@@ -194,9 +195,8 @@ store_fpregs (const struct regcache *regcache, struct proc *thread, int regno)
 }
 
 /* Store at least register REGNO, or all regs if REGNO == -1.  */
-static void
-gnu_store_registers (struct target_ops *ops,
-		     struct regcache *regcache, int regno)
+void
+i386_gnu_nat_target::store_registers (struct regcache *regcache, int regno)
 {
   struct proc *thread;
   struct gdbarch *gdbarch = regcache->arch ();
@@ -208,7 +208,7 @@ gnu_store_registers (struct target_ops *ops,
   thread = inf_tid_to_thread (gnu_current_inf, ptid.lwp ());
   if (!thread)
     error (_("Couldn't store registers into thread %s: No such thread"),
-	   target_pid_to_str (ptid));
+	   target_pid_to_str (ptid).c_str ());
 
   if (regno < I386_NUM_GREGS || regno == -1)
     {

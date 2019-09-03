@@ -1,6 +1,6 @@
 /* Target-dependent code for the Matsushita MN10300 for GDB, the GNU debugger.
 
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -1098,15 +1098,6 @@ mn10300_frame_base (struct frame_info *this_frame, void **this_prologue_cache)
     }
 }
 
-/* Here is a dummy implementation.  */
-static struct frame_id
-mn10300_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  CORE_ADDR sp = get_frame_register_unsigned (this_frame, E_SP_REGNUM);
-  CORE_ADDR pc = get_frame_register_unsigned (this_frame, E_PC_REGNUM);
-  return frame_id_build (sp, pc);
-}
-
 static void
 mn10300_frame_this_id (struct frame_info *this_frame,
 		       void **this_prologue_cache,
@@ -1149,32 +1140,11 @@ static const struct frame_unwind mn10300_frame_unwind = {
   default_frame_sniffer
 };
 
-static CORE_ADDR
-mn10300_unwind_pc (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  ULONGEST pc;
-
-  pc = frame_unwind_register_unsigned (this_frame, E_PC_REGNUM);
-  return pc;
-}
-
-static CORE_ADDR
-mn10300_unwind_sp (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  ULONGEST sp;
-
-  sp = frame_unwind_register_unsigned (this_frame, E_SP_REGNUM);
-  return sp;
-}
-
 static void
 mn10300_frame_unwind_init (struct gdbarch *gdbarch)
 {
   dwarf2_append_unwinders (gdbarch);
   frame_unwind_append_unwinder (gdbarch, &mn10300_frame_unwind);
-  set_gdbarch_dummy_id (gdbarch, mn10300_dummy_id);
-  set_gdbarch_unwind_pc (gdbarch, mn10300_unwind_pc);
-  set_gdbarch_unwind_sp (gdbarch, mn10300_unwind_sp);
 }
 
 /* Function: push_dummy_call
@@ -1191,7 +1161,7 @@ mn10300_push_dummy_call (struct gdbarch *gdbarch,
 			 CORE_ADDR bp_addr, 
 			 int nargs, struct value **args,
 			 CORE_ADDR sp, 
-			 int struct_return,
+			 function_call_return_method return_method,
 			 CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -1211,7 +1181,7 @@ mn10300_push_dummy_call (struct gdbarch *gdbarch,
 
      XXX This doesn't appear to handle pass-by-invisible reference
      arguments.  */
-  regs_used = struct_return ? 1 : 0;
+  regs_used = (return_method == return_method_struct) ? 1 : 0;
   for (len = 0, argnum = 0; argnum < nargs; argnum++)
     {
       arg_len = (TYPE_LENGTH (value_type (args[argnum])) + 3) & ~3;
@@ -1226,7 +1196,7 @@ mn10300_push_dummy_call (struct gdbarch *gdbarch,
   /* Allocate stack space.  */
   sp -= len;
 
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       regs_used = 1;
       regcache_cooked_write_unsigned (regcache, E_D0_REGNUM, struct_addr);
@@ -1308,7 +1278,7 @@ mn10300_push_dummy_call (struct gdbarch *gdbarch,
   {
     CORE_ADDR func_addr = find_function_addr (target_func, NULL);
     CORE_ADDR unwound_sp 
-      = mn10300_unwind_sp (gdbarch, create_new_frame (sp, func_addr));
+      = gdbarch_unwind_sp (gdbarch, create_new_frame (sp, func_addr));
     if (sp != unwound_sp)
       regcache_cooked_write_unsigned (regcache, E_SP_REGNUM,
                                       sp - (unwound_sp - sp));

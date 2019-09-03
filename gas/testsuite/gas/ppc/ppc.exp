@@ -1,4 +1,4 @@
-# Copyright (C) 2012-2018 Free Software Foundation, Inc.
+# Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,6 +22,19 @@ if { ![istarget "powerpc*-*-*"] && ![istarget "rs6000-*-*"] } then {
     return
 }
 
+proc supports_ppc64 { } {
+    global AS
+    if { [catch "exec $AS -a64 < /dev/null"] } then {
+	return 0
+    } else {
+	return 1
+    }
+}
+
+run_dump_test "bcyerr"
+run_dump_test "bcy"
+run_dump_test "bcaterr"
+run_dump_test "bcat"
 run_dump_test "regnames"
 run_dump_test "misalign"
 run_dump_test "misalign2"
@@ -38,6 +51,7 @@ if { [istarget "*-*-aix*"]
     run_dump_test "test2xcoff32"
     run_dump_test "altivec_xcoff"
     run_dump_test "altivec_xcoff64"
+    run_dump_test "groupnop"
 }
 
 # These tests are currently ELF specific, only because nobody has
@@ -92,6 +106,7 @@ run_dump_test "altivec2"
 run_dump_test "altivec3"
 run_dump_test "broadway"
 run_dump_test "booke"
+run_dump_test "groupnop"
 run_dump_test "e500"
 run_list_test "e500-ill" "-me500"
 run_dump_test "ppc750ps"
@@ -110,3 +125,8 @@ run_dump_test "vsx2"
 run_dump_test "vsx3"
 run_dump_test "htm"
 run_dump_test "titan"
+run_dump_test "prefix-align"
+run_dump_test "prefix-pcrel"
+if { [supports_ppc64] } then {
+    run_dump_test "prefix-reloc"
+}

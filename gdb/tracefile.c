@@ -1,6 +1,6 @@
 /* Trace file support in GDB.
 
-   Copyright (C) 1997-2018 Free Software Foundation, Inc.
+   Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,7 +22,8 @@
 #include "ctf.h"
 #include "exec.h"
 #include "regcache.h"
-#include "common/byte-vector.h"
+#include "gdbsupport/byte-vector.h"
+#include "gdbarch.h"
 
 /* Helper macros.  */
 
@@ -468,11 +469,6 @@ tracefile_target::get_trace_status (struct trace_status *ts)
      trace files, so nothing to do here.  */
 
   return -1;
-}
-
-tracefile_target::tracefile_target ()
-{
-  this->to_stratum = process_stratum;
 }
 
 void

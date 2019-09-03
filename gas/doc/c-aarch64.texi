@@ -1,4 +1,4 @@
-@c Copyright (C) 2009-2018 Free Software Foundation, Inc.
+@c Copyright (C) 2009-2019 Free Software Foundation, Inc.
 @c Contributed by ARM Ltd.
 @c This is part of the GAS manual.
 @c For copying conditions, see the file as.texinfo.
@@ -55,16 +55,24 @@ file in ELF32 and ELF64 format respectively.  The default is @code{lp64}.
 This option specifies the target processor.  The assembler will issue an error
 message if an attempt is made to assemble an instruction which will not execute
 on the target processor.  The following processor names are recognized:
+@code{cortex-a34},
 @code{cortex-a35},
 @code{cortex-a53},
 @code{cortex-a55},
 @code{cortex-a57},
+@code{cortex-a65},
+@code{cortex-a65ae},
 @code{cortex-a72},
 @code{cortex-a73},
 @code{cortex-a75},
 @code{cortex-a76},
+@code{cortex-a76ae},
+@code{cortex-a77},
+@code{ares},
 @code{exynos-m1},
 @code{falkor},
+@code{neoverse-n1},
+@code{neoverse-e1},
 @code{qdf24xx},
 @code{saphira},
 @code{thunderx},
@@ -91,7 +99,8 @@ This option specifies the target architecture.  The assembler will
 issue an error message if an attempt is made to assemble an
 instruction which will not execute on the target architecture.  The
 following architecture names are recognized: @code{armv8-a},
-@code{armv8.1-a}, @code{armv8.2-a}, @code{armv8.3-a} and @code{armv8.4-a}.
+@code{armv8.1-a}, @code{armv8.2-a}, @code{armv8.3-a}, @code{armv8.4-a}
+and @code{armv8.5-a}.
 
 If both @option{-mcpu} and @option{-march} are specified, the
 assembler will use the setting for @option{-mcpu}.  If neither are
@@ -180,6 +189,29 @@ automatically cause those extensions to be disabled.
 @item @code{fp16fml} @tab ARMv8.2-A @tab ARMv8.4-A or later
  @tab Enable ARMv8.2 16-bit floating-point multiplication variant support.
  This implies @code{fp16}.
+@item @code{sb} @tab ARMv8-A @tab ARMv8.5-A or later
+ @tab Enable the speculation barrier instruction sb.
+@item @code{predres} @tab ARMv8-A @tab ARMv8.5-A or later
+ @tab Enable the Execution and Data and Prediction instructions.
+@item @code{rng} @tab ARMv8.5-A @tab No
+ @tab Enable ARMv8.5-A random number instructions.
+@item @code{ssbs} @tab ARMv8-A @tab ARMv8.5-A or later
+ @tab Enable Speculative Store Bypassing Safe state read and write.
+@item @code{memtag} @tab ARMv8.5-A @tab No
+ @tab Enable ARMv8.5-A Memory Tagging Extensions.
+@item @code{tme} @tab ARMv8-A @tab No
+ @tab Enable Transactional Memory Extensions.
+@item @code{sve2} @tab ARMv8-A @tab No
+ @tab Enable the SVE2 Extension.
+@item @code{sve2-bitperm} @tab ARMv8-A @tab No
+ @tab Enable SVE2 BITPERM Extension.
+@item @code{sve2-sm4} @tab ARMv8-A @tab No
+ @tab Enable SVE2 SM4 Extension.
+@item @code{sve2-aes} @tab ARMv8-A @tab No
+ @tab Enable SVE2 AES Extension.  This also enables the .Q->.B form of the
+ @code{pmullt} and @code{pmullb} instructions.
+@item @code{sve2-sha3} @tab ARMv8-A @tab No
+ @tab Enable SVE2 SHA3 Extension.
 @end multitable
 
 @node AArch64 Syntax
@@ -326,6 +358,14 @@ The @code{.even} directive aligns the output on the next even byte
 boundary.
 
 @c FFFFFFFFFFFFFFFFFFFFFFFFFF
+
+@cindex @code{.float16} directive, AArch64
+@item .float16 @var{value [,...,value_n]}
+Place the half precision floating point representation of one or more
+floating-point values into the current section.
+The format used to encode the floating point values is always the
+IEEE 754-2008 half precision floating point format.
+
 @c GGGGGGGGGGGGGGGGGGGGGGGGGG
 @c HHHHHHHHHHHHHHHHHHHHHHHHHH
 @c IIIIIIIIIIIIIIIIIIIIIIIIII
@@ -413,6 +453,12 @@ should only be done if it is really necessary.
 
 @c VVVVVVVVVVVVVVVVVVVVVVVVVV
 
+@cindex @code{.variant_pcs} directive, AArch64
+@item .variant_pcs @var{symbol}
+This directive marks @var{symbol} referencing a function that may
+follow a variant procedure call standard with different register
+usage convention from the base procedure call standard.
+
 @c WWWWWWWWWWWWWWWWWWWWWWWWWW
 @c XXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -423,6 +469,14 @@ as the @code{.dword} directive.
 
 @c YYYYYYYYYYYYYYYYYYYYYYYYYY
 @c ZZZZZZZZZZZZZZZZZZZZZZZZZZ
+
+@cindex @code{.cfi_b_key_frame} directive, AArch64
+@item	@code{.cfi_b_key_frame}
+The @code{.cfi_b_key_frame} directive inserts a 'B' character into the CIE
+corresponding to the current frame's FDE, meaning that its return address has
+been signed with the B-key.  If two frames are signed with differing keys then
+they will not share the same CIE.  This information is intended to be used by
+the stack unwinder in order to properly authenticate return addresses.
 
 @end table
 

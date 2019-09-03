@@ -1,6 +1,6 @@
 /* GDB commands implemented in Scheme.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -758,7 +758,8 @@ gdbscm_register_command_x (SCM self)
   c_smob->cmd_name = gdbscm_gc_xstrdup (cmd_name);
   xfree (cmd_name);
 
-  TRY
+  gdbscm_gdb_exception exc {};
+  try
     {
       if (c_smob->is_prefix)
 	{
@@ -776,11 +777,11 @@ gdbscm_register_command_x (SCM self)
 			 c_smob->doc, cmd_list);
 	}
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
-      GDBSCM_HANDLE_GDB_EXCEPTION (except);
+      exc = unpack (except);
     }
-  END_CATCH
+  GDBSCM_HANDLE_GDB_EXCEPTION (exc);
 
   /* Note: At this point the command exists in gdb.
      So no more errors after this point.  */

@@ -1,6 +1,6 @@
 /* Definitions for reading symbol files into GDB.
 
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -26,7 +26,7 @@
 #include "symfile-add-flags.h"
 #include "objfile-flags.h"
 #include "gdb_bfd.h"
-#include "common/function-view.h"
+#include "gdbsupport/function-view.h"
 
 /* Opaque declarations.  */
 struct target_section;
@@ -227,7 +227,7 @@ struct quick_symbol_functions
   void (*map_matching_symbols) (struct objfile *,
 				const char *name, domain_enum domain,
 				int global,
-				int (*callback) (struct block *,
+				int (*callback) (const struct block *,
 						 struct symbol *, void *),
 				void *data,
 				symbol_name_match_type match,
@@ -292,7 +292,8 @@ struct quick_symbol_functions
 struct sym_probe_fns
 {
   /* If non-NULL, return a reference to vector of probe objects.  */
-  const std::vector<probe *> &(*sym_get_probes) (struct objfile *);
+  const std::vector<std::unique_ptr<probe>> &(*sym_get_probes)
+    (struct objfile *);
 };
 
 /* Structure to keep track of symbol reading functions for various
@@ -531,6 +532,12 @@ void expand_symtabs_matching
 void map_symbol_filenames (symbol_filename_ftype *fun, void *data,
 			   int need_fullname);
 
+/* Target-agnostic function to load the sections of an executable into memory.
+
+   ARGS should be in the form "EXECUTABLE [OFFSET]", where OFFSET is an
+   optional offset to apply to each section.  */
+extern void generic_load (const char *args, int from_tty);
+
 /* From dwarf2read.c */
 
 /* Names for a dwarf2 debugging section.  The field NORMAL is the normal
@@ -610,16 +617,7 @@ extern bool dwarf2_initialize_objfile (struct objfile *objfile,
 extern void dwarf2_build_psymtabs (struct objfile *);
 extern void dwarf2_build_frame_info (struct objfile *);
 
-/* From mdebugread.c */
-
-extern void mdebug_build_psymtabs (minimal_symbol_reader &,
-				   struct objfile *,
-				   const struct ecoff_debug_swap *,
-				   struct ecoff_debug_info *);
-
-extern void elfmdebug_build_psymtabs (struct objfile *,
-				      const struct ecoff_debug_swap *,
-				      asection *);
+void dwarf2_free_objfile (struct objfile *);
 
 /* From minidebug.c.  */
 

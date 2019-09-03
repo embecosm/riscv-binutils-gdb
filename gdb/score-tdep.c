@@ -1,7 +1,7 @@
 /* Target-dependent code for the S+core architecture, for GDB,
    the GNU Debugger.
 
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    Contributed by Qinwei (qinwei@sunnorth.com.cn)
    Contributed by Ching-Peng Lin (cplin@sunplus.com)
@@ -62,18 +62,6 @@ score_register_type (struct gdbarch *gdbarch, int regnum)
               && regnum < ((target_mach == bfd_mach_score7)
 			   ? SCORE7_NUM_REGS : SCORE3_NUM_REGS));
   return builtin_type (gdbarch)->builtin_uint32;
-}
-
-static CORE_ADDR
-score_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, SCORE_SP_REGNUM);
-}
-
-static CORE_ADDR
-score_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, SCORE_PC_REGNUM);
 }
 
 static const char *
@@ -478,14 +466,6 @@ score_return_value (struct gdbarch *gdbarch, struct value *function,
     }
 }
 
-static struct frame_id
-score_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  return frame_id_build (get_frame_register_unsigned (this_frame,
-						      SCORE_SP_REGNUM),
-			 get_frame_pc (this_frame));
-}
-
 static int
 score_type_needs_double_align (struct type *type)
 {
@@ -511,7 +491,8 @@ static CORE_ADDR
 score_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
                        struct regcache *regcache, CORE_ADDR bp_addr,
                        int nargs, struct value **args, CORE_ADDR sp,
-                       int struct_return, CORE_ADDR struct_addr)
+		       function_call_return_method return_method,
+		       CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   int argnum;
@@ -535,7 +516,7 @@ score_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 
   /* Step 3, Check if struct return then save the struct address to
      r4 and increase the stack_offset by 4.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       regcache_cooked_write_unsigned (regcache, argreg++, struct_addr);
       stack_offset += SCORE_REGSIZE;
@@ -1447,8 +1428,8 @@ score7_linux_iterate_over_regset_sections (struct gdbarch *gdbarch,
 					   void *cb_data,
 					   const struct regcache *regcache)
 {
-  cb (".reg", SCORE7_LINUX_SIZEOF_GREGSET, &score7_linux_gregset,
-      NULL, cb_data);
+  cb (".reg", SCORE7_LINUX_SIZEOF_GREGSET, SCORE7_LINUX_SIZEOF_GREGSET,
+      &score7_linux_gregset, NULL, cb_data);
 }
 
 static struct gdbarch *
@@ -1479,8 +1460,6 @@ score_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_register_type (gdbarch, score_register_type);
   set_gdbarch_frame_align (gdbarch, score_frame_align);
   set_gdbarch_inner_than (gdbarch, core_addr_lessthan);
-  set_gdbarch_unwind_sp (gdbarch, score_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, score_unwind_pc);
 
   switch (target_mach)
     {
@@ -1518,7 +1497,6 @@ score_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* Dummy frame hooks.  */
   set_gdbarch_return_value (gdbarch, score_return_value);
   set_gdbarch_call_dummy_location (gdbarch, AT_ENTRY_POINT);
-  set_gdbarch_dummy_id (gdbarch, score_dummy_id);
   set_gdbarch_push_dummy_call (gdbarch, score_push_dummy_call);
 
   /* Normal frame hooks.  */

@@ -1,6 +1,6 @@
 /* Helper routines for parsing XML using Expat.
 
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,7 +20,7 @@
 #include "defs.h"
 #include "gdbcmd.h"
 #include "xml-support.h"
-#include "filestuff.h"
+#include "gdbsupport/filestuff.h"
 #include "safe-ctype.h"
 #include <vector>
 #include <string>
@@ -113,9 +113,9 @@ struct gdb_xml_parser
   { m_is_xinclude = is_xinclude; }
 
   /* A thrown error, if any.  */
-  void set_error (gdb_exception error)
+  void set_error (gdb_exception &&error)
   {
-    m_error = error;
+    m_error = std::move (error);
 #ifdef HAVE_XML_STOPPARSER
     XML_StopParser (m_expat_parser, XML_FALSE);
 #endif
@@ -179,16 +179,14 @@ void
 gdb_xml_parser::vdebug (const char *format, va_list ap)
 {
   int line = XML_GetCurrentLineNumber (m_expat_parser);
-  char *message;
 
-  message = xstrvprintf (format, ap);
+  std::string message = string_vprintf (format, ap);
   if (line)
     fprintf_unfiltered (gdb_stderr, "%s (line %d): %s\n",
-			m_name, line, message);
+			m_name, line, message.c_str ());
   else
     fprintf_unfiltered (gdb_stderr, "%s: %s\n",
-			m_name, message);
-  xfree (message);
+			m_name, message.c_str ());
 }
 
 void
@@ -385,15 +383,14 @@ gdb_xml_start_element_wrapper (void *data, const XML_Char *name,
 {
   struct gdb_xml_parser *parser = (struct gdb_xml_parser *) data;
 
-  TRY
+  try
     {
       parser->start_element (name, attrs);
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (gdb_exception &ex)
     {
-      parser->set_error (ex);
+      parser->set_error (std::move (ex));
     }
-  END_CATCH
 }
 
 /* Handle the end of an element.  NAME is the current element.  */
@@ -458,15 +455,14 @@ gdb_xml_end_element_wrapper (void *data, const XML_Char *name)
 {
   struct gdb_xml_parser *parser = (struct gdb_xml_parser *) data;
 
-  TRY
+  try
     {
       parser->end_element (name);
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (gdb_exception &ex)
     {
-      parser->set_error (ex);
+      parser->set_error (std::move (ex));
     }
-  END_CATCH
 }
 
 /* Free a parser and all its associated state.  */
@@ -483,7 +479,6 @@ gdb_xml_parser::gdb_xml_parser (const char *name,
 				void *user_data)
   : m_name (name),
     m_user_data (user_data),
-    m_error (exception_none),
     m_last_line (0),
     m_dtd_name (NULL),
     m_is_xinclude (false)
@@ -597,7 +592,7 @@ gdb_xml_parser::parse (const char *buffer)
       && m_error.error == XML_PARSE_ERROR)
     {
       gdb_assert (m_error.message != NULL);
-      error_string = m_error.message;
+      error_string = m_error.what ();
     }
   else if (status == XML_STATUS_ERROR)
     {
@@ -608,7 +603,7 @@ gdb_xml_parser::parse (const char *buffer)
   else
     {
       gdb_assert (m_error.reason < 0);
-      throw_exception (m_error);
+      throw_exception (std::move (m_error));
     }
 
   if (m_last_line != 0)

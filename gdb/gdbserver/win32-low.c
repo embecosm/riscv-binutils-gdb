@@ -1,5 +1,5 @@
 /* Low level interface to Windows debugging, for gdbserver.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    Contributed by Leo Zayas.  Based on "win32-nat.c" from GDB.
 
@@ -32,8 +32,8 @@
 #include <tlhelp32.h>
 #include <psapi.h>
 #include <process.h>
-#include "gdb_tilde_expand.h"
-#include "common-inferior.h"
+#include "gdbsupport/gdb_tilde_expand.h"
+#include "gdbsupport/common-inferior.h"
 
 #ifndef USE_WIN32API
 #include <sys/cygwin.h>
@@ -873,9 +873,9 @@ win32_mourn (struct process_info *process)
 /* Implementation of target_ops::join.  */
 
 static void
-win32_join (process_info *proc)
+win32_join (int pid)
 {
-  HANDLE h = OpenProcess (PROCESS_ALL_ACCESS, FALSE, proc->pid);
+  HANDLE h = OpenProcess (PROCESS_ALL_ACCESS, FALSE, pid);
   if (h != NULL)
     {
       WaitForSingleObject (h, INFINITE);

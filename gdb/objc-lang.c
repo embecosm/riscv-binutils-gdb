@@ -1,6 +1,6 @@
 /* Objective-C language support routines for GDB, the GNU debugger.
 
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    Contributed by Apple Computer, Inc.
    Written by Michael Snyder.
@@ -75,7 +75,7 @@ struct objc_method {
   CORE_ADDR imp;
 };
 
-static const struct objfile_data *objc_objfile_data;
+static const struct objfile_key<unsigned int> objc_objfile_data;
 
 /* Lookup a structure type named "struct NAME", visible in lexical
    block BLOCK.  If NOERR is nonzero, return zero if NAME is not
@@ -132,7 +132,7 @@ lookup_objc_class (struct gdbarch *gdbarch, const char *classname)
   classval = value_coerce_array (classval);
   return (CORE_ADDR) value_as_long (call_function_by_hand (function,
 							   NULL,
-							   1, &classval));
+							   classval));
 }
 
 CORE_ADDR
@@ -160,7 +160,7 @@ lookup_child_selector (struct gdbarch *gdbarch, const char *selname)
   selstring = value_coerce_array (value_string (selname, 
 						strlen (selname) + 1,
 						char_type));
-  return value_as_long (call_function_by_hand (function, NULL, 1, &selstring));
+  return value_as_long (call_function_by_hand (function, NULL, selstring));
 }
 
 struct value * 
@@ -181,13 +181,12 @@ value_nsstring (struct gdbarch *gdbarch, char *ptr, int len)
   if (lookup_minimal_symbol("_NSNewStringFromCString", 0, 0).minsym)
     {
       function = find_function_in_inferior("_NSNewStringFromCString", NULL);
-      nsstringValue = call_function_by_hand(function,
-					    NULL, 1, &stringValue[2]);
+      nsstringValue = call_function_by_hand(function, NULL, stringValue[2]);
     }
   else if (lookup_minimal_symbol("istr", 0, 0).minsym)
     {
       function = find_function_in_inferior("istr", NULL);
-      nsstringValue = call_function_by_hand(function, NULL, 1, &stringValue[2]);
+      nsstringValue = call_function_by_hand(function, NULL, stringValue[2]);
     }
   else if (lookup_minimal_symbol("+[NSString stringWithCString:]", 0, 0).minsym)
     {
@@ -199,7 +198,7 @@ value_nsstring (struct gdbarch *gdbarch, char *ptr, int len)
 	(type, lookup_objc_class (gdbarch, "NSString"));
       stringValue[1] = value_from_longest 
 	(type, lookup_child_selector (gdbarch, "stringWithCString:"));
-      nsstringValue = call_function_by_hand(function, NULL, 3, &stringValue[0]);
+      nsstringValue = call_function_by_hand(function, NULL, stringValue);
     }
   else
     error (_("NSString: internal error -- no way to create new NSString"));
@@ -410,7 +409,8 @@ extern const struct language_defn objc_language_defn = {
   &default_varobj_ops,
   NULL,
   NULL,
-  LANG_MAGIC
+  c_is_string_type_p,
+  "{...}"			/* la_struct_too_deep_ellipsis */
 };
 
 /*
@@ -492,7 +492,7 @@ end_msglist (struct parser_state *ps)
   selname_chain = sel->next;
   msglist_len = sel->msglist_len;
   msglist_sel = sel->msglist_sel;
-  selid = lookup_child_selector (parse_gdbarch (ps), p);
+  selid = lookup_child_selector (ps->gdbarch (), p);
   if (!selid)
     error (_("Can't find selector \"%s\""), p);
   write_exp_elt_longcst (ps, selid);
@@ -563,8 +563,6 @@ compare_selectors (const void *a, const void *b)
 static void
 info_selectors_command (const char *regexp, int from_tty)
 {
-  struct objfile	*objfile;
-  struct minimal_symbol *msymbol;
   const char            *name;
   char                  *val;
   int                    matches = 0;
@@ -608,33 +606,36 @@ info_selectors_command (const char *regexp, int from_tty)
     }
 
   /* First time thru is JUST to get max length and count.  */
-  ALL_MSYMBOLS (objfile, msymbol)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
-      QUIT;
-      name = MSYMBOL_NATURAL_NAME (msymbol);
-      if (name
-          && (name[0] == '-' || name[0] == '+')
-	  && name[1] == '[')		/* Got a method name.  */
+      for (minimal_symbol *msymbol : objfile->msymbols ())
 	{
-	  /* Filter for class/instance methods.  */
-	  if (plusminus && name[0] != plusminus)
-	    continue;
-	  /* Find selector part.  */
-	  name = (char *) strchr (name+2, ' ');
-	  if (name == NULL)
+	  QUIT;
+	  name = MSYMBOL_NATURAL_NAME (msymbol);
+	  if (name
+	      && (name[0] == '-' || name[0] == '+')
+	      && name[1] == '[')		/* Got a method name.  */
 	    {
-	      complaint (_("Bad method name '%s'"),
-			 MSYMBOL_NATURAL_NAME (msymbol));
-	      continue;
-	    }
-	  if (regexp == NULL || re_exec(++name) != 0)
-	    { 
-	      const char *mystart = name;
-	      const char *myend   = strchr (mystart, ']');
+	      /* Filter for class/instance methods.  */
+	      if (plusminus && name[0] != plusminus)
+		continue;
+	      /* Find selector part.  */
+	      name = (char *) strchr (name+2, ' ');
+	      if (name == NULL)
+		{
+		  complaint (_("Bad method name '%s'"),
+			     MSYMBOL_NATURAL_NAME (msymbol));
+		  continue;
+		}
+	      if (regexp == NULL || re_exec(++name) != 0)
+		{ 
+		  const char *mystart = name;
+		  const char *myend   = strchr (mystart, ']');
 	      
-	      if (myend && (myend - mystart > maxlen))
-		maxlen = myend - mystart;	/* Get longest selector.  */
-	      matches++;
+		  if (myend && (myend - mystart > maxlen))
+		    maxlen = myend - mystart;	/* Get longest selector.  */
+		  matches++;
+		}
 	    }
 	}
     }
@@ -645,21 +646,24 @@ info_selectors_command (const char *regexp, int from_tty)
 
       sym_arr = XALLOCAVEC (struct symbol *, matches);
       matches = 0;
-      ALL_MSYMBOLS (objfile, msymbol)
+      for (objfile *objfile : current_program_space->objfiles ())
 	{
-	  QUIT;
-	  name = MSYMBOL_NATURAL_NAME (msymbol);
-	  if (name &&
-	     (name[0] == '-' || name[0] == '+') &&
-	      name[1] == '[')		/* Got a method name.  */
+	  for (minimal_symbol *msymbol : objfile->msymbols ())
 	    {
-	      /* Filter for class/instance methods.  */
-	      if (plusminus && name[0] != plusminus)
-		continue;
-	      /* Find selector part.  */
-	      name = (char *) strchr(name+2, ' ');
-	      if (regexp == NULL || re_exec(++name) != 0)
-		sym_arr[matches++] = (struct symbol *) msymbol;
+	      QUIT;
+	      name = MSYMBOL_NATURAL_NAME (msymbol);
+	      if (name &&
+		  (name[0] == '-' || name[0] == '+') &&
+		  name[1] == '[')		/* Got a method name.  */
+		{
+		  /* Filter for class/instance methods.  */
+		  if (plusminus && name[0] != plusminus)
+		    continue;
+		  /* Find selector part.  */
+		  name = (char *) strchr(name+2, ' ');
+		  if (regexp == NULL || re_exec(++name) != 0)
+		    sym_arr[matches++] = (struct symbol *) msymbol;
+		}
 	    }
 	}
 
@@ -724,8 +728,6 @@ compare_classes (const void *a, const void *b)
 static void
 info_classes_command (const char *regexp, int from_tty)
 {
-  struct objfile	*objfile;
-  struct minimal_symbol *msymbol;
   const char            *name;
   char                  *val;
   int                    matches = 0;
@@ -758,23 +760,26 @@ info_classes_command (const char *regexp, int from_tty)
     }
 
   /* First time thru is JUST to get max length and count.  */
-  ALL_MSYMBOLS (objfile, msymbol)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
-      QUIT;
-      name = MSYMBOL_NATURAL_NAME (msymbol);
-      if (name &&
-	 (name[0] == '-' || name[0] == '+') &&
-	  name[1] == '[')			/* Got a method name.  */
-	if (regexp == NULL || re_exec(name+2) != 0)
-	  { 
-	    /* Compute length of classname part.  */
-	    const char *mystart = name + 2;
-	    const char *myend   = strchr (mystart, ' ');
+      for (minimal_symbol *msymbol : objfile->msymbols ())
+	{
+	  QUIT;
+	  name = MSYMBOL_NATURAL_NAME (msymbol);
+	  if (name &&
+	      (name[0] == '-' || name[0] == '+') &&
+	      name[1] == '[')			/* Got a method name.  */
+	    if (regexp == NULL || re_exec(name+2) != 0)
+	      { 
+		/* Compute length of classname part.  */
+		const char *mystart = name + 2;
+		const char *myend   = strchr (mystart, ' ');
 	    
-	    if (myend && (myend - mystart > maxlen))
-	      maxlen = myend - mystart;
-	    matches++;
-	  }
+		if (myend && (myend - mystart > maxlen))
+		  maxlen = myend - mystart;
+		matches++;
+	      }
+	}
     }
   if (matches)
     {
@@ -782,15 +787,18 @@ info_classes_command (const char *regexp, int from_tty)
 		       regexp ? regexp : "*");
       sym_arr = XALLOCAVEC (struct symbol *, matches);
       matches = 0;
-      ALL_MSYMBOLS (objfile, msymbol)
+      for (objfile *objfile : current_program_space->objfiles ())
 	{
-	  QUIT;
-	  name = MSYMBOL_NATURAL_NAME (msymbol);
-	  if (name &&
-	     (name[0] == '-' || name[0] == '+') &&
-	      name[1] == '[')			/* Got a method name.  */
-	    if (regexp == NULL || re_exec(name+2) != 0)
-		sym_arr[matches++] = (struct symbol *) msymbol;
+	  for (minimal_symbol *msymbol : objfile->msymbols ())
+	    {
+	      QUIT;
+	      name = MSYMBOL_NATURAL_NAME (msymbol);
+	      if (name &&
+		  (name[0] == '-' || name[0] == '+') &&
+		  name[1] == '[') /* Got a method name.  */
+		if (regexp == NULL || re_exec(name+2) != 0)
+		  sym_arr[matches++] = (struct symbol *) msymbol;
+	    }
 	}
 
       qsort (sym_arr, matches, sizeof (struct minimal_symbol *), 
@@ -973,8 +981,6 @@ find_methods (char type, const char *theclass, const char *category,
 	      const char *selector,
 	      std::vector<const char *> *symbol_names)
 {
-  struct objfile *objfile = NULL;
-
   const char *symname = NULL;
 
   char ntype = '\0';
@@ -987,10 +993,9 @@ find_methods (char type, const char *theclass, const char *category,
 
   gdb_assert (symbol_names != NULL);
 
-  ALL_OBJFILES (objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
       unsigned int *objc_csym;
-      struct minimal_symbol *msymbol = NULL;
 
       /* The objfile_csym variable counts the number of ObjC methods
 	 that this objfile defines.  We save that count as a private
@@ -999,12 +1004,12 @@ find_methods (char type, const char *theclass, const char *category,
 
       unsigned int objfile_csym = 0;
 
-      objc_csym = (unsigned int *) objfile_data (objfile, objc_objfile_data);
+      objc_csym = objc_objfile_data.get (objfile);
       if (objc_csym != NULL && *objc_csym == 0)
 	/* There are no ObjC symbols in this objfile.  Skip it entirely.  */
 	continue;
 
-      ALL_OBJFILE_MSYMBOLS (objfile, msymbol)
+      for (minimal_symbol *msymbol : objfile->msymbols ())
 	{
 	  QUIT;
 
@@ -1051,11 +1056,7 @@ find_methods (char type, const char *theclass, const char *category,
 	}
 
       if (objc_csym == NULL)
-	{
-	  objc_csym = XOBNEW (&objfile->objfile_obstack, unsigned int);
-	  *objc_csym = objfile_csym;
-	  set_objfile_data (objfile, objc_objfile_data, objc_csym);
-	}
+	objc_csym = objc_objfile_data.emplace (objfile, objfile_csym);
       else
 	/* Count of ObjC methods in this objfile should be constant.  */
 	gdb_assert (*objc_csym == objfile_csym);
@@ -1189,7 +1190,7 @@ print_object_command (const char *args, int from_tty)
   if (function == NULL)
     error (_("Unable to locate _NSPrintForDebugger in child process"));
 
-  description = call_function_by_hand (function, NULL, 1, &object);
+  description = call_function_by_hand (function, NULL, object);
 
   string_addr = value_as_long (description);
   if (string_addr == 0)
@@ -1293,18 +1294,17 @@ find_objc_msgcall_submethod (int (*f) (CORE_ADDR, CORE_ADDR *),
 			     CORE_ADDR pc, 
 			     CORE_ADDR *new_pc)
 {
-  TRY
+  try
     {
       if (f (pc, new_pc) == 0)
 	return 1;
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       exception_fprintf (gdb_stderr, ex,
 			 "Unable to determine target of "
 			 "Objective-C method call (ignoring):\n");
     }
-  END_CATCH
 
   return 0;
 }
@@ -1571,10 +1571,4 @@ resolve_msgsend_super_stret (CORE_ADDR pc, CORE_ADDR *new_pc)
   if (res == 0)
     return 1;
   return 0;
-}
-
-void
-_initialize_objc_lang (void)
-{
-  objc_objfile_data = register_objfile_data ();
 }

@@ -1,6 +1,6 @@
 /* CTF format support.
 
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
    Contributed by Hui Zhu <hui_zhu@mentor.com>
    Contributed by Yao Qi <yao@codesourcery.com>
 
@@ -31,6 +31,8 @@
 #include "tracefile.h"
 #include <ctype.h>
 #include <algorithm>
+#include "gdbsupport/filestuff.h"
+#include "gdbarch.h"
 
 /* The CTF target.  */
 
@@ -354,7 +356,8 @@ ctf_start (struct trace_file_writer *self, const char *dirname)
 
   std::string file_name = string_printf ("%s/%s", dirname, CTF_METADATA_NAME);
 
-  writer->tcs.metadata_fd = fopen (file_name.c_str (), "w");
+  writer->tcs.metadata_fd
+    = gdb_fopen_cloexec (file_name.c_str (), "w").release ();
   if (writer->tcs.metadata_fd == NULL)
     error (_("Unable to open file '%s' for saving trace data (%s)"),
 	   file_name.c_str (), safe_strerror (errno));
@@ -362,7 +365,8 @@ ctf_start (struct trace_file_writer *self, const char *dirname)
   ctf_save_metadata_header (&writer->tcs);
 
   file_name = string_printf ("%s/%s", dirname, CTF_DATASTREAM_NAME);
-  writer->tcs.datastream_fd = fopen (file_name.c_str (), "w");
+  writer->tcs.datastream_fd
+    = gdb_fopen_cloexec (file_name.c_str (), "w").release ();
   if (writer->tcs.datastream_fd == NULL)
     error (_("Unable to open file '%s' for saving trace data (%s)"),
 	   file_name.c_str (), safe_strerror (errno));
@@ -593,38 +597,42 @@ ctf_write_uploaded_tp (struct trace_file_writer *self,
 
   /* condition  */
   if (tp->cond != NULL)
-    ctf_save_write (&writer->tcs, (gdb_byte *) tp->cond, strlen (tp->cond));
+    ctf_save_write (&writer->tcs, (gdb_byte *) tp->cond.get (),
+		    strlen (tp->cond.get ()));
   ctf_save_write (&writer->tcs, &zero, 1);
 
   /* actions */
   u32 = tp->actions.size ();
   ctf_save_align_write (&writer->tcs, (gdb_byte *) &u32, 4, 4);
-  for (char *act : tp->actions)
-    ctf_save_write (&writer->tcs, (gdb_byte *) act, strlen (act) + 1);
+  for (const auto &act : tp->actions)
+    ctf_save_write (&writer->tcs, (gdb_byte *) act.get (),
+		    strlen (act.get ()) + 1);
 
   /* step_actions */
   u32 = tp->step_actions.size ();
   ctf_save_align_write (&writer->tcs, (gdb_byte *) &u32, 4, 4);
-  for (char *act : tp->step_actions)
-    ctf_save_write (&writer->tcs, (gdb_byte *) act, strlen (act) + 1);
+  for (const auto &act : tp->step_actions)
+    ctf_save_write (&writer->tcs, (gdb_byte *) act.get (),
+		    strlen (act.get ()) + 1);
 
   /* at_string */
   if (tp->at_string != NULL)
-    ctf_save_write (&writer->tcs, (gdb_byte *) tp->at_string,
-		    strlen (tp->at_string));
+    ctf_save_write (&writer->tcs, (gdb_byte *) tp->at_string.get (),
+		    strlen (tp->at_string.get ()));
   ctf_save_write (&writer->tcs, &zero, 1);
 
   /* cond_string */
   if (tp->cond_string != NULL)
-    ctf_save_write (&writer->tcs, (gdb_byte *) tp->cond_string,
-		    strlen (tp->cond_string));
+    ctf_save_write (&writer->tcs, (gdb_byte *) tp->cond_string.get (),
+		    strlen (tp->cond_string.get ()));
   ctf_save_write (&writer->tcs, &zero, 1);
 
   /* cmd_strings */
   u32 = tp->cmd_strings.size ();
   ctf_save_align_write (&writer->tcs, (gdb_byte *) &u32, 4, 4);
-  for (char *act : tp->cmd_strings)
-    ctf_save_write (&writer->tcs, (gdb_byte *) act, strlen (act) + 1);
+  for (const auto &act : tp->cmd_strings)
+    ctf_save_write (&writer->tcs, (gdb_byte *) act.get (),
+		    strlen (act.get ()) + 1);
 
 }
 
@@ -1008,19 +1016,19 @@ ctf_read_tsv (struct uploaded_tsv **uploaded_tsvs)
 #define SET_ARRAY_FIELD(EVENT, SCOPE, VAR, NUM, ARRAY)	\
   do							\
     {							\
-      uint32_t u32, i;						\
+      uint32_t lu32, i;						\
       const struct bt_definition *def;				\
 								\
-      u32 = (uint32_t) bt_ctf_get_uint64 (bt_ctf_get_field ((EVENT),	\
-							    (SCOPE),	\
-							    #NUM));	\
+      lu32 = (uint32_t) bt_ctf_get_uint64 (bt_ctf_get_field ((EVENT),	\
+							     (SCOPE),	\
+							     #NUM));	\
       def = bt_ctf_get_field ((EVENT), (SCOPE), #ARRAY);		\
-      for (i = 0; i < u32; i++)					\
+      for (i = 0; i < lu32; i++)					\
 	{								\
 	  const struct bt_definition *element				\
 	    = bt_ctf_get_index ((EVENT), def, i);			\
 									\
-	  (VAR)->ARRAY.push_back					\
+	  (VAR)->ARRAY.emplace_back					\
 	    (xstrdup (bt_ctf_get_string (element)));			\
 	}								\
     }									\
@@ -1037,7 +1045,7 @@ ctf_read_tsv (struct uploaded_tsv **uploaded_tsvs)
 							   #FIELD));	\
 									\
       if (strlen (p) > 0)						\
-	(VAR)->FIELD = xstrdup (p);					\
+	(VAR)->FIELD.reset (xstrdup (p));				\
       else								\
 	(VAR)->FIELD = NULL;						\
     }									\

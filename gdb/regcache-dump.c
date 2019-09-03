@@ -1,4 +1,4 @@
-/* Copyright (C) 1986-2017 Free Software Foundation, Inc.
+/* Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,11 +18,12 @@
 #include "defs.h"
 #include "gdbcmd.h"
 #include "regcache.h"
-#include "common/def-vector.h"
+#include "gdbsupport/def-vector.h"
 #include "valprint.h"
 #include "remote.h"
 #include "reggroups.h"
 #include "target.h"
+#include "gdbarch.h"
 
 /* Dump registers from regcache, used for dumping raw registers and
    cooked registers.  */
@@ -328,8 +329,8 @@ _initialize_regcache_dump (void)
 	   &maintenanceprintlist);
   add_cmd ("remote-registers", class_maintenance,
 	   maintenance_print_remote_registers, _("\
-Print the internal register configuration including each register's\n\
-remote register number and buffer offset in the g/G packets.\n\
+Print the internal register configuration including remote register number "
+"and g/G packets offset.\n\
 Takes an optional file parameter."),
 	   &maintenanceprintlist);
 }

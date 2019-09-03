@@ -1,6 +1,6 @@
 /* GDB routines for manipulating objfiles.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Support, using pieces from other GDB modules.
 
@@ -52,7 +52,7 @@
 #include "solist.h"
 #include "gdb_bfd.h"
 #include "btrace.h"
-#include "common/pathstuff.h"
+#include "gdbsupport/pathstuff.h"
 
 #include <vector>
 
@@ -66,30 +66,30 @@ DEFINE_REGISTRY (objfile, REGISTRY_ACCESS_FIELD)
 
 struct objfile_pspace_info
 {
-  struct obj_section **sections;
-  int num_sections;
+  objfile_pspace_info () = default;
+  ~objfile_pspace_info ();
+
+  struct obj_section **sections = nullptr;
+  int num_sections = 0;
 
   /* Nonzero if object files have been added since the section map
      was last updated.  */
-  int new_objfiles_available;
+  int new_objfiles_available = 0;
 
   /* Nonzero if the section map MUST be updated before use.  */
-  int section_map_dirty;
+  int section_map_dirty = 0;
 
   /* Nonzero if section map updates should be inhibited if possible.  */
-  int inhibit_updates;
+  int inhibit_updates = 0;
 };
 
 /* Per-program-space data key.  */
-static const struct program_space_data *objfiles_pspace_data;
+static const struct program_space_key<objfile_pspace_info>
+  objfiles_pspace_data;
 
-static void
-objfiles_pspace_data_cleanup (struct program_space *pspace, void *arg)
+objfile_pspace_info::~objfile_pspace_info ()
 {
-  struct objfile_pspace_info *info = (struct objfile_pspace_info *) arg;
-
-  xfree (info->sections);
-  xfree (info);
+  xfree (sections);
 }
 
 /* Get the current svr4 data.  If none is found yet, add it now.  This
@@ -100,13 +100,9 @@ get_objfile_pspace_data (struct program_space *pspace)
 {
   struct objfile_pspace_info *info;
 
-  info = ((struct objfile_pspace_info *)
-	  program_space_data (pspace, objfiles_pspace_data));
+  info = objfiles_pspace_data.get (pspace);
   if (info == NULL)
-    {
-      info = XCNEW (struct objfile_pspace_info);
-      set_program_space_data (pspace, objfiles_pspace_data, info);
-    }
+    info = objfiles_pspace_data.emplace (pspace);
 
   return info;
 }
@@ -115,15 +111,17 @@ get_objfile_pspace_data (struct program_space *pspace)
 
 /* Per-BFD data key.  */
 
-static const struct bfd_data *objfiles_bfd_data;
+static const struct bfd_key<objfile_per_bfd_storage> objfiles_bfd_data;
+
+objfile_per_bfd_storage::~objfile_per_bfd_storage ()
+{
+}
 
 /* Create the per-BFD storage object for OBJFILE.  If ABFD is not
    NULL, and it already has a per-BFD storage object, use that.
-   Otherwise, allocate a new per-BFD storage object.  If ABFD is not
-   NULL, the object is allocated on the BFD; otherwise it is allocated
-   on OBJFILE's obstack.  Note that it is not safe to call this
-   multiple times for a given OBJFILE -- it can only be called when
-   allocating or re-initializing OBJFILE.  */
+   Otherwise, allocate a new per-BFD storage object.  Note that it is
+   not safe to call this multiple times for a given OBJFILE -- it can
+   only be called when allocating or re-initializing OBJFILE.  */
 
 static struct objfile_per_bfd_storage *
 get_objfile_bfd_data (struct objfile *objfile, struct bfd *abfd)
@@ -131,59 +129,23 @@ get_objfile_bfd_data (struct objfile *objfile, struct bfd *abfd)
   struct objfile_per_bfd_storage *storage = NULL;
 
   if (abfd != NULL)
-    storage = ((struct objfile_per_bfd_storage *)
-	       bfd_data (abfd, objfiles_bfd_data));
+    storage = objfiles_bfd_data.get (abfd);
 
   if (storage == NULL)
     {
+      storage = new objfile_per_bfd_storage;
       /* If the object requires gdb to do relocations, we simply fall
 	 back to not sharing data across users.  These cases are rare
 	 enough that this seems reasonable.  */
       if (abfd != NULL && !gdb_bfd_requires_relocations (abfd))
-	{
-	  storage
-	    = ((struct objfile_per_bfd_storage *)
-	       bfd_alloc (abfd, sizeof (struct objfile_per_bfd_storage)));
-	  /* objfile_per_bfd_storage is not trivially constructible, must
-	     call the ctor manually.  */
-	  storage = new (storage) objfile_per_bfd_storage ();
-	  set_bfd_data (abfd, objfiles_bfd_data, storage);
-	}
-      else
-	storage
-	  = obstack_new<objfile_per_bfd_storage> (&objfile->objfile_obstack);
+	objfiles_bfd_data.set (abfd, storage);
 
       /* Look up the gdbarch associated with the BFD.  */
       if (abfd != NULL)
 	storage->gdbarch = gdbarch_from_bfd (abfd);
-
-      storage->filename_cache = bcache_xmalloc (NULL, NULL);
-      storage->macro_cache = bcache_xmalloc (NULL, NULL);
-      storage->language_of_main = language_unknown;
     }
 
   return storage;
-}
-
-/* Free STORAGE.  */
-
-static void
-free_objfile_per_bfd_storage (struct objfile_per_bfd_storage *storage)
-{
-  bcache_xfree (storage->filename_cache);
-  bcache_xfree (storage->macro_cache);
-  if (storage->demangled_names_hash)
-    htab_delete (storage->demangled_names_hash);
-  storage->~objfile_per_bfd_storage ();
-}
-
-/* A wrapper for free_objfile_per_bfd_storage that can be passed as a
-   cleanup function to the BFD registry.  */
-
-static void
-objfile_bfd_data_free (struct bfd *unused, void *d)
-{
-  free_objfile_per_bfd_storage ((struct objfile_per_bfd_storage *) d);
 }
 
 /* See objfiles.h.  */
@@ -204,8 +166,7 @@ set_objfile_main_name (struct objfile *objfile,
   if (objfile->per_bfd->name_of_main == NULL
       || strcmp (objfile->per_bfd->name_of_main, name) != 0)
     objfile->per_bfd->name_of_main
-      = (const char *) obstack_copy0 (&objfile->per_bfd->storage_obstack, name,
-				      strlen (name));
+      = obstack_strdup (&objfile->per_bfd->storage_obstack, name);
   objfile->per_bfd->language_of_main = lang;
 }
 
@@ -255,14 +216,14 @@ objfile_register_static_link (struct objfile *objfile,
   struct static_link_htab_entry *entry;
 
   if (objfile->static_links == NULL)
-    objfile->static_links = htab_create_alloc
+    objfile->static_links.reset (htab_create_alloc
       (1, &static_link_htab_entry_hash, static_link_htab_entry_eq, NULL,
-       xcalloc, xfree);
+       xcalloc, xfree));
 
   /* Create a slot for the mapping, make sure it's the first mapping for this
      block and then create the mapping itself.  */
   lookup_entry.block = block;
-  slot = htab_find_slot (objfile->static_links, &lookup_entry, INSERT);
+  slot = htab_find_slot (objfile->static_links.get (), &lookup_entry, INSERT);
   gdb_assert (*slot == NULL);
 
   entry = XOBNEW (&objfile->objfile_obstack, static_link_htab_entry);
@@ -284,9 +245,8 @@ objfile_lookup_static_link (struct objfile *objfile,
   if (objfile->static_links == NULL)
     return NULL;
   lookup_entry.block = block;
-  entry
-    = (struct static_link_htab_entry *) htab_find (objfile->static_links,
-						   &lookup_entry);
+  entry = ((struct static_link_htab_entry *)
+	   htab_find (objfile->static_links.get (), &lookup_entry));
   if (entry == NULL)
     return NULL;
 
@@ -369,8 +329,8 @@ build_objfile_section_table (struct objfile *objfile)
 objfile::objfile (bfd *abfd, const char *name, objfile_flags flags_)
   : flags (flags_),
     pspace (current_program_space),
-    obfd (abfd),
-    psymbol_cache (psymbol_bcache_init ())
+    partial_symtabs (new psymtab_storage ()),
+    obfd (abfd)
 {
   const char *expanded_name;
 
@@ -395,10 +355,7 @@ objfile::objfile (bfd *abfd, const char *name, objfile_flags flags_)
       name_holder = gdb_abspath (name);
       expanded_name = name_holder.get ();
     }
-  original_name
-    = (char *) obstack_copy0 (&objfile_obstack,
-			      expanded_name,
-			      strlen (expanded_name));
+  original_name = obstack_strdup (&objfile_obstack, expanded_name);
 
   /* Update the per-objfile information that comes from the bfd, ensuring
      that any data that is reference is saved in the per-objfile data
@@ -414,8 +371,6 @@ objfile::objfile (bfd *abfd, const char *name, objfile_flags flags_)
     }
 
   per_bfd = get_objfile_bfd_data (this, abfd);
-
-  terminate_minimal_symbol_table (this);
 
   /* Add this file onto the tail of the linked list of other such files.  */
 
@@ -472,49 +427,55 @@ entry_point_address (void)
   return retval;
 }
 
-/* Iterator on PARENT and every separate debug objfile of PARENT.
-   The usage pattern is:
-     for (objfile = parent;
-          objfile;
-          objfile = objfile_separate_debug_iterate (parent, objfile))
-       ...
-*/
-
-struct objfile *
-objfile_separate_debug_iterate (const struct objfile *parent,
-                                const struct objfile *objfile)
+separate_debug_iterator &
+separate_debug_iterator::operator++ ()
 {
+  gdb_assert (m_objfile != nullptr);
+
   struct objfile *res;
 
   /* If any, return the first child.  */
-  res = objfile->separate_debug_objfile;
-  if (res)
-    return res;
+  res = m_objfile->separate_debug_objfile;
+  if (res != nullptr)
+    {
+      m_objfile = res;
+      return *this;
+    }
 
   /* Common case where there is no separate debug objfile.  */
-  if (objfile == parent)
-    return NULL;
+  if (m_objfile == m_parent)
+    {
+      m_objfile = nullptr;
+      return *this;
+    }
 
   /* Return the brother if any.  Note that we don't iterate on brothers of
      the parents.  */
-  res = objfile->separate_debug_objfile_link;
-  if (res)
-    return res;
+  res = m_objfile->separate_debug_objfile_link;
+  if (res != nullptr)
+    {
+      m_objfile = res;
+      return *this;
+    }
 
-  for (res = objfile->separate_debug_objfile_backlink;
-       res != parent;
+  for (res = m_objfile->separate_debug_objfile_backlink;
+       res != m_parent;
        res = res->separate_debug_objfile_backlink)
     {
-      gdb_assert (res != NULL);
-      if (res->separate_debug_objfile_link)
-        return res->separate_debug_objfile_link;
+      gdb_assert (res != nullptr);
+      if (res->separate_debug_objfile_link != nullptr)
+	{
+	  m_objfile = res->separate_debug_objfile_link;
+	  return *this;
+	}
     }
-  return NULL;
+  m_objfile = nullptr;
+  return *this;
 }
 
 /* Put one object file before a specified on in the global list.
    This can be used to make sure an object file is destroyed before
-   another when using ALL_OBJFILES_SAFE to free all objfiles.  */
+   another when using objfiles_safe to free all objfiles.  */
 void
 put_objfile_before (struct objfile *objfile, struct objfile *before_this)
 {
@@ -587,7 +548,7 @@ add_separate_debug_objfile (struct objfile *objfile, struct objfile *parent)
   parent->separate_debug_objfile = objfile;
 
   /* Put the separate debug object before the normal one, this is so that
-     usage of the ALL_OBJFILES_SAFE macro will stay safe.  */
+     usage of objfiles_safe will stay safe.  */
   put_objfile_before (objfile, parent);
 }
 
@@ -676,7 +637,7 @@ objfile::~objfile ()
   if (obfd)
     gdb_bfd_unref (obfd);
   else
-    free_objfile_per_bfd_storage (per_bfd);
+    delete per_bfd;
 
   /* Remove it from the chain of all objfiles.  */
 
@@ -696,12 +657,6 @@ objfile::~objfile ()
      for example), so we need to call this here.  */
   clear_pc_function_cache ();
 
-  /* Clear globals which might have pointed into a removed objfile.
-     FIXME: It's not clear which of these are supposed to persist
-     between expressions and which ought to be reset each time.  */
-  expression_context_block = NULL;
-  innermost_block.reset ();
-
   /* Check to see if the current_source_symtab belongs to this objfile,
      and if so, call clear_current_source_symtab_and_line.  */
 
@@ -713,16 +668,10 @@ objfile::~objfile ()
   }
 
   /* Free the obstacks for non-reusable objfiles.  */
-  psymbol_bcache_free (psymbol_cache);
   obstack_free (&objfile_obstack, 0);
 
   /* Rebuild section map next time we need it.  */
   get_objfile_pspace_data (pspace)->section_map_dirty = 1;
-
-  /* Free the map for static links.  There's no need to free static link
-     themselves since they were allocated on the objstack.  */
-  if (static_links != NULL)
-    htab_delete (static_links);
 }
 
 /* Free all the object files at once and clean up their users.  */
@@ -730,17 +679,14 @@ objfile::~objfile ()
 void
 free_all_objfiles (void)
 {
-  struct objfile *objfile, *temp;
   struct so_list *so;
 
-  /* Any objfile referencewould become stale.  */
+  /* Any objfile reference would become stale.  */
   for (so = master_so_list (); so; so = so->next)
     gdb_assert (so->objfile == NULL);
 
-  ALL_OBJFILES_SAFE (objfile, temp)
-  {
+  for (objfile *objfile : current_program_space->objfiles_safe ())
     delete objfile;
-  }
   clear_symtab_users (0);
 }
 
@@ -773,15 +719,13 @@ static int
 objfile_relocate1 (struct objfile *objfile, 
 		   const struct section_offsets *new_offsets)
 {
-  struct obj_section *s;
   struct section_offsets *delta =
     ((struct section_offsets *) 
      alloca (SIZEOF_N_SECTION_OFFSETS (objfile->num_sections)));
 
-  int i;
   int something_changed = 0;
 
-  for (i = 0; i < objfile->num_sections; ++i)
+  for (int i = 0; i < objfile->num_sections; ++i)
     {
       delta->offsets[i] =
 	ANOFFSET (new_offsets, i) - ANOFFSET (objfile->section_offsets, i);
@@ -793,52 +737,60 @@ objfile_relocate1 (struct objfile *objfile,
 
   /* OK, get all the symtabs.  */
   {
-    struct compunit_symtab *cust;
-    struct symtab *s;
+    for (compunit_symtab *cust : objfile->compunits ())
+      {
+	for (symtab *s : compunit_filetabs (cust))
+	  {
+	    struct linetable *l;
 
-    ALL_OBJFILE_FILETABS (objfile, cust, s)
-    {
-      struct linetable *l;
-      int i;
+	    /* First the line table.  */
+	    l = SYMTAB_LINETABLE (s);
+	    if (l)
+	      {
+		for (int i = 0; i < l->nitems; ++i)
+		  l->item[i].pc += ANOFFSET (delta,
+					     COMPUNIT_BLOCK_LINE_SECTION
+					     (cust));
+	      }
+	  }
+      }
 
-      /* First the line table.  */
-      l = SYMTAB_LINETABLE (s);
-      if (l)
-	{
-	  for (i = 0; i < l->nitems; ++i)
-	    l->item[i].pc += ANOFFSET (delta,
-				       COMPUNIT_BLOCK_LINE_SECTION
-					 (cust));
-	}
-    }
+    for (compunit_symtab *cust : objfile->compunits ())
+      {
+	const struct blockvector *bv = COMPUNIT_BLOCKVECTOR (cust);
+	int block_line_section = COMPUNIT_BLOCK_LINE_SECTION (cust);
 
-    ALL_OBJFILE_COMPUNITS (objfile, cust)
-    {
-      const struct blockvector *bv = COMPUNIT_BLOCKVECTOR (cust);
-      int block_line_section = COMPUNIT_BLOCK_LINE_SECTION (cust);
+	if (BLOCKVECTOR_MAP (bv))
+	  addrmap_relocate (BLOCKVECTOR_MAP (bv),
+			    ANOFFSET (delta, block_line_section));
 
-      if (BLOCKVECTOR_MAP (bv))
-	addrmap_relocate (BLOCKVECTOR_MAP (bv),
-			  ANOFFSET (delta, block_line_section));
+	for (int i = 0; i < BLOCKVECTOR_NBLOCKS (bv); ++i)
+	  {
+	    struct block *b;
+	    struct symbol *sym;
+	    struct mdict_iterator miter;
 
-      for (i = 0; i < BLOCKVECTOR_NBLOCKS (bv); ++i)
-	{
-	  struct block *b;
-	  struct symbol *sym;
-	  struct dict_iterator iter;
+	    b = BLOCKVECTOR_BLOCK (bv, i);
+	    BLOCK_START (b) += ANOFFSET (delta, block_line_section);
+	    BLOCK_END (b) += ANOFFSET (delta, block_line_section);
 
-	  b = BLOCKVECTOR_BLOCK (bv, i);
-	  BLOCK_START (b) += ANOFFSET (delta, block_line_section);
-	  BLOCK_END (b) += ANOFFSET (delta, block_line_section);
+	    if (BLOCK_RANGES (b) != nullptr)
+	      for (int j = 0; j < BLOCK_NRANGES (b); j++)
+		{
+		  BLOCK_RANGE_START (b, j)
+		    += ANOFFSET (delta, block_line_section);
+		  BLOCK_RANGE_END (b, j) += ANOFFSET (delta,
+						      block_line_section);
+		}
 
-	  /* We only want to iterate over the local symbols, not any
-	     symbols in included symtabs.  */
-	  ALL_DICT_SYMBOLS (BLOCK_DICT (b), iter, sym)
-	    {
-	      relocate_one_symbol (sym, objfile, delta);
-	    }
-	}
-    }
+	    /* We only want to iterate over the local symbols, not any
+	       symbols in included symtabs.  */
+	    ALL_DICT_SYMBOLS (BLOCK_MULTIDICT (b), miter, sym)
+	      {
+		relocate_one_symbol (sym, objfile, delta);
+	      }
+	  }
+      }
   }
 
   /* This stores relocated addresses and so must be cleared.  This
@@ -864,6 +816,7 @@ objfile_relocate1 (struct objfile *objfile,
   get_objfile_pspace_data (objfile->pspace)->section_map_dirty = 1;
 
   /* Update the table in exec_ops, used to read memory.  */
+  struct obj_section *s;
   ALL_OBJFILE_OSECTIONS (objfile, s)
     {
       int idx = s - objfile->sections;
@@ -889,15 +842,15 @@ void
 objfile_relocate (struct objfile *objfile,
 		  const struct section_offsets *new_offsets)
 {
-  struct objfile *debug_objfile;
   int changed = 0;
 
   changed |= objfile_relocate1 (objfile, new_offsets);
 
-  for (debug_objfile = objfile->separate_debug_objfile;
-       debug_objfile;
-       debug_objfile = objfile_separate_debug_iterate (objfile, debug_objfile))
+  for (::objfile *debug_objfile : objfile->separate_debug_objfiles ())
     {
+      if (debug_objfile == objfile)
+	continue;
+
       section_addr_info objfile_addrs
 	= build_section_addr_info_from_objfile (objfile);
 
@@ -946,14 +899,9 @@ objfile_rebase1 (struct objfile *objfile, CORE_ADDR slide)
 void
 objfile_rebase (struct objfile *objfile, CORE_ADDR slide)
 {
-  struct objfile *debug_objfile;
   int changed = 0;
 
-  changed |= objfile_rebase1 (objfile, slide);
-
-  for (debug_objfile = objfile->separate_debug_objfile;
-       debug_objfile;
-       debug_objfile = objfile_separate_debug_iterate (objfile, debug_objfile))
+  for (::objfile *debug_objfile : objfile->separate_debug_objfiles ())
     changed |= objfile_rebase1 (debug_objfile, slide);
 
   /* Relocate breakpoints as necessary, after things are relocated.  */
@@ -994,9 +942,7 @@ objfile_has_full_symbols (struct objfile *objfile)
 int
 objfile_has_symbols (struct objfile *objfile)
 {
-  struct objfile *o;
-
-  for (o = objfile; o; o = objfile_separate_debug_iterate (objfile, o))
+  for (::objfile *o : objfile->separate_debug_objfiles ())
     if (objfile_has_partial_symbols (o) || objfile_has_full_symbols (o))
       return 1;
   return 0;
@@ -1010,13 +956,11 @@ objfile_has_symbols (struct objfile *objfile)
 int
 have_partial_symbols (void)
 {
-  struct objfile *ofp;
-
-  ALL_OBJFILES (ofp)
-  {
-    if (objfile_has_partial_symbols (ofp))
-      return 1;
-  }
+  for (objfile *ofp : current_program_space->objfiles ())
+    {
+      if (objfile_has_partial_symbols (ofp))
+	return 1;
+    }
   return 0;
 }
 
@@ -1027,13 +971,11 @@ have_partial_symbols (void)
 int
 have_full_symbols (void)
 {
-  struct objfile *ofp;
-
-  ALL_OBJFILES (ofp)
-  {
-    if (objfile_has_full_symbols (ofp))
-      return 1;
-  }
+  for (objfile *ofp : current_program_space->objfiles ())
+    {
+      if (objfile_has_full_symbols (ofp))
+	return 1;
+    }
   return 0;
 }
 
@@ -1045,17 +987,14 @@ have_full_symbols (void)
 void
 objfile_purge_solibs (void)
 {
-  struct objfile *objf;
-  struct objfile *temp;
+  for (objfile *objf : current_program_space->objfiles_safe ())
+    {
+      /* We assume that the solib package has been purged already, or will
+	 be soon.  */
 
-  ALL_OBJFILES_SAFE (objf, temp)
-  {
-    /* We assume that the solib package has been purged already, or will
-       be soon.  */
-
-    if (!(objf->flags & OBJF_USERLOADED) && (objf->flags & OBJF_SHARED))
-      delete objf;
-  }
+      if (!(objf->flags & OBJF_USERLOADED) && (objf->flags & OBJF_SHARED))
+	delete objf;
+    }
 }
 
 
@@ -1066,15 +1005,13 @@ objfile_purge_solibs (void)
 int
 have_minimal_symbols (void)
 {
-  struct objfile *ofp;
-
-  ALL_OBJFILES (ofp)
-  {
-    if (ofp->per_bfd->minimal_symbol_count > 0)
-      {
-	return 1;
-      }
-  }
+  for (objfile *ofp : current_program_space->objfiles ())
+    {
+      if (ofp->per_bfd->minimal_symbol_count > 0)
+	{
+	  return 1;
+	}
+    }
   return 0;
 }
 
@@ -1139,9 +1076,7 @@ qsort_cmp (const void *a, const void *b)
 	{
 	  /* Sort on sequence number of the objfile in the chain.  */
 
-	  const struct objfile *objfile;
-
-	  ALL_OBJFILES (objfile)
+	  for (objfile *objfile : current_program_space->objfiles ())
 	    if (objfile == objfile1)
 	      return -1;
 	    else if (objfile == objfile2)
@@ -1316,7 +1251,6 @@ update_section_map (struct program_space *pspace,
   struct objfile_pspace_info *pspace_info;
   int alloc_size, map_size, i;
   struct obj_section *s, **map;
-  struct objfile *objfile;
 
   pspace_info = get_objfile_pspace_data (pspace);
   gdb_assert (pspace_info->section_map_dirty != 0
@@ -1326,7 +1260,7 @@ update_section_map (struct program_space *pspace,
   xfree (map);
 
   alloc_size = 0;
-  ALL_PSPACE_OBJFILES (pspace, objfile)
+  for (objfile *objfile : pspace->objfiles ())
     ALL_OBJFILE_OSECTIONS (objfile, s)
       if (insert_section_p (objfile->obfd, s->the_bfd_section))
 	alloc_size += 1;
@@ -1342,7 +1276,7 @@ update_section_map (struct program_space *pspace,
   map = XNEWVEC (struct obj_section *, alloc_size);
 
   i = 0;
-  ALL_PSPACE_OBJFILES (pspace, objfile)
+  for (objfile *objfile : pspace->objfiles ())
     ALL_OBJFILE_OSECTIONS (objfile, s)
       if (insert_section_p (objfile->obfd, s->the_bfd_section))
 	map[i++] = s;
@@ -1486,9 +1420,7 @@ int
 shared_objfile_contains_address_p (struct program_space *pspace,
 				   CORE_ADDR address)
 {
-  struct objfile *objfile;
-
-  ALL_PSPACE_OBJFILES (pspace, objfile)
+  for (objfile *objfile : pspace->objfiles ())
     {
       if ((objfile->flags & OBJF_SHARED) != 0
 	  && is_addr_in_objfile (address, objfile))
@@ -1499,7 +1431,7 @@ shared_objfile_contains_address_p (struct program_space *pspace,
 }
 
 /* The default implementation for the "iterate_over_objfiles_in_search_order"
-   gdbarch method.  It is equivalent to use the ALL_OBJFILES macro,
+   gdbarch method.  It is equivalent to use the objfiles iterable,
    searching the objfiles in the order they are stored internally,
    ignoring CURRENT_OBJFILE.
 
@@ -1513,9 +1445,8 @@ default_iterate_over_objfiles_in_search_order
    void *cb_data, struct objfile *current_objfile)
 {
   int stop = 0;
-  struct objfile *objfile;
 
-  ALL_OBJFILES (objfile)
+  for (objfile *objfile : current_program_space->objfiles ())
     {
        stop = cb (objfile, cb_data);
        if (stop)
@@ -1561,15 +1492,4 @@ objfile_flavour_name (struct objfile *objfile)
   if (objfile->obfd != NULL)
     return bfd_flavour_name (bfd_get_flavour (objfile->obfd));
   return NULL;
-}
-
-void
-_initialize_objfiles (void)
-{
-  objfiles_pspace_data
-    = register_program_space_data_with_cleanup (NULL,
-						objfiles_pspace_data_cleanup);
-
-  objfiles_bfd_data = register_bfd_data_with_cleanup (NULL,
-						      objfile_bfd_data_free);
 }

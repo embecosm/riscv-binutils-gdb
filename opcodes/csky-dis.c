@@ -1,5 +1,5 @@
 /* C-SKY disassembler.
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
    Contributed by C-SKY Microsystems and Mentor Graphics.
 
    This file is part of the GNU opcodes library.
@@ -22,7 +22,7 @@
 #include "sysdep.h"
 #include "config.h"
 #include <stdio.h>
-#include <stdint.h>
+#include "bfd_stdint.h"
 #include "disassemble.h"
 #include "elf-bfd.h"
 #include "opcode/csky.h"

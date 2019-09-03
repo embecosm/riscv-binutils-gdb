@@ -1,5 +1,5 @@
 /* Parse options for the GNU linker.
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    This file is part of the GNU Binutils.
 
@@ -542,6 +542,12 @@ static const struct ld_option ld_options[] =
     '\0', NULL, N_("Report target memory usage"), TWO_DASHES },
   { {"orphan-handling", required_argument, NULL, OPTION_ORPHAN_HANDLING},
     '\0', N_("=MODE"), N_("Control how orphan sections are handled."),
+    TWO_DASHES },
+  { {"print-map-discarded", no_argument, NULL, OPTION_PRINT_MAP_DISCARDED},
+    '\0', NULL, N_("Show discarded sections in map file output (default)"),
+    TWO_DASHES },
+  { {"no-print-map-discarded", no_argument, NULL, OPTION_NO_PRINT_MAP_DISCARDED},
+    '\0', NULL, N_("Do not show discarded sections in map file output"),
     TWO_DASHES },
 };
 
@@ -1233,11 +1239,11 @@ parse_args (unsigned argc, char **argv)
 	  command_line.symbolic = symbolic_functions;
 	  break;
 	case 't':
-	  trace_files = TRUE;
+	  ++trace_files;
 	  break;
 	case 'T':
 	  previous_script_handle = saved_script_handle;
-	  ldfile_open_command_file (optarg);
+	  ldfile_open_script_file (optarg);
 	  parser_input = input_script;
 	  yyparse ();
 	  previous_script_handle = NULL;
@@ -1577,6 +1583,14 @@ parse_args (unsigned argc, char **argv)
 	    einfo (_("%F%P: invalid argument to option"
 		     " \"--orphan-handling\"\n"));
 	  break;
+
+	case OPTION_NO_PRINT_MAP_DISCARDED:
+	  config.print_map_discarded = FALSE;
+	  break;
+
+	case OPTION_PRINT_MAP_DISCARDED:
+	  config.print_map_discarded = TRUE;
+	  break;
 	}
     }
 
@@ -1588,6 +1602,7 @@ parse_args (unsigned argc, char **argv)
 
   while (ingroup)
     {
+      einfo (_("%P: missing --end-group; added as last command line option\n"));
       lang_leave_group ();
       ingroup--;
     }
@@ -1719,7 +1734,7 @@ set_segment_start (const char *section, char *valstr)
       }
   /* There was no existing value so we must create a new segment
      entry.  */
-  seg = (segment_type *) stat_alloc (sizeof (*seg));
+  seg = stat_alloc (sizeof (*seg));
   seg->name = name;
   seg->value = val;
   seg->used = FALSE;

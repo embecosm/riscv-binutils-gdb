@@ -1,5 +1,5 @@
 /* Motorola 68k series support for 32-bit ELF
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -1053,9 +1053,8 @@ elf32_m68k_object_p (bfd *abfd)
 /* Somewhat reverse of elf32_m68k_object_p, this sets the e_flag
    field based on the machine number.  */
 
-static void
-elf_m68k_final_write_processing (bfd *abfd,
-				 bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+elf_m68k_final_write_processing (bfd *abfd)
 {
   int mach = bfd_get_mach (abfd);
   unsigned long e_flags = elf_elfheader (abfd)->e_flags;
@@ -1108,6 +1107,7 @@ elf_m68k_final_write_processing (bfd *abfd,
 	}
       elf_elfheader (abfd)->e_flags = e_flags;
     }
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Keep m68k-specific flags in the ELF header.  */
@@ -1132,9 +1132,11 @@ elf32_m68k_merge_private_bfd_data (bfd *ibfd, struct bfd_link_info *info)
   flagword in_isa;
   const bfd_arch_info_type *arch_info;
 
-  if (   bfd_get_flavour (ibfd) != bfd_target_elf_flavour
+  if (bfd_get_flavour (ibfd) != bfd_target_elf_flavour
       || bfd_get_flavour (obfd) != bfd_target_elf_flavour)
-    return FALSE;
+    /* PR 24523: For non-ELF files do not try to merge any private
+       data, but also do not prevent the link from succeeding.  */
+    return TRUE;
 
   /* Get the merged machine.  This checks for incompatibility between
      Coldfire & non-Coldfire flags, incompability between different
@@ -1517,13 +1519,17 @@ elf_m68k_get_got_entry (struct elf_m68k_got *got,
     }
 
   entry_.key_ = *key;
-  ptr = htab_find_slot (got->entries, &entry_, (howto != SEARCH
-						? INSERT : NO_INSERT));
+  ptr = htab_find_slot (got->entries, &entry_,
+			(howto == SEARCH || howto == MUST_FIND ? NO_INSERT
+			 : INSERT));
   if (ptr == NULL)
     {
       if (howto == SEARCH)
 	/* Entry not found.  */
 	return NULL;
+
+      if (howto == MUST_FIND)
+	abort ();
 
       /* We're out of memory.  */
       bfd_set_error (bfd_error_no_memory);
@@ -1533,7 +1539,10 @@ elf_m68k_get_got_entry (struct elf_m68k_got *got,
   if (*ptr == NULL)
     /* We didn't find the entry and we're asked to create a new one.  */
     {
-      BFD_ASSERT (howto != MUST_FIND && howto != SEARCH);
+      if (howto == MUST_FIND)
+	abort ();
+
+      BFD_ASSERT (howto != SEARCH);
 
       entry = bfd_alloc (elf_hash_table (info)->dynobj, sizeof (*entry));
       if (entry == NULL)
@@ -1748,13 +1757,17 @@ elf_m68k_get_bfd2got_entry (struct elf_m68k_multi_got *multi_got,
     }
 
   entry_.bfd = abfd;
-  ptr = htab_find_slot (multi_got->bfd2got, &entry_, (howto != SEARCH
-						      ? INSERT : NO_INSERT));
+  ptr = htab_find_slot (multi_got->bfd2got, &entry_,
+			(howto == SEARCH || howto == MUST_FIND ? NO_INSERT
+			 : INSERT));
   if (ptr == NULL)
     {
       if (howto == SEARCH)
 	/* Entry not found.  */
 	return NULL;
+
+      if (howto == MUST_FIND)
+	abort ();
 
       /* We're out of memory.  */
       bfd_set_error (bfd_error_no_memory);
@@ -1764,7 +1777,10 @@ elf_m68k_get_bfd2got_entry (struct elf_m68k_multi_got *multi_got,
   if (*ptr == NULL)
     /* Entry was not found.  Create new one.  */
     {
-      BFD_ASSERT (howto != MUST_FIND && howto != SEARCH);
+      if (howto == MUST_FIND)
+	abort ();
+
+      BFD_ASSERT (howto != SEARCH);
 
       entry = ((struct elf_m68k_bfd2got_entry *)
 	       bfd_alloc (elf_hash_table (info)->dynobj, sizeof (*entry)));
@@ -2801,9 +2817,7 @@ elf_m68k_check_relocs (bfd *abfd,
 	  /* This relocation describes which C++ vtable entries are actually
 	     used.  Record for later use during GC.  */
 	case R_68K_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 
@@ -3562,12 +3576,9 @@ elf_m68k_relocate_section (bfd *output_bfd,
 	    BFD_ASSERT (sgot != NULL);
 
 	    if (got == NULL)
-	      {
-		got = elf_m68k_get_bfd2got_entry (elf_m68k_multi_got (info),
-						  input_bfd, MUST_FIND,
-						  NULL)->got;
-		BFD_ASSERT (got != NULL);
-	      }
+	      got = elf_m68k_get_bfd2got_entry (elf_m68k_multi_got (info),
+						input_bfd, MUST_FIND,
+						NULL)->got;
 
 	    /* Get GOT offset for this symbol.  */
 	    elf_m68k_init_got_entry_key (&key_, h, input_bfd, r_symndx,

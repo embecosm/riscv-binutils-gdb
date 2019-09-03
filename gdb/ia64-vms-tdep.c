@@ -1,6 +1,6 @@
 /* Target-dependent code for OpenVMS IA-64.
 
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,6 +23,7 @@
 #include "osabi.h"
 #include "gdbtypes.h"
 #include "gdbcore.h"
+#include "gdbarch.h"
 
 #ifdef HAVE_LIBUNWIND_IA64_H
 

@@ -1,6 +1,6 @@
 /* Cache and manage the values of registers for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,13 +20,15 @@
 #ifndef REGCACHE_H
 #define REGCACHE_H
 
-#include "common-regcache.h"
+#include "gdbsupport/common-regcache.h"
+#include "gdbsupport/function-view.h"
 #include <forward_list>
 
 struct regcache;
 struct regset;
 struct gdbarch;
 struct address_space;
+class thread_info;
 
 extern struct regcache *get_current_regcache (void);
 extern struct regcache *get_thread_regcache (ptid_t ptid);
@@ -68,17 +70,34 @@ extern void regcache_cooked_write_unsigned (struct regcache *regcache,
 
 /* Special routines to read/write the PC.  */
 
-/* For regcache_read_pc see common/common-regcache.h.  */
+/* For regcache_read_pc see gdbsupport/common-regcache.h.  */
 extern void regcache_write_pc (struct regcache *regcache, CORE_ADDR pc);
 
 /* Mapping between register numbers and offsets in a buffer, for use
-   in the '*regset' functions below.  In an array of
-   'regcache_map_entry' each element is interpreted like follows:
+   in the '*regset' functions below and with traditional frame caches.
+   In an array of 'regcache_map_entry' each element is interpreted
+   like follows:
 
    - If 'regno' is a register number: Map register 'regno' to the
      current offset (starting with 0) and increase the current offset
      by 'size' (or the register's size, if 'size' is zero).  Repeat
      this with consecutive register numbers up to 'regno+count-1'.
+
+     For each described register, if 'size' is larger than the
+     register's size, the register's value is assumed to be stored in
+     the first N (where N is the register size) bytes at the current
+     offset.  The remaining 'size' - N bytes are filled with zeroes by
+     'regcache_collect_regset' and ignored by other consumers.
+
+     If 'size' is smaller than the register's size, only the first
+     'size' bytes of a register's value are assumed to be stored at
+     the current offset.  'regcache_collect_regset' copies the first
+     'size' bytes of a register's value to the output buffer.
+     'regcache_supply_regset' copies the bytes from the input buffer
+     into the first 'size' bytes of the register's value leaving the
+     remaining bytes of the register's value unchanged.  Frame caches
+     read the 'size' bytes from the stack frame and zero extend them
+     to generate the register's value.
 
    - If 'regno' is REGCACHE_MAP_SKIP: Add 'count*size' to the current
      offset.
@@ -98,6 +117,18 @@ enum
   {
     REGCACHE_MAP_SKIP = -1,
   };
+
+/* Calculate and return the total size of all the registers in a
+   regcache_map_entry.  */
+
+static inline int
+regcache_map_entry_size (const struct regcache_map_entry *map)
+{
+  int size = 0;
+  for (int i = 0; map[i].count != 0; i++)
+    size += (map[i].count * map[i].size);
+  return size;
+}
 
 /* Transfer a set of registers (as described by REGSET) between
    REGCACHE and BUF.  If REGNUM == -1, transfer all registers
@@ -152,10 +183,10 @@ public:
   /* Return regcache's architecture.  */
   gdbarch *arch () const;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   enum register_status get_register_status (int regnum) const override;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   void raw_collect (int regnum, void *buf) const override;
 
   /* Collect register REGNUM from REGCACHE.  Store collected value as an integer
@@ -170,7 +201,7 @@ public:
      reading only LEN.  */
   void raw_collect_part (int regnum, int offset, int len, gdb_byte *out) const;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   void raw_supply (int regnum, const void *buf) override;
 
   void raw_supply (int regnum, const reg_buffer &src)
@@ -199,7 +230,7 @@ public:
 
   virtual ~reg_buffer () = default;
 
-  /* See common/common-regcache.h.  */
+  /* See gdbsupport/common-regcache.h.  */
   bool raw_compare (int regnum, const void *buf, int offset) const override;
 
 protected:

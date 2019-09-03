@@ -1,6 +1,6 @@
 /* Low level child interface to ptrace.
 
-   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -59,7 +59,7 @@ struct inf_ptrace_target : public inf_child_target
 
   bool thread_alive (ptid_t ptid) override;
 
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
 
   enum target_xfer_status xfer_partial (enum target_object object,
 					const char *annex,

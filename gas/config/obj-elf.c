@@ -1,5 +1,5 @@
 /* ELF object file format
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    This file is part of GAS, the GNU Assembler.
 
@@ -23,7 +23,6 @@
 #include "safe-ctype.h"
 #include "subsegs.h"
 #include "obstack.h"
-#include "struc-symbol.h"
 #include "dwarf2dbg.h"
 
 #ifndef ECOFF_DEBUGGING
@@ -261,10 +260,12 @@ elf_sec_sym_ok_for_reloc (asection *sec)
 void
 elf_file_symbol (const char *s, int appfile)
 {
+  asymbol *bsym;
+
   if (!appfile
       || symbol_rootP == NULL
-      || symbol_rootP->bsym == NULL
-      || (symbol_rootP->bsym->flags & BSF_FILE) == 0)
+      || (bsym = symbol_get_bfdsym (symbol_rootP)) == NULL
+      || (bsym->flags & BSF_FILE) == 0)
     {
       symbolS *sym;
       size_t name_length;
@@ -284,8 +285,8 @@ elf_file_symbol (const char *s, int appfile)
       symbol_get_bfdsym (sym)->flags |= BSF_FILE;
 
       if (symbol_rootP != sym
-	  && (symbol_rootP->bsym == NULL
-	      || !(symbol_rootP->bsym->flags & BSF_FILE)))
+	  && ((bsym = symbol_get_bfdsym (symbol_rootP)) == NULL
+	      || (bsym->flags & BSF_FILE) == 0))
 	{
 	  symbol_remove (sym, &symbol_rootP, &symbol_lastP);
 	  symbol_insert (sym, symbol_rootP, &symbol_rootP, &symbol_lastP);
@@ -705,9 +706,6 @@ obj_elf_change_section (const char *name,
 	attr |= ssect->attr;
     }
 
-  if ((attr & (SHF_ALLOC | SHF_GNU_MBIND)) == SHF_GNU_MBIND)
-    as_fatal (_("SHF_ALLOC isn't set for GNU_MBIND section: %s"), name);
-
   /* Convert ELF type and flags to BFD flags.  */
   flags = (SEC_RELOC
 	   | ((attr & SHF_WRITE) ? 0 : SEC_READONLY)
@@ -784,7 +782,8 @@ obj_elf_change_section (const char *name,
 }
 
 static bfd_vma
-obj_elf_parse_section_letters (char *str, size_t len, bfd_boolean *is_clone)
+obj_elf_parse_section_letters (char *str, size_t len,
+			       bfd_boolean *is_clone, bfd_vma *gnu_attr)
 {
   bfd_vma attr = 0;
   *is_clone = FALSE;
@@ -818,7 +817,7 @@ obj_elf_parse_section_letters (char *str, size_t len, bfd_boolean *is_clone)
 	  attr |= SHF_TLS;
 	  break;
 	case 'd':
-	  attr |= SHF_GNU_MBIND;
+	  *gnu_attr |= SHF_GNU_MBIND;
 	  break;
 	case '?':
 	  *is_clone = TRUE;
@@ -1010,6 +1009,7 @@ obj_elf_section (int push)
   char *beg;
   int type, dummy;
   bfd_vma attr;
+  bfd_vma gnu_attr;
   int entsize;
   int linkonce;
   subsegT new_subsection = -1;
@@ -1040,6 +1040,7 @@ obj_elf_section (int push)
     return;
   type = SHT_NULL;
   attr = 0;
+  gnu_attr = 0;
   group_name = NULL;
   entsize = 0;
   linkonce = 0;
@@ -1076,7 +1077,8 @@ obj_elf_section (int push)
 	      ignore_rest_of_line ();
 	      return;
 	    }
-	  attr |= obj_elf_parse_section_letters (beg, strlen (beg), &is_clone);
+	  attr |= obj_elf_parse_section_letters (beg, strlen (beg),
+						 &is_clone, &gnu_attr);
 
 	  SKIP_WHITESPACE ();
 	  if (*input_line_pointer == ',')
@@ -1102,14 +1104,14 @@ obj_elf_section (int push)
 		  ++input_line_pointer;
 
 		  if (ISDIGIT (* input_line_pointer))
-		    {
-		      type = strtoul (input_line_pointer, & input_line_pointer, 0);
-		    }
+		    type = strtoul (input_line_pointer, &input_line_pointer, 0);
 		  else
 		    {
 		      c = get_symbol_name (& beg);
 		      (void) restore_line_pointer (c);
-		      type = obj_elf_section_type (beg, input_line_pointer - beg, TRUE);
+		      type = obj_elf_section_type (beg,
+						   input_line_pointer - beg,
+						   TRUE);
 		    }
 		}
 	      else
@@ -1176,7 +1178,7 @@ obj_elf_section (int push)
 		}
 	    }
 
-	  if ((attr & SHF_GNU_MBIND) != 0 && *input_line_pointer == ',')
+	  if ((gnu_attr & SHF_GNU_MBIND) != 0 && *input_line_pointer == ',')
 	    {
 	      ++input_line_pointer;
 	      SKIP_WHITESPACE ();
@@ -1210,7 +1212,8 @@ obj_elf_section (int push)
 	      c = get_symbol_name (& beg);
 	      (void) restore_line_pointer (c);
 
-	      attr |= obj_elf_section_word (beg, input_line_pointer - beg, & type);
+	      attr |= obj_elf_section_word (beg, input_line_pointer - beg,
+					    &type);
 
 	      SKIP_WHITESPACE ();
 	    }
@@ -1224,6 +1227,24 @@ done:
 
   obj_elf_change_section (name, type, info, attr, entsize, group_name,
 			  linkonce, push);
+
+  if ((gnu_attr & SHF_GNU_MBIND) != 0)
+    {
+      struct elf_backend_data *bed;
+
+      if ((attr & SHF_ALLOC) == 0)
+	as_bad (_("SHF_ALLOC isn't set for GNU_MBIND section: %s"), name);
+
+      bed = (struct elf_backend_data *) get_elf_backend_data (stdoutput);
+      if (bed->elf_osabi == ELFOSABI_NONE)
+	bed->elf_osabi = ELFOSABI_GNU;
+      else if (bed->elf_osabi != ELFOSABI_GNU
+	       && bed->elf_osabi != ELFOSABI_FREEBSD)
+	as_bad (_("GNU_MBIND section is supported only by GNU "
+		  "and FreeBSD targets"));
+      elf_tdata (stdoutput)->has_gnu_osabi |= elf_gnu_osabi_mbind;
+    }
+  elf_section_flags (now_seg) |= gnu_attr;
 
   if (push && new_subsection != -1)
     subseg_set (now_seg, new_subsection);
@@ -2031,15 +2052,16 @@ obj_elf_type (int ignore ATTRIBUTE_UNUSED)
 	   || strcmp (type_name, "10") == 0
 	   || strcmp (type_name, "STT_GNU_IFUNC") == 0)
     {
-      const struct elf_backend_data *bed;
+      struct elf_backend_data *bed;
 
-      bed = get_elf_backend_data (stdoutput);
-      if (!(bed->elf_osabi == ELFOSABI_GNU
-	    || bed->elf_osabi == ELFOSABI_FREEBSD
-	    /* GNU is still using the default value 0.  */
-	    || bed->elf_osabi == ELFOSABI_NONE))
-	as_bad (_("symbol type \"%s\" is supported only by GNU and FreeBSD targets"),
-		type_name);
+      bed = (struct elf_backend_data *) get_elf_backend_data (stdoutput);
+      if (bed->elf_osabi == ELFOSABI_NONE)
+	bed->elf_osabi = ELFOSABI_GNU;
+      else if (bed->elf_osabi != ELFOSABI_GNU
+	       && bed->elf_osabi != ELFOSABI_FREEBSD)
+	as_bad (_("symbol type \"%s\" is supported only by GNU "
+		  "and FreeBSD targets"), type_name);
+      elf_tdata (stdoutput)->has_gnu_osabi |= elf_gnu_osabi_ifunc;
       type = BSF_FUNCTION | BSF_GNU_INDIRECT_FUNCTION;
     }
   else if (strcmp (type_name, "gnu_unique_object") == 0)
@@ -2047,14 +2069,13 @@ obj_elf_type (int ignore ATTRIBUTE_UNUSED)
       struct elf_backend_data *bed;
 
       bed = (struct elf_backend_data *) get_elf_backend_data (stdoutput);
-      if (!(bed->elf_osabi == ELFOSABI_GNU
-	    /* GNU is still using the default value 0.  */
-	    || bed->elf_osabi == ELFOSABI_NONE))
+      if (bed->elf_osabi == ELFOSABI_NONE)
+	bed->elf_osabi = ELFOSABI_GNU;
+      else if (bed->elf_osabi != ELFOSABI_GNU)
 	as_bad (_("symbol type \"%s\" is supported only by GNU targets"),
 		type_name);
+      elf_tdata (stdoutput)->has_gnu_osabi |= elf_gnu_osabi_unique;
       type = BSF_OBJECT | BSF_GNU_UNIQUE;
-      /* PR 10549: Always set OSABI field to GNU for objects containing unique symbols.  */
-      bed->elf_osabi = ELFOSABI_GNU;
     }
 #ifdef md_elf_symbol_type
   else if ((type = md_elf_symbol_type (type_name, sym, elfsym)) != -1)
@@ -2068,7 +2089,38 @@ obj_elf_type (int ignore ATTRIBUTE_UNUSED)
   if (*input_line_pointer == '"')
     ++input_line_pointer;
 
-  elfsym->symbol.flags |= type;
+#ifdef md_elf_symbol_type_change
+  if (!md_elf_symbol_type_change (sym, elfsym, type))
+#endif
+    {
+      flagword mask = BSF_FUNCTION | BSF_OBJECT;
+
+      if (type != BSF_FUNCTION)
+	mask |= BSF_GNU_INDIRECT_FUNCTION;
+      if (type != BSF_OBJECT)
+	{
+	  mask |= BSF_GNU_UNIQUE | BSF_THREAD_LOCAL;
+
+	  if (S_IS_COMMON (sym))
+	    {
+	      as_bad (_("cannot change type of common symbol '%s'"),
+		      S_GET_NAME (sym));
+	      mask = type = 0;
+	    }
+	}
+
+      /* Don't warn when changing to STT_NOTYPE.  */
+      if (type)
+	{
+	  flagword new = (elfsym->symbol.flags & ~mask) | type;
+
+	  if (new != (elfsym->symbol.flags | type))
+	    as_warn (_("symbol '%s' already has its type set"), S_GET_NAME (sym));
+	  elfsym->symbol.flags = new;
+	}
+      else
+	elfsym->symbol.flags &= ~mask;
+    }
 
   demand_empty_rest_of_line ();
 }
@@ -2126,7 +2178,7 @@ obj_elf_init_stab_section (segT seg)
   memset (p, 0, 12);
   file = as_where (NULL);
   stabstr_name = concat (segment_name (seg), "str", (char *) NULL);
-  stroff = get_stab_string_offset (file, stabstr_name);
+  stroff = get_stab_string_offset (file, stabstr_name, TRUE);
   know (stroff == 1 || (stroff == 0 && file[0] == '\0'));
   md_number_to_chars (p, stroff, 4);
   seg_info (seg)->stabu.p = p;
@@ -2337,23 +2389,6 @@ elf_frob_symbol (symbolS *symp, int *puntp)
 	as_bad (_("symbol `%s' can not be both weak and common"),
 		S_GET_NAME (symp));
     }
-
-#ifdef TC_MIPS
-  /* The Irix 5 and 6 assemblers set the type of any common symbol and
-     any undefined non-function symbol to STT_OBJECT.  We try to be
-     compatible, since newer Irix 5 and 6 linkers care.  However, we
-     only set undefined symbols to be STT_OBJECT if we are on Irix,
-     because that is the only time gcc will generate the necessary
-     .global directives to mark functions.  */
-
-  if (S_IS_COMMON (symp))
-    symbol_get_bfdsym (symp)->flags |= BSF_OBJECT;
-
-  if (strstr (TARGET_OS, "irix") != NULL
-      && ! S_IS_DEFINED (symp)
-      && (symbol_get_bfdsym (symp)->flags & BSF_FUNCTION) == 0)
-    symbol_get_bfdsym (symp)->flags |= BSF_OBJECT;
-#endif
 }
 
 struct group_list
@@ -2469,11 +2504,7 @@ elf_adjust_symtab (void)
       /* Make sure that the signature symbol for the group has the
 	 name of the group.  */
       sy = symbol_find_exact (group_name);
-      if (!sy
-	  || (sy != symbol_lastP
-	      && (sy->sy_flags.sy_local_symbol
-		  || sy->sy_next == NULL
-		  || sy->sy_next->sy_previous != sy)))
+      if (!sy || !symbol_on_chain (sy, symbol_rootP, symbol_lastP))
 	{
 	  /* Create the symbol now.  */
 	  sy = symbol_new (group_name, now_seg, (valueT) 0, frag_now);

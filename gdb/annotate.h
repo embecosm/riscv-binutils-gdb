@@ -1,5 +1,5 @@
 /* Annotation routines for GDB.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -15,6 +15,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef ANNOTATE_H
+#define ANNOTATE_H
 
 #include "symtab.h"
 #include "gdbtypes.h"
@@ -84,8 +87,14 @@ struct annotate_arg_emitter
   DISABLE_COPY_AND_ASSIGN (annotate_arg_emitter);
 };
 
-extern void annotate_source (char *, int, int, int,
-			     struct gdbarch *, CORE_ADDR);
+/* If annotations are turned on then print annotation describing the full
+   name of the source file S and the line number LINE and its corresponding
+   character position.
+
+   MID_STATEMENT is nonzero if the PC is not at the beginning of that
+   line.  */
+extern void annotate_source_line (struct symtab *s, int line,
+				  int mid_statement, CORE_ADDR pc);
 
 extern void annotate_frame_begin (int, struct gdbarch *, CORE_ADDR);
 extern void annotate_function_call (void);
@@ -110,3 +119,5 @@ extern void annotate_array_section_end (void);
 
 extern void (*deprecated_annotate_signalled_hook) (void);
 extern void (*deprecated_annotate_signal_hook) (void);
+
+#endif /* ANNOTATE_H */

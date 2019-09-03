@@ -1,5 +1,5 @@
 /* Helper routines for C++ support in GDB.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    Contributed by MontaVista Software.
 
@@ -34,9 +34,9 @@
 #include "cp-abi.h"
 #include "namespace.h"
 #include <signal.h>
-#include "gdb_setjmp.h"
+#include "gdbsupport/gdb_setjmp.h"
 #include "safe-ctype.h"
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 
 #define d_left(dc) (dc)->u.s_binary.left
 #define d_right(dc) (dc)->u.s_binary.right
@@ -48,19 +48,19 @@ static unsigned int cp_find_first_component_aux (const char *name,
 
 static void demangled_name_complaint (const char *name);
 
-/* Functions/variables related to overload resolution.  */
-
-static int sym_return_val_size = -1;
-static int sym_return_val_index;
-static struct symbol **sym_return_val;
+/* Functions related to overload resolution.  */
 
 static void overload_list_add_symbol (struct symbol *sym,
-				      const char *oload_name);
+				      const char *oload_name,
+				      std::vector<symbol *> *overload_list);
 
-static void make_symbol_overload_list_using (const char *func_name,
-					     const char *the_namespace);
+static void add_symbol_overload_list_using
+  (const char *func_name, const char *the_namespace,
+   std::vector<symbol *> *overload_list);
 
-static void make_symbol_overload_list_qualified (const char *func_name);
+static void add_symbol_overload_list_qualified
+  (const char *func_name,
+   std::vector<symbol *> *overload_list);
 
 /* The list of "maint cplus" commands.  */
 
@@ -133,7 +133,6 @@ inspect_type (struct demangle_parse_info *info,
 	      canonicalization_ftype *finder,
 	      void *data)
 {
-  int i;
   char *name;
   struct symbol *sym;
 
@@ -144,7 +143,7 @@ inspect_type (struct demangle_parse_info *info,
   name[ret_comp->u.s_name.len] = '\0';
 
   /* Ignore any typedefs that should not be substituted.  */
-  for (i = 0; i < ARRAY_SIZE (ignore_typedefs); ++i)
+  for (int i = 0; i < ARRAY_SIZE (ignore_typedefs); ++i)
     {
       if (strcmp (name, ignore_typedefs[i]) == 0)
 	return 0;
@@ -152,15 +151,14 @@ inspect_type (struct demangle_parse_info *info,
 
   sym = NULL;
 
-  TRY
+  try
     {
       sym = lookup_symbol (name, 0, VAR_DOMAIN, 0).symbol;
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       return 0;
     }
-  END_CATCH
 
   if (sym != NULL)
     {
@@ -192,10 +190,20 @@ inspect_type (struct demangle_parse_info *info,
 	  /* Get the real type of the typedef.  */
 	  type = check_typedef (otype);
 
-	  /* If the symbol is a namespace and its type name is no different
+	  /* If the symbol name is the same as the original type name,
+	     don't substitute.  That would cause infinite recursion in
+	     symbol lookups, as the typedef symbol is often the first
+	     found symbol in the symbol table.
+
+	     However, this can happen in a number of situations, such as:
+
+	     If the symbol is a namespace and its type name is no different
 	     than the name we looked up, this symbol is not a namespace
-	     alias and does not need to be substituted.  */
-	  if (TYPE_CODE (otype) == TYPE_CODE_NAMESPACE
+	     alias and does not need to be substituted.
+
+	     If the symbol is typedef and its type name is the same
+	     as the symbol's name, e.g., "typedef struct foo foo;".  */
+	  if (TYPE_NAME (type) != nullptr
 	      && strcmp (TYPE_NAME (type), name) == 0)
 	    return 0;
 
@@ -224,20 +232,19 @@ inspect_type (struct demangle_parse_info *info,
 	    }
 
 	  string_file buf;
-	  TRY
+	  try
 	    {
 	      type_print (type, "", &buf, -1);
 	    }
 	  /* If type_print threw an exception, there is little point
 	     in continuing, so just bow out gracefully.  */
-	  CATCH (except, RETURN_MASK_ERROR)
+	  catch (const gdb_exception_error &except)
 	    {
 	      return 0;
 	    }
-	  END_CATCH
 
 	  len = buf.size ();
-	  name = (char *) obstack_copy0 (&info->obstack, buf.c_str (), len);
+	  name = obstack_strdup (&info->obstack, buf.string ());
 
 	  /* Turn the result into a new tree.  Note that this
 	     tree will contain pointers into NAME, so NAME cannot
@@ -308,9 +315,7 @@ replace_typedefs_qualified_name (struct demangle_parse_info *info,
 
 	  buf.write (d_left (comp)->u.s_name.s, d_left (comp)->u.s_name.len);
 	  newobj.type = DEMANGLE_COMPONENT_NAME;
-	  newobj.u.s_name.s
-	    = (char *) obstack_copy0 (&info->obstack,
-				      buf.c_str (), buf.size ());
+	  newobj.u.s_name.s = obstack_strdup (&info->obstack, buf.string ());
 	  newobj.u.s_name.len = buf.size ();
 	  if (inspect_type (info, &newobj, finder, data))
 	    {
@@ -372,9 +377,7 @@ replace_typedefs_qualified_name (struct demangle_parse_info *info,
 	 with a DEMANGLE_COMPONENT_NAME node containing the whole
 	 name.  */
       ret_comp->type = DEMANGLE_COMPONENT_NAME;
-      ret_comp->u.s_name.s
-	= (char *) obstack_copy0 (&info->obstack,
-				  buf.c_str (), buf.size ());
+      ret_comp->u.s_name.s = obstack_strdup (&info->obstack, buf.string ());
       ret_comp->u.s_name.len = buf.size ();
       inspect_type (info, ret_comp, finder, data);
     }
@@ -425,15 +428,14 @@ replace_typedefs (struct demangle_parse_info *info,
 	      struct symbol *sym = NULL;
 
 	      sym = NULL;
-	      TRY
+	      try
 		{
 		  sym = lookup_symbol (local_name.get (), 0,
 				       VAR_DOMAIN, 0).symbol;
 		}
-	      CATCH (except, RETURN_MASK_ALL)
+	      catch (const gdb_exception &except)
 		{
 		}
-	      END_CATCH
 
 	      if (sym != NULL)
 		{
@@ -809,10 +811,9 @@ method_name_from_physname (const char *physname)
 /* If FULL_NAME is the demangled name of a C++ function (including an
    arg list, possibly including namespace/class qualifications),
    return a new string containing only the function name (without the
-   arg list/class qualifications).  Otherwise, return NULL.  The
-   caller is responsible for freeing the memory in question.  */
+   arg list/class qualifications).  Otherwise, return NULL.  */
 
-char *
+gdb::unique_xmalloc_ptr<char>
 cp_func_name (const char *full_name)
 {
   gdb::unique_xmalloc_ptr<char> ret;
@@ -821,14 +822,14 @@ cp_func_name (const char *full_name)
 
   info = cp_demangled_name_to_comp (full_name, NULL);
   if (!info)
-    return NULL;
+    return nullptr;
 
   ret_comp = unqualified_name_from_comp (info->tree);
 
   if (ret_comp != NULL)
     ret = cp_comp_to_string (ret_comp, 10);
 
-  return ret.release ();
+  return ret;
 }
 
 /* Helper for cp_remove_params.  DEMANGLED_NAME is the name of a
@@ -903,7 +904,7 @@ cp_remove_params_if_any (const char *demangled_name, bool completion_mode)
      we're completing / matching everything, avoid returning NULL
      which would make callers interpret the result as an error.  */
   if (demangled_name[0] == '\0' && completion_mode)
-    return gdb::unique_xmalloc_ptr<char> (xstrdup (""));
+    return make_unique_xstrdup ("");
 
   gdb::unique_xmalloc_ptr<char> without_params
     = cp_remove_params_1 (demangled_name, false);
@@ -1138,30 +1139,28 @@ cp_entire_prefix_len (const char *name)
 /* Overload resolution functions.  */
 
 /* Test to see if SYM is a symbol that we haven't seen corresponding
-   to a function named OLOAD_NAME.  If so, add it to the current
-   completion list.  */
+   to a function named OLOAD_NAME.  If so, add it to
+   OVERLOAD_LIST.  */
 
 static void
 overload_list_add_symbol (struct symbol *sym,
-			  const char *oload_name)
+			  const char *oload_name,
+			  std::vector<symbol *> *overload_list)
 {
-  int newsize;
-  int i;
-  gdb::unique_xmalloc_ptr<char> sym_name;
-
   /* If there is no type information, we can't do anything, so
      skip.  */
   if (SYMBOL_TYPE (sym) == NULL)
     return;
 
   /* skip any symbols that we've already considered.  */
-  for (i = 0; i < sym_return_val_index; ++i)
+  for (symbol *listed_sym : *overload_list)
     if (strcmp (SYMBOL_LINKAGE_NAME (sym),
-		SYMBOL_LINKAGE_NAME (sym_return_val[i])) == 0)
+		SYMBOL_LINKAGE_NAME (listed_sym)) == 0)
       return;
 
   /* Get the demangled name without parameters */
-  sym_name = cp_remove_params (SYMBOL_NATURAL_NAME (sym));
+  gdb::unique_xmalloc_ptr<char> sym_name
+    = cp_remove_params (SYMBOL_NATURAL_NAME (sym));
   if (!sym_name)
     return;
 
@@ -1169,36 +1168,22 @@ overload_list_add_symbol (struct symbol *sym,
   if (strcmp (sym_name.get (), oload_name) != 0)
     return;
 
-  /* We have a match for an overload instance, so add SYM to the
-     current list of overload instances */
-  if (sym_return_val_index + 3 > sym_return_val_size)
-    {
-      newsize = (sym_return_val_size *= 2) * sizeof (struct symbol *);
-      sym_return_val = (struct symbol **)
-	xrealloc ((char *) sym_return_val, newsize);
-    }
-  sym_return_val[sym_return_val_index++] = sym;
-  sym_return_val[sym_return_val_index] = NULL;
+  overload_list->push_back (sym);
 }
 
 /* Return a null-terminated list of pointers to function symbols that
    are named FUNC_NAME and are visible within NAMESPACE.  */
 
-struct symbol **
+struct std::vector<symbol *>
 make_symbol_overload_list (const char *func_name,
 			   const char *the_namespace)
 {
-  struct cleanup *old_cleanups;
   const char *name;
+  std::vector<symbol *> overload_list;
 
-  sym_return_val_size = 100;
-  sym_return_val_index = 0;
-  sym_return_val = XNEWVEC (struct symbol *, sym_return_val_size + 1);
-  sym_return_val[0] = NULL;
+  overload_list.reserve (100);
 
-  old_cleanups = make_cleanup (xfree, sym_return_val);
-
-  make_symbol_overload_list_using (func_name, the_namespace);
+  add_symbol_overload_list_using (func_name, the_namespace, &overload_list);
 
   if (the_namespace[0] == '\0')
     name = func_name;
@@ -1212,19 +1197,17 @@ make_symbol_overload_list (const char *func_name,
       name = concatenated_name;
     }
 
-  make_symbol_overload_list_qualified (name);
-
-  discard_cleanups (old_cleanups);
-
-  return sym_return_val;
+  add_symbol_overload_list_qualified (name, &overload_list);
+  return overload_list;
 }
 
 /* Add all symbols with a name matching NAME in BLOCK to the overload
    list.  */
 
 static void
-make_symbol_overload_list_block (const char *name,
-                                 const struct block *block)
+add_symbol_overload_list_block (const char *name,
+				const struct block *block,
+				std::vector<symbol *> *overload_list)
 {
   struct block_iterator iter;
   struct symbol *sym;
@@ -1232,14 +1215,15 @@ make_symbol_overload_list_block (const char *name,
   lookup_name_info lookup_name (name, symbol_name_match_type::FULL);
 
   ALL_BLOCK_SYMBOLS_WITH_NAME (block, lookup_name, iter, sym)
-    overload_list_add_symbol (sym, name);
+    overload_list_add_symbol (sym, name, overload_list);
 }
 
 /* Adds the function FUNC_NAME from NAMESPACE to the overload set.  */
 
 static void
-make_symbol_overload_list_namespace (const char *func_name,
-                                     const char *the_namespace)
+add_symbol_overload_list_namespace (const char *func_name,
+				    const char *the_namespace,
+				    std::vector<symbol *> *overload_list)
 {
   const char *name;
   const struct block *block = NULL;
@@ -1260,12 +1244,12 @@ make_symbol_overload_list_namespace (const char *func_name,
   /* Look in the static block.  */
   block = block_static_block (get_selected_block (0));
   if (block)
-    make_symbol_overload_list_block (name, block);
+    add_symbol_overload_list_block (name, block, overload_list);
 
   /* Look in the global block.  */
   block = block_global_block (block);
   if (block)
-    make_symbol_overload_list_block (name, block);
+    add_symbol_overload_list_block (name, block, overload_list);
 
 }
 
@@ -1273,8 +1257,9 @@ make_symbol_overload_list_namespace (const char *func_name,
    base types.  */
 
 static void
-make_symbol_overload_list_adl_namespace (struct type *type,
-                                         const char *func_name)
+add_symbol_overload_list_adl_namespace (struct type *type,
+					const char *func_name,
+					std::vector<symbol *> *overload_list)
 {
   char *the_namespace;
   const char *type_name;
@@ -1304,7 +1289,8 @@ make_symbol_overload_list_adl_namespace (struct type *type,
       strncpy (the_namespace, type_name, prefix_len);
       the_namespace[prefix_len] = '\0';
 
-      make_symbol_overload_list_namespace (func_name, the_namespace);
+      add_symbol_overload_list_namespace (func_name, the_namespace,
+					  overload_list);
     }
 
   /* Check public base type */
@@ -1312,28 +1298,23 @@ make_symbol_overload_list_adl_namespace (struct type *type,
     for (i = 0; i < TYPE_N_BASECLASSES (type); i++)
       {
 	if (BASETYPE_VIA_PUBLIC (type, i))
-	  make_symbol_overload_list_adl_namespace (TYPE_BASECLASS (type,
-								   i),
-						   func_name);
+	  add_symbol_overload_list_adl_namespace (TYPE_BASECLASS (type, i),
+						  func_name,
+						  overload_list);
       }
 }
 
-/* Adds the overload list overload candidates for FUNC_NAME found
-   through argument dependent lookup.  */
+/* Adds to OVERLOAD_LIST the overload list overload candidates for
+   FUNC_NAME found through argument dependent lookup.  */
 
-struct symbol **
-make_symbol_overload_list_adl (struct type **arg_types, int nargs,
-                               const char *func_name)
+void
+add_symbol_overload_list_adl (gdb::array_view<type *> arg_types,
+			      const char *func_name,
+			      std::vector<symbol *> *overload_list)
 {
-  int i;
-
-  gdb_assert (sym_return_val_size != -1);
-
-  for (i = 1; i <= nargs; i++)
-    make_symbol_overload_list_adl_namespace (arg_types[i - 1],
-					     func_name);
-
-  return sym_return_val;
+  for (type *arg_type : arg_types)
+    add_symbol_overload_list_adl_namespace (arg_type, func_name,
+					    overload_list);
 }
 
 /* This applies the using directives to add namespaces to search in,
@@ -1342,8 +1323,9 @@ make_symbol_overload_list_adl (struct type **arg_types, int nargs,
    make_symbol_overload_list.  */
 
 static void
-make_symbol_overload_list_using (const char *func_name,
-				 const char *the_namespace)
+add_symbol_overload_list_using (const char *func_name,
+				const char *the_namespace,
+				std::vector<symbol *> *overload_list)
 {
   struct using_direct *current;
   const struct block *block;
@@ -1375,13 +1357,15 @@ make_symbol_overload_list_using (const char *func_name,
 	    scoped_restore reset_directive_searched
 	      = make_scoped_restore (&current->searched, 1);
 
-	    make_symbol_overload_list_using (func_name,
-					     current->import_src);
+	    add_symbol_overload_list_using (func_name,
+					    current->import_src,
+					    overload_list);
 	  }
       }
 
   /* Now, add names for this namespace.  */
-  make_symbol_overload_list_namespace (func_name, the_namespace);
+  add_symbol_overload_list_namespace (func_name, the_namespace,
+				      overload_list);
 }
 
 /* This does the bulk of the work of finding overloaded symbols.
@@ -1389,54 +1373,59 @@ make_symbol_overload_list_using (const char *func_name,
    (possibly including namespace info).  */
 
 static void
-make_symbol_overload_list_qualified (const char *func_name)
+add_symbol_overload_list_qualified (const char *func_name,
+				    std::vector<symbol *> *overload_list)
 {
-  struct compunit_symtab *cust;
-  struct objfile *objfile;
   const struct block *b, *surrounding_static_block = 0;
 
   /* Look through the partial symtabs for all symbols which begin by
      matching FUNC_NAME.  Make sure we read that symbol table in.  */
 
-  ALL_OBJFILES (objfile)
-  {
-    if (objfile->sf)
-      objfile->sf->qf->expand_symtabs_for_function (objfile, func_name);
-  }
+  for (objfile *objf : current_program_space->objfiles ())
+    {
+      if (objf->sf)
+	objf->sf->qf->expand_symtabs_for_function (objf, func_name);
+    }
 
   /* Search upwards from currently selected frame (so that we can
      complete on local vars.  */
 
   for (b = get_selected_block (0); b != NULL; b = BLOCK_SUPERBLOCK (b))
-    make_symbol_overload_list_block (func_name, b);
+    add_symbol_overload_list_block (func_name, b, overload_list);
 
   surrounding_static_block = block_static_block (get_selected_block (0));
 
   /* Go through the symtabs and check the externs and statics for
      symbols which match.  */
 
-  ALL_COMPUNITS (objfile, cust)
-  {
-    QUIT;
-    b = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust), GLOBAL_BLOCK);
-    make_symbol_overload_list_block (func_name, b);
-  }
+  for (objfile *objfile : current_program_space->objfiles ())
+    {
+      for (compunit_symtab *cust : objfile->compunits ())
+	{
+	  QUIT;
+	  b = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust), GLOBAL_BLOCK);
+	  add_symbol_overload_list_block (func_name, b, overload_list);
+	}
+    }
 
-  ALL_COMPUNITS (objfile, cust)
-  {
-    QUIT;
-    b = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust), STATIC_BLOCK);
-    /* Don't do this block twice.  */
-    if (b == surrounding_static_block)
-      continue;
-    make_symbol_overload_list_block (func_name, b);
-  }
+  for (objfile *objfile : current_program_space->objfiles ())
+    {
+      for (compunit_symtab *cust : objfile->compunits ())
+	{
+	  QUIT;
+	  b = BLOCKVECTOR_BLOCK (COMPUNIT_BLOCKVECTOR (cust), STATIC_BLOCK);
+	  /* Don't do this block twice.  */
+	  if (b == surrounding_static_block)
+	    continue;
+	  add_symbol_overload_list_block (func_name, b, overload_list);
+	}
+    }
 }
 
 /* Lookup the rtti type for a class name.  */
 
 struct type *
-cp_lookup_rtti_type (const char *name, struct block *block)
+cp_lookup_rtti_type (const char *name, const struct block *block)
 {
   struct symbol * rtti_sym;
   struct type * rtti_type;

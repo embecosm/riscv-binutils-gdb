@@ -1,6 +1,6 @@
 /* Output generating routines for GDB.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Solutions.
    Written by Fernando Nasser for Cygnus.
@@ -28,7 +28,6 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <memory>
 
 namespace {
 
@@ -439,7 +438,7 @@ ui_out::end (ui_out_type type)
 }
 
 void
-ui_out::field_int (const char *fldname, int value)
+ui_out::field_signed (const char *fldname, LONGEST value)
 {
   int fldno;
   int width;
@@ -447,12 +446,12 @@ ui_out::field_int (const char *fldname, int value)
 
   verify_field (&fldno, &width, &align);
 
-  do_field_int (fldno, width, align, fldname, value);
+  do_field_signed (fldno, width, align, fldname, value);
 }
 
 void
-ui_out::field_fmt_int (int input_width, ui_align input_align,
-		       const char *fldname, int value)
+ui_out::field_fmt_signed (int input_width, ui_align input_align,
+			  const char *fldname, LONGEST value)
 {
   int fldno;
   int width;
@@ -460,7 +459,21 @@ ui_out::field_fmt_int (int input_width, ui_align input_align,
 
   verify_field (&fldno, &width, &align);
 
-  do_field_int (fldno, input_width, input_align, fldname, value);
+  do_field_signed (fldno, input_width, input_align, fldname, value);
+}
+
+/* See ui-out.h.  */
+
+void
+ui_out::field_unsigned (const char *fldname, ULONGEST value)
+{
+  int fldno;
+  int width;
+  ui_align align;
+
+  verify_field (&fldno, &width, &align);
+
+  do_field_unsigned (fldno, width, align, fldname, value);
 }
 
 /* Documented in ui-out.h.  */
@@ -469,14 +482,16 @@ void
 ui_out::field_core_addr (const char *fldname, struct gdbarch *gdbarch,
 			 CORE_ADDR address)
 {
-  field_string (fldname, print_core_address (gdbarch, address));
+  field_string (fldname, print_core_address (gdbarch, address),
+		ui_out_style_kind::ADDRESS);
 }
 
 void
-ui_out::field_stream (const char *fldname, string_file &stream)
+ui_out::field_stream (const char *fldname, string_file &stream,
+		      ui_out_style_kind style)
 {
   if (!stream.empty ())
-    field_string (fldname, stream.c_str ());
+    field_string (fldname, stream.c_str (), style);
   else
     field_skip (fldname);
   stream.clear ();
@@ -497,7 +512,8 @@ ui_out::field_skip (const char *fldname)
 }
 
 void
-ui_out::field_string (const char *fldname, const char *string)
+ui_out::field_string (const char *fldname, const char *string,
+		      ui_out_style_kind style)
 {
   int fldno;
   int width;
@@ -505,7 +521,7 @@ ui_out::field_string (const char *fldname, const char *string)
 
   verify_field (&fldno, &width, &align);
 
-  do_field_string (fldno, width, align, fldname, string);
+  do_field_string (fldno, width, align, fldname, string, style);
 }
 
 void
@@ -523,7 +539,6 @@ ui_out::field_fmt (const char *fldname, const char *format, ...)
   int width;
   ui_align align;
 
-  /* Will not align, but has to call anyway.  */
   verify_field (&fldno, &width, &align);
 
   va_start (args, format);

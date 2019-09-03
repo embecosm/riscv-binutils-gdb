@@ -1,5 +1,5 @@
 /* Mach-O support for BFD.
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -19,10 +19,11 @@
    MA 02110-1301, USA.  */
 
 #include "sysdep.h"
-#include "mach-o.h"
+#include <limits.h>
 #include "bfd.h"
 #include "libbfd.h"
 #include "libiberty.h"
+#include "mach-o.h"
 #include "aout/stab_gnu.h"
 #include "mach-o/reloc.h"
 #include "mach-o/external.h"
@@ -646,7 +647,7 @@ cpusubtype (unsigned long cputype, unsigned long cpusubtype)
 	  break;
 	}
       break;
-	
+
     case BFD_MACH_O_CPU_TYPE_ARM:
       switch (cpusubtype)
 	{
@@ -666,7 +667,7 @@ cpusubtype (unsigned long cputype, unsigned long cpusubtype)
 	  break;
 	}
       break;
-      
+
     case BFD_MACH_O_CPU_TYPE_ARM64:
       switch (cpusubtype)
 	{
@@ -706,7 +707,7 @@ bfd_mach_o_bfd_print_private_bfd_data (bfd *abfd, void *ptr)
   fprintf (file, _("   sizeocmds:  %#lx\n"), (long) mdata->header.sizeofcmds);
   fprintf (file, _("   flags:      %#lx\n"), (long) mdata->header.flags);
   fprintf (file, _("   version:    %x\n"), mdata->header.version);
-  
+
   return TRUE;
 }
 
@@ -747,7 +748,7 @@ bfd_mach_o_bfd_copy_private_header_data (bfd *ibfd, bfd *obfd)
 
   /* Copy the cpusubtype.  */
   omdata->header.cpusubtype = imdata->header.cpusubtype;
-    
+
   /* Copy commands.  */
   for (icmd = imdata->first_command; icmd != NULL; icmd = icmd->next)
     {
@@ -1420,7 +1421,14 @@ long
 bfd_mach_o_get_reloc_upper_bound (bfd *abfd ATTRIBUTE_UNUSED,
 				  asection *asect)
 {
-  return (asect->reloc_count + 1) * sizeof (arelent *);
+#if SIZEOF_LONG == SIZEOF_INT
+   if (asect->reloc_count >= LONG_MAX / sizeof (arelent *))
+    {
+      bfd_set_error (bfd_error_file_too_big);
+      return -1;
+    }
+#endif
+ return (asect->reloc_count + 1) * sizeof (arelent *);
 }
 
 /* In addition to the need to byte-swap the symbol number, the bit positions
@@ -1493,7 +1501,11 @@ bfd_mach_o_canonicalize_non_scattered_reloc (bfd *abfd,
     {
       /* PR 17512: file: 006-2964-0.004.  */
       if (num > mdata->nsects)
-	return FALSE;
+	{
+	  _bfd_error_handler (_("\
+malformed mach-o reloc: section index is greater than the number of sections"));
+	  return FALSE;
+	}
 
       /* A section number.  */
       sym = mdata->sections[num - 1]->bfdsection->symbol_ptr_ptr;
@@ -1601,7 +1613,7 @@ bfd_mach_o_canonicalize_relocs (bfd *abfd, unsigned long filepos,
 {
   bfd_mach_o_backend_data *bed = bfd_mach_o_get_backend_data (abfd);
   unsigned long i;
-  struct mach_o_reloc_info_external *native_relocs;
+  struct mach_o_reloc_info_external *native_relocs = NULL;
   bfd_size_type native_size;
 
   /* Allocate and read relocs.  */
@@ -1609,7 +1621,7 @@ bfd_mach_o_canonicalize_relocs (bfd *abfd, unsigned long filepos,
 
   /* PR 17512: file: 09477b57.  */
   if (native_size < count)
-    return -1;
+    goto err;
 
   native_relocs =
     (struct mach_o_reloc_info_external *) bfd_malloc (native_size);
@@ -1628,8 +1640,11 @@ bfd_mach_o_canonicalize_relocs (bfd *abfd, unsigned long filepos,
     }
   free (native_relocs);
   return i;
+
  err:
   free (native_relocs);
+  if (bfd_get_error () == bfd_error_no_error)
+    bfd_set_error (bfd_error_invalid_operation);
   return -1;
 }
 
@@ -2497,10 +2512,13 @@ bfd_mach_o_mangle_symbols (bfd *abfd)
 	    }
 	  else
 	    s->n_type = BFD_MACH_O_N_SECT;
-
-	  if (s->symbol.flags & BSF_GLOBAL)
-	    s->n_type |= BFD_MACH_O_N_EXT;
 	}
+
+      /* Update external symbol bit in case objcopy changed it.  */
+      if (s->symbol.flags & BSF_GLOBAL)
+	s->n_type |= BFD_MACH_O_N_EXT;
+      else
+	s->n_type &= ~BFD_MACH_O_N_EXT;
 
       /* Put the section index in, where required.  */
       if ((s->symbol.section != bfd_abs_section_ptr
@@ -4595,16 +4613,12 @@ bfd_mach_o_read_version_min (bfd *abfd, bfd_mach_o_load_command *command)
 {
   bfd_mach_o_version_min_command *cmd = &command->command.version_min;
   struct mach_o_version_min_command_external raw;
-  unsigned int ver;
 
   if (bfd_bread (&raw, sizeof (raw), abfd) != sizeof (raw))
     return FALSE;
 
-  ver = bfd_get_32 (abfd, raw.version);
-  cmd->rel = ver >> 16;
-  cmd->maj = ver >> 8;
-  cmd->min = ver;
-  cmd->reserved = bfd_get_32 (abfd, raw.reserved);
+  cmd->version = bfd_get_32 (abfd, raw.version);
+  cmd->sdk = bfd_get_32 (abfd, raw.sdk);
   return TRUE;
 }
 
@@ -4675,6 +4689,37 @@ bfd_mach_o_read_source_version (bfd *abfd, bfd_mach_o_load_command *command)
   cmd->b = ver & 0x3ff;
   ver >>= 10;
   cmd->a = ver & 0xffffff;
+  return TRUE;
+}
+
+static bfd_boolean
+bfd_mach_o_read_note (bfd *abfd, bfd_mach_o_load_command *command)
+{
+  bfd_mach_o_note_command *cmd = &command->command.note;
+  struct mach_o_note_command_external raw;
+
+  if (bfd_bread (&raw, sizeof (raw), abfd) != sizeof (raw))
+    return FALSE;
+
+  memcpy (cmd->data_owner, raw.data_owner, 16);
+  cmd->offset = bfd_get_64 (abfd, raw.offset);
+  cmd->size = bfd_get_64 (abfd, raw.size);
+  return TRUE;
+}
+
+static bfd_boolean
+bfd_mach_o_read_build_version (bfd *abfd, bfd_mach_o_load_command *command)
+{
+  bfd_mach_o_build_version_command *cmd = &command->command.build_version;
+  struct mach_o_build_version_command_external raw;
+
+  if (bfd_bread (&raw, sizeof (raw), abfd) != sizeof (raw))
+    return FALSE;
+
+  cmd->platform = bfd_get_32 (abfd, raw.platform);
+  cmd->minos = bfd_get_32 (abfd, raw.minos);
+  cmd->sdk = bfd_get_32 (abfd, raw.sdk);
+  cmd->ntools = bfd_get_32 (abfd, raw.ntools);
   return TRUE;
 }
 
@@ -4874,6 +4919,7 @@ bfd_mach_o_read_command (bfd *abfd, bfd_mach_o_load_command *command)
     case BFD_MACH_O_LC_VERSION_MIN_MACOSX:
     case BFD_MACH_O_LC_VERSION_MIN_IPHONEOS:
     case BFD_MACH_O_LC_VERSION_MIN_WATCHOS:
+    case BFD_MACH_O_LC_VERSION_MIN_TVOS:
       if (!bfd_mach_o_read_version_min (abfd, command))
 	return FALSE;
       break;
@@ -4883,6 +4929,16 @@ bfd_mach_o_read_command (bfd *abfd, bfd_mach_o_load_command *command)
       break;
     case BFD_MACH_O_LC_SOURCE_VERSION:
       if (!bfd_mach_o_read_source_version (abfd, command))
+	return FALSE;
+      break;
+    case BFD_MACH_O_LC_LINKER_OPTIONS:
+      break;
+    case BFD_MACH_O_LC_NOTE:
+      if (!bfd_mach_o_read_note (abfd, command))
+	return FALSE;
+      break;
+    case BFD_MACH_O_LC_BUILD_VERSION:
+      if (!bfd_mach_o_read_build_version (abfd, command))
 	return FALSE;
       break;
     default:
@@ -5929,7 +5985,7 @@ bfd_mach_o_find_nearest_line (bfd *abfd,
   return _bfd_dwarf2_find_nearest_line (abfd, symbols, NULL, section, offset,
 					filename_ptr, functionname_ptr,
 					line_ptr, discriminator_ptr,
-					dwarf_debug_sections, 0,
+					dwarf_debug_sections,
 					&mdata->dwarf2_find_line_info);
 }
 

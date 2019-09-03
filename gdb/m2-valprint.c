@@ -1,6 +1,6 @@
 /* Support for printing Modula 2 values for GDB, the GNU debugger.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -408,7 +408,6 @@ m2_val_print (struct type *type, int embedded_offset,
       if (TYPE_STUB (elttype))
 	{
 	  fprintf_filtered (stream, _("<incomplete type>"));
-	  gdb_flush (stream);
 	  break;
 	}
       else
@@ -499,5 +498,4 @@ m2_val_print (struct type *type, int embedded_offset,
 			 &m2_decorations);
       break;
     }
-  gdb_flush (stream);
 }

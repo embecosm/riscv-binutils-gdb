@@ -1,5 +1,5 @@
 /* SPU target-dependent code for GDB, the GNU debugger.
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    Contributed by Ulrich Weigand <uweigand@de.ibm.com>.
    Based on a port by Sid Manning <sid@us.ibm.com>.
@@ -1401,7 +1401,8 @@ static CORE_ADDR
 spu_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 		     struct regcache *regcache, CORE_ADDR bp_addr,
 		     int nargs, struct value **args, CORE_ADDR sp,
-		     int struct_return, CORE_ADDR struct_addr)
+		     function_call_return_method return_method,
+		     CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR sp_delta;
@@ -1418,7 +1419,7 @@ spu_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
   /* If STRUCT_RETURN is true, then the struct return address (in
      STRUCT_ADDR) will consume the first argument-passing register.
      Both adjust the register count and store that value.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       memset (buf, 0, sizeof buf);
       store_unsigned_integer (buf, 4, byte_order, SPUADDR_ADDR (struct_addr));
@@ -1766,13 +1767,14 @@ gdb_print_insn_spu (bfd_vma memaddr, struct disassemble_info *info)
    a target address.  The overlay section is mapped iff the target
    integer at this location equals MAPPED_VAL.  */
 
-static const struct objfile_data *spu_overlay_data;
-
 struct spu_overlay_table
   {
     CORE_ADDR mapped_ptr;
     CORE_ADDR mapped_val;
   };
+
+static objfile_key<spu_overlay_table,
+		   gdb::noop_deleter<spu_overlay_table>> spu_overlay_data;
 
 /* Retrieve the overlay table for OBJFILE.  If not already cached, read
    the _ovly_table data structure from the target and initialize the
@@ -1790,7 +1792,7 @@ spu_get_overlay_table (struct objfile *objfile)
   gdb_byte *ovly_table;
   int i;
 
-  tbl = (struct spu_overlay_table *) objfile_data (objfile, spu_overlay_data);
+  tbl = spu_overlay_data.get (objfile);
   if (tbl)
     return tbl;
 
@@ -1842,7 +1844,7 @@ spu_get_overlay_table (struct objfile *objfile)
     }
 
   xfree (ovly_table);
-  set_objfile_data (objfile, spu_overlay_data, tbl);
+  spu_overlay_data.set (objfile, tbl);
   return tbl;
 }
 
@@ -1882,11 +1884,10 @@ spu_overlay_update (struct obj_section *osect)
   /* All sections.  */
   else
     {
-      struct objfile *objfile;
-
-      ALL_OBJSECTIONS (objfile, osect)
-	if (section_is_overlay (osect))
-	  spu_overlay_update_osect (osect);
+      for (objfile *objfile : current_program_space->objfiles ())
+	ALL_OBJFILE_OSECTIONS (objfile, osect)
+	  if (section_is_overlay (osect))
+	    spu_overlay_update_osect (osect);
     }
 }
 
@@ -1901,7 +1902,7 @@ spu_overlay_new_objfile (struct objfile *objfile)
   struct obj_section *osect;
 
   /* If we've already touched this file, do nothing.  */
-  if (!objfile || objfile_data (objfile, spu_overlay_data) != NULL)
+  if (!objfile || spu_overlay_data.get (objfile) != NULL)
     return;
 
   /* Consider only SPU objfiles.  */
@@ -1963,7 +1964,7 @@ spu_catch_start (struct objfile *objfile)
   if (cust != NULL)
     {
       const struct blockvector *bv = COMPUNIT_BLOCKVECTOR (cust);
-      struct block *block = BLOCKVECTOR_BLOCK (bv, GLOBAL_BLOCK);
+      const struct block *block = BLOCKVECTOR_BLOCK (bv, GLOBAL_BLOCK);
       struct symbol *sym;
       struct symtab_and_line sal;
 
@@ -1999,12 +2000,11 @@ spu_objfile_from_frame (struct frame_info *frame)
 {
   struct gdbarch *gdbarch = get_frame_arch (frame);
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
-  struct objfile *obj;
 
   if (gdbarch_bfd_arch_info (gdbarch)->arch != bfd_arch_spu)
     return NULL;
 
-  ALL_OBJFILES (obj)
+  for (objfile *obj : current_program_space->objfiles ())
     {
       if (obj->sections != obj->sections_end
 	  && SPUADDR_SPU (obj_section_addr (obj->sections)) == tdep->id)
@@ -2040,7 +2040,7 @@ flush_ea_cache (void)
       type = lookup_pointer_type (type);
       addr = BMSYMBOL_VALUE_ADDRESS (msymbol);
 
-      call_function_by_hand (value_from_pointer (type, addr), NULL, 0, NULL);
+      call_function_by_hand (value_from_pointer (type, addr), NULL, {});
     }
 }
 
@@ -2168,12 +2168,12 @@ info_spu_signal_command (const char *args, int from_tty)
 
   if (current_uiout->is_mi_like_p ())
     {
-      current_uiout->field_int ("signal1_pending", signal1_pending);
+      current_uiout->field_signed ("signal1_pending", signal1_pending);
       current_uiout->field_fmt ("signal1", "0x%s", phex_nz (signal1, 4));
-      current_uiout->field_int ("signal1_type", signal1_type);
-      current_uiout->field_int ("signal2_pending", signal2_pending);
+      current_uiout->field_signed ("signal1_type", signal1_type);
+      current_uiout->field_signed ("signal2_pending", signal2_pending);
       current_uiout->field_fmt ("signal2", "0x%s", phex_nz (signal2, 4));
-      current_uiout->field_int ("signal2_type", signal2_type);
+      current_uiout->field_signed ("signal2_type", signal2_type);
     }
   else
     {
@@ -2415,11 +2415,11 @@ info_spu_dma_cmdlist (gdb_byte *buf, int nr, enum bfd_endian byte_order)
 	if (spu_mfc_opcode[mfc_cmd_opcode])
 	  current_uiout->field_string ("opcode", spu_mfc_opcode[mfc_cmd_opcode]);
 	else
-	  current_uiout->field_int ("opcode", mfc_cmd_opcode);
+	  current_uiout->field_signed ("opcode", mfc_cmd_opcode);
 
-	current_uiout->field_int ("tag", mfc_cmd_tag);
-	current_uiout->field_int ("tid", tclass_id);
-	current_uiout->field_int ("rid", rclass_id);
+	current_uiout->field_signed ("tag", mfc_cmd_tag);
+	current_uiout->field_signed ("tid", tclass_id);
+	current_uiout->field_signed ("rid", rclass_id);
 
 	if (ea_valid_p)
 	  current_uiout->field_fmt ("ea", "0x%s", phex (mfc_ea, 8));
@@ -2766,7 +2766,6 @@ _initialize_spu_tdep (void)
 
   /* Add ourselves to objfile event chain.  */
   gdb::observers::new_objfile.attach (spu_overlay_new_objfile);
-  spu_overlay_data = register_objfile_data ();
 
   /* Install spu stop-on-load handler.  */
   gdb::observers::new_objfile.attach (spu_catch_start);
@@ -2819,18 +2818,18 @@ Use \"off\" to never automatically flush the software-managed cache."),
 
   /* Add various "info spu" commands.  */
   add_cmd ("event", class_info, info_spu_event_command,
-	   _("Display SPU event facility status.\n"),
+	   _("Display SPU event facility status."),
 	   &infospucmdlist);
   add_cmd ("signal", class_info, info_spu_signal_command,
-	   _("Display SPU signal notification facility status.\n"),
+	   _("Display SPU signal notification facility status."),
 	   &infospucmdlist);
   add_cmd ("mailbox", class_info, info_spu_mailbox_command,
-	   _("Display SPU mailbox facility status.\n"),
+	   _("Display SPU mailbox facility status."),
 	   &infospucmdlist);
   add_cmd ("dma", class_info, info_spu_dma_command,
-	   _("Display MFC DMA status.\n"),
+	   _("Display MFC DMA status."),
 	   &infospucmdlist);
   add_cmd ("proxydma", class_info, info_spu_proxydma_command,
-	   _("Display MFC Proxy-DMA status.\n"),
+	   _("Display MFC Proxy-DMA status."),
 	   &infospucmdlist);
 }

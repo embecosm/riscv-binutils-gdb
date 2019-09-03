@@ -1,5 +1,5 @@
 /* Support for printing Modula 2 types for GDB, the GNU debugger.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -234,9 +234,9 @@ static void m2_array (struct type *type, struct ui_file *stream,
 	  m2_print_bounds (TYPE_INDEX_TYPE (type), stream, show, -1, 1);
 	}
       else
-	fprintf_filtered (stream, "%d",
-			  (TYPE_LENGTH (type)
-			   / TYPE_LENGTH (TYPE_TARGET_TYPE (type))));
+	fputs_filtered (pulongest ((TYPE_LENGTH (type)
+				    / TYPE_LENGTH (TYPE_TARGET_TYPE (type)))),
+			stream);
     }
   fprintf_filtered (stream, "] OF ");
   m2_print_type (TYPE_TARGET_TYPE (type), "", stream, show, level, flags);

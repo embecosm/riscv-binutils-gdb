@@ -1,6 +1,6 @@
 /* GNU/Linux on ARM target support.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -33,6 +33,7 @@
 #include "auxv.h"
 #include "xml-syscall.h"
 
+#include "aarch32-tdep.h"
 #include "arch/arm.h"
 #include "arch/arm-get-next-pcs.h"
 #include "arch/arm-linux.h"
@@ -103,7 +104,7 @@ static const gdb_byte arm_linux_thumb2_le_breakpoint[] = { 0xf0, 0xf7, 0x00, 0xa
    SoftVFP or VFP (which implies EABI) then the PC is at offset 9 in the 
    buffer.  This is also true for the SoftFPA model.  However, for the FPA 
    model the PC is at offset 21 in the buffer.  */
-#define ARM_LINUX_JB_ELEMENT_SIZE	INT_REGISTER_SIZE
+#define ARM_LINUX_JB_ELEMENT_SIZE	ARM_INT_REGISTER_SIZE
 #define ARM_LINUX_JB_PC_FPA		21
 #define ARM_LINUX_JB_PC_EABI		9
 
@@ -385,7 +386,7 @@ static struct tramp_frame arm_linux_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   4,
   {
-    { ARM_LINUX_SIGRETURN_INSTR, -1 },
+    { ARM_LINUX_SIGRETURN_INSTR, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_sigreturn_init
@@ -395,7 +396,7 @@ static struct tramp_frame arm_linux_rt_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   4,
   {
-    { ARM_LINUX_RT_SIGRETURN_INSTR, -1 },
+    { ARM_LINUX_RT_SIGRETURN_INSTR, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_rt_sigreturn_init
@@ -405,8 +406,8 @@ static struct tramp_frame arm_eabi_linux_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   4,
   {
-    { ARM_SET_R7_SIGRETURN, -1 },
-    { ARM_EABI_SYSCALL, -1 },
+    { ARM_SET_R7_SIGRETURN, ULONGEST_MAX },
+    { ARM_EABI_SYSCALL, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_sigreturn_init
@@ -416,8 +417,8 @@ static struct tramp_frame arm_eabi_linux_rt_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   4,
   {
-    { ARM_SET_R7_RT_SIGRETURN, -1 },
-    { ARM_EABI_SYSCALL, -1 },
+    { ARM_SET_R7_RT_SIGRETURN, ULONGEST_MAX },
+    { ARM_EABI_SYSCALL, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_rt_sigreturn_init
@@ -427,9 +428,9 @@ static struct tramp_frame thumb2_eabi_linux_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   2,
   {
-    { THUMB2_SET_R7_SIGRETURN1, -1 },
-    { THUMB2_SET_R7_SIGRETURN2, -1 },
-    { THUMB2_EABI_SYSCALL, -1 },
+    { THUMB2_SET_R7_SIGRETURN1, ULONGEST_MAX },
+    { THUMB2_SET_R7_SIGRETURN2, ULONGEST_MAX },
+    { THUMB2_EABI_SYSCALL, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_sigreturn_init
@@ -439,9 +440,9 @@ static struct tramp_frame thumb2_eabi_linux_rt_sigreturn_tramp_frame = {
   SIGTRAMP_FRAME,
   2,
   {
-    { THUMB2_SET_R7_RT_SIGRETURN1, -1 },
-    { THUMB2_SET_R7_RT_SIGRETURN2, -1 },
-    { THUMB2_EABI_SYSCALL, -1 },
+    { THUMB2_SET_R7_RT_SIGRETURN1, ULONGEST_MAX },
+    { THUMB2_SET_R7_RT_SIGRETURN2, ULONGEST_MAX },
+    { THUMB2_EABI_SYSCALL, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_rt_sigreturn_init
@@ -451,8 +452,8 @@ static struct tramp_frame arm_linux_restart_syscall_tramp_frame = {
   NORMAL_FRAME,
   4,
   {
-    { ARM_OABI_SYSCALL_RESTART_SYSCALL, -1 },
-    { ARM_LDR_PC_SP_12, -1 },
+    { ARM_OABI_SYSCALL_RESTART_SYSCALL, ULONGEST_MAX },
+    { ARM_LDR_PC_SP_12, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_restart_syscall_init
@@ -462,8 +463,8 @@ static struct tramp_frame arm_kernel_linux_restart_syscall_tramp_frame = {
   NORMAL_FRAME,
   4,
   {
-    { ARM_OABI_SYSCALL_RESTART_SYSCALL, -1 },
-    { ARM_LDR_PC_SP_4, -1 },
+    { ARM_OABI_SYSCALL_RESTART_SYSCALL, ULONGEST_MAX },
+    { ARM_LDR_PC_SP_4, ULONGEST_MAX },
     { TRAMP_SENTINEL_INSN }
   },
   arm_linux_restart_syscall_init
@@ -471,7 +472,7 @@ static struct tramp_frame arm_kernel_linux_restart_syscall_tramp_frame = {
 
 /* Core file and register set support.  */
 
-#define ARM_LINUX_SIZEOF_GREGSET (18 * INT_REGISTER_SIZE)
+#define ARM_LINUX_SIZEOF_GREGSET (18 * ARM_INT_REGISTER_SIZE)
 
 void
 arm_linux_supply_gregset (const struct regset *regset,
@@ -483,29 +484,30 @@ arm_linux_supply_gregset (const struct regset *regset,
   const gdb_byte *gregs = (const gdb_byte *) gregs_buf;
   int regno;
   CORE_ADDR reg_pc;
-  gdb_byte pc_buf[INT_REGISTER_SIZE];
+  gdb_byte pc_buf[ARM_INT_REGISTER_SIZE];
 
   for (regno = ARM_A1_REGNUM; regno < ARM_PC_REGNUM; regno++)
     if (regnum == -1 || regnum == regno)
-      regcache->raw_supply (regno, gregs + INT_REGISTER_SIZE * regno);
+      regcache->raw_supply (regno, gregs + ARM_INT_REGISTER_SIZE * regno);
 
   if (regnum == ARM_PS_REGNUM || regnum == -1)
     {
       if (arm_apcs_32)
 	regcache->raw_supply (ARM_PS_REGNUM,
-			      gregs + INT_REGISTER_SIZE * ARM_CPSR_GREGNUM);
+			      gregs + ARM_INT_REGISTER_SIZE * ARM_CPSR_GREGNUM);
       else
 	regcache->raw_supply (ARM_PS_REGNUM,
-			     gregs + INT_REGISTER_SIZE * ARM_PC_REGNUM);
+			     gregs + ARM_INT_REGISTER_SIZE * ARM_PC_REGNUM);
     }
 
   if (regnum == ARM_PC_REGNUM || regnum == -1)
     {
-      reg_pc = extract_unsigned_integer (gregs
-					 + INT_REGISTER_SIZE * ARM_PC_REGNUM,
-					 INT_REGISTER_SIZE, byte_order);
+      reg_pc = extract_unsigned_integer (
+		 gregs + ARM_INT_REGISTER_SIZE * ARM_PC_REGNUM,
+		 ARM_INT_REGISTER_SIZE, byte_order);
       reg_pc = gdbarch_addr_bits_remove (gdbarch, reg_pc);
-      store_unsigned_integer (pc_buf, INT_REGISTER_SIZE, byte_order, reg_pc);
+      store_unsigned_integer (pc_buf, ARM_INT_REGISTER_SIZE, byte_order,
+			      reg_pc);
       regcache->raw_supply (ARM_PC_REGNUM, pc_buf);
     }
 }
@@ -521,21 +523,21 @@ arm_linux_collect_gregset (const struct regset *regset,
   for (regno = ARM_A1_REGNUM; regno < ARM_PC_REGNUM; regno++)
     if (regnum == -1 || regnum == regno)
       regcache->raw_collect (regno,
-			    gregs + INT_REGISTER_SIZE * regno);
+			    gregs + ARM_INT_REGISTER_SIZE * regno);
 
   if (regnum == ARM_PS_REGNUM || regnum == -1)
     {
       if (arm_apcs_32)
 	regcache->raw_collect (ARM_PS_REGNUM,
-			      gregs + INT_REGISTER_SIZE * ARM_CPSR_GREGNUM);
+			      gregs + ARM_INT_REGISTER_SIZE * ARM_CPSR_GREGNUM);
       else
 	regcache->raw_collect (ARM_PS_REGNUM,
-			      gregs + INT_REGISTER_SIZE * ARM_PC_REGNUM);
+			      gregs + ARM_INT_REGISTER_SIZE * ARM_PC_REGNUM);
     }
 
   if (regnum == ARM_PC_REGNUM || regnum == -1)
     regcache->raw_collect (ARM_PC_REGNUM,
-			   gregs + INT_REGISTER_SIZE * ARM_PC_REGNUM);
+			   gregs + ARM_INT_REGISTER_SIZE * ARM_PC_REGNUM);
 }
 
 /* Support for register format used by the NWFPE FPA emulator.  */
@@ -551,11 +553,11 @@ supply_nwfpe_register (struct regcache *regcache, int regno,
 {
   const gdb_byte *reg_data;
   gdb_byte reg_tag;
-  gdb_byte buf[FP_REGISTER_SIZE];
+  gdb_byte buf[ARM_FP_REGISTER_SIZE];
 
-  reg_data = regs + (regno - ARM_F0_REGNUM) * FP_REGISTER_SIZE;
+  reg_data = regs + (regno - ARM_F0_REGNUM) * ARM_FP_REGISTER_SIZE;
   reg_tag = regs[(regno - ARM_F0_REGNUM) + NWFPE_TAGS_OFFSET];
-  memset (buf, 0, FP_REGISTER_SIZE);
+  memset (buf, 0, ARM_FP_REGISTER_SIZE);
 
   switch (reg_tag)
     {
@@ -586,7 +588,7 @@ collect_nwfpe_register (const struct regcache *regcache, int regno,
 {
   gdb_byte *reg_data;
   gdb_byte reg_tag;
-  gdb_byte buf[FP_REGISTER_SIZE];
+  gdb_byte buf[ARM_FP_REGISTER_SIZE];
 
   regcache->raw_collect (regno, buf);
 
@@ -595,7 +597,7 @@ collect_nwfpe_register (const struct regcache *regcache, int regno,
      from the native file to the target file.  But this doesn't
      always make sense.  */
 
-  reg_data = regs + (regno - ARM_F0_REGNUM) * FP_REGISTER_SIZE;
+  reg_data = regs + (regno - ARM_F0_REGNUM) * ARM_FP_REGISTER_SIZE;
   reg_tag = regs[(regno - ARM_F0_REGNUM) + NWFPE_TAGS_OFFSET];
 
   switch (reg_tag)
@@ -648,7 +650,7 @@ arm_linux_collect_nwfpe (const struct regset *regset,
 
   if (regnum == ARM_FPS_REGNUM || regnum == -1)
     regcache->raw_collect (ARM_FPS_REGNUM,
-			   regs + INT_REGISTER_SIZE * ARM_FPS_REGNUM);
+			   regs + ARM_INT_REGISTER_SIZE * ARM_FPS_REGNUM);
 }
 
 /* Support VFP register format.  */
@@ -712,14 +714,15 @@ arm_linux_iterate_over_regset_sections (struct gdbarch *gdbarch,
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
-  cb (".reg", ARM_LINUX_SIZEOF_GREGSET, &arm_linux_gregset, NULL, cb_data);
+  cb (".reg", ARM_LINUX_SIZEOF_GREGSET, ARM_LINUX_SIZEOF_GREGSET,
+      &arm_linux_gregset, NULL, cb_data);
 
   if (tdep->vfp_register_count > 0)
-    cb (".reg-arm-vfp", ARM_LINUX_SIZEOF_VFP, &arm_linux_vfpregset,
-	"VFP floating-point", cb_data);
+    cb (".reg-arm-vfp", ARM_LINUX_SIZEOF_VFP, ARM_LINUX_SIZEOF_VFP,
+	&arm_linux_vfpregset, "VFP floating-point", cb_data);
   else if (tdep->have_fpa_registers)
-    cb (".reg2", ARM_LINUX_SIZEOF_NWFPE, &arm_linux_fpregset,
-	"FPA floating-point", cb_data);
+    cb (".reg2", ARM_LINUX_SIZEOF_NWFPE, ARM_LINUX_SIZEOF_NWFPE,
+	&arm_linux_fpregset, "FPA floating-point", cb_data);
 }
 
 /* Determine target description from core file.  */
@@ -729,24 +732,21 @@ arm_linux_core_read_description (struct gdbarch *gdbarch,
                                  struct target_ops *target,
                                  bfd *abfd)
 {
-  CORE_ADDR arm_hwcap = 0;
-
-  if (target_auxv_search (target, AT_HWCAP, &arm_hwcap) != 1)
-    return NULL;
+  CORE_ADDR arm_hwcap = linux_get_hwcap (target);
 
   if (arm_hwcap & HWCAP_VFP)
     {
       /* NEON implies VFPv3-D32 or no-VFP unit.  Say that we only support
          Neon with VFPv3-D32.  */
       if (arm_hwcap & HWCAP_NEON)
-	return tdesc_arm_with_neon;
+	return aarch32_read_description ();
       else if ((arm_hwcap & (HWCAP_VFPv3 | HWCAP_VFPv3D16)) == HWCAP_VFPv3)
-	return tdesc_arm_with_vfpv3;
-      else
-	return tdesc_arm_with_vfpv2;
+	return arm_read_description (ARM_FP_TYPE_VFPV3);
+
+      return arm_read_description (ARM_FP_TYPE_VFPV2);
     }
 
-  return NULL;
+  return nullptr;
 }
 
 
@@ -956,7 +956,7 @@ arm_linux_cleanup_svc (struct gdbarch *gdbarch,
 
   within_scratch = (apparent_pc >= dsc->scratch_base
 		    && apparent_pc < (dsc->scratch_base
-				      + DISPLACED_MODIFIED_INSNS * 4 + 4));
+				      + ARM_DISPLACED_MODIFIED_INSNS * 4 + 4));
 
   if (debug_displaced)
     {

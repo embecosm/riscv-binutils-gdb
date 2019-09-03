@@ -1,5 +1,5 @@
 /* MIPS ELF specific backend routines.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -69,8 +69,10 @@ extern bfd_boolean _bfd_mips_elf_finish_dynamic_sections
   (bfd *, struct bfd_link_info *);
 extern bfd_boolean _bfd_mips_elf_sort_relocs_p
   (asection *);
-extern void _bfd_mips_elf_final_write_processing
-  (bfd *, bfd_boolean);
+extern void _bfd_mips_final_write_processing
+  (bfd *);
+extern bfd_boolean _bfd_mips_elf_final_write_processing
+  (bfd *);
 extern int _bfd_mips_elf_additional_program_headers
   (bfd *, struct bfd_link_info *);
 extern bfd_boolean _bfd_mips_elf_modify_segment_map
@@ -81,6 +83,8 @@ extern asection * _bfd_mips_elf_gc_mark_hook
 extern void _bfd_mips_elf_copy_indirect_symbol
   (struct bfd_link_info *, struct elf_link_hash_entry *,
    struct elf_link_hash_entry *);
+extern void _bfd_mips_elf_hide_symbol
+  (struct bfd_link_info *, struct elf_link_hash_entry *, bfd_boolean);
 extern bfd_boolean _bfd_mips_elf_ignore_discarded_relocs
   (asection *);
 extern bfd_boolean _bfd_mips_elf_is_target_special_symbol
@@ -147,7 +151,9 @@ extern bfd_boolean _bfd_mips_elf_ignore_undef_symbol
 extern void _bfd_mips_elf_use_plts_and_copy_relocs
   (struct bfd_link_info *);
 extern void _bfd_mips_elf_linker_flags
-  (struct bfd_link_info *, bfd_boolean, bfd_boolean);
+  (struct bfd_link_info *, bfd_boolean, bfd_boolean, bfd_boolean);
+extern void _bfd_mips_elf_compact_branches
+  (struct bfd_link_info *, bfd_boolean);
 extern bfd_boolean _bfd_mips_elf_init_stubs
   (struct bfd_link_info *,
    asection *(*) (const char *, asection *, asection *));
@@ -166,6 +172,9 @@ extern bfd_boolean _bfd_mips_elf_common_definition (Elf_Internal_Sym *);
 
 extern int _bfd_mips_elf_compact_eh_encoding (struct bfd_link_info *);
 extern int _bfd_mips_elf_cant_unwind_opcode (struct bfd_link_info *);
+
+extern void _bfd_mips_elf_record_xhash_symbol
+  (struct elf_link_hash_entry *h, bfd_vma xlat_loc);
 
 static inline bfd_boolean
 gprel16_reloc_p (unsigned int r_type)
@@ -192,4 +201,5 @@ literal_reloc_p (int r_type)
 #define elf_backend_post_process_headers _bfd_mips_post_process_headers
 #define elf_backend_compact_eh_encoding _bfd_mips_elf_compact_eh_encoding
 #define elf_backend_cant_unwind_opcode _bfd_mips_elf_cant_unwind_opcode
+#define elf_backend_record_xhash_symbol _bfd_mips_elf_record_xhash_symbol
 #define elf_backend_always_renumber_dynsyms TRUE

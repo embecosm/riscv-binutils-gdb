@@ -1,6 +1,6 @@
 /* BSD user-level threads support.
 
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -41,11 +41,10 @@ static const target_info bsd_uthread_target_info = {
 
 struct bsd_uthread_target final : public target_ops
 {
-  bsd_uthread_target ()
-  { to_stratum = thread_stratum; }
-
   const target_info &info () const override
   { return bsd_uthread_target_info; }
+
+  strata stratum () const override { return thread_stratum; }
 
   void close () override;
 
@@ -63,7 +62,7 @@ struct bsd_uthread_target final : public target_ops
 
   const char *extra_thread_info (struct thread_info *) override;
 
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
 };
 
 static bsd_uthread_target bsd_uthread_ops;
@@ -531,17 +530,12 @@ bsd_uthread_target::extra_thread_info (thread_info *info)
   return NULL;
 }
 
-const char *
+std::string
 bsd_uthread_target::pid_to_str (ptid_t ptid)
 {
   if (ptid.tid () != 0)
-    {
-      static char buf[64];
-
-      xsnprintf (buf, sizeof buf, "process %d, thread 0x%lx",
-		 ptid.pid (), ptid.tid ());
-      return buf;
-    }
+    return string_printf ("process %d, thread 0x%lx",
+			  ptid.pid (), ptid.tid ());
 
   return normal_pid_to_str (ptid);
 }

@@ -1,5 +1,5 @@
 /* MIPS-specific support for 32-bit ELF
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    Most of the information added by Ian Lance Taylor, Cygnus Support,
    <ian@cygnus.com>.
@@ -2534,6 +2534,7 @@ static const struct ecoff_debug_swap mips_elf32_ecoff_debug_swap = {
 #define elf_backend_gc_mark_hook	_bfd_mips_elf_gc_mark_hook
 #define elf_backend_copy_indirect_symbol \
 					_bfd_mips_elf_copy_indirect_symbol
+#define elf_backend_hide_symbol		_bfd_mips_elf_hide_symbol
 #define elf_backend_fixup_symbol	elf32_mips_fixup_symbol
 #define elf_backend_grok_prstatus	elf32_mips_grok_prstatus
 #define elf_backend_grok_psinfo		elf32_mips_grok_psinfo
@@ -2642,11 +2643,11 @@ static const struct ecoff_debug_swap mips_elf32_ecoff_debug_swap = {
 #include "elf32-target.h"
 /* Implement elf_backend_final_write_processing for VxWorks.  */
 
-static void
-mips_vxworks_final_write_processing (bfd *abfd, bfd_boolean linker)
+static bfd_boolean
+mips_vxworks_final_write_processing (bfd *abfd)
 {
-  _bfd_mips_elf_final_write_processing (abfd, linker);
-  elf_vxworks_final_write_processing (abfd, linker);
+  _bfd_mips_final_write_processing (abfd);
+  return elf_vxworks_final_write_processing (abfd);
 }
 
 #undef TARGET_LITTLE_SYM

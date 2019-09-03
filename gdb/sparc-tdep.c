@@ -1,6 +1,6 @@
 /* Target-dependent code for SPARC.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -612,7 +612,8 @@ sparc32_push_dummy_code (struct gdbarch *gdbarch, CORE_ADDR sp,
 static CORE_ADDR
 sparc32_store_arguments (struct regcache *regcache, int nargs,
 			 struct value **args, CORE_ADDR sp,
-			 int struct_return, CORE_ADDR struct_addr)
+			 function_call_return_method return_method,
+			 CORE_ADDR struct_addr)
 {
   struct gdbarch *gdbarch = regcache->arch ();
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -697,7 +698,7 @@ sparc32_store_arguments (struct regcache *regcache, int nargs,
 
   gdb_assert (element == num_elements);
 
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       gdb_byte buf[4];
 
@@ -712,16 +713,18 @@ static CORE_ADDR
 sparc32_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			 struct regcache *regcache, CORE_ADDR bp_addr,
 			 int nargs, struct value **args, CORE_ADDR sp,
-			 int struct_return, CORE_ADDR struct_addr)
+			 function_call_return_method return_method,
+			 CORE_ADDR struct_addr)
 {
-  CORE_ADDR call_pc = (struct_return ? (bp_addr - 12) : (bp_addr - 8));
+  CORE_ADDR call_pc = (return_method == return_method_struct
+		       ? (bp_addr - 12) : (bp_addr - 8));
 
   /* Set return address.  */
   regcache_cooked_write_unsigned (regcache, SPARC_O7_REGNUM, call_pc);
 
   /* Set up function arguments.  */
-  sp = sparc32_store_arguments (regcache, nargs, args, sp,
-				struct_return, struct_addr);
+  sp = sparc32_store_arguments (regcache, nargs, args, sp, return_method,
+				struct_addr);
 
   /* Allocate the 16-word window save area.  */
   sp -= 16 * 4;
@@ -1109,13 +1112,6 @@ sparc_analyze_prologue (struct gdbarch *gdbarch, CORE_ADDR pc,
     }
 
   return pc;
-}
-
-static CORE_ADDR
-sparc_unwind_pc (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
-  return frame_unwind_register_unsigned (this_frame, tdep->pc_regnum);
 }
 
 /* Return PC of first real instruction of the function starting at
@@ -1777,8 +1773,10 @@ sparc_iterate_over_regset_sections (struct gdbarch *gdbarch,
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
-  cb (".reg", tdep->sizeof_gregset, tdep->gregset, NULL, cb_data);
-  cb (".reg2", tdep->sizeof_fpregset, tdep->fpregset, NULL, cb_data);
+  cb (".reg", tdep->sizeof_gregset, tdep->sizeof_gregset, tdep->gregset, NULL,
+      cb_data);
+  cb (".reg2", tdep->sizeof_fpregset, tdep->sizeof_fpregset, tdep->fpregset,
+      NULL, cb_data);
 }
 
 
@@ -1876,8 +1874,6 @@ sparc32_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_write_pc (gdbarch, sparc_write_pc);
 
   set_gdbarch_dummy_id (gdbarch, sparc_dummy_id);
-
-  set_gdbarch_unwind_pc (gdbarch, sparc_unwind_pc);
 
   frame_base_set_default (gdbarch, &sparc32_frame_base);
 

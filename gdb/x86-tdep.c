@@ -1,6 +1,6 @@
 /* Target-dependent code for X86-based targets.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,6 +19,7 @@
 
 #include "defs.h"
 #include "x86-tdep.h"
+#include "symtab.h"
 
 
 /* Check whether NAME is included in NAMES[LO] (inclusive) to NAMES[HI]

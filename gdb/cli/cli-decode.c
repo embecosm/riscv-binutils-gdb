@@ -1,6 +1,6 @@
 /* Handle lists of commands, their decoding and documentation, for GDB.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,8 @@
 #include "ui-out.h"
 #include "cli/cli-cmds.h"
 #include "cli/cli-decode.h"
-#include "common/gdb_optional.h"
+#include "cli/cli-style.h"
+#include "gdbsupport/gdb_optional.h"
 
 /* Prototypes for local functions.  */
 
@@ -251,6 +252,23 @@ add_cmd (const char *name, enum command_class theclass,
   return result;
 }
 
+/* Add an element with a suppress notification to the LIST of commands.  */
+
+struct cmd_list_element *
+add_cmd_suppress_notification (const char *name, enum command_class theclass,
+			       cmd_const_cfunc_ftype *fun, const char *doc,
+			       struct cmd_list_element **list,
+			       int *suppress_notification)
+{
+  struct cmd_list_element *element;
+
+  element = add_cmd (name, theclass, fun, doc, list);
+  element->suppress_notification = suppress_notification;
+
+  return element;
+}
+
+
 /* Deprecates a command CMD.
    REPLACEMENT is the name of the command which should be used in
    place of this command, or NULL if no such command exists.
@@ -360,6 +378,25 @@ add_prefix_cmd (const char *name, enum command_class theclass,
     p->prefix = c;
 
   return c;
+}
+
+/* Like ADD_PREFIX_CMD but sets the suppress_notification pointer on the
+   new command list element.  */
+
+struct cmd_list_element *
+add_prefix_cmd_suppress_notification
+               (const char *name, enum command_class theclass,
+		cmd_const_cfunc_ftype *fun,
+		const char *doc, struct cmd_list_element **prefixlist,
+		const char *prefixname, int allow_unknown,
+		struct cmd_list_element **list,
+		int *suppress_notification)
+{
+  struct cmd_list_element *element
+    = add_prefix_cmd (name, theclass, fun, doc, prefixlist,
+		      prefixname, allow_unknown, list);
+  element->suppress_notification = suppress_notification;
+  return element;
 }
 
 /* Like add_prefix_cmd but sets the abbrev_flag on the new command.  */
@@ -472,6 +509,9 @@ add_setshow_cmd_full (const char *name,
 			      full_show_doc, show_list);
   show->doc_allocated = 1;
   show->show_value_func = show_func;
+  /* Disable the default symbol completer.  Doesn't make much sense
+     for the "show" command to complete on anything.  */
+  set_cmd_completer (show, nullptr);
 
   if (set_result != NULL)
     *set_result = set;
@@ -495,18 +535,23 @@ add_setshow_enum_cmd (const char *name,
 		      cmd_const_sfunc_ftype *set_func,
 		      show_value_ftype *show_func,
 		      struct cmd_list_element **set_list,
-		      struct cmd_list_element **show_list)
+		      struct cmd_list_element **show_list,
+		      void *context)
 {
-  struct cmd_list_element *c;
+  struct cmd_list_element *c, *show;
 
   add_setshow_cmd_full (name, theclass, var_enum, var,
 			set_doc, show_doc, help_doc,
 			set_func, show_func,
 			set_list, show_list,
-			&c, NULL);
+			&c, &show);
   c->enums = enumlist;
+
+  set_cmd_context (c, context);
+  set_cmd_context (show, context);
 }
 
+/* See cli-decode.h.  */
 const char * const auto_boolean_enums[] = { "on", "off", "auto", NULL };
 
 /* Add an auto-boolean command named NAME to both the set and show
@@ -534,11 +579,16 @@ add_setshow_auto_boolean_cmd (const char *name,
   c->enums = auto_boolean_enums;
 }
 
+/* See cli-decode.h.  */
+const char * const boolean_enums[] = { "on", "off", NULL };
+
 /* Add element named NAME to both the set and show command LISTs (the
    list for set/show or some sublist thereof).  CLASS is as in
    add_cmd.  VAR is address of the variable which will contain the
-   value.  SET_DOC and SHOW_DOC are the documentation strings.  */
-void
+   value.  SET_DOC and SHOW_DOC are the documentation strings.
+   Returns the new command element.  */
+
+cmd_list_element *
 add_setshow_boolean_cmd (const char *name, enum command_class theclass, int *var,
 			 const char *set_doc, const char *show_doc,
 			 const char *help_doc,
@@ -547,7 +597,6 @@ add_setshow_boolean_cmd (const char *name, enum command_class theclass, int *var
 			 struct cmd_list_element **set_list,
 			 struct cmd_list_element **show_list)
 {
-  static const char *boolean_enums[] = { "on", "off", NULL };
   struct cmd_list_element *c;
 
   add_setshow_cmd_full (name, theclass, var_boolean, var,
@@ -556,6 +605,8 @@ add_setshow_boolean_cmd (const char *name, enum command_class theclass, int *var
 			set_list, show_list,
 			&c, NULL);
   c->enums = boolean_enums;
+
+  return c;
 }
 
 /* Add element named NAME to both the set and show command LISTs (the
@@ -592,11 +643,16 @@ add_setshow_string_cmd (const char *name, enum command_class theclass,
 			struct cmd_list_element **set_list,
 			struct cmd_list_element **show_list)
 {
+  cmd_list_element *set_cmd;
+
   add_setshow_cmd_full (name, theclass, var_string, var,
 			set_doc, show_doc, help_doc,
 			set_func, show_func,
 			set_list, show_list,
-			NULL, NULL);
+			&set_cmd, NULL);
+
+  /* Disable the default symbol completer.  */
+  set_cmd_completer (set_cmd, nullptr);
 }
 
 /* Add element named NAME to both the set and show command LISTs (the
@@ -618,6 +674,10 @@ add_setshow_string_noescape_cmd (const char *name, enum command_class theclass,
 			set_func, show_func,
 			set_list, show_list,
 			&set_cmd, NULL);
+
+  /* Disable the default symbol completer.  */
+  set_cmd_completer (set_cmd, nullptr);
+
   return set_cmd;
 }
 
@@ -893,22 +953,46 @@ add_com_suppress_notification (const char *name, enum command_class theclass,
 			       cmd_const_cfunc_ftype *fun, const char *doc,
 			       int *suppress_notification)
 {
-  struct cmd_list_element *element;
+  return add_cmd_suppress_notification (name, theclass, fun, doc,
+					&cmdlist, suppress_notification);
+}
 
-  element = add_cmd (name, theclass, fun, doc, &cmdlist);
-  element->suppress_notification = suppress_notification;
+/* If VERBOSE, print the full help for command C and highlight the
+   documentation parts matching HIGHLIGHT,
+   otherwise print only one-line help for command C.  */
 
-  return element;
+static void
+print_doc_of_command (struct cmd_list_element *c, const char *prefix,
+		      bool verbose, compiled_regex &highlight,
+		      struct ui_file *stream)
+{
+  /* When printing the full documentation, add a line to separate
+     this documentation from the previous command help, in the likely
+     case that apropos finds several commands.  */
+  if (verbose)
+    fputs_filtered ("\n", stream);
+
+  fprintf_styled (stream, title_style.style (),
+		  "%s%s", prefix, c->name);
+  fputs_filtered (" -- ", stream);
+  if (verbose)
+    fputs_highlighted (c->doc, highlight, stream);
+  else
+    print_doc_line (stream, c->doc, false);
+  fputs_filtered ("\n", stream);
 }
 
 /* Recursively walk the commandlist structures, and print out the
    documentation of commands that match our regex in either their
    name, or their documentation.
+   If VERBOSE, prints the complete documentation and highlight the
+   documentation parts matching REGEX, otherwise prints only
+   the first line.
 */
-void 
-apropos_cmd (struct ui_file *stream, 
+void
+apropos_cmd (struct ui_file *stream,
 	     struct cmd_list_element *commandlist,
-	     compiled_regex &regex, const char *prefix)
+	     bool verbose, compiled_regex &regex, const char *prefix)
 {
   struct cmd_list_element *c;
   int returnvalue;
@@ -924,10 +1008,7 @@ apropos_cmd (struct ui_file *stream,
 	  /* Try to match against the name.  */
 	  returnvalue = regex.search (c->name, name_len, 0, name_len, NULL);
 	  if (returnvalue >= 0)
-	    {
-	      print_help_for_command (c, prefix, 
-				      0 /* don't recurse */, stream);
-	    }
+	    print_doc_of_command (c, prefix, verbose, regex, stream);
 	}
       if (c->doc != NULL && returnvalue < 0)
 	{
@@ -935,10 +1016,7 @@ apropos_cmd (struct ui_file *stream,
 
 	  /* Try to match against documentation.  */
 	  if (regex.search (c->doc, doc_len, 0, doc_len, NULL) >= 0)
-	    {
-	      print_help_for_command (c, prefix, 
-				      0 /* don't recurse */, stream);
-	    }
+	    print_doc_of_command (c, prefix, verbose, regex, stream);
 	}
       /* Check if this command has subcommands and is not an
 	 abbreviation.  We skip listing subcommands of abbreviations
@@ -947,7 +1025,7 @@ apropos_cmd (struct ui_file *stream,
 	{
 	  /* Recursively call ourselves on the subcommand list,
 	     passing the right prefix in.  */
-	  apropos_cmd (stream,*c->prefixlist,regex,c->prefixname);
+	  apropos_cmd (stream, *c->prefixlist, verbose, regex, c->prefixname);
 	}
     }
 }
@@ -1090,6 +1168,9 @@ Type \"help all\" for the list of all commands.");
   fputs_filtered ("documentation.\n", stream);
   fputs_filtered ("Type \"apropos word\" to search "
 		  "for commands related to \"word\".\n", stream);
+  fputs_filtered ("Type \"apropos -v word\" for full documentation", stream);
+  wrap_here ("");
+  fputs_filtered (" of commands related to \"word\".\n", stream);
   fputs_filtered ("Command name abbreviations are allowed if unambiguous.\n",
 		  stream);
 }
@@ -1136,9 +1217,11 @@ help_all (struct ui_file *stream)
 
 }
 
-/* Print only the first line of STR on STREAM.  */
+/* See cli-decode.h.  */
+
 void
-print_doc_line (struct ui_file *stream, const char *str)
+print_doc_line (struct ui_file *stream, const char *str,
+		bool for_value_prefix)
 {
   static char *line_buffer = 0;
   static int line_size;
@@ -1150,11 +1233,9 @@ print_doc_line (struct ui_file *stream, const char *str)
       line_buffer = (char *) xmalloc (line_size);
     }
 
-  /* Keep printing '.' or ',' not followed by a whitespace for embedded strings
-     like '.gdbinit'.  */
+  /* Searches for the first end of line or the end of STR.  */
   p = str;
-  while (*p && *p != '\n'
-	 && ((*p != '.' && *p != ',') || (p[1] && !isspace (p[1]))))
+  while (*p && *p != '\n')
     p++;
   if (p - str > line_size - 1)
     {
@@ -1163,9 +1244,18 @@ print_doc_line (struct ui_file *stream, const char *str)
       line_buffer = (char *) xmalloc (line_size);
     }
   strncpy (line_buffer, str, p - str);
-  line_buffer[p - str] = '\0';
-  if (islower (line_buffer[0]))
-    line_buffer[0] = toupper (line_buffer[0]);
+  if (for_value_prefix)
+    {
+      if (islower (line_buffer[0]))
+	line_buffer[0] = toupper (line_buffer[0]);
+      gdb_assert (p > str);
+      if (line_buffer[p - str - 1] == '.')
+	line_buffer[p - str - 1] = '\0';
+      else
+	line_buffer[p - str] = '\0';
+    }
+  else
+    line_buffer[p - str] = '\0';
   fputs_filtered (line_buffer, stream);
 }
 
@@ -1176,10 +1266,12 @@ static void
 print_help_for_command (struct cmd_list_element *c, const char *prefix,
 			int recurse, struct ui_file *stream)
 {
-  fprintf_filtered (stream, "%s%s -- ", prefix, c->name);
-  print_doc_line (stream, c->doc);
+  fprintf_styled (stream, title_style.style (),
+		  "%s%s", prefix, c->name);
+  fputs_filtered (" -- ", stream);
+  print_doc_line (stream, c->doc, false);
   fputs_filtered ("\n", stream);
-  
+
   if (recurse
       && c->prefixlist != 0
       && c->abbrev_flag == 0)
@@ -1275,9 +1367,9 @@ find_command_name_length (const char *text)
      Note that this is larger than the character set allowed when
      creating user-defined commands.  */
 
-  /* Recognize '!' as a single character command so that, e.g., "!ls"
+  /* Recognize the single character commands so that, e.g., "!ls"
      works as expected.  */
-  if (*p == '!')
+  if (*p == '!' || *p == '|')
     return 1;
 
   while (isalnum (*p) || *p == '-' || *p == '_'
@@ -1292,13 +1384,13 @@ find_command_name_length (const char *text)
    This is a stricter subset of all gdb commands,
    see find_command_name_length.  */
 
-int
+bool
 valid_user_defined_cmd_name_p (const char *name)
 {
   const char *p;
 
   if (*name == '\0')
-    return FALSE;
+    return false;
 
   /* Alas "42" is a legitimate user-defined command.
      In the interests of not breaking anything we preserve that.  */
@@ -1310,10 +1402,10 @@ valid_user_defined_cmd_name_p (const char *name)
 	  || *p == '_')
 	; /* Ok.  */
       else
-	return FALSE;
+	return false;
     }
 
-  return TRUE;
+  return true;
 }
 
 /* This routine takes a line of TEXT and a CLIST in which to start the

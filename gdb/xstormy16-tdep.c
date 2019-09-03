@@ -1,6 +1,6 @@
 /* Target-dependent code for the Sanyo Xstormy16a (LC590000) processor.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -33,7 +33,7 @@
 #include "regcache.h"
 #include "osabi.h"
 #include "objfiles.h"
-#include "common/byte-vector.h"
+#include "gdbsupport/byte-vector.h"
 
 enum gdb_regnum
 {
@@ -226,7 +226,8 @@ xstormy16_push_dummy_call (struct gdbarch *gdbarch,
 			   struct regcache *regcache,
 			   CORE_ADDR bp_addr, int nargs,
 			   struct value **args,
-			   CORE_ADDR sp, int struct_return,
+			   CORE_ADDR sp,
+			   function_call_return_method return_method,
 			   CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -234,12 +235,11 @@ xstormy16_push_dummy_call (struct gdbarch *gdbarch,
   int argreg = E_1ST_ARG_REGNUM;
   int i, j;
   int typelen, slacklen;
-  const gdb_byte *val;
   gdb_byte buf[xstormy16_pc_size];
 
-  /* If struct_return is true, then the struct return address will
-     consume one argument-passing register.  */
-  if (struct_return)
+  /* If returning a struct using target ABI method, then the struct return
+     address will consume one argument-passing register.  */
+  if (return_method == return_method_struct)
     {
       regcache_cooked_write_unsigned (regcache, E_PTR_RET_REGNUM, struct_addr);
       argreg++;
@@ -257,7 +257,7 @@ xstormy16_push_dummy_call (struct gdbarch *gdbarch,
 	break;
 
       /* Put argument into registers wordwise.  */
-      val = value_contents (args[i]);
+      const gdb_byte *val = value_contents (args[i]);
       for (j = 0; j < typelen; j += xstormy16_reg_size)
 	{
 	  ULONGEST regval;
@@ -751,26 +751,6 @@ static const struct frame_base xstormy16_frame_base = {
   xstormy16_frame_base_address
 };
 
-static CORE_ADDR
-xstormy16_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, E_SP_REGNUM);
-}
-
-static CORE_ADDR
-xstormy16_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, E_PC_REGNUM);
-}
-
-static struct frame_id
-xstormy16_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  CORE_ADDR sp = get_frame_register_unsigned (this_frame, E_SP_REGNUM);
-  return frame_id_build (sp, get_frame_pc (this_frame));
-}
-
-
 /* Function: xstormy16_gdbarch_init
    Initializer function for the xstormy16 gdbarch vector.
    Called by gdbarch.  Sets up the gdbarch vector(s) for this target.  */
@@ -824,9 +804,6 @@ xstormy16_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /*
    * Frame Info
    */
-  set_gdbarch_unwind_sp (gdbarch, xstormy16_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, xstormy16_unwind_pc);
-  set_gdbarch_dummy_id (gdbarch, xstormy16_dummy_id);
   set_gdbarch_frame_align (gdbarch, xstormy16_frame_align);
   frame_base_set_default (gdbarch, &xstormy16_frame_base);
 

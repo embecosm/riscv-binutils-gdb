@@ -1,4 +1,4 @@
-# Copyright (C) 2008-2018 Free Software Foundation, Inc.
+# Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -55,6 +55,12 @@ class ContainerPrinter (object):
 
     def children(self):
         return _iterator(self.val['elements'], self.val['len'])
+
+    def display_hint (self):
+        if (self.val['is_map_p']):
+            return 'map'
+        else:
+            return None
 
 # Treats a container as array.
 class ArrayPrinter (object):
@@ -253,6 +259,15 @@ class pp_int_typedef (object):
     def to_string(self):
         return "type=%s, val=%s" % (self.val.type, int(self.val))
 
+class pp_int_typedef3 (object):
+    "A printer without a to_string method"
+
+    def __init__(self, val):
+        self.val = val
+
+    def children(self):
+        yield 's', 27
+
 def lookup_function (val):
     "Look-up and return a pretty-printer that can print val."
 
@@ -362,6 +377,7 @@ def register_pretty_printers ():
 
     typedefs_pretty_printers_dict[re.compile ('^int_type$')] = pp_int_typedef
     typedefs_pretty_printers_dict[re.compile ('^int_type2$')] = pp_int_typedef
+    typedefs_pretty_printers_dict[re.compile ('^int_type3$')] = pp_int_typedef3
 
 # Dict for struct types with typedefs fully stripped.
 pretty_printers_dict = {}

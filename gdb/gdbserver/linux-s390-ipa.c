@@ -1,7 +1,7 @@
 /* GNU/Linux S/390 specific low level interface, for the in-process
    agent library for GDB.
 
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -368,7 +368,7 @@ get_ipa_tdesc (int idx)
       SET_REGMAP(s390_te_linux64_ft_collect_regmap, 0);
       return tdesc_s390_tevx_linux64;
     case S390_TDESC_GS:
-      SET_REGMAP(s390_te_ft_collect_regmap, 0);
+      SET_REGMAP(s390_te_linux64_ft_collect_regmap, 0);
       return tdesc_s390_gs_linux64;
 #endif
     default:

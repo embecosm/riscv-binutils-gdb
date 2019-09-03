@@ -1,0 +1,16 @@
+2019-08-28  Gary Benson  <gbenson@redhat.com>
+
+	* patches/0003-Fix-glob-c-Coverity-issues.patch: New file.
+	* update-gnulib.sh: List the above.
+	* import/glob.c: Rebuild.
+
+2019-06-21  Gary Benson  <gbenson@redhat.com>
+
+	* update-gnulib.sh: Adjust paths.
+
+2019-06-14  Tom Tromey  <tom@tromey.com>
+
+	* update-gnulib.sh: Adjust paths.
+	* Makefile.in: Adjust paths.
+	* configure.ac: Adjust paths.  Use ACX_LARGEFILE.
+	* configure: Rebuild.

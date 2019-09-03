@@ -1,6 +1,6 @@
 /* Convert symbols from GDB to GCC
 
-   Copyright (C) 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -93,7 +93,7 @@ convert_one_symbol (compile_c_instance *context,
 
 	case LOC_BLOCK:
 	  kind = GCC_C_SYMBOL_FUNCTION;
-	  addr = BLOCK_START (SYMBOL_BLOCK_VALUE (sym.symbol));
+	  addr = BLOCK_ENTRY_PC (SYMBOL_BLOCK_VALUE (sym.symbol));
 	  if (is_global && TYPE_GNU_IFUNC (SYMBOL_TYPE (sym.symbol)))
 	    addr = gnu_ifunc_resolve_addr (target_gdbarch (), addr);
 	  break;
@@ -344,7 +344,7 @@ gcc_convert_symbol (void *datum,
 
   /* We can't allow exceptions to escape out of this callback.  Safest
      is to simply emit a gcc error.  */
-  TRY
+  try
     {
       struct block_symbol sym;
 
@@ -367,11 +367,10 @@ gcc_convert_symbol (void *datum,
 	}
     }
 
-  CATCH (e, RETURN_MASK_ALL)
+  catch (const gdb_exception &e)
     {
-      context->plugin ().error (e.message);
+      context->plugin ().error (e.what ());
     }
-  END_CATCH
 
   if (compile_debug && !found)
     fprintf_unfiltered (gdb_stdlog,
@@ -393,7 +392,7 @@ gcc_symbol_address (void *datum, struct gcc_c_context *gcc_context,
 
   /* We can't allow exceptions to escape out of this callback.  Safest
      is to simply emit a gcc error.  */
-  TRY
+  try
     {
       struct symbol *sym;
 
@@ -405,7 +404,7 @@ gcc_symbol_address (void *datum, struct gcc_c_context *gcc_context,
 	    fprintf_unfiltered (gdb_stdlog,
 				"gcc_symbol_address \"%s\": full symbol\n",
 				identifier);
-	  result = BLOCK_START (SYMBOL_BLOCK_VALUE (sym));
+	  result = BLOCK_ENTRY_PC (SYMBOL_BLOCK_VALUE (sym));
 	  if (TYPE_GNU_IFUNC (SYMBOL_TYPE (sym)))
 	    result = gnu_ifunc_resolve_addr (target_gdbarch (), result);
 	  found = 1;
@@ -430,11 +429,10 @@ gcc_symbol_address (void *datum, struct gcc_c_context *gcc_context,
 	}
     }
 
-  CATCH (e, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &e)
     {
-      context->plugin ().error (e.message);
+      context->plugin ().error (e.what ());
     }
-  END_CATCH
 
   if (compile_debug && !found)
     fprintf_unfiltered (gdb_stdlog,
@@ -487,7 +485,7 @@ symbol_seen (htab_t hashtab, struct symbol *sym)
 
 static void
 generate_vla_size (compile_instance *compiler,
-		   string_file &stream,
+		   string_file *stream,
 		   struct gdbarch *gdbarch,
 		   unsigned char *registers_used,
 		   CORE_ADDR pc,
@@ -541,14 +539,14 @@ generate_vla_size (compile_instance *compiler,
 
 static void
 generate_c_for_for_one_variable (compile_instance *compiler,
-				 string_file &stream,
+				 string_file *stream,
 				 struct gdbarch *gdbarch,
 				 unsigned char *registers_used,
 				 CORE_ADDR pc,
 				 struct symbol *sym)
 {
 
-  TRY
+  try
     {
       if (is_dynamic_type (SYMBOL_TYPE (sym)))
 	{
@@ -556,10 +554,10 @@ generate_c_for_for_one_variable (compile_instance *compiler,
 	     occurs in the middle.  */
 	  string_file local_file;
 
-	  generate_vla_size (compiler, local_file, gdbarch, registers_used, pc,
+	  generate_vla_size (compiler, &local_file, gdbarch, registers_used, pc,
 			     SYMBOL_TYPE (sym), sym);
 
-	  stream.write (local_file.c_str (), local_file.size ());
+	  stream->write (local_file.c_str (), local_file.size ());
 	}
 
       if (SYMBOL_COMPUTED_OPS (sym) != NULL)
@@ -570,12 +568,12 @@ generate_c_for_for_one_variable (compile_instance *compiler,
 	     occurs in the middle.  */
 	  string_file local_file;
 
-	  SYMBOL_COMPUTED_OPS (sym)->generate_c_location (sym, local_file,
+	  SYMBOL_COMPUTED_OPS (sym)->generate_c_location (sym, &local_file,
 							  gdbarch,
 							  registers_used,
 							  pc,
 							  generated_name.get ());
-	  stream.write (local_file.c_str (), local_file.size ());
+	  stream->write (local_file.c_str (), local_file.size ());
 	}
       else
 	{
@@ -600,18 +598,17 @@ generate_c_for_for_one_variable (compile_instance *compiler,
 	}
     }
 
-  CATCH (e, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &e)
     {
-      compiler->insert_symbol_error (sym, e.message);
+      compiler->insert_symbol_error (sym, e.what ());
     }
-  END_CATCH
 }
 
 /* See compile-c.h.  */
 
 gdb::unique_xmalloc_ptr<unsigned char>
 generate_c_for_variable_locations (compile_instance *compiler,
-				   string_file &stream,
+				   string_file *stream,
 				   struct gdbarch *gdbarch,
 				   const struct block *block,
 				   CORE_ADDR pc)

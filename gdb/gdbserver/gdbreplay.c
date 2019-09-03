@@ -1,5 +1,5 @@
 /* Replay a remote debug session logfile for GDB.
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
    Written by Fred Fish (fnf@cygnus.com) from pieces of gdbserver.
 
    This file is part of GDB.
@@ -17,8 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "common-defs.h"
-#include "version.h"
+#include "gdbsupport/common-defs.h"
+#include "gdbsupport/version.h"
 
 #if HAVE_SYS_FILE_H
 #include <sys/file.h>
@@ -45,11 +45,11 @@
 #endif
 
 #if USE_WIN32API
-#include <winsock2.h>
-#include <wspiapi.h>
+#include <ws2tcpip.h>
 #endif
 
-#include "netstuff.h"
+#include "gdbsupport/netstuff.h"
+#include "gdbsupport/rsp-low.h"
 
 #ifndef HAVE_SOCKLEN_T
 typedef int socklen_t;
@@ -290,36 +290,32 @@ remote_open (char *name)
 }
 
 static int
-fromhex (int ch)
-{
-  if (ch >= '0' && ch <= '9')
-    {
-      return (ch - '0');
-    }
-  if (ch >= 'A' && ch <= 'F')
-    {
-      return (ch - 'A' + 10);
-    }
-  if (ch >= 'a' && ch <= 'f')
-    {
-      return (ch - 'a' + 10);
-    }
-  fprintf (stderr, "\nInvalid hex digit '%c'\n", ch);
-  fflush (stderr);
-  exit (1);
-}
-
-static int
 logchar (FILE *fp)
 {
   int ch;
   int ch2;
 
   ch = fgetc (fp);
-  fputc (ch, stdout);
-  fflush (stdout);
+  if (ch != '\r')
+    {
+      fputc (ch, stdout);
+      fflush (stdout);
+    }
   switch (ch)
     {
+      /* Treat \r\n as a newline.  */
+    case '\r':
+      ch = fgetc (fp);
+      if (ch == '\n')
+	ch = EOL;
+      else
+	{
+	  ungetc (ch, fp);
+	  ch = '\r';
+	}
+      fputc (ch == EOL ? '\n' : '\r', stdout);
+      fflush (stdout);
+      break;
     case '\n':
       ch = EOL;
       break;
@@ -438,7 +434,7 @@ static void
 gdbreplay_version (void)
 {
   printf ("GNU gdbreplay %s%s\n"
-	  "Copyright (C) 2018 Free Software Foundation, Inc.\n"
+	  "Copyright (C) 2019 Free Software Foundation, Inc.\n"
 	  "gdbreplay is free software, covered by "
 	  "the GNU General Public License.\n"
 	  "This gdbreplay was configured as \"%s\"\n",
@@ -448,7 +444,7 @@ gdbreplay_version (void)
 static void
 gdbreplay_usage (FILE *stream)
 {
-  fprintf (stream, "Usage:\tgdbreplay <logfile> <host:port>\n");
+  fprintf (stream, "Usage:\tgdbreplay LOGFILE HOST:PORT\n");
   if (REPORT_BUGS_TO[0] && stream == stdout)
     fprintf (stream, "Report bugs to \"%s\".\n", REPORT_BUGS_TO);
 }
@@ -509,21 +505,20 @@ captured_main (int argc, char *argv[])
 int
 main (int argc, char *argv[])
 {
-  TRY
+  try
     {
       captured_main (argc, argv);
     }
-  CATCH (exception, RETURN_MASK_ALL)
+  catch (const gdb_exception &exception)
     {
       if (exception.reason == RETURN_ERROR)
 	{
 	  fflush (stdout);
-	  fprintf (stderr, "%s\n", exception.message);
+	  fprintf (stderr, "%s\n", exception.what ());
 	}
 
       exit (1);
     }
-  END_CATCH
 
   gdb_assert_not_reached ("captured_main should never return");
 }

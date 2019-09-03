@@ -1,5 +1,5 @@
 dnl Autoconf configure script for GDB, the GNU debugger.
-dnl Copyright (C) 1995-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 1995-2019 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GDB.
 dnl
@@ -45,19 +45,6 @@ AX_CXX_COMPILE_STDCXX(11, , mandatory)
 ZW_CREATE_DEPDIR
 ZW_PROG_COMPILER_DEPENDENCIES([CC])
 
-gnulib_extra_configure_args=
-# If large-file support is disabled, make sure gnulib does the same.
-if test "$enable_largefile" = no; then
-gnulib_extra_configure_args="$gnulib_extra_configure_args --disable-largefile"
-fi
-
-# Configure gnulib.  We need to build gnulib under some other
-# directory not "gnulib", to avoid the problem of both GDB and
-# GDBserver wanting to build it in the same directory, when building
-# in the source dir.
-ACX_CONFIGURE_DIR(["gnulib"], ["build-gnulib"],
-                  ["$gnulib_extra_configure_args"])
-
 dnl List of object files and targets accumulated by configure.
 
 CONFIG_OBS=
@@ -82,15 +69,6 @@ if test x"$USE_NLS" = xyes; then
    CONFIG_INSTALL="$CONFIG_INSTALL install-po"
    CONFIG_UNINSTALL="$CONFIG_UNINSTALL uninstall-po"
 fi
-
-GNULIB=build-gnulib/import
-
-# For Makefile dependencies.
-GNULIB_STDINT_H=
-if test x"$STDINT_H" != x; then
-  GNULIB_STDINT_H=$GNULIB/$STDINT_H
-fi
-AC_SUBST(GNULIB_STDINT_H)
 
 PACKAGE=gdb
 AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of this package. ])
@@ -146,7 +124,7 @@ AC_ARG_WITH(auto-load-dir,
 AS_HELP_STRING([--with-auto-load-dir=PATH],
   [directories from which to load auto-loaded scripts @<:@$debugdir:$datadir/auto-load@:>@]),,
   [with_auto_load_dir='$debugdir:$datadir/auto-load'])
-escape_dir=`echo $with_auto_load_dir | sed 's/[[$]]\(datadir\|debugdir\)\>/\\\\\\\\\\\\&/g'`
+escape_dir=`echo $with_auto_load_dir | sed -e 's/[[$]]datadir\>/\\\\\\\\\\\\&/g' -e 's/[[$]]debugdir\>/\\\\\\\\\\\\&/g'`
 AC_DEFINE_DIR(AUTO_LOAD_DIR, escape_dir,
 	      [Directories from which to load auto-loaded scripts.])
 AC_MSG_RESULT([$with_auto_load_dir])
@@ -161,7 +139,7 @@ AS_HELP_STRING([--without-auto-load-safe-path],
      with_auto_load_safe_path="/"
      fi],
 [with_auto_load_safe_path="$with_auto_load_dir"])
-escape_dir=`echo $with_auto_load_safe_path | sed 's/[[$]]\(datadir\|debugdir\)\>/\\\\\\\\\\\\&/g'`
+escape_dir=`echo $with_auto_load_safe_path | sed -e 's/[[$]]datadir\>/\\\\\\\\\\\\&/g' -e 's/[[$]]debugdir\>/\\\\\\\\\\\\&/g'`
 AC_DEFINE_DIR(AUTO_LOAD_SAFE_PATH, escape_dir,
 	      [Directories safe to hold auto-loaded files.])
 AC_MSG_RESULT([$with_auto_load_safe_path])
@@ -200,7 +178,7 @@ fi
 . $srcdir/configure.host
 
 # Add in the common host objects.
-. $srcdir/common/common.host
+. $srcdir/gdbsupport/common.host
 gdb_host_obs="$gdb_host_obs $common_host_obs"
 
 # Accumulate some settings from configure.tgt over all enabled targets
@@ -592,7 +570,7 @@ case $host_os in
 esac
 
 # These are the libraries checked by Readline.
-AC_SEARCH_LIBS(tgetent, [termcap tinfo curses ncursesw ncurses])
+AC_SEARCH_LIBS(tgetent, [termcap tinfow tinfo curses ncursesw ncurses])
 
 if test "$ac_cv_search_tgetent" = no; then
   CONFIG_OBS="$CONFIG_OBS stub-termcap.o"
@@ -603,6 +581,20 @@ AC_ARG_WITH([system-readline],
                   [use installed readline library])])
 
 if test "$with_system_readline" = yes; then
+   AC_CACHE_CHECK([whether system readline is new enough],
+     [gdb_cv_readline_ok],
+     [AC_TRY_COMPILE(
+       [#include <stdio.h>
+#include <readline/readline.h>],
+       [#if RL_VERSION_MAJOR < 7
+# error "readline version 7 required"
+#endif],
+    gdb_cv_readline_ok=yes,
+    gdb_cv_readline_ok=no)])
+  if test "$gdb_cv_readline_ok" != yes; then
+    AC_MSG_ERROR([system readline is not new enough])
+  fi
+
   READLINE=-lreadline
   READLINE_DEPS=
   READLINE_CFLAGS=
@@ -682,7 +674,7 @@ if test "${with_mpfr}" = no; then
   AC_MSG_WARN([MPFR support disabled; some features may be unavailable.])
   HAVE_LIBMPFR=no
 else
-  AC_LIB_HAVE_LINKFLAGS([mpfr], [], [#include <mpfr.h>],
+  AC_LIB_HAVE_LINKFLAGS([mpfr], [gmp], [#include <mpfr.h>],
 			[mpfr_exp_t exp; mpfr_t x;
 			 mpfr_frexp (&exp, x, x, MPFR_RNDN);])
   if test "$HAVE_LIBMPFR" != yes; then
@@ -734,7 +726,7 @@ dnl no -   Don't include python support.
 dnl yes -  Include python support, error if it's missing.
 dnl        If we find python in $PATH, use it to fetch configure options,
 dnl        otherwise assume the compiler can find it with no help from us.
-dnl        Python 2.7, 2.6, 2.5, and then 2.4 are tried in turn.
+dnl        Python 2.7 and 2.6 are tried in turn.
 dnl auto - Same as "yes", but if python is missing from the system,
 dnl        fall back to "no".
 dnl /path/to/python/exec-prefix -
@@ -743,7 +735,7 @@ dnl        If /path/to/python/exec-prefix/bin/python exists, use it to find
 dnl        the compilation parameters.  Otherwise use
 dnl        -I/path/to/python/exec-prefix/include,
 dnl        -L/path/to/python/exec-prefix/lib.
-dnl        Python 2.7, 2.6, 2.5, and then 2.4 are tried in turn.
+dnl        Python 2.7 and 2.6 are tried in turn.
 dnl        NOTE: This case is historical.  It is what was done for 7.0/7.1
 dnl        but is deprecated.
 dnl /path/to/python/executable -
@@ -911,23 +903,11 @@ else
       AC_TRY_LIBPYTHON(python2.6, have_libpython,
                        ${python_includes}, "-lpython2.6 ${python_libs}")
     fi
-    if test ${have_libpython} = no; then
-      AC_TRY_LIBPYTHON(python2.5, have_libpython,
-                       ${python_includes}, "-lpython2.5 ${python_libs}")
-    fi
-    if test ${have_libpython} = no; then
-      AC_TRY_LIBPYTHON(python2.4, have_libpython,
-                       ${python_includes}, "-lpython2.4 ${python_libs}")
-    fi
   fi
   if test "${have_libpython}" = python2.7 -o "${have_libpython}" = python27; then
     AC_DEFINE(HAVE_LIBPYTHON2_7, 1, [Define if Python 2.7 is being used.])
   elif test "${have_libpython}" = python2.6 -o "${have_libpython}" = python26; then
     AC_DEFINE(HAVE_LIBPYTHON2_6, 1, [Define if Python 2.6 is being used.])
-  elif test "${have_libpython}" = python2.5 -o "${have_libpython}" = python25; then
-    AC_DEFINE(HAVE_LIBPYTHON2_5, 1, [Define if Python 2.5 is being used.])
-  elif test "${have_libpython}" = python2.4 -o "${have_libpython}" = python24; then
-    AC_DEFINE(HAVE_LIBPYTHON2_4, 1, [Define if Python 2.4 is being used.])
   fi
 
   if test "${have_libpython}" = no; then
@@ -965,7 +945,11 @@ if test "${have_libpython}" != no; then
   # would make the python-related objects be compiled differently from the
   # rest of GDB (e.g., -O2 and -fPIC).
   if test "${GCC}" = yes; then
-    tentative_python_cflags="-fno-strict-aliasing -DNDEBUG -fwrapv"
+    tentative_python_cflags="-fno-strict-aliasing -fwrapv"
+    # Python headers recommend -DNDEBUG, but it's unclear if that just
+    # refers to building Python itself.  In release mode, though, it
+    # doesn't hurt for the Python code in gdb to follow.
+    $development || tentative_python_cflags="$tentative_python_cflags -DNDEBUG"
   fi
 
   if test "x${tentative_python_cflags}" != x; then
@@ -1222,27 +1206,55 @@ AC_SUBST(GUILE_CPPFLAGS)
 AC_SUBST(GUILE_LIBS)
 AM_CONDITIONAL(HAVE_GUILE, test "${have_libguile}" != no)
 
-# --------------------- #
-# Check for libmcheck.  #
-# --------------------- #
+# ---------------------------- #
+# Check for source highlight.  #
+# ---------------------------- #
 
-# Enable -lmcheck by default (it provides cheap-enough memory mangling),
-# but turn it off if Python is enabled with threads, since -lmcheck is
-# not thread safe (http://sourceware.org/bugzilla/show_bug.cgi?id=9939),
-# and for releases.
-if test \( "${have_libpython}" = "no" -o "${python_has_threads}" = "no" \) \
-   && $development; then
-  libmcheck_default=yes
-else
-  libmcheck_default=no
-fi
-GDB_AC_LIBMCHECK(${libmcheck_default})
+SRCHIGH_LIBS=
+SRCHIGH_CFLAGS=
 
-if test "$ENABLE_LIBMCHECK" = "yes" \
-	-a "${have_libpython}" != "no" \
-	-a "${python_has_threads}" = "yes" ; then
-  AC_MSG_WARN(--enable-libmcheck may lead to spurious crashes if threads are used in python)
+AC_ARG_ENABLE(source-highlight,
+  AS_HELP_STRING([--enable-source-highlight],
+    [enable source-highlight for source listings]),
+  [case "${enableval}" in
+  yes)  enable_source_highlight=yes ;;
+  no)   enable_source_highlight=no  ;;
+  *)    AC_MSG_ERROR(bad value ${enableval} for source-highlight option) ;;
+esac],
+[enable_source_highlight=auto])
+
+if test "${enable_source_highlight}" != "no"; then
+  AC_MSG_CHECKING([for the source-highlight library])
+  if test "${pkg_config_prog_path}" = "missing"; then
+    AC_MSG_RESULT([no - pkg-config not found])
+    if test "${enable_source_highlight}" = "yes"; then
+      AC_MSG_ERROR([pkg-config was not found in your system])
+    fi
+  else
+    case "$LDFLAGS" in
+      *static-libstdc*)
+        AC_MSG_ERROR([source highlight is incompatible with -static-libstdc++; dnl
+either use --disable-source-highlight or dnl
+--without-static-standard-libraries])
+        ;;
+    esac
+
+    if ${pkg_config_prog_path} --exists source-highlight; then
+      SRCHIGH_CFLAGS=`${pkg_config_prog_path} --cflags source-highlight`
+      SRCHIGH_LIBS=`${pkg_config_prog_path} --libs source-highlight`
+      AC_DEFINE([HAVE_SOURCE_HIGHLIGHT], 1,
+                [Define to 1 if the source-highlight library is available])
+      AC_MSG_RESULT([yes])
+    else
+      AC_MSG_RESULT([no])
+      if test "${enable_source_highlight}" = "yes"; then
+        AC_MSG_ERROR([source-highlight was not found in your system])
+      fi
+    fi
+  fi
 fi
+AC_SUBST(SRCHIGH_LIBS)
+AC_SUBST(SRCHIGH_CFLAGS)
 
 AC_ARG_WITH(intel_pt,
   AS_HELP_STRING([--with-intel-pt], [include Intel Processor Trace support (auto/yes/no)]),
@@ -1292,12 +1304,11 @@ fi
 AC_HEADER_STDC
 # elf_hp.h is for HP/UX 64-bit shared library support.
 AC_CHECK_HEADERS([nlist.h machine/reg.h poll.h sys/poll.h proc_service.h \
-                  thread_db.h \
+                  thread_db.h linux/elf.h \
 		  sys/file.h sys/filio.h sys/ioctl.h sys/param.h \
 		  sys/resource.h sys/procfs.h sys/ptrace.h ptrace.h \
 		  sys/reg.h sys/debugreg.h sys/select.h \
-		  termios.h elf_hp.h \
-		  dlfcn.h])
+		  termios.h elf_hp.h])
 AC_CHECK_HEADERS(sys/user.h, [], [],
 [#if HAVE_SYS_PARAM_H
 # include <sys/param.h>
@@ -1355,7 +1366,7 @@ AC_CHECK_FUNCS([getauxval getrusage getuid getgid \
 		sigaction sigprocmask sigsetmask socketpair \
 		ttrace wborder wresize setlocale iconvlist libiconvlist btowc \
 		setrlimit getrlimit posix_madvise waitpid \
-		ptrace64 sigaltstack mkdtemp setns])
+		ptrace64 sigaltstack setns use_default_colors])
 AM_LANGINFO_CODESET
 GDB_AC_COMMON
 
@@ -1524,33 +1535,7 @@ if test "$ac_cv_header_sys_procfs_h" = yes; then
   BFD_HAVE_SYS_PROCFS_TYPE(prgregset32_t)
   BFD_HAVE_SYS_PROCFS_TYPE(lwpid_t)
   BFD_HAVE_SYS_PROCFS_TYPE(psaddr_t)
-
-  dnl Check for broken prfpregset_t type
-
-  dnl For Linux/i386, glibc 2.1.3 was released with a bogus
-  dnl prfpregset_t type (it's a typedef for the pointer to a struct
-  dnl instead of the struct itself).  We detect this here, and work
-  dnl around it in gdb_proc_service.h.
-
-  if test $bfd_cv_have_sys_procfs_type_prfpregset_t = yes; then
-    AC_MSG_CHECKING(whether prfpregset_t type is broken)
-    AC_CACHE_VAL(gdb_cv_prfpregset_t_broken,
-      [AC_TRY_RUN([#include <sys/procfs.h>
-       int main ()
-       {
-         if (sizeof (prfpregset_t) == sizeof (void *))
-           return 1;
-         return 0;
-       }],
-       gdb_cv_prfpregset_t_broken=no,
-       gdb_cv_prfpregset_t_broken=yes,
-       gdb_cv_prfpregset_t_broken=yes)])
-    AC_MSG_RESULT($gdb_cv_prfpregset_t_broken)
-    if test $gdb_cv_prfpregset_t_broken = yes; then
-      AC_DEFINE(PRFPREGSET_T_BROKEN, 1,
-      [Define if the prfpregset_t type is broken.])
-    fi
-  fi
+  BFD_HAVE_SYS_PROCFS_TYPE(elf_fpregset_t)
 fi
 
 # Check if the compiler supports the `long long' type.
@@ -1860,6 +1845,7 @@ GDB_AC_WITH_DIR(SYSTEM_GDBINIT, system-gdbinit,
     [])
 
 AM_GDB_WARNINGS
+AM_GDB_UBSAN
 
 # In the Cygwin environment, we need some additional flags.
 AC_CACHE_CHECK([for cygwin], gdb_cv_os_cygwin,
@@ -1875,6 +1861,7 @@ case ${host} in
   *go32* ) SER_HARDWIRE=ser-go32.o ;;
   *djgpp* ) SER_HARDWIRE=ser-go32.o ;;
   *mingw32*) SER_HARDWIRE="ser-base.o ser-tcp.o ser-mingw.o" ;;
+  *) SER_HARDWIRE="$SER_HARDWIRE ser-uds.o" ;;
 esac
 AC_SUBST(SER_HARDWIRE)
 
@@ -2160,18 +2147,6 @@ if test x"${gdb_osabi}" != x ; then
 		       [Define to the default OS ABI for this configuration.])
 fi
 
-# Enable multi-ice-gdb-server.
-AC_ARG_ENABLE(multi-ice,
-AS_HELP_STRING([--enable-multi-ice], [build the multi-ice-gdb-server]),
-  [case $enableval in
-    yes | no)
-      ;;
-    *) AC_MSG_ERROR([bad value $enableval for --enable-multi-ice]) ;;
-  esac])
-if test "x$enable_multi_ice" = xyes; then
-   AC_CONFIG_SUBDIRS(multi-ice)
-fi
-
 AC_ARG_ENABLE(gdbserver,
 AS_HELP_STRING([--enable-gdbserver],
                [automatically build gdbserver (yes/no/auto, default is auto)]),
@@ -2279,12 +2254,10 @@ dnl  At the moment, we just assume it's UTF-8.
 AC_DEFINE(GDB_DEFAULT_HOST_CHARSET, "UTF-8",
           [Define to be a string naming the default host character set.])
 
-if $development; then
-  AC_DEFINE(GDB_SELF_TEST, 1,
-            [Define if self-testing features should be enabled])
-  CONFIG_OBS="$CONFIG_OBS \$(SUBDIR_UNITTESTS_OBS) common/selftest.o selftest-arch.o"
-  CONFIG_SRCS="$CONFIG_SRCS \$(SUBDIR_UNITTESTS_SRCS) common/selftest.c selftest-arch.c"
-fi
+GDB_AC_SELFTEST([
+  CONFIG_OBS="$CONFIG_OBS \$(SUBDIR_UNITTESTS_OBS) gdbsupport/selftest.o selftest-arch.o"
+  CONFIG_SRCS="$CONFIG_SRCS \$(SUBDIR_UNITTESTS_SRCS) gdbsupport/selftest.c selftest-arch.c"
+])
 
 GDB_AC_TRANSFORM([gdb], [GDB_TRANSFORM_NAME])
 GDB_AC_TRANSFORM([gcore], [GCORE_TRANSFORM_NAME])

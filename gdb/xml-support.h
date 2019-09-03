@@ -1,6 +1,6 @@
 /* Helper routines for parsing XML using Expat.
 
-   Copyright (C) 2006-2018 Free Software Foundation, Inc.
+   Copyright (C) 2006-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,9 +22,10 @@
 #define XML_SUPPORT_H
 
 #include "gdb_obstack.h"
-#include "vec.h"
-#include "xml-utils.h"
-#include "common/byte-vector.h"
+#include "gdbsupport/vec.h"
+#include "gdbsupport/xml-utils.h"
+#include "gdbsupport/byte-vector.h"
+#include "gdbsupport/gdb_optional.h"
 
 struct gdb_xml_parser;
 struct gdb_xml_element;

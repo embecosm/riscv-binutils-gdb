@@ -1,5 +1,5 @@
 /* tc-csky.h -- Header file for tc-csky.c
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
    Contributed by C-SKY Microsystems and Mentor Graphics.
 
    This file is part of GAS, the GNU Assembler.
@@ -61,6 +61,9 @@
 #define tc_regname_to_dw2regnum tc_csky_regname_to_dw2regnum
 #define DWARF2_DEFAULT_RETURN_COLUMN 15
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
+
+/* .-foo gets turned into PC relative relocs.  */
+#define DIFF_EXPR_OK 1
 
 typedef enum
 {

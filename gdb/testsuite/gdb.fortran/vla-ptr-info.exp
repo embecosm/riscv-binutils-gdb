@@ -1,4 +1,4 @@
-# Copyright 2015-2018 Free Software Foundation, Inc.
+# Copyright 2015-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,5 +28,5 @@ if ![runto_main] {
 # Check the status of a pointer to a dynamic array.
 gdb_breakpoint [gdb_get_line_number "pvla-associated"]
 gdb_continue_to_breakpoint "pvla-associated"
-gdb_test "print &pvla" " = \\(PTR TO -> \\( real\\(kind=4\\) \\(10,10,10\\)\\)\\) ${hex}" \
+gdb_test "print &pvla" " = \\(PTR TO -> \\( real\\(kind=4\\) \\(10,10,10\\) \\)\\) ${hex}" \
   "print pvla pointer information"

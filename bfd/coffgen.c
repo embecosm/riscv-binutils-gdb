@@ -1,5 +1,5 @@
 /* Support for the generic parts of COFF, for BFD.
-   Copyright (C) 1990-2018 Free Software Foundation, Inc.
+   Copyright (C) 1990-2019 Free Software Foundation, Inc.
    Written by Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -37,6 +37,7 @@
    coff_data (abfd).  */
 
 #include "sysdep.h"
+#include <limits.h>
 #include "bfd.h"
 #include "libbfd.h"
 #include "coff/internal.h"
@@ -835,7 +836,7 @@ coff_mangle_symbols (bfd *bfd_ptr)
 	  for (i = 0; i < s->u.syment.n_numaux; i++)
 	    {
 	      combined_entry_type *a = s + i + 1;
-	      
+
 	      BFD_ASSERT (! a->is_sym);
 	      if (a->fix_tag)
 		{
@@ -1521,7 +1522,8 @@ coff_pointerize_aux (bfd *abfd,
 		     combined_entry_type *table_base,
 		     combined_entry_type *symbol,
 		     unsigned int indaux,
-		     combined_entry_type *auxent)
+		     combined_entry_type *auxent,
+		     combined_entry_type *table_end)
 {
   unsigned int type = symbol->u.syment.n_type;
   unsigned int n_sclass = symbol->u.syment.n_sclass;
@@ -1549,16 +1551,20 @@ coff_pointerize_aux (bfd *abfd,
        || n_sclass == C_FCN)
       && auxent->u.auxent.x_sym.x_fcnary.x_fcn.x_endndx.l > 0
       && auxent->u.auxent.x_sym.x_fcnary.x_fcn.x_endndx.l
-      < (long) obj_raw_syment_count (abfd))
+      < (long) obj_raw_syment_count (abfd)
+      && table_base + auxent->u.auxent.x_sym.x_fcnary.x_fcn.x_endndx.l
+      < table_end)
     {
       auxent->u.auxent.x_sym.x_fcnary.x_fcn.x_endndx.p =
 	table_base + auxent->u.auxent.x_sym.x_fcnary.x_fcn.x_endndx.l;
       auxent->fix_end = 1;
     }
+
   /* A negative tagndx is meaningless, but the SCO 3.2v4 cc can
      generate one, so we must be careful to ignore it.  */
   if ((unsigned long) auxent->u.auxent.x_sym.x_tagndx.l
-      < obj_raw_syment_count (abfd))
+      < obj_raw_syment_count (abfd)
+      && table_base + auxent->u.auxent.x_sym.x_tagndx.l < table_end)
     {
       auxent->u.auxent.x_sym.x_tagndx.p =
 	table_base + auxent->u.auxent.x_sym.x_tagndx.l;
@@ -1869,7 +1875,7 @@ coff_get_normalized_symtab (bfd *abfd)
 
 	  internal_ptr->is_sym = FALSE;
 	  coff_pointerize_aux (abfd, internal, symbol_ptr, i,
-			       internal_ptr);
+			       internal_ptr, internal_end);
 	}
     }
 
@@ -2009,6 +2015,13 @@ coff_get_reloc_upper_bound (bfd *abfd, sec_ptr asect)
       bfd_set_error (bfd_error_invalid_operation);
       return -1;
     }
+#if SIZEOF_LONG == SIZEOF_INT
+  if (asect->reloc_count >= LONG_MAX / sizeof (arelent *))
+    {
+      bfd_set_error (bfd_error_file_too_big);
+      return -1;
+    }
+#endif
   return (asect->reloc_count + 1) * sizeof (arelent *);
 }
 
@@ -2277,7 +2290,7 @@ coff_find_nearest_line_with_names (bfd *abfd,
   /* Also try examining DWARF2 debugging information.  */
   if (_bfd_dwarf2_find_nearest_line (abfd, symbols, NULL, section, offset,
 				     filename_ptr, functionname_ptr,
-				     line_ptr, NULL, debug_sections, 0,
+				     line_ptr, NULL, debug_sections,
 				     &coff_data(abfd)->dwarf2_find_line_info))
     return TRUE;
 
@@ -2289,7 +2302,7 @@ coff_find_nearest_line_with_names (bfd *abfd,
      information.  So try again, using a bias against the address sought.  */
   if (coff_data (abfd)->dwarf2_find_line_info != NULL)
     {
-      bfd_signed_vma bias;
+      bfd_signed_vma bias = 0;
 
       /* Create a cache of the result for the next call.  */
       if (sec_data == NULL && section->owner == abfd)
@@ -2301,10 +2314,11 @@ coff_find_nearest_line_with_names (bfd *abfd,
 
       if (sec_data != NULL && sec_data->saved_bias)
 	bias = sec_data->saved_bias;
-      else
+      else if (symbols)
 	{
 	  bias = _bfd_dwarf2_find_symbol_bias (symbols,
 					       & coff_data (abfd)->dwarf2_find_line_info);
+
 	  if (sec_data)
 	    {
 	      sec_data->saved_bias = TRUE;
@@ -2316,7 +2330,7 @@ coff_find_nearest_line_with_names (bfd *abfd,
 	  && _bfd_dwarf2_find_nearest_line (abfd, symbols, NULL, section,
 					    offset + bias,
 					    filename_ptr, functionname_ptr,
-					    line_ptr, NULL, debug_sections, 0,
+					    line_ptr, NULL, debug_sections,
 					    &coff_data(abfd)->dwarf2_find_line_info))
 	return TRUE;
     }
@@ -2632,6 +2646,9 @@ _bfd_coff_section_already_linked (bfd *abfd,
   struct bfd_section_already_linked *l;
   struct bfd_section_already_linked_hash_entry *already_linked_list;
   struct coff_comdat_info *s_comdat;
+
+  if (sec->output_section == bfd_abs_section_ptr)
+    return FALSE;
 
   flags = sec->flags;
   if ((flags & SEC_LINK_ONCE) == 0)

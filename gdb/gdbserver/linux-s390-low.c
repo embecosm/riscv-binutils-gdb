@@ -1,6 +1,6 @@
 /* GNU/Linux S/390 specific low level interface, for the remote server
    for GDB.
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -467,36 +467,6 @@ s390_set_pc (struct regcache *regcache, CORE_ADDR newpc)
     }
 }
 
-/* Get HWCAP from AUXV, using the given WORDSIZE.  Return the HWCAP, or
-   zero if not found.  */
-
-static unsigned long
-s390_get_hwcap (int wordsize)
-{
-  gdb_byte *data = (gdb_byte *) alloca (2 * wordsize);
-  int offset = 0;
-
-  while ((*the_target->read_auxv) (offset, data, 2 * wordsize) == 2 * wordsize)
-    {
-      if (wordsize == 4)
-        {
-          unsigned int *data_p = (unsigned int *)data;
-          if (data_p[0] == AT_HWCAP)
-	    return data_p[1];
-        }
-      else
-        {
-          unsigned long *data_p = (unsigned long *)data;
-          if (data_p[0] == AT_HWCAP)
-	    return data_p[1];
-        }
-
-      offset += 2 * wordsize;
-    }
-
-  return 0;
-}
-
 /* Determine the word size for the given PID, in bytes.  */
 
 #ifdef __s390x__
@@ -509,7 +479,7 @@ s390_get_wordsize (int pid)
 				  (PTRACE_TYPE_ARG4) 0);
   if (errno != 0)
     {
-      warning (_("Couldn't determine word size, assuming 64-bit.\n"));
+      warning (_("Couldn't determine word size, assuming 64-bit."));
       return 8;
     }
   /* Derive word size from extended addressing mode (PSW bit 31).  */
@@ -548,7 +518,7 @@ s390_arch_setup (void)
   /* Determine word size and HWCAP.  */
   int pid = pid_of (current_thread);
   int wordsize = s390_get_wordsize (pid);
-  unsigned long hwcap = s390_get_hwcap (wordsize);
+  unsigned long hwcap = linux_get_hwcap (wordsize);
 
   /* Check whether the kernel supports extra register sets.  */
   int have_regset_last_break
@@ -1066,7 +1036,7 @@ static const unsigned char s390_ft_exit_gpr_zarch[] = {
 static void
 append_insns (CORE_ADDR *to, size_t len, const unsigned char *buf)
 {
-  write_inferior_memory (*to, buf, len);
+  target_write_memory (*to, buf, len);
   *to += len;
 }
 
@@ -1605,8 +1575,8 @@ static void
 s390_emit_ext (int arg)
 {
   unsigned char buf[] = {
-    0x8d, 0x20, 0x00, 64 - arg,	/* sldl %r2, <64-arg> */
-    0x8e, 0x20, 0x00, 64 - arg,	/* srda %r2, <64-arg> */
+    0x8d, 0x20, 0x00, (unsigned char) (64 - arg), /* sldl %r2, <64-arg> */
+    0x8e, 0x20, 0x00, (unsigned char) (64 - arg), /* srda %r2, <64-arg> */
   };
   add_insns (buf, sizeof buf);
 }
@@ -1823,7 +1793,7 @@ s390_write_goto_address (CORE_ADDR from, CORE_ADDR to, int size)
     }
 
   memcpy (buf, &sdiff, sizeof sdiff);
-  write_inferior_memory (from, buf, sizeof sdiff);
+  target_write_memory (from, buf, sizeof sdiff);
 }
 
 /* Preparation for emitting a literal pool of given size.  Loads the address
@@ -1837,7 +1807,8 @@ s390_emit_litpool (int size)
     0x07, 0x07,
   };
   unsigned char buf[] = {
-    0xa7, 0x15, 0x00, (size + 4) / 2,	/* bras %r1, .Lend+size */
+    0xa7, 0x15, 0x00,
+    (unsigned char) ((size + 4) / 2),	/* bras %r1, .Lend+size */
     /* .Lend: */
   };
   if (size == 4)
@@ -1861,8 +1832,11 @@ s390_emit_const (LONGEST num)
 {
   unsigned long long n = num;
   unsigned char buf_s[] = {
-    0xa7, 0x38, num >> 8, num,	/* lhi %r3, <num> */
-    0x17, 0x22,			/* xr %r2, %r2 */
+    /* lhi %r3, <num> */
+    0xa7, 0x38,
+    (unsigned char) (num >> 8), (unsigned char) num,
+    /* xr %r2, %r2 */
+    0x17, 0x22,
   };
   static const unsigned char buf_l[] = {
     0x98, 0x23, 0x10, 0x00,	/* lm %r2, %r3, 0(%r1) */
@@ -1902,8 +1876,10 @@ static void
 s390_emit_reg (int reg)
 {
   unsigned char bufpre[] = {
-    0x18, 0x29,			/* lr %r2, %r9 */
-    0xa7, 0x38, reg >> 8, reg,	/* lhi %r3, <reg> */
+    /* lr %r2, %r9 */
+    0x18, 0x29,
+    /* lhi %r3, <reg> */
+    0xa7, 0x38, (unsigned char) (reg >> 8), (unsigned char) reg,
   };
   add_insns (bufpre, sizeof bufpre);
   s390_emit_call (get_raw_reg_func_addr ());
@@ -1939,8 +1915,8 @@ static void
 s390_emit_zero_ext (int arg)
 {
   unsigned char buf[] = {
-    0x8d, 0x20, 0x00, 64 - arg,	/* sldl %r2, <64-arg> */
-    0x8c, 0x20, 0x00, 64 - arg,	/* srdl %r2, <64-arg> */
+    0x8d, 0x20, 0x00, (unsigned char) (64 - arg), /* sldl %r2, <64-arg> */
+    0x8c, 0x20, 0x00, (unsigned char) (64 - arg), /* srdl %r2, <64-arg> */
   };
   add_insns (buf, sizeof buf);
 }
@@ -1965,7 +1941,9 @@ static void
 s390_emit_stack_adjust (int n)
 {
   unsigned char buf[] = {
-    0xa7, 0xfa, n * 8 >> 8, n * 8,	/* ahi %r15, 8*n */
+    /* ahi %r15, 8*n */
+    0xa7, 0xfa,
+    (unsigned char ) (n * 8 >> 8), (unsigned char) (n * 8),
   };
   add_insns (buf, sizeof buf);
 }
@@ -1976,7 +1954,8 @@ static void
 s390_emit_set_r2 (int arg1)
 {
   unsigned char buf_s[] = {
-    0xa7, 0x28, arg1 >> 8, arg1,	/* lhi %r2, <arg1> */
+    /* lhi %r2, <arg1> */
+    0xa7, 0x28, (unsigned char) (arg1 >> 8), (unsigned char) arg1,
   };
   static const unsigned char buf_l[] = {
     0x58, 0x20, 0x10, 0x00,	/* l %r2, 0(%r1) */
@@ -2330,8 +2309,10 @@ static void
 s390x_emit_ext (int arg)
 {
   unsigned char buf[] = {
-    0xeb, 0x22, 0x00, 64 - arg, 0x00, 0x0d,	/* sllg %r2, %r2, <64-arg> */
-    0xeb, 0x22, 0x00, 64 - arg, 0x00, 0x0a,	/* srag %r2, %r2, <64-arg> */
+    /* sllg %r2, %r2, <64-arg> */
+    0xeb, 0x22, 0x00, (unsigned char) (64 - arg), 0x00, 0x0d,
+    /* srag %r2, %r2, <64-arg> */
+    0xeb, 0x22, 0x00, (unsigned char) (64 - arg), 0x00, 0x0a,
   };
   add_insns (buf, sizeof buf);
 }
@@ -2499,7 +2480,8 @@ s390x_emit_const (LONGEST num)
 {
   unsigned long long n = num;
   unsigned char buf_s[] = {
-    0xa7, 0x29, num >> 8, num,		/* lghi %r2, <num> */
+    /* lghi %r2, <num> */
+    0xa7, 0x29, (unsigned char) (num >> 8), (unsigned char) num,
   };
   static const unsigned char buf_l[] = {
     0xe3, 0x20, 0x10, 0x00, 0x00, 0x04,	/* lg %r2, 0(%r1) */
@@ -2539,8 +2521,10 @@ static void
 s390x_emit_reg (int reg)
 {
   unsigned char buf[] = {
-    0xb9, 0x04, 0x00, 0x29,		/* lgr %r2, %r9 */
-    0xa7, 0x39, reg >> 8, reg,		/* lghi %r3, <reg> */
+    /* lgr %r2, %r9 */
+    0xb9, 0x04, 0x00, 0x29,
+    /* lghi %r3, <reg> */
+    0xa7, 0x39, (unsigned char) (reg >> 8), (unsigned char) reg,
   };
   add_insns (buf, sizeof buf);
   s390x_emit_call (get_raw_reg_func_addr ());
@@ -2576,8 +2560,10 @@ static void
 s390x_emit_zero_ext (int arg)
 {
   unsigned char buf[] = {
-    0xeb, 0x22, 0x00, 64 - arg, 0x00, 0x0d,	/* sllg %r2, %r2, <64-arg> */
-    0xeb, 0x22, 0x00, 64 - arg, 0x00, 0x0c,	/* srlg %r2, %r2, <64-arg> */
+    /* sllg %r2, %r2, <64-arg> */
+    0xeb, 0x22, 0x00, (unsigned char) (64 - arg), 0x00, 0x0d,
+    /* srlg %r2, %r2, <64-arg> */
+    0xeb, 0x22, 0x00, (unsigned char) (64 - arg), 0x00, 0x0c,
   };
   add_insns (buf, sizeof buf);
 }
@@ -2601,7 +2587,9 @@ static void
 s390x_emit_stack_adjust (int n)
 {
   unsigned char buf[] = {
-    0xa7, 0xfb, n * 8 >> 8, n * 8,	/* aghi %r15, 8*n */
+    /* aghi %r15, 8*n */
+    0xa7, 0xfb,
+    (unsigned char) (n * 8 >> 8), (unsigned char) (n * 8),
   };
   add_insns (buf, sizeof buf);
 }

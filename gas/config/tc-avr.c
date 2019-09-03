@@ -1,6 +1,6 @@
 /* tc-avr.c -- Assembler code for the ATMEL AVR
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
    Contributed by Denis Chertykov <denisc@overta.ru>
 
    This file is part of GAS, the GNU Assembler.
@@ -23,7 +23,6 @@
 #include "as.h"
 #include "safe-ctype.h"
 #include "subsegs.h"
-#include "struc-symbol.h"
 #include "dwarf2dbg.h"
 #include "dw2gencfi.h"
 #include "elf/avr.h"
@@ -2628,8 +2627,7 @@ avr_patch_gccisr_frag (fragS *fr, int reg)
       symbolS *sy = avr_isr.sym_n_pushed;
       /* Turn magic `__gcc_isr.n_pushed' into its now known value.  */
 
-      sy->sy_value.X_op = O_constant;
-      sy->sy_value.X_add_number = n_pushed;
+      S_SET_VALUE (sy, n_pushed);
       S_SET_SEGMENT (sy, expr_section);
       avr_isr.sym_n_pushed = NULL;
     }
@@ -2637,8 +2635,8 @@ avr_patch_gccisr_frag (fragS *fr, int reg)
   /* Turn frag into ordinary code frag of now known size.  */
 
   fr->fr_var = 0;
-  fr->fr_fix = (offsetT) (where - fr->fr_literal);
-  gas_assert (fr->fr_fix <= fr->fr_offset);
+  fr->fr_fix = where - fr->fr_literal;
+  gas_assert (fr->fr_fix <= (valueT) fr->fr_offset);
   fr->fr_offset = 0;
   fr->fr_type = rs_fill;
   fr->fr_subtype = 0;

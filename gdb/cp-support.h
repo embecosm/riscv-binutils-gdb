@@ -1,5 +1,5 @@
 /* Helper routines for C++ support in GDB.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    Contributed by MontaVista Software.
    Namespace support contributed by David Carlton.
@@ -25,9 +25,11 @@
 /* We need this for 'domain_enum', alas...  */
 
 #include "symtab.h"
-#include "vec.h"
-#include "gdb_vecs.h"
+#include "gdbsupport/vec.h"
+#include "gdbsupport/gdb_vecs.h"
 #include "gdb_obstack.h"
+#include "gdbsupport/array-view.h"
+#include <vector>
 
 /* Opaque declarations.  */
 
@@ -94,7 +96,7 @@ extern unsigned int cp_find_first_component (const char *name);
 
 extern unsigned int cp_entire_prefix_len (const char *name);
 
-extern char *cp_func_name (const char *full_name);
+extern gdb::unique_xmalloc_ptr<char> cp_func_name (const char *full_name);
 
 extern gdb::unique_xmalloc_ptr<char> cp_remove_params
   (const char *demanged_name);
@@ -107,15 +109,16 @@ extern gdb::unique_xmalloc_ptr<char> cp_remove_params
 extern gdb::unique_xmalloc_ptr<char> cp_remove_params_if_any
   (const char *demangled_name, bool completion_mode);
 
-extern struct symbol **make_symbol_overload_list (const char *,
-						  const char *);
+extern std::vector<symbol *> make_symbol_overload_list (const char *,
+							const char *);
 
-extern struct symbol **make_symbol_overload_list_adl (struct type **arg_types,
-                                                      int nargs,
-                                                      const char *func_name);
+extern void add_symbol_overload_list_adl
+  (gdb::array_view<type *> arg_types,
+   const char *func_name,
+   std::vector<symbol *> *overload_list);
 
 extern struct type *cp_lookup_rtti_type (const char *name,
-					 struct block *block);
+					 const struct block *block);
 
 /* Produce an unsigned hash value from SEARCH_NAME that is compatible
    with cp_symbol_name_matches.  Only the last component in

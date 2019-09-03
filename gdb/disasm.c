@@ -1,6 +1,6 @@
 /* Disassemble support for GDB.
 
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -29,7 +29,7 @@
 #include "source.h"
 #include "safe-ctype.h"
 #include <algorithm>
-#include "common/gdb_optional.h"
+#include "gdbsupport/gdb_optional.h"
 #include "valprint.h"
 
 /* Disassemble functions.
@@ -191,8 +191,7 @@ compare_lines (const void *mle1p, const void *mle2p)
 /* See disasm.h.  */
 
 int
-gdb_pretty_print_disassembler::pretty_print_insn (struct ui_out *uiout,
-						  const struct disasm_insn *insn,
+gdb_pretty_print_disassembler::pretty_print_insn (const struct disasm_insn *insn,
 						  gdb_disassembly_flags flags)
 {
   /* parts of the symbolic representation of the address */
@@ -204,53 +203,58 @@ gdb_pretty_print_disassembler::pretty_print_insn (struct ui_out *uiout,
   struct gdbarch *gdbarch = arch ();
 
   {
-    ui_out_emit_tuple tuple_emitter (uiout, NULL);
+    ui_out_emit_tuple tuple_emitter (m_uiout, NULL);
     pc = insn->addr;
 
     if (insn->number != 0)
       {
-	uiout->field_fmt ("insn-number", "%u", insn->number);
-	uiout->text ("\t");
+	m_uiout->field_unsigned ("insn-number", insn->number);
+	m_uiout->text ("\t");
       }
 
     if ((flags & DISASSEMBLY_SPECULATIVE) != 0)
       {
 	if (insn->is_speculative)
 	  {
-	    uiout->field_string ("is-speculative", "?");
+	    m_uiout->field_string ("is-speculative", "?");
 
 	    /* The speculative execution indication overwrites the first
 	       character of the PC prefix.
 	       We assume a PC prefix length of 3 characters.  */
 	    if ((flags & DISASSEMBLY_OMIT_PC) == 0)
-	      uiout->text (pc_prefix (pc) + 1);
+	      m_uiout->text (pc_prefix (pc) + 1);
 	    else
-	      uiout->text ("  ");
+	      m_uiout->text ("  ");
 	  }
 	else if ((flags & DISASSEMBLY_OMIT_PC) == 0)
-	  uiout->text (pc_prefix (pc));
+	  m_uiout->text (pc_prefix (pc));
 	else
-	  uiout->text ("   ");
+	  m_uiout->text ("   ");
       }
     else if ((flags & DISASSEMBLY_OMIT_PC) == 0)
-      uiout->text (pc_prefix (pc));
-    uiout->field_core_addr ("address", gdbarch, pc);
+      m_uiout->text (pc_prefix (pc));
+    m_uiout->field_core_addr ("address", gdbarch, pc);
 
     std::string name, filename;
-    if (!build_address_symbolic (gdbarch, pc, 0, &name, &offset, &filename,
-				 &line, &unmapped))
+    bool omit_fname = ((flags & DISASSEMBLY_OMIT_FNAME) != 0);
+    if (!build_address_symbolic (gdbarch, pc, false, omit_fname, &name,
+                                 &offset, &filename, &line, &unmapped))
       {
 	/* We don't care now about line, filename and unmapped.  But we might in
 	   the future.  */
-	uiout->text (" <");
-	if ((flags & DISASSEMBLY_OMIT_FNAME) == 0)
-	  uiout->field_string ("func-name", name.c_str ());
-	uiout->text ("+");
-	uiout->field_int ("offset", offset);
-	uiout->text (">:\t");
+	m_uiout->text (" <");
+	if (!omit_fname)
+	  m_uiout->field_string ("func-name", name.c_str (),
+				 ui_out_style_kind::FUNCTION);
+	/* For negative offsets, avoid displaying them as +-N; the sign of
+	   the offset takes the place of the "+" here.  */
+	if (offset >= 0)
+	  m_uiout->text ("+");
+	m_uiout->field_signed ("offset", offset);
+	m_uiout->text (">:\t");
       }
     else
-      uiout->text (":\t");
+      m_uiout->text (":\t");
 
     m_insn_stb.clear ();
 
@@ -274,15 +278,15 @@ gdb_pretty_print_disassembler::pretty_print_insn (struct ui_out *uiout,
 	    spacer = " ";
 	  }
 
-	uiout->field_stream ("opcodes", m_opcode_stb);
-	uiout->text ("\t");
+	m_uiout->field_stream ("opcodes", m_opcode_stb);
+	m_uiout->text ("\t");
       }
     else
       size = m_di.print_insn (pc);
 
-    uiout->field_stream ("inst", m_insn_stb);
+    m_uiout->field_stream ("inst", m_insn_stb);
   }
-  uiout->text ("\n");
+  m_uiout->text ("\n");
 
   return size;
 }
@@ -298,13 +302,13 @@ dump_insns (struct gdbarch *gdbarch,
   memset (&insn, 0, sizeof (insn));
   insn.addr = low;
 
-  gdb_pretty_print_disassembler disasm (gdbarch);
+  gdb_pretty_print_disassembler disasm (gdbarch, uiout);
 
   while (insn.addr < high && (how_many < 0 || num_displayed < how_many))
     {
       int size;
 
-      size = disasm.pretty_print_insn (uiout, &insn, flags);
+      size = disasm.pretty_print_insn (&insn, flags);
       if (size <= 0)
 	break;
 
@@ -433,8 +437,8 @@ do_mixed_source_and_assembly_deprecated
 						       "src_and_asm_line");
 		      print_source_lines (symtab, next_line, next_line + 1,
 					  psl_flags);
-		      ui_out_emit_list inner_list_emitter (uiout,
-							   "line_asm_insn");
+		      ui_out_emit_list temp_list_emitter (uiout,
+							  "line_asm_insn");
 		    }
 		  /* Print the last line and leave list open for
 		     asm instructions to be added.  */
@@ -660,7 +664,8 @@ do_mixed_source_and_assembly (struct gdbarch *gdbarch,
 		   l < end_preceding_line_to_display;
 		   ++l)
 		{
-		  ui_out_emit_tuple tuple_emitter (uiout, "src_and_asm_line");
+		  ui_out_emit_tuple line_tuple_emitter (uiout,
+							"src_and_asm_line");
 		  print_source_lines (sal.symtab, l, l + 1, psl_flags);
 		  ui_out_emit_list chain_line_emitter (uiout, "line_asm_insn");
 		}
@@ -941,7 +946,7 @@ set_disassembler_options (char *prospective_options)
   valid_options_and_args = gdbarch_valid_disassembler_options (gdbarch);
   if (valid_options_and_args == NULL)
     {
-      fprintf_filtered (gdb_stdlog, _("\
+      fprintf_filtered (gdb_stderr, _("\
 'set disassembler-options ...' is not supported on this architecture.\n"));
       return;
     }
@@ -977,7 +982,7 @@ set_disassembler_options (char *prospective_options)
 	  break;
       if (valid_options->name[i] == NULL)
 	{
-	  fprintf_filtered (gdb_stdlog,
+	  fprintf_filtered (gdb_stderr,
 			    _("Invalid disassembler option value: '%s'.\n"),
 			    opt);
 	  return;
@@ -1008,19 +1013,24 @@ show_disassembler_options_sfunc (struct ui_file *file, int from_tty,
   if (options == NULL)
     options = "";
 
-  fprintf_filtered (file, _("The current disassembler options are '%s'\n"),
+  fprintf_filtered (file, _("The current disassembler options are '%s'\n\n"),
 		    options);
 
   valid_options_and_args = gdbarch_valid_disassembler_options (gdbarch);
 
   if (valid_options_and_args == NULL)
-    return;
+    {
+      fputs_filtered (_("There are no disassembler options available "
+			"for this architecture.\n"),
+		      file);
+      return;
+    }
 
   valid_options = &valid_options_and_args->options;
 
-  fprintf_filtered (file, _("\n\
+  fprintf_filtered (file, _("\
 The following disassembler options are supported for use with the\n\
-'set disassembler-options <option>[,<option>...]' command:\n"));
+'set disassembler-options OPTION [,OPTION]...' command:\n"));
 
   if (valid_options->description != NULL)
     {
@@ -1129,7 +1139,7 @@ _initialize_disasm (void)
 					 &prospective_options, _("\
 Set the disassembler options.\n\
 Usage: set disassembler-options OPTION [,OPTION]...\n\n\
-See: 'show disassembler-options' for valid option values.\n"), _("\
+See: 'show disassembler-options' for valid option values."), _("\
 Show the disassembler options."), NULL,
 					 set_disassembler_options_sfunc,
 					 show_disassembler_options_sfunc,

@@ -1,7 +1,7 @@
 /* Variables that describe the inferior process running under GDB:
    Where it is, why it stopped, and how to step it.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -44,29 +44,66 @@ struct thread_info;
 #include "frame.h"
 
 /* For gdb_environ.  */
-#include "environ.h"
+#include "gdbsupport/environ.h"
 
 #include "progspace.h"
 #include "registry.h"
 
 #include "symfile-add-flags.h"
-#include "common/refcounted-object.h"
+#include "gdbsupport/refcounted-object.h"
+#include "gdbsupport/forward-scope-exit.h"
 
-#include "common-inferior.h"
+#include "gdbsupport/common-inferior.h"
+#include "gdbthread.h"
 
 struct infcall_suspend_state;
 struct infcall_control_state;
 
-extern struct infcall_suspend_state *save_infcall_suspend_state (void);
-extern struct infcall_control_state *save_infcall_control_state (void);
-
 extern void restore_infcall_suspend_state (struct infcall_suspend_state *);
 extern void restore_infcall_control_state (struct infcall_control_state *);
 
-extern struct cleanup *make_cleanup_restore_infcall_suspend_state
-					    (struct infcall_suspend_state *);
-extern struct cleanup *make_cleanup_restore_infcall_control_state
-					    (struct infcall_control_state *);
+/* A deleter for infcall_suspend_state that calls
+   restore_infcall_suspend_state.  */
+struct infcall_suspend_state_deleter
+{
+  void operator() (struct infcall_suspend_state *state) const
+  {
+    try
+      {
+	restore_infcall_suspend_state (state);
+      }
+    catch (const gdb_exception_error &e)
+      {
+	/* If we are restoring the inferior state due to an exception,
+	   some error message will be printed.  So, only warn the user
+	   when we cannot restore during normal execution.  */
+	if (!std::uncaught_exception ())
+	  warning (_("Failed to restore inferior state: %s"), e.what ());
+      }
+  }
+};
+
+/* A unique_ptr specialization for infcall_suspend_state.  */
+typedef std::unique_ptr<infcall_suspend_state, infcall_suspend_state_deleter>
+    infcall_suspend_state_up;
+
+extern infcall_suspend_state_up save_infcall_suspend_state ();
+
+/* A deleter for infcall_control_state that calls
+   restore_infcall_control_state.  */
+struct infcall_control_state_deleter
+{
+  void operator() (struct infcall_control_state *state) const
+  {
+    restore_infcall_control_state (state);
+  }
+};
+
+/* A unique_ptr specialization for infcall_control_state.  */
+typedef std::unique_ptr<infcall_control_state, infcall_control_state_deleter>
+    infcall_control_state_up;
+
+extern infcall_control_state_up save_infcall_control_state ();
 
 extern void discard_infcall_suspend_state (struct infcall_suspend_state *);
 extern void discard_infcall_control_state (struct infcall_control_state *);
@@ -161,7 +198,7 @@ extern void post_create_inferior (struct target_ops *, int);
 
 extern void attach_command (const char *, int);
 
-extern char *get_inferior_args (void);
+extern const char *get_inferior_args (void);
 
 extern void set_inferior_args (const char *);
 
@@ -173,7 +210,8 @@ extern void continue_1 (int all_threads);
 
 extern void interrupt_target_1 (int all_threads);
 
-extern void delete_longjmp_breakpoint_cleanup (void *arg);
+using delete_longjmp_breakpoint_cleanup
+  = FORWARD_SCOPE_EXIT (delete_longjmp_breakpoint);
 
 extern void detach_command (const char *, int);
 
@@ -220,17 +258,6 @@ extern int stopped_by_random_signal;
 /* Print notices on inferior events (attach, detach, etc.), set with
    `set print inferior-events'.  */
 extern int print_inferior_events;
-
-/* STEP_OVER_ALL means step over all subroutine calls.
-   STEP_OVER_UNDEBUGGABLE means step over calls to undebuggable functions.
-   STEP_OVER_NONE means don't step over any subroutine calls.  */
-
-enum step_over_calls_kind
-  {
-    STEP_OVER_NONE,
-    STEP_OVER_ALL,
-    STEP_OVER_UNDEBUGGABLE
-  };
 
 /* Anything but NO_STOP_QUIETLY means we expect a trap and the caller
    will handle it themselves.  STOP_QUIETLY is used when running in
@@ -283,6 +310,16 @@ struct private_inferior
 
 struct inferior_control_state
 {
+  inferior_control_state ()
+    : stop_soon (NO_STOP_QUIETLY)
+  {
+  }
+
+  explicit inferior_control_state (enum stop_kind when)
+    : stop_soon (when)
+  {
+  }
+
   /* See the definition of stop_kind above.  */
   enum stop_kind stop_soon;
 };
@@ -309,7 +346,7 @@ extern void set_current_inferior (inferior *);
    the inferior object's refcount, to prevent something deleting the
    inferior object before reverting back (e.g., due to a
    "remove-inferiors" command (see
-   make_cleanup_restore_current_thread).  All other inferior
+   scoped_restore_current_inferior).  All other inferior
    references are considered weak references.  Inferiors are always
    listed exactly once in the inferior list, so placing an inferior in
    the inferior list is an implicit, not counted strong reference.  */
@@ -326,6 +363,38 @@ public:
   /* Pointer to next inferior in singly-linked list of inferiors.  */
   struct inferior *next = NULL;
 
+  /* This inferior's thread list.  */
+  thread_info *thread_list = nullptr;
+
+  /* Returns a range adapter covering the inferior's threads,
+     including exited threads.  Used like this:
+
+       for (thread_info *thr : inf->threads ())
+	 { .... }
+  */
+  inf_threads_range threads ()
+  { return inf_threads_range (this->thread_list); }
+
+  /* Returns a range adapter covering the inferior's non-exited
+     threads.  Used like this:
+
+       for (thread_info *thr : inf->non_exited_threads ())
+	 { .... }
+  */
+  inf_non_exited_threads_range non_exited_threads ()
+  { return inf_non_exited_threads_range (this->thread_list); }
+
+  /* Like inferior::threads(), but returns a range adapter that can be
+     used with range-for, safely.  I.e., it is safe to delete the
+     currently-iterated thread, like this:
+
+     for (thread_info *t : inf->threads_safe ())
+       if (some_condition ())
+	 delete f;
+  */
+  inline safe_inf_threads_range threads_safe ()
+  { return safe_inf_threads_range (this->thread_list); }
+
   /* Convenient handle (GDB inferior id).  Unique across all
      inferiors.  */
   int num = 0;
@@ -341,7 +410,7 @@ public:
 
   /* State of GDB control of inferior process execution.
      See `struct inferior_control_state'.  */
-  inferior_control_state control {NO_STOP_QUIETLY};
+  inferior_control_state control;
 
   /* True if this was an auto-created inferior, e.g. created from
      following a fork; false, if this inferior was manually added by
@@ -447,6 +516,9 @@ public:
      this gdbarch.  */
   struct gdbarch *gdbarch = NULL;
 
+  /* Data related to displaced stepping.  */
+  displaced_step_inferior_state displaced_step_state;
+
   /* Per inferior data-pointers required by other GDB modules.  */
   REGISTRY_FIELDS;
 };
@@ -541,16 +613,49 @@ private:
 
 /* Traverse all inferiors.  */
 
-#define ALL_INFERIORS(I) \
-  for ((I) = inferior_list; (I); (I) = (I)->next)
-
-/* Traverse all non-exited inferiors.  */
-
-#define ALL_NON_EXITED_INFERIORS(I) \
-  ALL_INFERIORS (I)		    \
-    if ((I)->pid != 0)
-
 extern struct inferior *inferior_list;
+
+/* Pull in the internals of the inferiors ranges and iterators.  Must
+   be done after struct inferior is defined.  */
+#include "inferior-iter.h"
+
+/* Return a range that can be used to walk over all inferiors
+   inferiors, with range-for, safely.  I.e., it is safe to delete the
+   currently-iterated inferior.  When combined with range-for, this
+   allow convenient patterns like this:
+
+     for (inferior *inf : all_inferiors_safe ())
+       if (some_condition ())
+	 delete inf;
+*/
+
+inline all_inferiors_safe_range
+all_inferiors_safe ()
+{
+  return {};
+}
+
+/* Returns a range representing all inferiors, suitable to use with
+   range-for, like this:
+
+   for (inferior *inf : all_inferiors ())
+     [...]
+*/
+
+inline all_inferiors_range
+all_inferiors ()
+{
+  return {};
+}
+
+/* Return a range that can be used to walk over all inferiors with PID
+   not zero, with range-for.  */
+
+inline all_non_exited_inferiors_range
+all_non_exited_inferiors ()
+{
+  return {};
+}
 
 /* Prune away automatically added inferiors that aren't required
    anymore.  */

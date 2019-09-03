@@ -1,7 +1,7 @@
 /* GNU/Linux/x86-64 specific low level interface, for the in-process
    agent library for GDB.
 
-   Copyright (C) 2010-2018 Free Software Foundation, Inc.
+   Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,7 +22,7 @@
 #include <sys/mman.h>
 #include "tracepoint.h"
 #include "linux-x86-tdesc.h"
-#include "common/x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 
 /* Defined in auto-generated file amd64-linux.c.  */
 void init_registers_amd64_linux (void);

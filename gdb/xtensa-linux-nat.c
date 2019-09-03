@@ -1,6 +1,6 @@
 /* Xtensa GNU/Linux native support.
 
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -28,7 +28,7 @@
 #include <signal.h>
 #include <sys/user.h>
 #include <sys/ioctl.h>
-#include "gdb_wait.h"
+#include "gdbsupport/gdb_wait.h"
 #include <fcntl.h>
 #include <sys/procfs.h>
 #include "nat/gdb_ptrace.h"

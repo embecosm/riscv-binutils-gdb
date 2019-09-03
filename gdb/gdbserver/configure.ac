@@ -1,5 +1,5 @@
 dnl Autoconf configure script for GDB server.
-dnl Copyright (C) 2000-2018 Free Software Foundation, Inc.
+dnl Copyright (C) 2000-2019 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GDB.
 dnl
@@ -45,20 +45,9 @@ AC_HEADER_STDC
 # Set the 'development' global.
 . $srcdir/../../bfd/development.sh
 
-# Enable -lmcheck by default (it provides cheap-enough memory
-# mangling), but turn it off for releases.
-if $development; then
-  libmcheck_default=yes
-else
-  libmcheck_default=no
-fi
-GDB_AC_LIBMCHECK(${libmcheck_default})
-
-if $development; then
-  srv_selftest_objs="common/selftest.o"
-  AC_DEFINE(GDB_SELF_TEST, 1,
-            [Define if self-testing features should be enabled])
-fi
+GDB_AC_SELFTEST([
+  srv_selftest_objs="gdbsupport/selftest.o"
+])
 
 ACX_NONCANONICAL_TARGET
 ACX_NONCANONICAL_HOST
@@ -67,7 +56,7 @@ ACX_NONCANONICAL_HOST
 ZW_CREATE_DEPDIR
 
 # Create sub-directories for objects and dependencies.
-CONFIG_SRC_SUBDIR="arch common"
+CONFIG_SRC_SUBDIR="arch gdbsupport"
 AC_SUBST(CONFIG_SRC_SUBDIR)
 
 AC_CONFIG_COMMANDS([gdbdepdir],[
@@ -90,7 +79,7 @@ fi
 # gdbserver/.  We need to build gnulib under some other directory not
 # "gnulib", to avoid the problem of both GDB and GDBserver wanting to
 # build it in the same directory, when building in the source dir.
-ACX_CONFIGURE_DIR(["../gnulib"], ["build-gnulib-gdbserver"],
+ACX_CONFIGURE_DIR(["../../gnulib"], ["build-gnulib-gdbserver"],
                   ["$gnulib_extra_configure_args"])
 
 ACX_CONFIGURE_DIR(["../../libiberty"], ["build-libiberty-gdbserver"])
@@ -157,12 +146,6 @@ AC_SUBST(ustlibs)
 AC_SUBST(ustinc)
 
 AM_GDB_WARNINGS
-dnl The codebase isn't clean yet with this flag.
-case " $WARN_CFLAGS " in
-*" -Wmissing-prototypes "*)
-  WARN_CFLAGS="$WARN_CFLAGS -Wno-missing-prototypes"
-  ;;
-esac
 
 dnl dladdr is glibc-specific.  It is used by thread-db.c but only for
 dnl debugging messages.  It lives in -ldl which is handled below so we don't
@@ -263,7 +246,7 @@ esac
 . ${srcdir}/configure.srv
 
 # Add in the common host objects.
-. ${srcdir}/../common/common.host
+. ${srcdir}/../gdbsupport/common.host
 srv_host_obs="$common_host_obs"
 
 if test "${srv_mingwce}" = "yes"; then

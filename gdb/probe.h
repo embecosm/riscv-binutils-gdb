@@ -1,6 +1,6 @@
 /* Generic SDT probe support for GDB.
 
-   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -19,6 +19,8 @@
 
 #if !defined (PROBE_H)
 #define PROBE_H 1
+
+#include "symtab.h"
 
 struct event_location;
 struct linespec_result;
@@ -62,7 +64,7 @@ public:
   virtual bool is_linespec (const char **linespecp) const = 0;
 
   /* Function that should fill PROBES with known probes from OBJFILE.  */
-  virtual void get_probes (std::vector<probe *> *probes,
+  virtual void get_probes (std::vector<std::unique_ptr<probe>> *probes,
 			    struct objfile *objfile) const = 0;
 
   /* Return a pointer to a name identifying the probe type.  This is

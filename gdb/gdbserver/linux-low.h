@@ -1,5 +1,5 @@
 /* Internal interfaces for the GNU/Linux specific target code for gdbserver.
-   Copyright (C) 2002-2018 Free Software Foundation, Inc.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -15,6 +15,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef GDBSERVER_LINUX_LOW_H
+#define GDBSERVER_LINUX_LOW_H
 
 #include "nat/linux-nat.h"
 #include "nat/gdb_thread_db.h"
@@ -37,6 +40,7 @@ enum regset_type {
   GENERAL_REGS,
   FP_REGS,
   EXTENDED_REGS,
+  OPTIONAL_REGS, /* Do not error if the regset cannot be accessed.  */
 };
 
 /* The arch's regsets array initializer must be terminated with a NULL
@@ -430,3 +434,23 @@ void thread_db_notice_clone (struct thread_info *parent_thr, ptid_t child_ptid);
 bool thread_db_thread_handle (ptid_t ptid, gdb_byte **handle, int *handle_len);
 
 extern int have_ptrace_getregset;
+
+/* Search for the value with type MATCH in the auxv vector with
+   entries of length WORDSIZE bytes.  If found, store the value in
+   *VALP and return 1.  If not found or if there is an error, return
+   0.  */
+
+int linux_get_auxv (int wordsize, CORE_ADDR match,
+		    CORE_ADDR *valp);
+
+/* Fetch the AT_HWCAP entry from the auxv vector, where entries are length
+   WORDSIZE.  If no entry was found, return zero.  */
+
+CORE_ADDR linux_get_hwcap (int wordsize);
+
+/* Fetch the AT_HWCAP2 entry from the auxv vector, where entries are length
+   WORDSIZE.  If no entry was found, return zero.  */
+
+CORE_ADDR linux_get_hwcap2 (int wordsize);
+
+#endif /* GDBSERVER_LINUX_LOW_H */

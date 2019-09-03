@@ -1,5 +1,5 @@
 /* Event loop machinery for the remote server for GDB.
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,7 +21,7 @@
 #include "server.h"
 
 #include <sys/types.h>
-#include "gdb_sys_time.h"
+#include "gdbsupport/gdb_sys_time.h"
 
 #ifdef USE_WIN32API
 #include <windows.h>

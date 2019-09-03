@@ -1,6 +1,6 @@
 /* Declarations for common target functions.
 
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,8 +17,8 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef TARGET_COMMON_H
-#define TARGET_COMMON_H
+#ifndef TARGET_TARGET_H
+#define TARGET_TARGET_H
 
 #include "target/waitstatus.h"
 /* This header is a stopgap until more code is shared.  */
@@ -209,4 +209,4 @@ private:
   static target_terminal_state m_terminal_state;
 };
 
-#endif /* TARGET_COMMON_H */
+#endif /* TARGET_TARGET_H */

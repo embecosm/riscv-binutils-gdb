@@ -1,6 +1,6 @@
 /* Target-dependent code for Renesas Super-H, for GDB.
 
-   Copyright (C) 1993-2018 Free Software Foundation, Inc.
+   Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -1062,7 +1062,7 @@ sh_push_dummy_call_fpu (struct gdbarch *gdbarch,
 			struct regcache *regcache,
 			CORE_ADDR bp_addr, int nargs,
 			struct value **args,
-			CORE_ADDR sp, int struct_return,
+			CORE_ADDR sp, function_call_return_method return_method,
 			CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -1175,7 +1175,7 @@ sh_push_dummy_call_fpu (struct gdbarch *gdbarch,
 	}
     }
 
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (sh_is_renesas_calling_convention (func_type))
 	/* If the function uses the Renesas ABI, subtract another 4 bytes from
@@ -1204,7 +1204,8 @@ sh_push_dummy_call_nofpu (struct gdbarch *gdbarch,
 			  struct regcache *regcache,
 			  CORE_ADDR bp_addr,
 			  int nargs, struct value **args,
-			  CORE_ADDR sp, int struct_return,
+			  CORE_ADDR sp,
+			  function_call_return_method return_method,
 			  CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
@@ -1278,7 +1279,7 @@ sh_push_dummy_call_nofpu (struct gdbarch *gdbarch,
 	}
     }
 
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (sh_is_renesas_calling_convention (func_type))
 	/* If the function uses the Renesas ABI, subtract another 4 bytes from
@@ -1976,28 +1977,6 @@ static const struct frame_unwind sh_frame_unwind = {
 };
 
 static CORE_ADDR
-sh_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame,
-					 gdbarch_sp_regnum (gdbarch));
-}
-
-static CORE_ADDR
-sh_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame,
-					 gdbarch_pc_regnum (gdbarch));
-}
-
-static struct frame_id
-sh_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  CORE_ADDR sp = get_frame_register_unsigned (this_frame,
-					      gdbarch_sp_regnum (gdbarch));
-  return frame_id_build (sp, get_frame_pc (this_frame));
-}
-
-static CORE_ADDR
 sh_frame_base_address (struct frame_info *this_frame, void **this_cache)
 {
   struct sh_frame_cache *cache = sh_frame_cache (this_frame, this_cache);
@@ -2232,10 +2211,12 @@ sh_iterate_over_regset_sections (struct gdbarch *gdbarch,
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
   if (tdep->core_gregmap != NULL)
-    cb (".reg", tdep->sizeof_gregset, &sh_corefile_gregset, NULL, cb_data);
+    cb (".reg", tdep->sizeof_gregset, tdep->sizeof_gregset,
+	&sh_corefile_gregset, NULL, cb_data);
 
   if (tdep->core_fpregmap != NULL)
-    cb (".reg2", tdep->sizeof_fpregset, &sh_corefile_fpregset, NULL, cb_data);
+    cb (".reg2", tdep->sizeof_fpregset, tdep->sizeof_fpregset,
+	&sh_corefile_fpregset, NULL, cb_data);
 }
 
 /* This is the implementation of gdbarch method
@@ -2305,9 +2286,6 @@ sh_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_believe_pcc_promotion (gdbarch, 1);
 
   set_gdbarch_frame_align (gdbarch, sh_frame_align);
-  set_gdbarch_unwind_sp (gdbarch, sh_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, sh_unwind_pc);
-  set_gdbarch_dummy_id (gdbarch, sh_dummy_id);
   frame_base_set_default (gdbarch, &sh_frame_base);
 
   set_gdbarch_stack_frame_destroyed_p (gdbarch, sh_stack_frame_destroyed_p);

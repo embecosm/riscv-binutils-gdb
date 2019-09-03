@@ -1,6 +1,6 @@
 /* Output generating routines for GDB CLI.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    Contributed by Cygnus Solutions.
    Written by Fernando Nasser for Cygnus.
@@ -25,6 +25,7 @@
 #include "cli-out.h"
 #include "completer.h"
 #include "readline/readline.h"
+#include "cli/cli-style.h"
 
 /* These are the CLI output functions */
 
@@ -71,7 +72,8 @@ cli_ui_out::do_table_header (int width, ui_align alignment,
   if (m_suppress_output)
     return;
 
-  do_field_string (0, width, alignment, 0, col_hdr.c_str ());
+  do_field_string (0, width, alignment, 0, col_hdr.c_str (),
+		   ui_out_style_kind::DEFAULT);
 }
 
 /* Mark beginning of a list */
@@ -91,17 +93,27 @@ cli_ui_out::do_end (ui_out_type type)
 /* output an int field */
 
 void
-cli_ui_out::do_field_int (int fldno, int width, ui_align alignment,
-			  const char *fldname, int value)
+cli_ui_out::do_field_signed (int fldno, int width, ui_align alignment,
+			     const char *fldname, LONGEST value)
 {
-  char buffer[20];	/* FIXME: how many chars long a %d can become? */
-
   if (m_suppress_output)
     return;
 
-  xsnprintf (buffer, sizeof (buffer), "%d", value);
+  do_field_string (fldno, width, alignment, fldname, plongest (value),
+		   ui_out_style_kind::DEFAULT);
+}
 
-  do_field_string (fldno, width, alignment, fldname, buffer);
+/* output an unsigned field */
+
+void
+cli_ui_out::do_field_unsigned (int fldno, int width, ui_align alignment,
+			       const char *fldname, ULONGEST value)
+{
+  if (m_suppress_output)
+    return;
+
+  do_field_string (fldno, width, alignment, fldname, pulongest (value),
+		   ui_out_style_kind::DEFAULT);
 }
 
 /* used to omit a field */
@@ -113,7 +125,8 @@ cli_ui_out::do_field_skip (int fldno, int width, ui_align alignment,
   if (m_suppress_output)
     return;
 
-  do_field_string (fldno, width, alignment, fldname, "");
+  do_field_string (fldno, width, alignment, fldname, "",
+		   ui_out_style_kind::DEFAULT);
 }
 
 /* other specific cli_field_* end up here so alignment and field
@@ -121,7 +134,8 @@ cli_ui_out::do_field_skip (int fldno, int width, ui_align alignment,
 
 void
 cli_ui_out::do_field_string (int fldno, int width, ui_align align,
-			     const char *fldname, const char *string)
+			     const char *fldname, const char *string,
+			     ui_out_style_kind style)
 {
   int before = 0;
   int after = 0;
@@ -156,7 +170,31 @@ cli_ui_out::do_field_string (int fldno, int width, ui_align align,
     spaces (before);
 
   if (string)
-    fputs_filtered (string, m_streams.back ());
+    {
+      ui_file_style fstyle;
+      switch (style)
+	{
+	case ui_out_style_kind::DEFAULT:
+	  /* Nothing.  */
+	  break;
+	case ui_out_style_kind::FILE:
+	  /* Nothing.  */
+	  fstyle = file_name_style.style ();
+	  break;
+	case ui_out_style_kind::FUNCTION:
+	  fstyle = function_name_style.style ();
+	  break;
+	case ui_out_style_kind::VARIABLE:
+	  fstyle = variable_name_style.style ();
+	  break;
+	case ui_out_style_kind::ADDRESS:
+	  fstyle = address_style.style ();
+	  break;
+	default:
+	  gdb_assert_not_reached ("missing case");
+	}
+      fputs_styled (string, fstyle, m_streams.back ());
+    }
 
   if (after)
     spaces (after);
@@ -165,7 +203,7 @@ cli_ui_out::do_field_string (int fldno, int width, ui_align align,
     field_separator ();
 }
 
-/* This is the only field function that does not align.  */
+/* Output field containing ARGS using printf formatting in FORMAT.  */
 
 void
 cli_ui_out::do_field_fmt (int fldno, int width, ui_align align,
@@ -175,10 +213,10 @@ cli_ui_out::do_field_fmt (int fldno, int width, ui_align align,
   if (m_suppress_output)
     return;
 
-  vfprintf_filtered (m_streams.back (), format, args);
+  std::string str = string_vprintf (format, args);
 
-  if (align != ui_noalign)
-    field_separator ();
+  do_field_string (fldno, width, align, fldname, str.c_str (),
+		   ui_out_style_kind::DEFAULT);
 }
 
 void
@@ -276,6 +314,12 @@ cli_ui_out::set_stream (struct ui_file *stream)
   m_streams.back () = stream;
 
   return old;
+}
+
+bool
+cli_ui_out::can_emit_style_escape () const
+{
+  return m_streams.back ()->can_emit_style_escape ();
 }
 
 /* CLI interface to display tab-completion matches.  */

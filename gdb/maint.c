@@ -1,6 +1,6 @@
 /* Support for GDB maintenance commands.
 
-   Copyright (C) 1992-2018 Free Software Foundation, Inc.
+   Copyright (C) 1992-2019 Free Software Foundation, Inc.
 
    Written by Fred Fish at Cygnus Support.
 
@@ -38,27 +38,14 @@
 #include "value.h"
 #include "top.h"
 #include "maint.h"
-#include "selftest.h"
+#include "gdbsupport/selftest.h"
 
 #include "cli/cli-decode.h"
 #include "cli/cli-utils.h"
 #include "cli/cli-setshow.h"
+#include "cli/cli-cmds.h"
 
 static void maintenance_do_deprecate (const char *, int);
-
-/* Set this to the maximum number of seconds to wait instead of waiting forever
-   in target_wait().  If this timer times out, then it generates an error and
-   the command is aborted.  This replaces most of the need for timeouts in the
-   GDB test suite, and makes it possible to distinguish between a hung target
-   and one with slow communications.  */
-
-int watchdog = 0;
-static void
-show_watchdog (struct ui_file *file, int from_tty,
-	       struct cmd_list_element *c, const char *value)
-{
-  fprintf_filtered (file, _("Watchdog timer is %s.\n"), value);
-}
 
 /* Access the maintenance subcommands.  */
 
@@ -342,34 +329,36 @@ maintenance_info_sections (const char *arg, int from_tty)
 {
   if (exec_bfd)
     {
+      struct obj_section *osect;
+      bool allobj = false;
+
       printf_filtered (_("Exec file:\n"));
       printf_filtered ("    `%s', ", bfd_get_filename (exec_bfd));
       wrap_here ("        ");
       printf_filtered (_("file type %s.\n"), bfd_get_target (exec_bfd));
-      if (arg && *arg && match_substring (arg, "ALLOBJ"))
+
+      /* Only this function cares about the 'ALLOBJ' argument;
+	 if 'ALLOBJ' is the only argument, discard it rather than
+	 passing it down to print_objfile_section_info (which
+	 wouldn't know how to handle it).  */
+      if (arg && strcmp (arg, "ALLOBJ") == 0)
 	{
-	  struct objfile *ofile;
-	  struct obj_section *osect;
+	  arg = NULL;
+	  allobj = true;
+	}
 
-	  /* Only this function cares about the 'ALLOBJ' argument; 
-	     if 'ALLOBJ' is the only argument, discard it rather than
-	     passing it down to print_objfile_section_info (which 
-	     wouldn't know how to handle it).  */
-	  if (strcmp (arg, "ALLOBJ") == 0)
-	    arg = NULL;
-
-	  ALL_OBJFILES (ofile)
+      for (objfile *ofile : current_program_space->objfiles ())
+	{
+	  if (allobj)
+	    printf_filtered (_("  Object file: %s\n"),
+			     bfd_get_filename (ofile->obfd));
+	  ALL_OBJFILE_OSECTIONS (ofile, osect)
 	    {
-	      printf_filtered (_("  Object file: %s\n"), 
-			       bfd_get_filename (ofile->obfd));
-	      ALL_OBJFILE_OSECTIONS (ofile, osect)
-		{
-		  print_objfile_section_info (ofile->obfd, osect, arg);
-		}
+	      if (!allobj && ofile->obfd != exec_bfd)
+		continue;
+	      print_objfile_section_info (ofile->obfd, osect, arg);
 	    }
 	}
-      else 
-	bfd_map_over_sections (exec_bfd, print_bfd_section_info, (void *) arg);
     }
 
   if (core_bfd)
@@ -431,7 +420,6 @@ maintenance_translate_address (const char *arg, int from_tty)
   struct obj_section *sect;
   const char *p;
   struct bound_minimal_symbol sym;
-  struct objfile *objfile;
 
   if (arg == NULL || *arg == 0)
     error (_("requires argument (address or section + address)"));
@@ -444,19 +432,20 @@ maintenance_translate_address (const char *arg, int from_tty)
       while (*p && !isspace (*p))	/* Find end of section name.  */
 	p++;
       if (*p == '\000')		/* End of command?  */
-	error (_("Need to specify <section-name> and <address>"));
+	error (_("Need to specify section name and address"));
 
       int arg_len = p - arg;
       p = skip_spaces (p + 1);
 
-      ALL_OBJSECTIONS (objfile, sect)
-      {
-	if (strncmp (sect->the_bfd_section->name, arg, arg_len) == 0)
-	  break;
-      }
+      for (objfile *objfile : current_program_space->objfiles ())
+	ALL_OBJFILE_OSECTIONS (objfile, sect)
+	  {
+	    if (strncmp (sect->the_bfd_section->name, arg, arg_len) == 0)
+	      goto found;
+	  }
 
-      if (!objfile)
-	error (_("Unknown section %s."), arg);
+      error (_("Unknown section %s."), arg);
+    found: ;
     }
 
   address = parse_and_eval_address (p);
@@ -649,6 +638,24 @@ maintenance_show_cmd (const char *args, int from_tty)
   cmd_show_list (maintenance_show_cmdlist, from_tty, "");
 }
 
+/* "maintenance with" command.  */
+
+static void
+maintenance_with_cmd (const char *args, int from_tty)
+{
+  with_command_1 ("maintenance set ", maintenance_set_cmdlist, args, from_tty);
+}
+
+/* "maintenance with" command completer.  */
+
+static void
+maintenance_with_cmd_completer (struct cmd_list_element *ignore,
+				completion_tracker &tracker,
+				const char *text, const char * /*word*/)
+{
+  with_command_completer_1 ("maintenance set ", tracker,  text);
+}
+
 /* Profiling support.  */
 
 static int maintenance_profile_p;
@@ -763,9 +770,6 @@ static void
 count_symtabs_and_blocks (int *nr_symtabs_ptr, int *nr_compunit_symtabs_ptr,
 			  int *nr_blocks_ptr)
 {
-  struct objfile *o;
-  struct compunit_symtab *cu;
-  struct symtab *s;
   int nr_symtabs = 0;
   int nr_compunit_symtabs = 0;
   int nr_blocks = 0;
@@ -775,12 +779,15 @@ count_symtabs_and_blocks (int *nr_symtabs_ptr, int *nr_compunit_symtabs_ptr,
      current_program_space may be NULL.  */
   if (current_program_space != NULL)
     {
-      ALL_COMPUNITS (o, cu)
+      for (objfile *o : current_program_space->objfiles ())
 	{
-	  ++nr_compunit_symtabs;
-	  nr_blocks += BLOCKVECTOR_NBLOCKS (COMPUNIT_BLOCKVECTOR (cu));
-	  ALL_COMPUNIT_FILETABS (cu, s)
-	    ++nr_symtabs;
+	  for (compunit_symtab *cu : o->compunits ())
+	    {
+	      ++nr_compunit_symtabs;
+	      nr_blocks += BLOCKVECTOR_NBLOCKS (COMPUNIT_BLOCKVECTOR (cu));
+	      nr_symtabs += std::distance (compunit_filetabs (cu).begin (),
+					   compunit_filetabs (cu).end ());
+	    }
 	}
     }
 
@@ -809,6 +816,8 @@ scoped_command_stats::~scoped_command_stats ()
 
   if (m_time_enabled && per_command_time)
     {
+      print_time (_("command finished"));
+
       using namespace std::chrono;
 
       run_time_clock::duration cmd_time
@@ -882,6 +891,9 @@ scoped_command_stats::scoped_command_stats (bool msg_type)
       m_start_cpu_time = run_time_clock::now ();
       m_start_wall_time = steady_clock::now ();
       m_time_enabled = 1;
+
+      if (per_command_time)
+	print_time (_("command started"));
     }
   else
     m_time_enabled = 0;
@@ -901,6 +913,26 @@ scoped_command_stats::scoped_command_stats (bool msg_type)
 
   /* Initialize timer to keep track of how long we waited for the user.  */
   reset_prompt_for_continue_wait_time ();
+}
+
+/* See maint.h.  */
+
+void
+scoped_command_stats::print_time (const char *msg)
+{
+  using namespace std::chrono;
+
+  auto now = system_clock::now ();
+  auto ticks = now.time_since_epoch ().count () / (1000 * 1000);
+  auto millis = ticks % 1000;
+
+  std::time_t as_time = system_clock::to_time_t (now);
+  struct tm *tm = localtime (&as_time);
+
+  char out[100];
+  strftime (out, sizeof (out), "%F %H:%M:%S", tm);
+
+  printf_unfiltered ("%s.%03d - %s\n", out, (int) millis, msg);
 }
 
 /* Handle unknown "mt set per-command" arguments.
@@ -943,7 +975,7 @@ maintenance_selftest (const char *args, int from_tty)
   selftests::run_tests (args);
 #else
   printf_filtered (_("\
-Selftests are not available in a non-development build.\n"));
+Selftests have been disabled for this build.\n"));
 #endif
 }
 
@@ -957,7 +989,7 @@ maintenance_info_selftests (const char *arg, int from_tty)
   });
 #else
   printf_filtered (_("\
-Selftests are not available in a non-development build.\n"));
+Selftests have been disabled for this build.\n"));
 #endif
 }
 
@@ -983,7 +1015,7 @@ Commands for showing internal info about the program being debugged."),
   add_alias_cmd ("i", "info", class_maintenance, 1, &maintenancelist);
 
   add_cmd ("sections", class_maintenance, maintenance_info_sections, _("\
-List the BFD sections of the exec and core files. \n\
+List the BFD sections of the exec and core files.\n\
 Arguments may be any combination of:\n\
 	[one or more section names]\n\
 	ALLOC LOAD RELOC READONLY CODE DATA ROM CONSTRUCTOR\n\
@@ -1012,6 +1044,15 @@ Configure variables internal to GDB that aid in GDB's maintenance"),
 		  &maintenance_show_cmdlist, "maintenance show ",
 		  0/*allow-unknown*/,
 		  &maintenancelist);
+
+  cmd = add_cmd ("with", class_maintenance, maintenance_with_cmd, _("\
+Like \"with\", but works with \"maintenance set\" variables.\n\
+Usage: maintenance with SETTING [VALUE] [-- COMMAND]\n\
+With no COMMAND, repeats the last executed command.\n\
+SETTING is any setting you can change with the \"maintenance set\"\n\
+subcommands."),
+		 &maintenancelist);
+  set_cmd_completer_handle_brkchars (cmd, maintenance_with_cmd_completer);
 
 #ifndef _WIN32
   add_cmd ("dump-me", class_maintenance, maintenance_dump_me, _("\
@@ -1127,37 +1168,28 @@ Commands for checking internal gdb state."),
 	   &maintenancelist);
 
   add_cmd ("deprecate", class_maintenance, maintenance_deprecate, _("\
-Deprecate a command.  Note that this is just in here so the \n\
-testsuite can check the command deprecator. You probably shouldn't use this,\n\
-rather you should use the C function deprecate_cmd().  If you decide you \n\
-want to use it: maintenance deprecate 'commandname' \"replacement\". The \n\
-replacement is optional."), &maintenancelist);
+Deprecate a command (for testing purposes).\n\
+Usage: maintenance deprecate COMMANDNAME [\"REPLACEMENT\"]\n\
+This is used by the testsuite to check the command deprecator.\n\
+You probably shouldn't use this,\n\
+rather you should use the C function deprecate_cmd()."), &maintenancelist);
 
   add_cmd ("undeprecate", class_maintenance, maintenance_undeprecate, _("\
-Undeprecate a command.  Note that this is just in here so the \n\
-testsuite can check the command deprecator. You probably shouldn't use this,\n\
-If you decide you want to use it: maintenance undeprecate 'commandname'"),
+Undeprecate a command (for testing purposes).\n\
+Usage: maintenance undeprecate COMMANDNAME\n\
+This is used by the testsuite to check the command deprecator.\n\
+You probably shouldn't use this."),
 	   &maintenancelist);
 
   add_cmd ("selftest", class_maintenance, maintenance_selftest, _("\
 Run gdb's unit tests.\n\
-Usage: maintenance selftest [filter]\n\
+Usage: maintenance selftest [FILTER]\n\
 This will run any unit tests that were built in to gdb.\n\
 If a filter is given, only the tests with that value in their name will ran."),
 	   &maintenancelist);
 
   add_cmd ("selftests", class_maintenance, maintenance_info_selftests,
 	 _("List the registered selftests."), &maintenanceinfolist);
-
-  add_setshow_zinteger_cmd ("watchdog", class_maintenance, &watchdog, _("\
-Set watchdog timer."), _("\
-Show watchdog timer."), _("\
-When non-zero, this timeout is used instead of waiting forever for a target\n\
-to finish a low-level step or continue operation.  If the specified amount\n\
-of time passes without a response from the target, an error occurs."),
-			    NULL,
-			    show_watchdog,
-			    &setlist, &showlist);
 
   add_setshow_boolean_cmd ("profile", class_maintenance,
 			   &maintenance_profile_p, _("\

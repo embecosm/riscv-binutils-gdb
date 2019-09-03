@@ -1,6 +1,6 @@
 /* FreeBSD/arm target support, prototypes.
 
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,6 +16,9 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef ARM_FBSD_TDEP_H
+#define ARM_FBSD_TDEP_H
 
 #include "regset.h"
 
@@ -38,3 +41,5 @@ extern const struct regset arm_fbsd_vfpregset;
 
 extern const struct target_desc *
 arm_fbsd_read_description_auxv (struct target_ops *target);
+
+#endif /* ARM_FBSD_TDEP_H */

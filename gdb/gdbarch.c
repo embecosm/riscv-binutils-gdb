@@ -3,7 +3,7 @@
 
 /* Dynamic architecture support for GDB, the GNU debugger.
 
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -48,6 +48,8 @@
 #include "regcache.h"
 #include "objfiles.h"
 #include "auxv.h"
+#include "frame-unwind.h"
+#include "dummy-frame.h"
 
 /* Static function declarations */
 
@@ -249,6 +251,7 @@ struct gdbarch
   CORE_ADDR deprecated_function_start_offset;
   gdbarch_remote_register_number_ftype *remote_register_number;
   gdbarch_fetch_tls_load_module_address_ftype *fetch_tls_load_module_address;
+  gdbarch_get_thread_local_address_ftype *get_thread_local_address;
   CORE_ADDR frame_args_skip;
   gdbarch_unwind_pc_ftype *unwind_pc;
   gdbarch_unwind_sp_ftype *unwind_sp;
@@ -321,6 +324,7 @@ struct gdbarch
   const char * stap_gdb_register_suffix;
   gdbarch_stap_is_single_operand_ftype *stap_is_single_operand;
   gdbarch_stap_parse_special_token_ftype *stap_parse_special_token;
+  gdbarch_stap_adjust_register_ftype *stap_adjust_register;
   gdbarch_dtrace_parse_probe_argument_ftype *dtrace_parse_probe_argument;
   gdbarch_dtrace_probe_is_enabled_ftype *dtrace_probe_is_enabled;
   gdbarch_dtrace_enable_probe_ftype *dtrace_enable_probe;
@@ -354,6 +358,7 @@ struct gdbarch
   char ** disassembler_options;
   const disasm_options_and_args_t * valid_disassembler_options;
   gdbarch_type_align_ftype *type_align;
+  gdbarch_get_pc_address_flags_ftype *get_pc_address_flags;
 };
 
 /* Create a new ``struct gdbarch'' based on information provided by
@@ -408,6 +413,7 @@ gdbarch_alloc (const struct gdbarch_info *info,
   gdbarch->ecoff_reg_to_regnum = no_op_reg_to_regnum;
   gdbarch->sdb_reg_to_regnum = no_op_reg_to_regnum;
   gdbarch->dwarf2_reg_to_regnum = no_op_reg_to_regnum;
+  gdbarch->dummy_id = default_dummy_id;
   gdbarch->deprecated_fp_regnum = -1;
   gdbarch->call_dummy_location = AT_ENTRY_POINT;
   gdbarch->code_of_frame_writable = default_code_of_frame_writable;
@@ -427,6 +433,8 @@ gdbarch_alloc (const struct gdbarch_info *info,
   gdbarch->memory_insert_breakpoint = default_memory_insert_breakpoint;
   gdbarch->memory_remove_breakpoint = default_memory_remove_breakpoint;
   gdbarch->remote_register_number = default_remote_register_number;
+  gdbarch->unwind_pc = default_unwind_pc;
+  gdbarch->unwind_sp = default_unwind_sp;
   gdbarch->stabs_argument_has_addr = default_stabs_argument_has_addr;
   gdbarch->convert_from_func_ptr_addr = convert_from_func_ptr_addr_identity;
   gdbarch->addr_bits_remove = core_addr_identity;
@@ -466,6 +474,7 @@ gdbarch_alloc (const struct gdbarch_info *info,
   gdbarch->gnu_triplet_regexp = default_gnu_triplet_regexp;
   gdbarch->addressable_memory_unit_size = default_addressable_memory_unit_size;
   gdbarch->type_align = default_type_align;
+  gdbarch->get_pc_address_flags = default_get_pc_address_flags;
   /* gdbarch_alloc() */
 
   return gdbarch;
@@ -570,7 +579,7 @@ verify_gdbarch (struct gdbarch *gdbarch)
   if (gdbarch->register_name == 0)
     log.puts ("\n\tregister_name");
   /* Skip verify of register_type, has predicate.  */
-  /* Skip verify of dummy_id, has predicate.  */
+  /* Skip verify of dummy_id, invalid_p == 0 */
   /* Skip verify of deprecated_fp_regnum, invalid_p == 0 */
   /* Skip verify of push_dummy_call, has predicate.  */
   /* Skip verify of call_dummy_location, invalid_p == 0 */
@@ -608,9 +617,10 @@ verify_gdbarch (struct gdbarch *gdbarch)
   /* Skip verify of deprecated_function_start_offset, invalid_p == 0 */
   /* Skip verify of remote_register_number, invalid_p == 0 */
   /* Skip verify of fetch_tls_load_module_address, has predicate.  */
+  /* Skip verify of get_thread_local_address, has predicate.  */
   /* Skip verify of frame_args_skip, invalid_p == 0 */
-  /* Skip verify of unwind_pc, has predicate.  */
-  /* Skip verify of unwind_sp, has predicate.  */
+  /* Skip verify of unwind_pc, invalid_p == 0 */
+  /* Skip verify of unwind_sp, invalid_p == 0 */
   /* Skip verify of frame_num_args, has predicate.  */
   /* Skip verify of frame_align, has predicate.  */
   /* Skip verify of stabs_argument_has_addr, invalid_p == 0 */
@@ -680,6 +690,7 @@ verify_gdbarch (struct gdbarch *gdbarch)
   /* Skip verify of stap_gdb_register_suffix, invalid_p == 0 */
   /* Skip verify of stap_is_single_operand, has predicate.  */
   /* Skip verify of stap_parse_special_token, has predicate.  */
+  /* Skip verify of stap_adjust_register, has predicate.  */
   /* Skip verify of dtrace_parse_probe_argument, has predicate.  */
   /* Skip verify of dtrace_probe_is_enabled, has predicate.  */
   /* Skip verify of dtrace_enable_probe, has predicate.  */
@@ -712,6 +723,7 @@ verify_gdbarch (struct gdbarch *gdbarch)
   /* Skip verify of disassembler_options, invalid_p == 0 */
   /* Skip verify of valid_disassembler_options, invalid_p == 0 */
   /* Skip verify of type_align, invalid_p == 0 */
+  /* Skip verify of get_pc_address_flags, invalid_p == 0 */
   if (!log.empty ())
     internal_error (__FILE__, __LINE__,
                     _("verify_gdbarch: the following are invalid ...%s"),
@@ -955,9 +967,6 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
                       "gdbarch_dump: dtrace_probe_is_enabled = <%s>\n",
                       host_address_to_string (gdbarch->dtrace_probe_is_enabled));
   fprintf_unfiltered (file,
-                      "gdbarch_dump: gdbarch_dummy_id_p() = %d\n",
-                      gdbarch_dummy_id_p (gdbarch));
-  fprintf_unfiltered (file,
                       "gdbarch_dump: dummy_id = <%s>\n",
                       host_address_to_string (gdbarch->dummy_id));
   fprintf_unfiltered (file,
@@ -1060,6 +1069,9 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
                       "gdbarch_dump: get_longjmp_target = <%s>\n",
                       host_address_to_string (gdbarch->get_longjmp_target));
   fprintf_unfiltered (file,
+                      "gdbarch_dump: get_pc_address_flags = <%s>\n",
+                      host_address_to_string (gdbarch->get_pc_address_flags));
+  fprintf_unfiltered (file,
                       "gdbarch_dump: gdbarch_get_siginfo_type_p() = %d\n",
                       gdbarch_get_siginfo_type_p (gdbarch));
   fprintf_unfiltered (file,
@@ -1071,6 +1083,12 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
   fprintf_unfiltered (file,
                       "gdbarch_dump: get_syscall_number = <%s>\n",
                       host_address_to_string (gdbarch->get_syscall_number));
+  fprintf_unfiltered (file,
+                      "gdbarch_dump: gdbarch_get_thread_local_address_p() = %d\n",
+                      gdbarch_get_thread_local_address_p (gdbarch));
+  fprintf_unfiltered (file,
+                      "gdbarch_dump: get_thread_local_address = <%s>\n",
+                      host_address_to_string (gdbarch->get_thread_local_address));
   fprintf_unfiltered (file,
                       "gdbarch_dump: gnu_triplet_regexp = <%s>\n",
                       host_address_to_string (gdbarch->gnu_triplet_regexp));
@@ -1387,6 +1405,12 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
                       "gdbarch_dump: stack_frame_destroyed_p = <%s>\n",
                       host_address_to_string (gdbarch->stack_frame_destroyed_p));
   fprintf_unfiltered (file,
+                      "gdbarch_dump: gdbarch_stap_adjust_register_p() = %d\n",
+                      gdbarch_stap_adjust_register_p (gdbarch));
+  fprintf_unfiltered (file,
+                      "gdbarch_dump: stap_adjust_register = <%s>\n",
+                      host_address_to_string (gdbarch->stap_adjust_register));
+  fprintf_unfiltered (file,
                       "gdbarch_dump: stap_gdb_register_prefix = %s\n",
                       pstring (gdbarch->stap_gdb_register_prefix));
   fprintf_unfiltered (file,
@@ -1441,14 +1465,8 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
                       "gdbarch_dump: type_align = <%s>\n",
                       host_address_to_string (gdbarch->type_align));
   fprintf_unfiltered (file,
-                      "gdbarch_dump: gdbarch_unwind_pc_p() = %d\n",
-                      gdbarch_unwind_pc_p (gdbarch));
-  fprintf_unfiltered (file,
                       "gdbarch_dump: unwind_pc = <%s>\n",
                       host_address_to_string (gdbarch->unwind_pc));
-  fprintf_unfiltered (file,
-                      "gdbarch_dump: gdbarch_unwind_sp_p() = %d\n",
-                      gdbarch_unwind_sp_p (gdbarch));
   fprintf_unfiltered (file,
                       "gdbarch_dump: unwind_sp = <%s>\n",
                       host_address_to_string (gdbarch->unwind_sp));
@@ -2307,13 +2325,6 @@ set_gdbarch_register_type (struct gdbarch *gdbarch,
   gdbarch->register_type = register_type;
 }
 
-int
-gdbarch_dummy_id_p (struct gdbarch *gdbarch)
-{
-  gdb_assert (gdbarch != NULL);
-  return gdbarch->dummy_id != NULL;
-}
-
 struct frame_id
 gdbarch_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
 {
@@ -2356,13 +2367,13 @@ gdbarch_push_dummy_call_p (struct gdbarch *gdbarch)
 }
 
 CORE_ADDR
-gdbarch_push_dummy_call (struct gdbarch *gdbarch, struct value *function, struct regcache *regcache, CORE_ADDR bp_addr, int nargs, struct value **args, CORE_ADDR sp, int struct_return, CORE_ADDR struct_addr)
+gdbarch_push_dummy_call (struct gdbarch *gdbarch, struct value *function, struct regcache *regcache, CORE_ADDR bp_addr, int nargs, struct value **args, CORE_ADDR sp, function_call_return_method return_method, CORE_ADDR struct_addr)
 {
   gdb_assert (gdbarch != NULL);
   gdb_assert (gdbarch->push_dummy_call != NULL);
   if (gdbarch_debug >= 2)
     fprintf_unfiltered (gdb_stdlog, "gdbarch_push_dummy_call called\n");
-  return gdbarch->push_dummy_call (gdbarch, function, regcache, bp_addr, nargs, args, sp, struct_return, struct_addr);
+  return gdbarch->push_dummy_call (gdbarch, function, regcache, bp_addr, nargs, args, sp, return_method, struct_addr);
 }
 
 void
@@ -3029,6 +3040,30 @@ set_gdbarch_fetch_tls_load_module_address (struct gdbarch *gdbarch,
   gdbarch->fetch_tls_load_module_address = fetch_tls_load_module_address;
 }
 
+int
+gdbarch_get_thread_local_address_p (struct gdbarch *gdbarch)
+{
+  gdb_assert (gdbarch != NULL);
+  return gdbarch->get_thread_local_address != NULL;
+}
+
+CORE_ADDR
+gdbarch_get_thread_local_address (struct gdbarch *gdbarch, ptid_t ptid, CORE_ADDR lm_addr, CORE_ADDR offset)
+{
+  gdb_assert (gdbarch != NULL);
+  gdb_assert (gdbarch->get_thread_local_address != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_get_thread_local_address called\n");
+  return gdbarch->get_thread_local_address (gdbarch, ptid, lm_addr, offset);
+}
+
+void
+set_gdbarch_get_thread_local_address (struct gdbarch *gdbarch,
+                                      gdbarch_get_thread_local_address_ftype get_thread_local_address)
+{
+  gdbarch->get_thread_local_address = get_thread_local_address;
+}
+
 CORE_ADDR
 gdbarch_frame_args_skip (struct gdbarch *gdbarch)
 {
@@ -3046,13 +3081,6 @@ set_gdbarch_frame_args_skip (struct gdbarch *gdbarch,
   gdbarch->frame_args_skip = frame_args_skip;
 }
 
-int
-gdbarch_unwind_pc_p (struct gdbarch *gdbarch)
-{
-  gdb_assert (gdbarch != NULL);
-  return gdbarch->unwind_pc != NULL;
-}
-
 CORE_ADDR
 gdbarch_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
 {
@@ -3068,13 +3096,6 @@ set_gdbarch_unwind_pc (struct gdbarch *gdbarch,
                        gdbarch_unwind_pc_ftype unwind_pc)
 {
   gdbarch->unwind_pc = unwind_pc;
-}
-
-int
-gdbarch_unwind_sp_p (struct gdbarch *gdbarch)
-{
-  gdb_assert (gdbarch != NULL);
-  return gdbarch->unwind_sp != NULL;
 }
 
 CORE_ADDR
@@ -3759,7 +3780,7 @@ gdbarch_core_pid_to_str_p (struct gdbarch *gdbarch)
   return gdbarch->core_pid_to_str != NULL;
 }
 
-const char *
+std::string
 gdbarch_core_pid_to_str (struct gdbarch *gdbarch, ptid_t ptid)
 {
   gdb_assert (gdbarch != NULL);
@@ -4509,6 +4530,30 @@ set_gdbarch_stap_parse_special_token (struct gdbarch *gdbarch,
 }
 
 int
+gdbarch_stap_adjust_register_p (struct gdbarch *gdbarch)
+{
+  gdb_assert (gdbarch != NULL);
+  return gdbarch->stap_adjust_register != NULL;
+}
+
+std::string
+gdbarch_stap_adjust_register (struct gdbarch *gdbarch, struct stap_parse_info *p, const std::string &regname, int regnum)
+{
+  gdb_assert (gdbarch != NULL);
+  gdb_assert (gdbarch->stap_adjust_register != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_stap_adjust_register called\n");
+  return gdbarch->stap_adjust_register (gdbarch, p, regname, regnum);
+}
+
+void
+set_gdbarch_stap_adjust_register (struct gdbarch *gdbarch,
+                                  gdbarch_stap_adjust_register_ftype stap_adjust_register)
+{
+  gdbarch->stap_adjust_register = stap_adjust_register;
+}
+
+int
 gdbarch_dtrace_parse_probe_argument_p (struct gdbarch *gdbarch)
 {
   gdb_assert (gdbarch != NULL);
@@ -4516,13 +4561,13 @@ gdbarch_dtrace_parse_probe_argument_p (struct gdbarch *gdbarch)
 }
 
 void
-gdbarch_dtrace_parse_probe_argument (struct gdbarch *gdbarch, struct parser_state *pstate, int narg)
+gdbarch_dtrace_parse_probe_argument (struct gdbarch *gdbarch, struct expr_builder *builder, int narg)
 {
   gdb_assert (gdbarch != NULL);
   gdb_assert (gdbarch->dtrace_parse_probe_argument != NULL);
   if (gdbarch_debug >= 2)
     fprintf_unfiltered (gdb_stdlog, "gdbarch_dtrace_parse_probe_argument called\n");
-  gdbarch->dtrace_parse_probe_argument (gdbarch, pstate, narg);
+  gdbarch->dtrace_parse_probe_argument (gdbarch, builder, narg);
 }
 
 void
@@ -5115,6 +5160,23 @@ set_gdbarch_type_align (struct gdbarch *gdbarch,
                         gdbarch_type_align_ftype type_align)
 {
   gdbarch->type_align = type_align;
+}
+
+std::string
+gdbarch_get_pc_address_flags (struct gdbarch *gdbarch, frame_info *frame, CORE_ADDR pc)
+{
+  gdb_assert (gdbarch != NULL);
+  gdb_assert (gdbarch->get_pc_address_flags != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_get_pc_address_flags called\n");
+  return gdbarch->get_pc_address_flags (frame, pc);
+}
+
+void
+set_gdbarch_get_pc_address_flags (struct gdbarch *gdbarch,
+                                  gdbarch_get_pc_address_flags_ftype get_pc_address_flags)
+{
+  gdbarch->get_pc_address_flags = get_pc_address_flags;
 }
 
 

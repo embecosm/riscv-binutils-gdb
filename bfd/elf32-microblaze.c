@@ -1,6 +1,6 @@
 /* Xilinx MicroBlaze-specific support for 32-bit ELF
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -252,7 +252,7 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
 	  TRUE),		/* PC relative offset?  */
 
      /* A 64 bit TEXTPCREL relocation.  Table-entry not really used.  */
-   HOWTO (R_MICROBLAZE_TEXTPCREL_64,   	/* Type.  */
+   HOWTO (R_MICROBLAZE_TEXTPCREL_64,	/* Type.  */
 	  0,			/* Rightshift.  */
 	  2,			/* Size (0 = byte, 1 = short, 2 = long).  */
 	  16,			/* Bitsize.  */
@@ -260,11 +260,11 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
 	  0,			/* Bitpos.  */
 	  complain_overflow_dont, /* Complain on overflow.  */
 	  bfd_elf_generic_reloc,	/* Special Function.  */
-	  "R_MICROBLAZE_TEXTPCREL_64", 	/* Name.  */
+	  "R_MICROBLAZE_TEXTPCREL_64",	/* Name.  */
 	  FALSE,		/* Partial Inplace.  */
 	  0,			/* Source Mask.  */
 	  0x0000ffff,		/* Dest Mask.  */
-	  TRUE), 		/* PC relative offset?  */
+	  TRUE),		/* PC relative offset?  */
 
    /* A 64 bit GOT relocation.  Table-entry not really used.  */
    HOWTO (R_MICROBLAZE_GOT_64,  /* Type.  */
@@ -294,7 +294,7 @@ static reloc_howto_type microblaze_elf_howto_raw[] =
 	  FALSE,		/* Partial Inplace.  */
 	  0,			/* Source Mask.  */
 	  0x0000ffff,		/* Dest Mask.  */
-	  FALSE), 		/* PC relative offset?  */
+	  FALSE),		/* PC relative offset?  */
 
    /* A 64 bit PLT relocation.  Table-entry not really used.  */
    HOWTO (R_MICROBLAZE_PLT_64,  /* Type.  */
@@ -3455,9 +3455,10 @@ microblaze_elf_finish_dynamic_sections (bfd *output_bfd,
 	  memset (splt->contents, 0, PLT_ENTRY_SIZE);
 	  bfd_put_32 (output_bfd, (bfd_vma) 0x80000000 /* nop.  */,
 		      splt->contents + splt->size - 4);
-	}
 
-      elf_section_data (splt->output_section)->this_hdr.sh_entsize = 4;
+	  if (splt->output_section != bfd_abs_section_ptr)
+	    elf_section_data (splt->output_section)->this_hdr.sh_entsize = 4;
+	}
     }
 
   /* Set the first entry in the global offset table to the address of

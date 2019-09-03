@@ -1,6 +1,6 @@
 /* Branch trace support for GDB, the GNU debugger.
 
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
 
    Contributed by Intel Corp. <markus.t.metzger@intel.com>
 
@@ -31,9 +31,10 @@
 #include "filenames.h"
 #include "xml-support.h"
 #include "regcache.h"
-#include "rsp-low.h"
+#include "gdbsupport/rsp-low.h"
 #include "gdbcmd.h"
 #include "cli/cli-utils.h"
+#include "gdbarch.h"
 
 /* For maintenance commands.  */
 #include "record-btrace.h"
@@ -620,6 +621,20 @@ ftrace_update_function (struct btrace_thread_info *btinfo, CORE_ADDR pc)
 	    if (start == pc)
 	      return ftrace_new_tailcall (btinfo, mfun, fun);
 
+	    /* Some versions of _Unwind_RaiseException use an indirect
+	       jump to 'return' to the exception handler of the caller
+	       handling the exception instead of a return.  Let's restrict
+	       this heuristic to that and related functions.  */
+	    const char *fname = ftrace_print_function_name (bfun);
+	    if (strncmp (fname, "_Unwind_", strlen ("_Unwind_")) == 0)
+	      {
+		struct btrace_function *caller
+		  = ftrace_find_call_by_number (btinfo, bfun->up);
+		caller = ftrace_find_caller (btinfo, caller, mfun, fun);
+		if (caller != NULL)
+		  return ftrace_new_return (btinfo, mfun, fun);
+	      }
+
 	    /* If we can't determine the function for PC, we treat a jump at
 	       the end of the block as tail call if we're switching functions
 	       and as an intra-function branch if we don't.  */
@@ -664,7 +679,7 @@ ftrace_classify_insn (struct gdbarch *gdbarch, CORE_ADDR pc)
   enum btrace_insn_class iclass;
 
   iclass = BTRACE_INSN_OTHER;
-  TRY
+  try
     {
       if (gdbarch_insn_is_call (gdbarch, pc))
 	iclass = BTRACE_INSN_CALL;
@@ -673,10 +688,9 @@ ftrace_classify_insn (struct gdbarch *gdbarch, CORE_ADDR pc)
       else if (gdbarch_insn_is_jump (gdbarch, pc))
 	iclass = BTRACE_INSN_JUMP;
     }
-  CATCH (error, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &error)
     {
     }
-  END_CATCH
 
   return iclass;
 }
@@ -1089,14 +1103,13 @@ btrace_compute_ftrace_bts (struct thread_info *tp,
 	    level = std::min (level, bfun->level);
 
 	  size = 0;
-	  TRY
+	  try
 	    {
 	      size = gdb_insn_length (gdbarch, pc);
 	    }
-	  CATCH (error, RETURN_MASK_ERROR)
+	  catch (const gdb_exception_error &error)
 	    {
 	    }
-	  END_CATCH
 
 	  insn.pc = pc;
 	  insn.size = size;
@@ -1356,17 +1369,16 @@ btrace_pt_readmem_callback (gdb_byte *buffer, size_t size,
   int result, errcode;
 
   result = (int) size;
-  TRY
+  try
     {
       errcode = target_read_code ((CORE_ADDR) pc, buffer, size);
       if (errcode != 0)
 	result = -pte_nomap;
     }
-  CATCH (error, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &error)
     {
       result = -pte_nomap;
     }
-  END_CATCH
 
   return result;
 }
@@ -1450,7 +1462,7 @@ btrace_compute_ftrace_pt (struct thread_info *tp,
   if (decoder == NULL)
     error (_("Failed to allocate the Intel Processor Trace decoder."));
 
-  TRY
+  try
     {
       struct pt_image *image;
 
@@ -1465,7 +1477,7 @@ btrace_compute_ftrace_pt (struct thread_info *tp,
 
       ftrace_add_pt (btinfo, decoder, &level, gaps);
     }
-  CATCH (error, RETURN_MASK_ALL)
+  catch (const gdb_exception &error)
     {
       /* Indicate a gap in the trace if we quit trace processing.  */
       if (error.reason == RETURN_QUIT && !btinfo->functions.empty ())
@@ -1473,9 +1485,8 @@ btrace_compute_ftrace_pt (struct thread_info *tp,
 
       btrace_finalize_ftrace_pt (decoder, tp, level);
 
-      throw_exception (error);
+      throw;
     }
-  END_CATCH
 
   btrace_finalize_ftrace_pt (decoder, tp, level);
 }
@@ -1542,17 +1553,16 @@ btrace_compute_ftrace (struct thread_info *tp, struct btrace_data *btrace,
 {
   std::vector<unsigned int> gaps;
 
-  TRY
+  try
     {
       btrace_compute_ftrace_1 (tp, btrace, cpu, gaps);
     }
-  CATCH (error, RETURN_MASK_ALL)
+  catch (const gdb_exception &error)
     {
       btrace_finalize_ftrace (tp, gaps);
 
-      throw_exception (error);
+      throw;
     }
-  END_CATCH
 
   btrace_finalize_ftrace (tp, gaps);
 }
@@ -1594,7 +1604,7 @@ btrace_enable (struct thread_info *tp, const struct btrace_config *conf)
 #endif /* !defined (HAVE_LIBIPT) */
 
   DEBUG ("enable thread %s (%s)", print_thread_id (tp),
-	 target_pid_to_str (tp->ptid));
+	 target_pid_to_str (tp->ptid).c_str ());
 
   tp->btrace.target = target_enable_btrace (tp->ptid, conf);
 
@@ -1603,7 +1613,7 @@ btrace_enable (struct thread_info *tp, const struct btrace_config *conf)
     return;
 
   /* We need to undo the enable in case of errors.  */
-  TRY
+  try
     {
       /* Add an entry for the current PC so we start tracing from where we
 	 enabled it.
@@ -1618,13 +1628,12 @@ btrace_enable (struct thread_info *tp, const struct btrace_config *conf)
 	  && can_access_registers_thread (tp))
 	btrace_add_pc (tp);
     }
-  CATCH (exception, RETURN_MASK_ALL)
+  catch (const gdb_exception &exception)
     {
       btrace_disable (tp);
 
-      throw_exception (exception);
+      throw;
     }
-  END_CATCH
 }
 
 /* See btrace.h.  */
@@ -1649,7 +1658,7 @@ btrace_disable (struct thread_info *tp)
     return;
 
   DEBUG ("disable thread %s (%s)", print_thread_id (tp),
-	 target_pid_to_str (tp->ptid));
+	 target_pid_to_str (tp->ptid).c_str ());
 
   target_disable_btrace (btp->target);
   btp->target = NULL;
@@ -1668,7 +1677,7 @@ btrace_teardown (struct thread_info *tp)
     return;
 
   DEBUG ("teardown thread %s (%s)", print_thread_id (tp),
-	 target_pid_to_str (tp->ptid));
+	 target_pid_to_str (tp->ptid).c_str ());
 
   target_teardown_btrace (btp->target);
   btp->target = NULL;
@@ -1891,7 +1900,7 @@ btrace_fetch (struct thread_info *tp, const struct btrace_cpu *cpu)
   int errcode;
 
   DEBUG ("fetch thread %s (%s)", print_thread_id (tp),
-	 target_pid_to_str (tp->ptid));
+	 target_pid_to_str (tp->ptid).c_str ());
 
   btinfo = &tp->btrace;
   tinfo = btinfo->target;
@@ -1967,7 +1976,7 @@ btrace_clear (struct thread_info *tp)
   struct btrace_thread_info *btinfo;
 
   DEBUG ("clear thread %s (%s)", print_thread_id (tp),
-	 target_pid_to_str (tp->ptid));
+	 target_pid_to_str (tp->ptid).c_str ());
 
   /* Make sure btrace frames that may hold a pointer into the branch
      trace data are destroyed.  */
@@ -1989,11 +1998,9 @@ btrace_clear (struct thread_info *tp)
 void
 btrace_free_objfile (struct objfile *objfile)
 {
-  struct thread_info *tp;
-
   DEBUG ("free objfile");
 
-  ALL_NON_EXITED_THREADS (tp)
+  for (thread_info *tp : all_non_exited_threads ())
     btrace_clear (tp);
 }
 
@@ -2068,7 +2075,7 @@ parse_xml_raw (struct gdb_xml_parser *parser, const char *body_text,
   gdb::unique_xmalloc_ptr<gdb_byte> data ((gdb_byte *) xmalloc (size));
   bin = data.get ();
 
-  /* We use hex encoding - see common/rsp-low.h.  */
+  /* We use hex encoding - see gdbsupport/rsp-low.h.  */
   while (len > 0)
     {
       char hi, lo;
@@ -3050,18 +3057,17 @@ btrace_maint_update_pt_packets (struct btrace_thread_info *btinfo)
   if (decoder == NULL)
     error (_("Failed to allocate the Intel Processor Trace decoder."));
 
-  TRY
+  try
     {
       btrace_maint_decode_pt (&btinfo->maint, decoder);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
       pt_pkt_free_decoder (decoder);
 
       if (except.reason < 0)
-	throw_exception (except);
+	throw;
     }
-  END_CATCH
 
   pt_pkt_free_decoder (decoder);
 }
@@ -3523,21 +3529,19 @@ One argument specifies the starting packet of a ten-line print.\n\
 Two arguments with comma between specify starting and ending packets to \
 print.\n\
 Preceded with '+'/'-' the second argument specifies the distance from the \
-first.\n"),
+first."),
 	   &maint_btrace_cmdlist);
 
   add_cmd ("clear-packet-history", class_maintenance,
 	   maint_btrace_clear_packet_history_cmd,
 	   _("Clears the branch tracing packet history.\n\
-Discards the raw branch tracing data but not the execution history data.\n\
-"),
+Discards the raw branch tracing data but not the execution history data."),
 	   &maint_btrace_cmdlist);
 
   add_cmd ("clear", class_maintenance, maint_btrace_clear_cmd,
 	   _("Clears the branch tracing data.\n\
 Discards the raw branch tracing data and the execution history data.\n\
-The next 'record' command will fetch the branch tracing data anew.\n\
-"),
+The next 'record' command will fetch the branch tracing data anew."),
 	   &maint_btrace_cmdlist);
 
 }

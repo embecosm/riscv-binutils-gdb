@@ -1,6 +1,6 @@
 /* Target-dependent code for GNU/Linux SPARC.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -68,9 +68,9 @@ static const struct tramp_frame sparc32_linux_sigframe =
   SIGTRAMP_FRAME,
   4,
   {
-    { 0x821020d8, -1 },		/* mov __NR_sugreturn, %g1 */
-    { 0x91d02010, -1 },		/* ta  0x10 */
-    { TRAMP_SENTINEL_INSN, -1 }
+    { 0x821020d8, ULONGEST_MAX },		/* mov __NR_sugreturn, %g1 */
+    { 0x91d02010, ULONGEST_MAX },		/* ta  0x10 */
+    { TRAMP_SENTINEL_INSN, ULONGEST_MAX }
   },
   sparc32_linux_sigframe_init
 };
@@ -83,9 +83,9 @@ static const struct tramp_frame sparc32_linux_rt_sigframe =
   SIGTRAMP_FRAME,
   4,
   {
-    { 0x82102065, -1 },		/* mov __NR_rt_sigreturn, %g1 */
-    { 0x91d02010, -1 },		/* ta  0x10 */
-    { TRAMP_SENTINEL_INSN, -1 }
+    { 0x82102065, ULONGEST_MAX },		/* mov __NR_rt_sigreturn, %g1 */
+    { 0x91d02010, ULONGEST_MAX },		/* ta  0x10 */
+    { TRAMP_SENTINEL_INSN, ULONGEST_MAX }
   },
   sparc32_linux_sigframe_init
 };

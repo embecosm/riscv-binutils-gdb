@@ -1,5 +1,5 @@
 /* Memory ops header for CGEN-based simulators.
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
    Contributed by Cygnus Solutions.
 
 This file is part of the GNU Simulators.
@@ -186,7 +186,6 @@ DECLARE_GETT (DF, 8)  /* TAGS: GETTDF */
 
 #if 0 /* ??? defered until necessary */
 DECLARE_GETT (SF, 4)  /* TAGS: GETTSF */
-//DECLARE_GETT (DF, 8)  /* TAGS: GETTDF */
 DECLARE_GETT (TF, 16) /* TAGS: GETTTF */
 #endif
 
@@ -222,8 +221,6 @@ DECLARE_SETT (SF, 4)  /* TAGS: SETTSF */
 DECLARE_SETT (DF, 8)  /* TAGS: SETTDF */
 
 #if 0 /* ??? defered until necessary */
-DECLARE_SETT (SF, 4)  /* TAGS: SETTSF */
-DECLARE_SETT (DF, 8)  /* TAGS: SETTDF */
 DECLARE_SETT (TF, 16) /* TAGS: SETTTF */
 #endif
 

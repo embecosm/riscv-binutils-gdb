@@ -1,6 +1,6 @@
 /* GNU/Linux/x86-64 specific target description, for the remote server
    for GDB.
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,7 +21,7 @@
 #include "tdesc.h"
 #include "linux-x86-tdesc.h"
 #include "arch/i386.h"
-#include "common/x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #ifdef __x86_64__
 #include "arch/amd64.h"
 #endif
@@ -87,7 +87,7 @@ i386_linux_read_description (uint64_t xcr0)
 
   if (*tdesc == NULL)
     {
-      *tdesc = i386_create_target_description (xcr0, true);
+      *tdesc = i386_create_target_description (xcr0, true, false);
 
       init_target_desc (*tdesc, i386_expedite_regs);
     }

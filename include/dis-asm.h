@@ -1,6 +1,6 @@
 /* Interface between the opcode library and its callers.
 
-   Copyright (C) 1999-2018 Free Software Foundation, Inc.
+   Copyright (C) 1999-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ extern "C" {
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include "bfd.h"
 
   typedef int (*fprintf_ftype) (void *, const char*, ...) ATTRIBUTE_FPTR_PRINTF_2;
@@ -115,6 +116,8 @@ typedef struct disassemble_info
   /* Set if the user has specifically set the machine type encoded in the
      mach field of this structure.  */
 #define USER_SPECIFIED_MACHINE_TYPE (1 << 29)
+  /* Set if the user has requested wide output.  */
+#define WIDE_OUTPUT (1 << 28)
 
   /* Use internally by the target specific disassembly code.  */
   void *private_data;
@@ -220,6 +223,12 @@ typedef struct disassemble_info
      file being disassembled.  */
   bfd_vma stop_vma;
 
+  /* The end range of the current range being disassembled.  This is required
+     in order to notify the disassembler when it's currently handling a
+     different range than it was before.  This prevent unsafe optimizations when
+     disassembling such as the way mapping symbols are found on AArch64.  */
+  bfd_vma stop_offset;
+
 } disassemble_info;
 
 /* This struct is used to pass information about valid disassembler
@@ -277,9 +286,9 @@ typedef int (*disassembler_ftype) (bfd_vma, disassemble_info *);
 /* Disassemblers used out side of opcodes library.  */
 extern int print_insn_m32c		(bfd_vma, disassemble_info *);
 extern int print_insn_mep		(bfd_vma, disassemble_info *);
+extern int print_insn_s12z		(bfd_vma, disassemble_info *);
 extern int print_insn_sh		(bfd_vma, disassemble_info *);
 extern int print_insn_sparc		(bfd_vma, disassemble_info *);
-extern int print_insn_riscv		(bfd_vma, disassemble_info *);
 extern int print_insn_rx		(bfd_vma, disassemble_info *);
 extern int print_insn_rl78		(bfd_vma, disassemble_info *);
 extern int print_insn_rl78_g10		(bfd_vma, disassemble_info *);
@@ -302,10 +311,11 @@ extern void print_wasm32_disassembler_options (FILE *);
 extern bfd_boolean aarch64_symbol_is_valid (asymbol *, struct disassemble_info *);
 extern bfd_boolean arm_symbol_is_valid (asymbol *, struct disassemble_info *);
 extern bfd_boolean csky_symbol_is_valid (asymbol *, struct disassemble_info *);
+extern bfd_boolean riscv_symbol_is_valid (asymbol *, struct disassemble_info *);
 extern void disassemble_init_powerpc (struct disassemble_info *);
-extern void disassemble_init_riscv (struct disassemble_info *);
 extern void disassemble_init_s390 (struct disassemble_info *);
 extern void disassemble_init_wasm32 (struct disassemble_info *);
+extern void disassemble_init_nds32 (struct disassemble_info *);
 extern const disasm_options_and_args_t *disassembler_options_arm (void);
 extern const disasm_options_and_args_t *disassembler_options_mips (void);
 extern const disasm_options_and_args_t *disassembler_options_powerpc (void);

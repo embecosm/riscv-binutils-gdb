@@ -1,5 +1,5 @@
 /* riscv simulator support code
-   Copyright (C) 1998-2017 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
    Contributed by Embecosm.
 
 This file is part of the GNU simulators.

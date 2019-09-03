@@ -1,5 +1,5 @@
 /* ADI Blackfin BFD support for 32-bit ELF.
-   Copyright (C) 2005-2018 Free Software Foundation, Inc.
+   Copyright (C) 2005-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -142,12 +142,12 @@ bfin_pcrel24_reloc (bfd *abfd,
 
 static bfd_reloc_status_type
 bfin_imm16_reloc (bfd *abfd,
-     		  arelent *reloc_entry,
-     		  asymbol *symbol,
-     		  void * data,
-     		  asection *input_section,
-     		  bfd *output_bfd,
-     		  char **error_message ATTRIBUTE_UNUSED)
+		  arelent *reloc_entry,
+		  asymbol *symbol,
+		  void * data,
+		  asection *input_section,
+		  bfd *output_bfd,
+		  char **error_message ATTRIBUTE_UNUSED)
 {
   bfd_vma relocation, x;
   bfd_size_type reloc_addr = reloc_entry->address;
@@ -281,11 +281,11 @@ bfin_byte4_reloc (bfd *abfd,
 static bfd_reloc_status_type
 bfin_bfd_reloc (bfd *abfd,
 		arelent *reloc_entry,
-     		asymbol *symbol,
-     		void * data,
-     		asection *input_section,
-     		bfd *output_bfd,
-     		char **error_message ATTRIBUTE_UNUSED)
+		asymbol *symbol,
+		void * data,
+		asection *input_section,
+		bfd *output_bfd,
+		char **error_message ATTRIBUTE_UNUSED)
 {
   bfd_vma relocation;
   bfd_size_type addr = reloc_entry->address;
@@ -1133,14 +1133,14 @@ bfd_boolean elf32_bfin_code_in_l1 = 0;
 /* Set by ld emulation if --data-in-l1.  */
 bfd_boolean elf32_bfin_data_in_l1 = 0;
 
-static void
-elf32_bfin_final_write_processing (bfd *abfd,
-				   bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+elf32_bfin_final_write_processing (bfd *abfd)
 {
   if (elf32_bfin_code_in_l1)
     elf_elfheader (abfd)->e_flags |= EF_BFIN_CODE_IN_L1;
   if (elf32_bfin_data_in_l1)
     elf_elfheader (abfd)->e_flags |= EF_BFIN_DATA_IN_L1;
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Return TRUE if the name is a local label.
@@ -1210,9 +1210,7 @@ bfin_check_relocs (bfd * abfd,
 	/* This relocation describes which C++ vtable entries
 	   are actually used.  Record for later use during GC.  */
 	case R_BFIN_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 

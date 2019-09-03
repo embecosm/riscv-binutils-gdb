@@ -1,6 +1,6 @@
 /* GDB parameters implemented in Guile.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -1006,7 +1006,8 @@ gdbscm_register_parameter_x (SCM self)
 		_("parameter exists, \"show\" command is already defined"));
     }
 
-  TRY
+  gdbscm_gdb_exception exc {};
+  try
     {
       add_setshow_generic (p_smob->type, p_smob->cmd_class,
 			   p_smob->cmd_name, p_smob,
@@ -1018,12 +1019,12 @@ gdbscm_register_parameter_x (SCM self)
 			   set_list, show_list,
 			   &p_smob->set_command, &p_smob->show_command);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
-      GDBSCM_HANDLE_GDB_EXCEPTION (except);
+      exc = unpack (except);
     }
-  END_CATCH
 
+  GDBSCM_HANDLE_GDB_EXCEPTION (exc);
   /* Note: At this point the parameter exists in gdb.
      So no more errors after this point.  */
 
@@ -1057,22 +1058,21 @@ gdbscm_parameter_value (SCM self)
       struct cmd_list_element *alias, *prefix, *cmd;
       char *newarg;
       int found = -1;
-      struct gdb_exception except = exception_none;
+      gdbscm_gdb_exception except {};
 
       gdb::unique_xmalloc_ptr<char> name
 	= gdbscm_scm_to_host_string (self, NULL, &except_scm);
       if (name == NULL)
 	gdbscm_throw (except_scm);
       newarg = concat ("show ", name.get (), (char *) NULL);
-      TRY
+      try
 	{
 	  found = lookup_cmd_composition (newarg, &alias, &prefix, &cmd);
 	}
-      CATCH (ex, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
-	  except = ex;
+	  except = unpack (ex);
 	}
-      END_CATCH
 
       xfree (newarg);
       GDBSCM_HANDLE_GDB_EXCEPTION (except);

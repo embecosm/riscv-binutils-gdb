@@ -1,5 +1,5 @@
 /* Common things used by the various *gnu-nat.c files
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
    Written by Miles Bader <miles@gnu.ai.mit.edu>
 
@@ -16,11 +16,26 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef __GNU_NAT_H__
-#define __GNU_NAT_H__
+#ifndef GNU_NAT_H
+#define GNU_NAT_H
+
+#include "defs.h"
+
+/* Work around conflict between Mach's 'thread_info' function, and GDB's
+   'thread_info' class.  Make the former available as 'mach_thread_info'.  */
+#define thread_info mach_thread_info
+/* Mach headers are not yet ready for C++ compilation.  */
+extern "C"
+{
+#include <mach.h>
+}
+#undef thread_info
+/* Divert 'mach_thread_info' to the original Mach 'thread_info' function.  */
+extern __typeof__ (mach_thread_info) mach_thread_info asm ("thread_info");
 
 #include <unistd.h>
-#include <mach.h>
+
+#include "inf-child.h"
 
 struct inf;
 
@@ -131,8 +146,8 @@ struct gnu_nat_target : public inf_child_target
 			char **, int) override;
   void mourn_inferior () override;
   bool thread_alive (ptid_t ptid) override;
-  const char *pid_to_str (ptid_t) override;
+  std::string pid_to_str (ptid_t) override;
   void stop (ptid_t) override;
 };
 
-#endif /* __GNU_NAT_H__ */
+#endif /* GNU_NAT_H */

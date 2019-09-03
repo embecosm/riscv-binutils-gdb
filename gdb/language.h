@@ -1,6 +1,6 @@
 /* Source-language-related definitions for GDB.
 
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    Contributed by the Department of Computer Science at the State University
    of New York at Buffalo.
@@ -24,7 +24,7 @@
 #define LANGUAGE_H 1
 
 #include "symtab.h"
-#include "common/function-view.h"
+#include "gdbsupport/function-view.h"
 #include "expression.h"
 
 /* Forward decls for prototypes.  */
@@ -38,6 +38,7 @@ struct lang_varobj_ops;
 struct parser_state;
 class compile_instance;
 struct completion_match_for_lcd;
+class innermost_block_tracker;
 
 #define MAX_FORTRAN_DIMS  7	/* Maximum number of F77 array dims.  */
 
@@ -176,9 +177,12 @@ struct language_defn
        la_parser, perform any remaining processing necessary to complete
        its translation.  *EXPP may change; la_post_parser is responsible 
        for releasing its previous contents, if necessary.  If 
-       VOID_CONTEXT_P, then no value is expected from the expression.  */
+       VOID_CONTEXT_P, then no value is expected from the expression.
+       If COMPLETING is non-zero, then the expression has been parsed
+       for completion, not evaluation.  */
 
-    void (*la_post_parser) (expression_up *expp, int void_context_p);
+    void (*la_post_parser) (expression_up *expp, int void_context_p,
+			    int completing, innermost_block_tracker *tracker);
 
     void (*la_printchar) (int ch, struct type *chtype,
 			  struct ui_file * stream);
@@ -446,14 +450,15 @@ struct language_defn
 				       const struct block *expr_block,
 				       CORE_ADDR expr_pc);
 
-    /* Add fields above this point, so the magic number is always last.  */
-    /* Magic number for compat checking.  */
+    /* Return true if TYPE is a string type.  */
+    bool (*la_is_string_type_p) (struct type *type);
 
-    long la_magic;
+    /* This string is used by the 'set print max-depth' setting.  When GDB
+       replaces a struct or union (during value printing) that is "too
+       deep" this string is displayed instead.  */
+    const char *la_struct_too_deep_ellipsis;
 
   };
-
-#define LANG_MAGIC	910823L
 
 /* Pointer to the language_defn for our current language.  This pointer
    always points to *some* valid struct; it can be used without checking
@@ -572,6 +577,10 @@ extern enum language set_language (enum language);
 /* Type predicates */
 
 extern int pointer_type (struct type *);
+
+/* Return true if TYPE is a string type, otherwise return false.  This
+   default implementation only detects TYPE_CODE_STRING.  */
+extern bool default_is_string_type_p (struct type *type);
 
 /* Error messages */
 
@@ -704,6 +713,46 @@ public:
 
 private:
 
+  enum language m_lang;
+};
+
+/* If language_mode is language_mode_auto,
+   then switch current language to the language of SYM
+   and restore current language upon destruction.
+
+   Else do nothing.  */
+
+class scoped_switch_to_sym_language_if_auto
+{
+public:
+
+  explicit scoped_switch_to_sym_language_if_auto (const struct symbol *sym)
+  {
+    if (language_mode == language_mode_auto)
+      {
+	m_lang = current_language->la_language;
+	m_switched = true;
+	set_language (SYMBOL_LANGUAGE (sym));
+      }
+    else
+      {
+	m_switched = false;
+	/* Assign to m_lang to silence a GCC warning.  See
+	   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=80635.  */
+	m_lang = language_unknown;
+      }
+  }
+
+  ~scoped_switch_to_sym_language_if_auto ()
+  {
+    if (m_switched)
+      set_language (m_lang);
+  }
+
+  DISABLE_COPY_AND_ASSIGN (scoped_switch_to_sym_language_if_auto);
+
+private:
+  bool m_switched;
   enum language m_lang;
 };
 

@@ -1,5 +1,5 @@
 /* AArch64-specific backend routines.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
    Contributed by ARM Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -17,10 +17,6 @@
    You should have received a copy of the GNU General Public License
    along with this program; see the file COPYING3. If not,
    see <http://www.gnu.org/licenses/>.  */
-
-#include "bfd.h"
-#include "elf-bfd.h"
-#include "stdint.h"
 
 /* Take the PAGE component of an address or offset.  */
 #define PG(x)	     ((x) & ~ (bfd_vma) 0xfff)
@@ -44,8 +40,8 @@ _bfd_aarch64_elf_put_addend (bfd *, bfd_byte *, bfd_reloc_code_real_type,
 			     reloc_howto_type *, bfd_signed_vma);
 
 extern bfd_vma
-_bfd_aarch64_elf_resolve_relocation (bfd_reloc_code_real_type, bfd_vma, bfd_vma,
-				     bfd_vma, bfd_boolean);
+_bfd_aarch64_elf_resolve_relocation (bfd *, bfd_reloc_code_real_type, bfd_vma,
+				     bfd_vma, bfd_vma, bfd_boolean);
 
 extern bfd_boolean
 _bfd_aarch64_elf_grok_prstatus (bfd *, Elf_Internal_Note *);
@@ -59,3 +55,26 @@ _bfd_aarch64_elf_write_core_note (bfd *, char *, int *, int, ...);
 #define elf_backend_grok_prstatus	_bfd_aarch64_elf_grok_prstatus
 #define elf_backend_grok_psinfo		_bfd_aarch64_elf_grok_psinfo
 #define elf_backend_write_core_note	_bfd_aarch64_elf_write_core_note
+
+extern bfd *
+_bfd_aarch64_elf_link_setup_gnu_properties (struct bfd_link_info *,
+					    uint32_t *);
+
+extern enum elf_property_kind
+_bfd_aarch64_elf_parse_gnu_properties (bfd *, unsigned int,
+				       bfd_byte *, unsigned int);
+
+extern bfd_boolean
+_bfd_aarch64_elf_merge_gnu_properties (struct bfd_link_info *, bfd *,
+				       elf_property *, elf_property *,
+				       uint32_t);
+
+extern void
+_bfd_aarch64_elf_link_fixup_gnu_properties (struct bfd_link_info *,
+					    elf_property_list **);
+
+#define elf_backend_parse_gnu_properties	\
+  _bfd_aarch64_elf_parse_gnu_properties
+
+#define elf_backend_fixup_gnu_properties	\
+  _bfd_aarch64_elf_link_fixup_gnu_properties

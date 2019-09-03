@@ -1,5 +1,5 @@
 /* Remote utility routines for the remote server for GDB.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -24,10 +24,9 @@
 #include "gdbthread.h"
 #include "tdesc.h"
 #include "dll.h"
-#include "rsp-low.h"
-#include "gdbthread.h"
-#include "netstuff.h"
-#include "filestuff.h"
+#include "gdbsupport/rsp-low.h"
+#include "gdbsupport/netstuff.h"
+#include "gdbsupport/filestuff.h"
 #include <ctype.h>
 #if HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
@@ -56,7 +55,7 @@
 #if HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#include "gdb_sys_time.h"
+#include "gdbsupport/gdb_sys_time.h"
 #include <unistd.h>
 #if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
@@ -64,8 +63,7 @@
 #include <sys/stat.h>
 
 #if USE_WIN32API
-#include <winsock2.h>
-#include <wspiapi.h>
+#include <ws2tcpip.h>
 #endif
 
 #if __QNX__
@@ -105,9 +103,6 @@ struct sym_cache
   CORE_ADDR addr;
   struct sym_cache *next;
 };
-
-int remote_debug = 0;
-struct ui_file *gdb_stdlog;
 
 static int remote_is_stdio = 0;
 
@@ -336,7 +331,7 @@ remote_open (const char *name)
   port_str = strchr (name, ':');
 #ifdef USE_WIN32API
   if (port_str == NULL)
-    error ("Only <host>:<port> is supported on this platform.");
+    error ("Only HOST:PORT is supported on this platform.");
 #endif
 
   if (strcmp (name, STDIO_CONNECTION_NAME) == 0)
@@ -1563,7 +1558,7 @@ look_up_one_symbol (const char *name, CORE_ADDR *addrp, int may_ask_gdb)
 
   if (!startswith (cs.own_buf, "qSymbol:"))
     {
-      warning ("Malformed response to qSymbol, ignoring: %s\n", cs.own_buf);
+      warning ("Malformed response to qSymbol, ignoring: %s", cs.own_buf);
       return -1;
     }
 
@@ -1641,7 +1636,7 @@ relocate_instruction (CORE_ADDR *to, CORE_ADDR oldloc)
 	{
 	  if (decode_X_packet (&cs.own_buf[1], len - 1, &mem_addr,
 			       &mem_len, &mem_buf) < 0
-	      || write_inferior_memory (mem_addr, mem_buf, mem_len) != 0)
+	      || target_write_memory (mem_addr, mem_buf, mem_len) != 0)
 	    write_enn (cs.own_buf);
 	  else
 	    write_ok (cs.own_buf);
@@ -1649,7 +1644,7 @@ relocate_instruction (CORE_ADDR *to, CORE_ADDR oldloc)
       else
 	{
 	  decode_M_packet (&cs.own_buf[1], &mem_addr, &mem_len, &mem_buf);
-	  if (write_inferior_memory (mem_addr, mem_buf, mem_len) == 0)
+	  if (target_write_memory (mem_addr, mem_buf, mem_len) == 0)
 	    write_ok (cs.own_buf);
 	  else
 	    write_enn (cs.own_buf);
@@ -1664,14 +1659,14 @@ relocate_instruction (CORE_ADDR *to, CORE_ADDR oldloc)
 
   if (cs.own_buf[0] == 'E')
     {
-      warning ("An error occurred while relocating an instruction: %s\n",
+      warning ("An error occurred while relocating an instruction: %s",
 	       cs.own_buf);
       return -1;
     }
 
   if (!startswith (cs.own_buf, "qRelocInsn:"))
     {
-      warning ("Malformed response to qRelocInsn, ignoring: %s\n",
+      warning ("Malformed response to qRelocInsn, ignoring: %s",
 	       cs.own_buf);
       return -1;
     }

@@ -1,5 +1,5 @@
 /* Definitions to target GDB to OpenRISC 1000 32-bit targets.
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,16 +16,15 @@
    You should have received a copy of the GNU General Public License along
    With this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-
-#ifndef OR1K_TDEP__H
-#define OR1K_TDEP__H
+#ifndef OR1K_TDEP_H
+#define OR1K_TDEP_H
 
 #ifndef TARGET_OR1K
 #define TARGET_OR1K
 #endif
 
-#include "opcodes/or1k-desc.h"
-#include "opcodes/or1k-opc.h"
+#include "../opcodes/or1k-desc.h"
+#include "../opcodes/or1k-opc.h"
 
 /* General Purpose Registers */
 #define OR1K_ZERO_REGNUM          0
@@ -53,4 +52,4 @@
 #define OR1K_NUM_TAP_RECORDS         8
 #define OR1K_FRAME_RED_ZONE_SIZE     2536
 
-#endif /* OR1K_TDEP__H */
+#endif /* OR1K_TDEP_H */

@@ -1,7 +1,7 @@
 /* *INDENT-OFF* */ /* ATTRIBUTE_PRINTF confuses indent, avoid running it
 		      for now.  */
 /* I/O, string, cleanup, and other random utilities for GDB.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -22,8 +22,11 @@
 #define UTILS_H
 
 #include "exceptions.h"
-#include "common/scoped_restore.h"
+#include "gdbsupport/scoped_restore.h"
 #include <chrono>
+
+struct completion_match_for_lcd;
+class compiled_regex;
 
 extern void initialize_utils (void);
 
@@ -115,7 +118,7 @@ compare_cstrings (const char *str1, const char *str2)
    MATCHING, if non-NULL, is the corresponding argument to
    bfd_check_format_matches, and will be freed.  */
 
-extern const char *gdb_bfd_errmsg (bfd_error_type error_tag, char **matching);
+extern std::string gdb_bfd_errmsg (bfd_error_type error_tag, char **matching);
 
 /* Reset the prompt_for_continue clock.  */
 void reset_prompt_for_continue_wait_time (void);
@@ -188,7 +191,7 @@ public:
   /* Return the underlying array, transferring ownership to the
      caller.  */
 
-  char **release ()
+  ATTRIBUTE_UNUSED_RESULT char **release ()
   {
     char **result = m_argv;
     m_argv = NULL;
@@ -260,8 +263,6 @@ struct htab_deleter
 /* A unique_ptr wrapper for htab_t.  */
 typedef std::unique_ptr<htab, htab_deleter> htab_up;
 
-extern void free_current_contents (void *);
-
 extern void init_page_info (void);
 
 /* Temporarily set BATCH_FLAG and the associated unlimited terminal size.
@@ -286,7 +287,6 @@ private:
   int m_save_batch_flag;
 };
 
-extern struct cleanup *make_bpstat_clear_actions_cleanup (void);
 
 /* Path utilities.  */
 
@@ -423,6 +423,32 @@ extern void fputstrn_unfiltered (const char *str, int n, int quotr,
 /* Return nonzero if filtered printing is initialized.  */
 extern int filtered_printing_initialized (void);
 
+/* Like fprintf_filtered, but styles the output according to STYLE,
+   when appropriate.  */
+
+extern void fprintf_styled (struct ui_file *stream,
+			    const ui_file_style &style,
+			    const char *fmt,
+			    ...)
+  ATTRIBUTE_PRINTF (3, 4);
+
+/* Like fputs_filtered, but styles the output according to STYLE, when
+   appropriate.  */
+
+extern void fputs_styled (const char *linebuffer,
+			  const ui_file_style &style,
+			  struct ui_file *stream);
+
+/* Like fputs_styled, but uses highlight_style to highlight the
+   parts of STR that match HIGHLIGHT.  */
+
+extern void fputs_highlighted (const char *str, const compiled_regex &highlight,
+			       struct ui_file *stream);
+
+/* Reset the terminal style to the default, if needed.  */
+
+extern void reset_terminal_style (struct ui_file *stream);
+
 /* Display the host ADDR on STREAM formatted as ``0x%x''.  */
 extern void gdb_print_host_address_1 (const void *addr, struct ui_file *stream);
 
@@ -518,5 +544,13 @@ extern void dump_core (void);
    Space for the result is malloc'd, caller must free.  */
 
 extern char *make_hex_string (const gdb_byte *data, size_t length);
+
+/* Copy NBITS bits from SOURCE to DEST starting at the given bit
+   offsets.  Use the bit order as specified by BITS_BIG_ENDIAN.
+   Source and destination buffers must not overlap.  */
+
+extern void copy_bitwise (gdb_byte *dest, ULONGEST dest_offset,
+			  const gdb_byte *source, ULONGEST source_offset,
+			  ULONGEST nbits, int bits_big_endian);
 
 #endif /* UTILS_H */

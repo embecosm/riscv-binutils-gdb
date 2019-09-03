@@ -1,6 +1,6 @@
 /* Target-dependent, architecture-independent code for DICOS, for GDB.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,6 +23,7 @@
 #include "solib-target.h"
 #include "inferior.h"
 #include "dicos-tdep.h"
+#include "gdbarch.h"
 
 void
 dicos_init_abi (struct gdbarch *gdbarch)

@@ -1,6 +1,6 @@
 # This testcase is part of GDB, the GNU debugger.
 
-# Copyright 2017 Free Software Foundation, Inc.
+# Copyright 2017-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -212,9 +212,9 @@ proc coretest {inf1_how inf2_how} {
 
     send_gdb "\003"
     if {$expect_ttou} {
-	gdb_test "" "Quit" "stop with control-c"
+	gdb_test "" "Quit" "stop with control-c (Quit)"
     } else {
-	gdb_test "" "received signal SIGINT.*" "stop with control-c"
+	gdb_test "" "received signal SIGINT.*" "stop with control-c (SIGINT)"
     }
 
     # Useful for debugging in case the Ctrl-C above fails.

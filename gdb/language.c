@@ -1,6 +1,6 @@
 /* Multiple source language support for GDB.
 
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    Contributed by the Department of Computer Science at the State University
    of New York at Buffalo.
@@ -45,6 +45,7 @@
 #include "frame.h"
 #include "c-lang.h"
 #include <algorithm>
+#include "gdbarch.h"
 
 static int unk_lang_parser (struct parser_state *);
 
@@ -105,10 +106,9 @@ static const struct language_defn *languages[] = {
   &ada_language_defn,
 };
 
-/* The current values of the "set language/type/range" enum
+/* The current values of the "set language/range/case-sensitive" enum
    commands.  */
 static const char *language;
-static const char *type;
 static const char *range;
 static const char *case_sensitive;
 
@@ -173,18 +173,17 @@ set_language_command (const char *ignore,
 	      /* Enter auto mode.  Set to the current frame's language, if
                  known, or fallback to the initial language.  */
 	      language_mode = language_mode_auto;
-	      TRY
+	      try
 		{
 		  struct frame_info *frame;
 
 		  frame = get_selected_frame (NULL);
 		  flang = get_frame_language (frame);
 		}
-	      CATCH (ex, RETURN_MASK_ERROR)
+	      catch (const gdb_exception_error &ex)
 		{
 		  flang = language_unknown;
 		}
-	      END_CATCH
 
 	      if (flang != language_unknown)
 		set_language (flang);
@@ -561,7 +560,7 @@ add_set_language_command ()
 
   doc.printf (_("Set the current source language.\n"
 		"The currently understood settings are:\n\nlocal or "
-		"auto    Automatic setting based on source file\n"));
+		"auto    Automatic setting based on source file"));
 
   for (const auto &lang : languages)
     {
@@ -572,7 +571,9 @@ add_set_language_command ()
 
       /* FIXME: i18n: for now assume that the human-readable name is
 	 just a capitalization of the internal name.  */
-      doc.printf ("%-16s Use the %c%s language\n",
+      /* Note that we add the newline at the front, so we don't wind
+	 up with a trailing newline.  */
+      doc.printf ("\n%-16s Use the %c%s language",
 		  lang->la_name,
 		  /* Capitalize first letter of language name.  */
 		  toupper (lang->la_name[0]),
@@ -625,7 +626,7 @@ language_demangle (const struct language_defn *current_language,
   return NULL;
 }
 
-/* See langauge.h.  */
+/* See language.h.  */
 
 int
 language_sniff_from_mangled_name (const struct language_defn *lang,
@@ -721,6 +722,20 @@ default_symbol_name_matcher (const char *symbol_search_name,
     }
   else
     return false;
+}
+
+/* See language.h.  */
+
+bool
+default_is_string_type_p (struct type *type)
+{
+  type = check_typedef (type);
+  while (TYPE_CODE (type) == TYPE_CODE_REF)
+    {
+      type = TYPE_TARGET_TYPE (type);
+      type = check_typedef (type);
+    }
+  return (TYPE_CODE (type)  == TYPE_CODE_STRING);
 }
 
 /* See language.h.  */
@@ -879,7 +894,8 @@ const struct language_defn unknown_language_defn =
   &default_varobj_ops,
   NULL,
   NULL,
-  LANG_MAGIC
+  default_is_string_type_p,
+  "{...}"			/* la_struct_too_deep_ellipsis */
 };
 
 /* These two structs define fake entries for the "local" and "auto"
@@ -930,7 +946,8 @@ const struct language_defn auto_language_defn =
   &default_varobj_ops,
   NULL,
   NULL,
-  LANG_MAGIC
+  default_is_string_type_p,
+  "{...}"			/* la_struct_too_deep_ellipsis */
 };
 
 
@@ -1156,16 +1173,16 @@ _initialize_language (void)
 
   add_setshow_enum_cmd ("range", class_support, type_or_range_names,
 			&range,
-			_("Set range checking.  (on/warn/off/auto)"),
-			_("Show range checking.  (on/warn/off/auto)"),
+			_("Set range checking (on/warn/off/auto)."),
+			_("Show range checking (on/warn/off/auto)."),
 			NULL, set_range_command,
 			show_range_command,
 			&setchecklist, &showchecklist);
 
   add_setshow_enum_cmd ("case-sensitive", class_support, case_sensitive_names,
 			&case_sensitive, _("\
-Set case sensitivity in name search.  (on/off/auto)"), _("\
-Show case sensitivity in name search.  (on/off/auto)"), _("\
+Set case sensitivity in name search (on/off/auto)."), _("\
+Show case sensitivity in name search (on/off/auto)."), _("\
 For Fortran the default is off; for other languages the default is on."),
 			set_case_command,
 			show_case_command,
@@ -1173,10 +1190,9 @@ For Fortran the default is off; for other languages the default is on."),
 
   add_set_language_command ();
 
-  language = xstrdup ("auto");
-  type = xstrdup ("auto");
-  range = xstrdup ("auto");
-  case_sensitive = xstrdup ("auto");
+  language = "auto";
+  range = "auto";
+  case_sensitive = "auto";
 
   /* Have the above take effect.  */
   set_language (language_auto);

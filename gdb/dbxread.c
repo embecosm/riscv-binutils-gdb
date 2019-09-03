@@ -1,5 +1,5 @@
 /* Read dbx symbol tables and convert to internal format, for GDB.
-   Copyright (C) 1986-2018 Free Software Foundation, Inc.
+   Copyright (C) 1986-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -61,7 +61,7 @@
 
 /* Key for dbx-associated data.  */
 
-const struct objfile_data *dbx_objfile_data_key;
+objfile_key<dbx_symfile_info> dbx_objfile_data_key;
 
 /* We put a pointer to this structure in the read_symtab_private field
    of the psymtab.  */
@@ -298,9 +298,7 @@ static void add_old_header_file (const char *, int);
 static void add_this_object_header_file (int);
 
 static struct partial_symtab *start_psymtab (struct objfile *, const char *,
-					     CORE_ADDR, int,
-					     std::vector<partial_symbol *> &,
-					     std::vector<partial_symbol *> &);
+					     CORE_ADDR, int);
 
 /* Free up old header file tables.  */
 
@@ -538,9 +536,7 @@ dbx_symfile_read (struct objfile *objfile, symfile_add_flags symfile_flags)
     perror_with_name (objfile_name (objfile));
 
   /* Size the symbol table.  */
-  if (objfile->global_psymbols.capacity () == 0
-      && objfile->static_psymbols.capacity () == 0)
-    init_psymbol_list (objfile, DBX_SYMCOUNT (objfile));
+  init_psymbol_list (objfile, DBX_SYMCOUNT (objfile));
 
   symbol_size = DBX_SYMBOL_SIZE (objfile);
   symbol_table_offset = DBX_SYMTAB_OFFSET (objfile);
@@ -594,11 +590,9 @@ dbx_symfile_init (struct objfile *objfile)
   char *name = bfd_get_filename (sym_bfd);
   asection *text_sect;
   unsigned char size_temp[DBX_STRINGTAB_SIZE_SIZE];
-  struct dbx_symfile_info *dbx;
 
   /* Allocate struct to keep track of the symfile.  */
-  dbx = XCNEW (struct dbx_symfile_info);
-  set_objfile_data (objfile, dbx_objfile_data_key, dbx);
+  dbx_objfile_data_key.emplace (objfile);
 
   DBX_TEXT_SECTION (objfile) = bfd_get_section_by_name (sym_bfd, ".text");
   DBX_DATA_SECTION (objfile) = bfd_get_section_by_name (sym_bfd, ".data");
@@ -707,15 +701,12 @@ dbx_symfile_finish (struct objfile *objfile)
   free_header_files ();
 }
 
-static void
-dbx_free_symfile_info (struct objfile *objfile, void *arg)
+dbx_symfile_info::~dbx_symfile_info ()
 {
-  struct dbx_symfile_info *dbx = (struct dbx_symfile_info *) arg;
-
-  if (dbx->header_files != NULL)
+  if (header_files != NULL)
     {
-      int i = dbx->n_header_files;
-      struct header_file *hfiles = dbx->header_files;
+      int i = n_header_files;
+      struct header_file *hfiles = header_files;
 
       while (--i >= 0)
 	{
@@ -724,8 +715,6 @@ dbx_free_symfile_info (struct objfile *objfile, void *arg)
 	}
       xfree (hfiles);
     }
-
-  xfree (dbx);
 }
 
 
@@ -751,7 +740,8 @@ static char *stringtab_global;
 /* These variables are used to control fill_symbuf when the stabs
    symbols are not contiguous (as may be the case when a COFF file is
    linked using --split-by-reloc).  */
-static struct stab_section_list *symbuf_sections;
+static const std::vector<asection *> *symbuf_sections;
+static size_t sect_idx;
 static unsigned int symbuf_left;
 static unsigned int symbuf_read;
 
@@ -787,13 +777,13 @@ fill_symbuf (bfd *sym_bfd)
     {
       if (symbuf_left <= 0)
 	{
-	  file_ptr filepos = symbuf_sections->section->filepos;
+	  file_ptr filepos = (*symbuf_sections)[sect_idx]->filepos;
 
 	  if (bfd_seek (sym_bfd, filepos, SEEK_SET) != 0)
 	    perror_with_name (bfd_get_filename (sym_bfd));
-	  symbuf_left = bfd_section_size (sym_bfd, symbuf_sections->section);
+	  symbuf_left = bfd_section_size (sym_bfd, (*symbuf_sections)[sect_idx]);
 	  symbol_table_offset = filepos - symbuf_read;
-	  symbuf_sections = symbuf_sections->next;
+	  ++sect_idx;
 	}
 
       count = symbuf_left;
@@ -1302,9 +1292,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      {
 		pst = start_psymtab (objfile,
 				     namestring, valu,
-				     first_so_symnum * symbol_size,
-				     objfile->global_psymbols,
-				     objfile->static_psymbols);
+				     first_so_symnum * symbol_size);
 		pst->dirname = dirname_nso;
 		dirname_nso = NULL;
 	      }
@@ -1452,9 +1440,8 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      if (!new_name.empty ())
 		{
 		  sym_len = new_name.length ();
-		  sym_name = (char *) obstack_copy0 (&objfile->objfile_obstack,
-						     new_name.c_str (),
-						     sym_len);
+		  sym_name = obstack_strdup (&objfile->objfile_obstack,
+					     new_name);
 		}
 	    }
 
@@ -1480,7 +1467,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      add_psymbol_to_list (sym_name, sym_len, 1,
 				   VAR_DOMAIN, LOC_STATIC,
 				   data_sect_index,
-				   &objfile->static_psymbols,
+				   psymbol_placement::STATIC,
 				   nlist.n_value, psymtab_language, objfile);
 	      continue;
 
@@ -1490,7 +1477,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      add_psymbol_to_list (sym_name, sym_len, 1,
 				   VAR_DOMAIN, LOC_STATIC,
 				   data_sect_index,
-				   &objfile->global_psymbols,
+				   psymbol_placement::GLOBAL,
 				   nlist.n_value, psymtab_language, objfile);
 	      continue;
 
@@ -1507,14 +1494,14 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 		{
 		  add_psymbol_to_list (sym_name, sym_len, 1,
 				       STRUCT_DOMAIN, LOC_TYPEDEF, -1,
-				       &objfile->static_psymbols,
+				       psymbol_placement::STATIC,
 				       0, psymtab_language, objfile);
 		  if (p[2] == 't')
 		    {
 		      /* Also a typedef with the same name.  */
 		      add_psymbol_to_list (sym_name, sym_len, 1,
 					   VAR_DOMAIN, LOC_TYPEDEF, -1,
-					   &objfile->static_psymbols,
+					   psymbol_placement::STATIC,
 					   0, psymtab_language, objfile);
 		      p += 1;
 		    }
@@ -1526,7 +1513,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 		{
 		  add_psymbol_to_list (sym_name, sym_len, 1,
 				       VAR_DOMAIN, LOC_TYPEDEF, -1,
-				       &objfile->static_psymbols,
+				       psymbol_placement::STATIC,
 				       0, psymtab_language, objfile);
 		}
 	    check_enum:
@@ -1587,7 +1574,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 			 enum constants in psymtabs, just in symtabs.  */
 		      add_psymbol_to_list (p, q - p, 1,
 					   VAR_DOMAIN, LOC_CONST, -1,
-					   &objfile->static_psymbols, 0,
+					   psymbol_placement::STATIC, 0,
 					   psymtab_language, objfile);
 		      /* Point past the name.  */
 		      p = q;
@@ -1605,7 +1592,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      /* Constant, e.g. from "const" in Pascal.  */
 	      add_psymbol_to_list (sym_name, sym_len, 1,
 				   VAR_DOMAIN, LOC_CONST, -1,
-				   &objfile->static_psymbols, 0,
+				   psymbol_placement::STATIC, 0,
 				   psymtab_language, objfile);
 	      continue;
 
@@ -1661,7 +1648,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      add_psymbol_to_list (sym_name, sym_len, 1,
 				   VAR_DOMAIN, LOC_BLOCK,
 				   SECT_OFF_TEXT (objfile),
-				   &objfile->static_psymbols,
+				   psymbol_placement::STATIC,
 				   nlist.n_value, psymtab_language, objfile);
 	      continue;
 
@@ -1720,7 +1707,7 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 	      add_psymbol_to_list (sym_name, sym_len, 1,
 				   VAR_DOMAIN, LOC_BLOCK,
 				   SECT_OFF_TEXT (objfile),
-				   &objfile->global_psymbols,
+				   psymbol_placement::GLOBAL,
 				   nlist.n_value, psymtab_language, objfile);
 	      continue;
 
@@ -1916,12 +1903,10 @@ read_dbx_symtab (minimal_symbol_reader &reader, struct objfile *objfile)
 
 static struct partial_symtab *
 start_psymtab (struct objfile *objfile, const char *filename, CORE_ADDR textlow,
-	       int ldsymoff, std::vector<partial_symbol *> &global_psymbols,
-	       std::vector<partial_symbol *> &static_psymbols)
+	       int ldsymoff)
 {
   struct partial_symtab *result =
-    start_psymtab_common (objfile, filename, textlow,
-			  global_psymbols, static_psymbols);
+    start_psymtab_common (objfile, filename, textlow);
 
   result->read_symtab_private =
     XOBNEW (&objfile->objfile_obstack, struct symloc);
@@ -2014,18 +1999,14 @@ dbx_end_psymtab (struct objfile *objfile, struct partial_symtab *pst,
     pst->set_text_low (pst->raw_text_high ());
   else
     {
-      struct partial_symtab *p1;
-
       /* If we know our own starting text address, then walk through all other
          psymtabs for this objfile, and if any didn't know their ending text
          address, set it to our starting address.  Take care to not set our
          own ending address to our starting address.  */
 
-      ALL_OBJFILE_PSYMTABS (objfile, p1)
-      {
+      for (partial_symtab *p1 : objfile->psymtabs ())
 	if (!p1->text_high_valid && p1->text_low_valid && p1 != pst)
 	  p1->set_text_high (pst->raw_text_low ());
-      }
     }
 
   /* End of kludge for patching Solaris textlow and texthigh.  */
@@ -2035,9 +2016,8 @@ dbx_end_psymtab (struct objfile *objfile, struct partial_symtab *pst,
   pst->number_of_dependencies = number_dependencies;
   if (number_dependencies)
     {
-      pst->dependencies = XOBNEWVEC (&objfile->objfile_obstack,
-				     struct partial_symtab *,
-				     number_dependencies);
+      pst->dependencies
+	= objfile->partial_symtabs->allocate_dependencies (number_dependencies);
       memcpy (pst->dependencies, dependency_list,
 	      number_dependencies * sizeof (struct partial_symtab *));
     }
@@ -2057,17 +2037,10 @@ dbx_end_psymtab (struct objfile *objfile, struct partial_symtab *pst,
       /* We could save slight bits of space by only making one of these,
          shared by the entire set of include files.  FIXME-someday.  */
       subpst->dependencies =
-	XOBNEW (&objfile->objfile_obstack, struct partial_symtab *);
+	objfile->partial_symtabs->allocate_dependencies (1);
       subpst->dependencies[0] = pst;
       subpst->number_of_dependencies = 1;
 
-      subpst->globals_offset =
-	subpst->n_global_syms =
-	subpst->statics_offset =
-	subpst->n_static_syms = 0;
-
-      subpst->readin = 0;
-      subpst->compunit_symtab = 0;
       subpst->read_symtab = pst->read_symtab;
     }
 
@@ -2381,8 +2354,7 @@ cp_set_block_scope (const struct symbol *symbol,
       const char *name = SYMBOL_DEMANGLED_NAME (symbol);
       unsigned int prefix_len = cp_entire_prefix_len (name);
 
-      block_set_scope (block,
-		       (const char *) obstack_copy0 (obstack, name, prefix_len),
+      block_set_scope (block, obstack_strndup (obstack, name, prefix_len),
 		       obstack);
     }
 }
@@ -2962,13 +2934,16 @@ process_one_symbol (int type, int desc, CORE_ADDR valu, const char *name,
 void
 coffstab_build_psymtabs (struct objfile *objfile,
 			 CORE_ADDR textaddr, unsigned int textsize,
-			 struct stab_section_list *stabsects,
+			 const std::vector<asection *> &stabsects,
 			 file_ptr stabstroffset, unsigned int stabstrsize)
 {
   int val;
   bfd *sym_bfd = objfile->obfd;
   char *name = bfd_get_filename (sym_bfd);
   unsigned int stabsize;
+
+  /* Allocate struct to keep track of stab reading.  */
+  dbx_objfile_data_key.emplace (objfile);
 
   DBX_TEXT_ADDR (objfile) = textaddr;
   DBX_TEXT_SIZE (objfile) = textsize;
@@ -3001,27 +2976,28 @@ coffstab_build_psymtabs (struct objfile *objfile,
   /* In a coff file, we've already installed the minimal symbols that came
      from the coff (non-stab) symbol table, so always act like an
      incremental load here.  */
-  if (stabsects->next == NULL)
+  scoped_restore save_symbuf_sections
+    = make_scoped_restore (&symbuf_sections);
+  if (stabsects.size () == 1)
     {
-      stabsize = bfd_section_size (sym_bfd, stabsects->section);
+      stabsize = bfd_section_size (sym_bfd, stabsects[0]);
       DBX_SYMCOUNT (objfile) = stabsize / DBX_SYMBOL_SIZE (objfile);
-      DBX_SYMTAB_OFFSET (objfile) = stabsects->section->filepos;
+      DBX_SYMTAB_OFFSET (objfile) = stabsects[0]->filepos;
     }
   else
     {
-      struct stab_section_list *stabsect;
-
       DBX_SYMCOUNT (objfile) = 0;
-      for (stabsect = stabsects; stabsect != NULL; stabsect = stabsect->next)
+      for (asection *section : stabsects)
 	{
-	  stabsize = bfd_section_size (sym_bfd, stabsect->section);
+	  stabsize = bfd_section_size (sym_bfd, section);
 	  DBX_SYMCOUNT (objfile) += stabsize / DBX_SYMBOL_SIZE (objfile);
 	}
 
-      DBX_SYMTAB_OFFSET (objfile) = stabsects->section->filepos;
+      DBX_SYMTAB_OFFSET (objfile) = stabsects[0]->filepos;
 
-      symbuf_sections = stabsects->next;
-      symbuf_left = bfd_section_size (sym_bfd, stabsects->section);
+      sect_idx = 1;
+      symbuf_sections = &stabsects;
+      symbuf_left = bfd_section_size (sym_bfd, stabsects[0]);
       symbuf_read = 0;
     }
 
@@ -3051,6 +3027,11 @@ elfstab_build_psymtabs (struct objfile *objfile, asection *stabsect,
   int val;
   bfd *sym_bfd = objfile->obfd;
   char *name = bfd_get_filename (sym_bfd);
+
+  stabsread_new_init ();
+
+  /* Allocate struct to keep track of stab reading.  */
+  dbx_objfile_data_key.emplace (objfile);
 
   /* Find the first and last text address.  dbx_symfile_read seems to
      want this.  */
@@ -3130,7 +3111,6 @@ stabsect_build_psymtabs (struct objfile *objfile, char *stab_name,
   asection *stabsect;
   asection *stabstrsect;
   asection *text_sect;
-  struct dbx_symfile_info *dbx;
 
   stabsect = bfd_get_section_by_name (sym_bfd, stab_name);
   stabstrsect = bfd_get_section_by_name (sym_bfd, stabstr_name);
@@ -3143,8 +3123,7 @@ stabsect_build_psymtabs (struct objfile *objfile, char *stab_name,
 	     "but not string section (%s)"),
 	   stab_name, stabstr_name);
 
-  dbx = XCNEW (struct dbx_symfile_info);
-  set_objfile_data (objfile, dbx_objfile_data_key, dbx);
+  dbx_objfile_data_key.emplace (objfile);
 
   text_sect = bfd_get_section_by_name (sym_bfd, text_name);
   if (!text_sect)
@@ -3209,7 +3188,4 @@ void
 _initialize_dbxread (void)
 {
   add_symtab_fns (bfd_target_aout_flavour, &aout_sym_fns);
-
-  dbx_objfile_data_key
-    = register_objfile_data_with_cleanup (NULL, dbx_free_symfile_info);
 }

@@ -1,6 +1,6 @@
 ## Process this file with automake to generate Makefile.in
 #
-#   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ BFDDIR = $(srcdir)/../bfd
 
 WARN_CFLAGS = @WARN_CFLAGS@
 NO_WERROR = @NO_WERROR@
-NO_WMISSING_FIELD_INITIALIZERS = @NO_WMISSING_FIELD_INITIALIZERS@
 AM_CFLAGS = $(WARN_CFLAGS)
 
 COMPILE_FOR_BUILD = $(CC_FOR_BUILD) $(INCLUDES) $(AM_CPPFLAGS) \
@@ -60,6 +59,7 @@ BUILD_LIB_DEPS = @BUILD_LIB_DEPS@
 # Header files.
 HFILES = \
 	aarch64-asm.h aarch64-dis.h aarch64-opc.h aarch64-tbl.h \
+	bpf-desc.h bpf-opc.h \
 	epiphany-desc.h epiphany-opc.h \
 	fr30-desc.h fr30-opc.h \
 	frv-desc.h frv-opc.h \
@@ -118,6 +118,11 @@ TARGET_LIBOPCODES_CFILES = \
 	d30v-dis.c \
 	d30v-opc.c \
 	dlx-dis.c \
+	bpf-asm.c \
+	bpf-desc.c \
+	bpf-dis.c \
+	bpf-ibld.c \
+	bpf-opc.c \
 	epiphany-asm.c \
 	epiphany-desc.c \
 	epiphany-dis.c \
@@ -177,6 +182,7 @@ TARGET_LIBOPCODES_CFILES = \
 	m68k-dis.c \
 	m68k-opc.c \
 	s12z-dis.c \
+	s12z-opc.c \
 	mcore-dis.c \
 	mep-asm.c \
 	mep-desc.c \
@@ -219,11 +225,13 @@ TARGET_LIBOPCODES_CFILES = \
 	ppc-opc.c \
 	pru-dis.c \
 	pru-opc.c \
-	riscv-cgen-asm.c \
+	riscv-dis.c \
+	riscv-opc.c \
 	riscv-cgen-desc.c \
 	riscv-cgen-dis.c \
 	riscv-cgen-ibld.c \
 	riscv-cgen-opc.c \
+	riscv-cgen-asm.c \
 	rl78-decode.c \
 	rl78-dis.c \
 	rx-decode.c \
@@ -370,9 +378,10 @@ CGENDEPS = \
 	$(CGENDIR)/opc-opinst.scm \
 	cgen-asm.in cgen-dis.in cgen-ibld.in
 
-CGEN_CPUS = epiphany fr30 frv ip2k iq2000 lm32 m32c m32r mep mt or1k riscv xc16x xstormy16
+CGEN_CPUS = epiphany fr30 frv ip2k iq2000 lm32 m32c m32r mep mt or1k xc16x xstormy16
 
 if CGEN_MAINT
+BPF_DEPS = stamp-bpf
 EPIPHANY_DEPS = stamp-epiphany
 FR30_DEPS = stamp-fr30
 FRV_DEPS = stamp-frv
@@ -384,10 +393,10 @@ M32R_DEPS = stamp-m32r
 MEP_DEPS = stamp-mep
 MT_DEPS = stamp-mt
 OR1K_DEPS = stamp-or1k
-RISCV_DEPS = stamp-riscv
 XC16X_DEPS = stamp-xc16x
 XSTORMY16_DEPS = stamp-xstormy16
 else
+BPF_DEPS =
 EPIPHANY_DEPS =
 FR30_DEPS =
 FRV_DEPS =
@@ -399,7 +408,6 @@ M32R_DEPS =
 MEP_DEPS =
 MT_DEPS =
 OR1K_DEPS =
-RISCV_DEPS =
 XC16X_DEPS =
 XSTORMY16_DEPS =
 endif
@@ -420,6 +428,15 @@ run-cgen-all:
 .PHONY: run-cgen-all
 
 # For now, require developers to configure with --enable-cgen-maint.
+
+$(srcdir)/bpf-desc.h $(srcdir)/bpf-desc.c $(srcdir)/bpf-opc.h \
+		$(srcdir)/bpf-opc.c $(srcdir)/bpf-ibld.c \
+		$(srcdir)/bpf-asm.c $(srcdir)/bpf-dis.c: $(BPF_DEPS)
+	@true
+
+stamp-bpf: $(CGENDEPS) $(CPUDIR)/bpf.cpu $(CPUDIR)/bpf.opc
+	$(MAKE) run-cgen arch=bpf prefix=bpf \
+		archfile=$(CPUDIR)/bpf.cpu opcfile=$(CPUDIR)/bpf.opc
 
 $(srcdir)/epiphany-desc.h $(srcdir)/epiphany-desc.c $(srcdir)/epiphany-opc.h \
 		$(srcdir)/epiphany-opc.c $(srcdir)/epiphany-ibld.c \

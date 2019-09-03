@@ -1,6 +1,6 @@
 /* Target-dependent code for AMD64 Solaris.
 
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    Contributed by Joseph Myers, CodeSourcery, LLC.
 
@@ -28,7 +28,7 @@
 
 #include "sol2-tdep.h"
 #include "amd64-tdep.h"
-#include "x86-xstate.h"
+#include "gdbsupport/x86-xstate.h"
 #include "solib-svr4.h"
 
 /* Mapping between the general-purpose registers in gregset_t format
@@ -74,7 +74,8 @@ amd64_sol2_sigtramp_p (struct frame_info *this_frame)
 
   find_pc_partial_function (pc, &name, NULL, NULL);
   return (name && (strcmp ("sigacthandler", name) == 0
-		   || strcmp (name, "ucbsigvechandler") == 0));
+		   || strcmp (name, "ucbsigvechandler") == 0
+		   || strcmp (name, "__sighndlr") == 0));
 }
 
 /* Solaris doesn't have a 'struct sigcontext', but it does have a

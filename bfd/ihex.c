@@ -1,5 +1,5 @@
 /* BFD back-end for Intel Hex objects.
-   Copyright (C) 1995-2018 Free Software Foundation, Inc.
+   Copyright (C) 1995-2019 Free Software Foundation, Inc.
    Written by Ian Lance Taylor of Cygnus Support <ian@cygnus.com>.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -777,6 +777,28 @@ ihex_write_object_contents (bfd *abfd)
       bfd_size_type count;
 
       where = l->where;
+
+#ifdef BFD64
+      /* IHex only supports 32-bit addresses, and we want to check
+	 that 64-bit addresses are in range.  This isn't quite as
+	 obvious as it may seem, since some targets have 32-bit
+	 addresses that are sign extended to 64 bits.  So complain
+	 only if addresses overflow both unsigned and signed 32-bit
+	 integers.  */
+      if (where > 0xffffffff
+	  && where + 0x80000000 > 0xffffffff)
+	{
+	  _bfd_error_handler
+	    /* xgettext:c-format */
+	    (_("%pB 64-bit address %#" PRIx64
+	       " out of range for Intel Hex file"),
+	     abfd, (uint64_t) where);
+	  bfd_set_error (bfd_error_bad_value);
+	  return FALSE;
+	}
+      where &= 0xffffffff;
+#endif
+
       p = l->data;
       count = l->size;
 

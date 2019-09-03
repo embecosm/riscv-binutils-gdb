@@ -1,6 +1,6 @@
-# Makefile template for Configure for the frv simulator
-# Copyright (C) 1998-2017 Free Software Foundation, Inc.
-# Contributed by Red Hat.
+# Makefile template for Configure for the riscv simulator
+# Copyright (C) 1998-2019 Free Software Foundation, Inc.
+# Contributed by Embecosm
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -121,7 +121,7 @@ riscv-clean:
 	rm -f tmp-*
 	rm -f stamp-arch* stamp-cpu*
 
-stamp-arch32: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+stamp-arch32: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu Makefile
 	mv $(srcdir)/cpuall.h $(srcdir)/tmp-cpuall.h
 	mv $(srcdir)/arch.h   $(srcdir)/tmp-arch.h
 	$(MAKE) cgen-arch $(CGEN_FLAGS_TO_PASS) \
@@ -138,7 +138,7 @@ stamp-arch32: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(
 $(srcdir)/arch32.h $(srcdir)/arch32.c $(srcdir)/cpuall32.h: $(CGEN_MAINT) stamp-arch32
 	@true
 
-stamp-arch64: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+stamp-arch64: $(CGEN_READ_SCM) $(CGEN_ARCH_SCM) $(srcdir)/../../cpu/riscv.cpu Makefile
 	mv $(srcdir)/cpuall.h $(srcdir)/tmp-cpuall.h
 	mv $(srcdir)/arch.h   $(srcdir)/tmp-arch.h
 	$(MAKE) cgen-arch $(CGEN_FLAGS_TO_PASS) \
@@ -156,7 +156,7 @@ $(srcdir)/arch64.h $(srcdir)/arch64.c $(srcdir)/cpuall64.h: $(CGEN_MAINT) stamp-
 	@true
 
 
-stamp-cpu32: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+stamp-cpu32: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu Makefile
 	$(MAKE) cgen-cpu-decode $(CGEN_FLAGS_TO_PASS) \
 	  archfile=$(srcdir)/../../cpu/riscv.cpu \
 	  isa=rv32 cpu=riscv32bf SUFFIX=32 \
@@ -167,7 +167,7 @@ stamp-cpu32: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../..
 $(srcdir)/cpu32.h $(srcdir)/cpu32.c $(srcdir)/sem32.c $(srcdir)/model32.c $(srcdir)/decode32.c $(srcdir)/decode32.h: $(CGEN_MAINT) stamp-cpu32
 	@true
 
-stamp-cpu64: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu $(srcdir)/../../cpu/riscv.opc Makefile
+stamp-cpu64: $(CGEN_READ_SCM) $(CGEN_CPU_SCM) $(CGEN_DECODE_CPU) $(srcdir)/../../cpu/riscv.cpu Makefile
 	$(MAKE) cgen-cpu-decode $(CGEN_FLAGS_TO_PASS) \
 	  archfile=$(srcdir)/../../cpu/riscv.cpu \
 	  isa=rv64 cpu=riscv64bf SUFFIX=64 \

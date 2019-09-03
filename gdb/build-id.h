@@ -1,6 +1,6 @@
 /* build-id-related functions.
 
-   Copyright (C) 1991-2018 Free Software Foundation, Inc.
+   Copyright (C) 1991-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -21,7 +21,7 @@
 #define BUILD_ID_H
 
 #include "gdb_bfd.h"
-#include "common/rsp-low.h"
+#include "gdbsupport/rsp-low.h"
 
 /* Locate NT_GNU_BUILD_ID from ABFD and return its content.  */
 

@@ -1,6 +1,6 @@
 /* Target-dependent code for Xilinx MicroBlaze.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -105,8 +105,8 @@ static struct tramp_frame microblaze_linux_sighandler_tramp_frame =
   SIGTRAMP_FRAME,
   4,
   {
-    { 0x31800077, -1 }, /* addik R12,R0,119.  */
-    { 0xb9cc0008, -1 }, /* brki R14,8.  */
+    { 0x31800077, ULONGEST_MAX }, /* addik R12,R0,119.  */
+    { 0xb9cc0008, ULONGEST_MAX }, /* brki R14,8.  */
     { TRAMP_SENTINEL_INSN },
   },
   microblaze_linux_sighandler_cache_init

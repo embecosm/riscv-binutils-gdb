@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 dnl
-dnl   Copyright (C) 2012-2018 Free Software Foundation, Inc.
+dnl   Copyright (C) 2012-2019 Free Software Foundation, Inc.
 dnl
 dnl This file is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -130,6 +130,7 @@ AC_CHECK_HEADERS(string.h strings.h stdlib.h unistd.h fcntl.h sys/file.h limits.
 AC_HEADER_SYS_WAIT
 ACX_HEADER_STRING
 AC_FUNC_ALLOCA
+AC_FUNC_MMAP
 AC_CHECK_FUNCS(sbrk utimes setmode getc_unlocked strcoll setlocale)
 AC_CHECK_FUNC([mkstemp],
 	      AC_DEFINE([HAVE_MKSTEMP], 1,

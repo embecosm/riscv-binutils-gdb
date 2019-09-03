@@ -1,6 +1,6 @@
 /* Process record and replay target for GDB, the GNU debugger.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -23,7 +23,7 @@
 #include "record.h"
 #include "observable.h"
 #include "inferior.h"
-#include "common/common-utils.h"
+#include "gdbsupport/common-utils.h"
 #include "cli/cli-utils.h"
 #include "disasm.h"
 
@@ -75,7 +75,7 @@ require_record_target (void)
   t = find_record_target ();
   if (t == NULL)
     error (_("No record target is currently active.\n"
-	     "Use one of the \"target record-<tab><tab>\" commands first."));
+	     "Use one of the \"target record-<TAB><TAB>\" commands first."));
 
   return t;
 }
@@ -99,25 +99,25 @@ record_start (const char *method, const char *format, int from_tty)
   if (method == NULL)
     {
       if (format == NULL)
-	execute_command_to_string ("record", from_tty);
+	execute_command_to_string ("record", from_tty, false);
       else
 	error (_("Invalid format."));
     }
   else if (strcmp (method, "full") == 0)
     {
       if (format == NULL)
-	execute_command_to_string ("record full", from_tty);
+	execute_command_to_string ("record full", from_tty, false);
       else
 	error (_("Invalid format."));
     }
   else if (strcmp (method, "btrace") == 0)
     {
       if (format == NULL)
-	execute_command_to_string ("record btrace", from_tty);
+	execute_command_to_string ("record btrace", from_tty, false);
       else if (strcmp (format, "bts") == 0)
-	execute_command_to_string ("record btrace bts", from_tty);
+	execute_command_to_string ("record btrace bts", from_tty, false);
       else if (strcmp (format, "pt") == 0)
-	execute_command_to_string ("record btrace pt", from_tty);
+	execute_command_to_string ("record btrace pt", from_tty, false);
       else
 	error (_("Invalid format."));
     }
@@ -130,7 +130,7 @@ record_start (const char *method, const char *format, int from_tty)
 void
 record_stop (int from_tty)
 {
-  execute_command_to_string ("record stop", from_tty);
+  execute_command_to_string ("record stop", from_tty, false);
 }
 
 /* See record.h.  */
@@ -174,7 +174,7 @@ record_unpush (struct target_ops *t)
 void
 record_disconnect (struct target_ops *t, const char *args, int from_tty)
 {
-  gdb_assert (t->to_stratum == record_stratum);
+  gdb_assert (t->stratum () == record_stratum);
 
   DEBUG ("disconnect %s", t->shortname ());
 
@@ -189,7 +189,7 @@ record_disconnect (struct target_ops *t, const char *args, int from_tty)
 void
 record_detach (struct target_ops *t, inferior *inf, int from_tty)
 {
-  gdb_assert (t->to_stratum == record_stratum);
+  gdb_assert (t->stratum () == record_stratum);
 
   DEBUG ("detach %s", t->shortname ());
 
@@ -204,7 +204,7 @@ record_detach (struct target_ops *t, inferior *inf, int from_tty)
 void
 record_mourn_inferior (struct target_ops *t)
 {
-  gdb_assert (t->to_stratum == record_stratum);
+  gdb_assert (t->stratum () == record_stratum);
 
   DEBUG ("mourn inferior %s", t->shortname ());
 
@@ -220,7 +220,7 @@ record_mourn_inferior (struct target_ops *t)
 void
 record_kill (struct target_ops *t)
 {
-  gdb_assert (t->to_stratum == record_stratum);
+  gdb_assert (t->stratum () == record_stratum);
 
   DEBUG ("kill %s", t->shortname ());
 
@@ -808,15 +808,15 @@ A size of \"unlimited\" means unlimited lines.  The default is 10."),
 
   add_com_alias ("rec", "record", class_obscure, 1);
   add_prefix_cmd ("record", class_support, set_record_command,
-		  _("Set record options"), &set_record_cmdlist,
+		  _("Set record options."), &set_record_cmdlist,
 		  "set record ", 0, &setlist);
   add_alias_cmd ("rec", "record", class_obscure, 1, &setlist);
   add_prefix_cmd ("record", class_support, show_record_command,
-		  _("Show record options"), &show_record_cmdlist,
+		  _("Show record options."), &show_record_cmdlist,
 		  "show record ", 0, &showlist);
   add_alias_cmd ("rec", "record", class_obscure, 1, &showlist);
   add_prefix_cmd ("record", class_support, info_record_command,
-		  _("Info record options"), &info_record_cmdlist,
+		  _("Info record options."), &info_record_cmdlist,
 		  "info record ", 0, &infolist);
   add_alias_cmd ("rec", "record", class_obscure, 1, &infolist);
 

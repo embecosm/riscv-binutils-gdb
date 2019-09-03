@@ -1,6 +1,6 @@
 /* Everything about syscall catchpoints, for GDB.
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -42,8 +42,6 @@ struct syscall_catchpoint : public breakpoint
   std::vector<int> syscalls_to_be_caught;
 };
 
-static const struct inferior_data *catch_syscall_inferior_data = NULL;
-
 struct catch_syscall_inferior_data
 {
   /* We keep a count of the number of times the user has requested a
@@ -61,30 +59,20 @@ struct catch_syscall_inferior_data
   int total_syscalls_count;
 };
 
+static const struct inferior_key<struct catch_syscall_inferior_data>
+  catch_syscall_inferior_data;
+
 static struct catch_syscall_inferior_data *
 get_catch_syscall_inferior_data (struct inferior *inf)
 {
   struct catch_syscall_inferior_data *inf_data;
 
-  inf_data = ((struct catch_syscall_inferior_data *)
-	      inferior_data (inf, catch_syscall_inferior_data));
+  inf_data = catch_syscall_inferior_data.get (inf);
   if (inf_data == NULL)
-    {
-      inf_data = new struct catch_syscall_inferior_data ();
-      set_inferior_data (inf, catch_syscall_inferior_data, inf_data);
-    }
+    inf_data = catch_syscall_inferior_data.emplace (inf);
 
   return inf_data;
 }
-
-static void
-catch_syscall_inferior_data_cleanup (struct inferior *inf, void *arg)
-{
-  struct catch_syscall_inferior_data *inf_data
-    = (struct catch_syscall_inferior_data *) arg;
-  delete inf_data;
-}
-
 
 /* Implement the "insert" breakpoint_ops method for syscall
    catchpoints.  */
@@ -217,7 +205,7 @@ print_it_catch_syscall (bpstat bs)
 						: EXEC_ASYNC_SYSCALL_RETURN));
       uiout->field_string ("disp", bpdisp_text (b->disposition));
     }
-  uiout->field_int ("bkptno", b->number);
+  uiout->field_signed ("bkptno", b->number);
 
   if (last.kind == TARGET_WAITKIND_SYSCALL_ENTRY)
     uiout->text (" (call to syscall ");
@@ -225,7 +213,7 @@ print_it_catch_syscall (bpstat bs)
     uiout->text (" (returned from syscall ");
 
   if (s.name == NULL || uiout->is_mi_like_p ())
-    uiout->field_int ("syscall-number", last.value.syscall_number);
+    uiout->field_signed ("syscall-number", last.value.syscall_number);
   if (s.name != NULL)
     uiout->field_string ("syscall-name", s.name);
 
@@ -265,7 +253,7 @@ print_one_catch_syscall (struct breakpoint *b,
 
       for (int iter : c->syscalls_to_be_caught)
         {
-          char *x = text;
+          char *previous_text = text;
           struct syscall s;
           get_syscall_by_number (gdbarch, iter, &s);
 
@@ -274,14 +262,15 @@ print_one_catch_syscall (struct breakpoint *b,
           else
             text = xstrprintf ("%s%d, ", text, iter);
 
-          /* We have to xfree the last 'text' (now stored at 'x')
-             because xstrprintf dynamically allocates new space for it
-             on every call.  */
-	  xfree (x);
+          /* We have to xfree previous_text because xstrprintf dynamically
+	     allocates new space for text on every call.  */
+	  xfree (previous_text);
         }
       /* Remove the last comma.  */
       text[strlen (text) - 2] = '\0';
       uiout->field_string ("what", text);
+      /* xfree last text.  */
+      xfree (text);
     }
   else
     uiout->field_string ("what", "<any syscall>");
@@ -409,40 +398,23 @@ catch_syscall_split_args (const char *arg)
 	{
 	  /* We have a syscall group.  Let's expand it into a syscall
 	     list before inserting.  */
-	  struct syscall *syscall_list;
 	  const char *group_name;
 
 	  /* Skip over "g:" and "group:" prefix strings.  */
 	  group_name = strchr (cur_name, ':') + 1;
 
-	  syscall_list = get_syscalls_by_group (gdbarch, group_name);
-
-	  if (syscall_list == NULL)
+	  if (!get_syscalls_by_group (gdbarch, group_name, &result))
 	    error (_("Unknown syscall group '%s'."), group_name);
-
-	  for (i = 0; syscall_list[i].name != NULL; i++)
-	    {
-	      /* Insert each syscall that are part of the group.  No
-		 need to check if it is valid.  */
-	      result.push_back (syscall_list[i].number);
-	    }
-
-	  xfree (syscall_list);
 	}
       else
 	{
-	  /* We have a name.  Let's check if it's valid and convert it
-	     to a number.  */
-	  get_syscall_by_name (gdbarch, cur_name, &s);
-
-	  if (s.number == UNKNOWN_SYSCALL)
+	  /* We have a name.  Let's check if it's valid and fetch a
+	     list of matching numbers.  */
+	  if (!get_syscalls_by_name (gdbarch, cur_name, &result))
 	    /* Here we have to issue an error instead of a warning,
 	       because GDB cannot do anything useful if there's no
 	       syscall number to be caught.  */
 	    error (_("Unknown syscall name '%s'."), cur_name);
-
-	  /* Ok, it's valid.  */
-	  result.push_back (s.number);
 	}
     }
 
@@ -633,9 +605,6 @@ _initialize_break_catch_syscall (void)
   initialize_syscall_catchpoint_ops ();
 
   gdb::observers::inferior_exit.attach (clear_syscall_counts);
-  catch_syscall_inferior_data
-    = register_inferior_data_with_cleanup (NULL,
-					   catch_syscall_inferior_data_cleanup);
 
   add_catch_command ("syscall", _("\
 Catch system calls by their names, groups and/or numbers.\n\

@@ -1,6 +1,6 @@
 /* Scheme interface to symbols.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -486,16 +486,17 @@ gdbscm_symbol_needs_frame_p (SCM self)
   struct symbol *symbol = s_smob->symbol;
   int result = 0;
 
-  TRY
+  gdbscm_gdb_exception exc {};
+  try
     {
       result = symbol_read_needs_frame (symbol);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
-      GDBSCM_HANDLE_GDB_EXCEPTION (except);
+      exc = unpack (except);
     }
-  END_CATCH
 
+  GDBSCM_HANDLE_GDB_EXCEPTION (exc);
   return scm_from_bool (result);
 }
 
@@ -539,7 +540,8 @@ gdbscm_symbol_value (SCM self, SCM rest)
 				 _("cannot get the value of a typedef"));
     }
 
-  TRY
+  gdbscm_gdb_exception exc {};
+  try
     {
       if (f_smob != NULL)
 	{
@@ -557,12 +559,12 @@ gdbscm_symbol_value (SCM self, SCM rest)
 	 can happen with nested functions).  */
       value = read_var_value (symbol, NULL, frame_info);
     }
-  CATCH (except, RETURN_MASK_ALL)
+  catch (const gdb_exception &except)
     {
-      GDBSCM_HANDLE_GDB_EXCEPTION (except);
+      exc = unpack (except);
     }
-  END_CATCH
 
+  GDBSCM_HANDLE_GDB_EXCEPTION (exc);
   return vlscm_scm_from_value (value);
 }
 
@@ -604,30 +606,30 @@ gdbscm_lookup_symbol (SCM name_scm, SCM rest)
     {
       struct frame_info *selected_frame;
 
-      TRY
+      gdbscm_gdb_exception exc {};
+      try
 	{
 	  selected_frame = get_selected_frame (_("no frame selected"));
 	  block = get_frame_block (selected_frame, NULL);
 	}
-      CATCH (except, RETURN_MASK_ALL)
+      catch (const gdb_exception &ex)
 	{
 	  xfree (name);
-	  GDBSCM_HANDLE_GDB_EXCEPTION (except);
+	  exc = unpack (ex);
 	}
-      END_CATCH
+      GDBSCM_HANDLE_GDB_EXCEPTION (exc);
     }
 
-  struct gdb_exception except = exception_none;
-  TRY
+  gdbscm_gdb_exception except {};
+  try
     {
       symbol = lookup_symbol (name, block, (domain_enum) domain,
 			      &is_a_field_of_this).symbol;
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
-      except = ex;
+      except = unpack (ex);
     }
-  END_CATCH
 
   xfree (name);
   GDBSCM_HANDLE_GDB_EXCEPTION (except);
@@ -650,21 +652,20 @@ gdbscm_lookup_global_symbol (SCM name_scm, SCM rest)
   int domain_arg_pos = -1;
   int domain = VAR_DOMAIN;
   struct symbol *symbol = NULL;
-  struct gdb_exception except = exception_none;
+  gdbscm_gdb_exception except {};
 
   gdbscm_parse_function_args (FUNC_NAME, SCM_ARG1, keywords, "s#i",
 			      name_scm, &name, rest,
 			      &domain_arg_pos, &domain);
 
-  TRY
+  try
     {
       symbol = lookup_global_symbol (name, NULL, (domain_enum) domain).symbol;
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
-      except = ex;
+      except = unpack (ex);
     }
-  END_CATCH
 
   xfree (name);
   GDBSCM_HANDLE_GDB_EXCEPTION (except);

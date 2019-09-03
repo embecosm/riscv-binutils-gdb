@@ -1,5 +1,5 @@
 /* tc-metag.c -- Assembler for the Imagination Technologies Meta.
-   Copyright (C) 2013-2018 Free Software Foundation, Inc.
+   Copyright (C) 2013-2019 Free Software Foundation, Inc.
    Contributed by Imagination Technologies Ltd.
 
    This file is part of GAS, the GNU Assembler.
@@ -6704,9 +6704,6 @@ md_number_to_chars (char * buf, valueT val, int n)
    type, and store the appropriate bytes in *litP.  The number of LITTLENUMS
    emitted is stored in *sizeP .  An error message is returned, or NULL on OK.
 */
-
-/* Equal to MAX_PRECISION in atof-ieee.c */
-#define MAX_LITTLENUMS 6
 
 const char *
 md_atof (int type, char * litP, int * sizeP)

@@ -1,6 +1,6 @@
 /* GCC C plug-in wrapper for GDB.
 
-   Copyright (C) 2018 Free Software Foundation, Inc.
+   Copyright (C) 2018-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -16,6 +16,11 @@
 
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+#ifndef COMPILE_GCC_C_PLUGIN_H
+#define COMPILE_GCC_C_PLUGIN_H
+
+#include "compile-internal.h"
 
 /* A class representing the C plug-in.  */
 
@@ -62,3 +67,5 @@ private:
   /* The GCC C context.  */
   struct gcc_c_context *m_context;
 };
+
+#endif /* COMPILE_GCC_C_PLUGIN_H */

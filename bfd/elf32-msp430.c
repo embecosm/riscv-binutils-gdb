@@ -1,5 +1,5 @@
 /*  MSP430-specific support for 32-bit ELF
-    Copyright (C) 2002-2018 Free Software Foundation, Inc.
+    Copyright (C) 2002-2019 Free Software Foundation, Inc.
     Contributed by Dmitry Diky <diwil@mail.ru>
 
     This file is part of BFD, the Binary File Descriptor library.
@@ -1385,9 +1385,8 @@ elf32_msp430_relocate_section (bfd * output_bfd ATTRIBUTE_UNUSED,
    file.  This gets the MSP430 architecture right based on the machine
    number.  */
 
-static void
-bfd_elf_msp430_final_write_processing (bfd * abfd,
-				       bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+bfd_elf_msp430_final_write_processing (bfd *abfd)
 {
   unsigned long val;
 
@@ -1422,6 +1421,7 @@ bfd_elf_msp430_final_write_processing (bfd * abfd,
   elf_elfheader (abfd)->e_machine = EM_MSP430;
   elf_elfheader (abfd)->e_flags &= ~EF_MSP430_MACH;
   elf_elfheader (abfd)->e_flags |= val;
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Set the right machine number.  */
@@ -2422,6 +2422,12 @@ elf32_msp430_merge_mspabi_attributes (bfd *ibfd, struct bfd_link_info *info)
 
   /* Skip linker created files.  */
   if (ibfd->flags & BFD_LINKER_CREATED)
+    return TRUE;
+
+  /* LTO can create temporary files for linking which may not have an attribute
+     section.  */
+  if (ibfd->lto_output
+      && bfd_get_section_by_name (ibfd, ".MSP430.attributes") == NULL)
     return TRUE;
 
   /* If this is the first real object just copy the attributes.  */

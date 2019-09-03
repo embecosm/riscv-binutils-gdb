@@ -1,6 +1,6 @@
 /* Definitions for frame unwinder, for GDB, the GNU debugger.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -26,6 +26,7 @@
 #include "regcache.h"
 #include "gdb_obstack.h"
 #include "target.h"
+#include "gdbarch.h"
 
 static struct gdbarch_data *frame_unwind_data;
 
@@ -101,11 +102,11 @@ frame_unwind_try_unwinder (struct frame_info *this_frame, void **this_cache,
 
   frame_prepare_for_sniffer (this_frame, unwinder);
 
-  TRY
+  try
     {
       res = unwinder->sniffer (unwinder, this_frame, this_cache);
     }
-  CATCH (ex, RETURN_MASK_ALL)
+  catch (const gdb_exception &ex)
     {
       /* Catch all exceptions, caused by either interrupt or error.
 	 Reset *THIS_CACHE.  */
@@ -120,9 +121,8 @@ frame_unwind_try_unwinder (struct frame_info *this_frame, void **this_cache,
 	     should always accept the frame.  */
 	  return 0;
 	}
-      throw_exception (ex);
+      throw;
     }
-  END_CATCH
 
   if (res)
     return 1;
@@ -191,6 +191,26 @@ default_frame_unwind_stop_reason (struct frame_info *this_frame,
     return UNWIND_OUTERMOST;
   else
     return UNWIND_NO_REASON;
+}
+
+/* See frame-unwind.h.  */
+
+CORE_ADDR
+default_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
+{
+  int pc_regnum = gdbarch_pc_regnum (gdbarch);
+  CORE_ADDR pc = frame_unwind_register_unsigned (next_frame, pc_regnum);
+  pc = gdbarch_addr_bits_remove (gdbarch, pc);
+  return pc;
+}
+
+/* See frame-unwind.h.  */
+
+CORE_ADDR
+default_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
+{
+  int sp_regnum = gdbarch_sp_regnum (gdbarch);
+  return frame_unwind_register_unsigned (next_frame, sp_regnum);
 }
 
 /* Helper functions for value-based register unwinding.  These return

@@ -1,6 +1,6 @@
 /* Target-dependent code for the MIPS architecture, for GDB, the GNU Debugger.
 
-   Copyright (C) 1988-2018 Free Software Foundation, Inc.
+   Copyright (C) 1988-2019 Free Software Foundation, Inc.
 
    Contributed by Alessandro Forin(af@cs.cmu.edu) at CMU
    and by Per Bothner(bothner@cs.wisc.edu) at U.Wisconsin.
@@ -57,8 +57,6 @@
 #include "ax.h"
 #include "target-float.h"
 #include <algorithm>
-
-static const struct objfile_data *mips_pdr_data;
 
 static struct type *mips_register_type (struct gdbarch *gdbarch, int regnum);
 
@@ -3910,7 +3908,7 @@ mips_addr_bits_remove (struct gdbarch *gdbarch, CORE_ADDR addr)
 static std::vector<CORE_ADDR>
 mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
 {
-  CORE_ADDR breaks[2] = {-1, -1};
+  CORE_ADDR breaks[2] = {CORE_ADDR_MAX, CORE_ADDR_MAX};
   CORE_ADDR loc = pc;
   CORE_ADDR branch_bp; /* Breakpoint at branch instruction's destination.  */
   ULONGEST insn;
@@ -4013,7 +4011,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 {
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */
-  CORE_ADDR breaks[2] = {-1, -1};
+  CORE_ADDR breaks[2] = {CORE_ADDR_MAX, CORE_ADDR_MAX};
   CORE_ADDR branch_bp = 0; /* Breakpoint at branch instruction's
 			      destination.  */
   CORE_ADDR loc = pc;
@@ -4495,12 +4493,13 @@ static CORE_ADDR
 mips_eabi_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			   struct regcache *regcache, CORE_ADDR bp_addr,
 			   int nargs, struct value **args, CORE_ADDR sp,
-			   int struct_return, CORE_ADDR struct_addr)
+			   function_call_return_method return_method,
+			   CORE_ADDR struct_addr)
 {
   int argreg;
   int float_argreg;
   int argnum;
-  int len = 0;
+  int arg_space = 0;
   int stack_offset = 0;
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR func_addr = find_function_addr (function, NULL);
@@ -4527,20 +4526,21 @@ mips_eabi_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
      than necessary for EABI, because the first few arguments are
      passed in registers, but that's OK.  */
   for (argnum = 0; argnum < nargs; argnum++)
-    len += align_up (TYPE_LENGTH (value_type (args[argnum])), abi_regsize);
-  sp -= align_up (len, 16);
+    arg_space += align_up (TYPE_LENGTH (value_type (args[argnum])), abi_regsize);
+  sp -= align_up (arg_space, 16);
 
   if (mips_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_eabi_push_dummy_call: sp=%s allocated %ld\n",
-			paddress (gdbarch, sp), (long) align_up (len, 16));
+			paddress (gdbarch, sp),
+			(long) align_up (arg_space, 16));
 
   /* Initialize the integer and float register pointers.  */
   argreg = MIPS_A0_REGNUM;
   float_argreg = mips_fpa0_regnum (gdbarch);
 
   /* The struct_return pointer occupies the first parameter-passing reg.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (mips_debug)
 	fprintf_unfiltered (gdb_stdlog,
@@ -4889,12 +4889,13 @@ static CORE_ADDR
 mips_n32n64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			     struct regcache *regcache, CORE_ADDR bp_addr,
 			     int nargs, struct value **args, CORE_ADDR sp,
-			     int struct_return, CORE_ADDR struct_addr)
+			     function_call_return_method return_method,
+			     CORE_ADDR struct_addr)
 {
   int argreg;
   int float_argreg;
   int argnum;
-  int len = 0;
+  int arg_space = 0;
   int stack_offset = 0;
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR func_addr = find_function_addr (function, NULL);
@@ -4918,20 +4919,21 @@ mips_n32n64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 
   /* Now make space on the stack for the args.  */
   for (argnum = 0; argnum < nargs; argnum++)
-    len += align_up (TYPE_LENGTH (value_type (args[argnum])), MIPS64_REGSIZE);
-  sp -= align_up (len, 16);
+    arg_space += align_up (TYPE_LENGTH (value_type (args[argnum])), MIPS64_REGSIZE);
+  sp -= align_up (arg_space, 16);
 
   if (mips_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_n32n64_push_dummy_call: sp=%s allocated %ld\n",
-			paddress (gdbarch, sp), (long) align_up (len, 16));
+			paddress (gdbarch, sp),
+			(long) align_up (arg_space, 16));
 
   /* Initialize the integer and float register pointers.  */
   argreg = MIPS_A0_REGNUM;
   float_argreg = mips_fpa0_regnum (gdbarch);
 
   /* The struct_return pointer occupies the first parameter-passing reg.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (mips_debug)
 	fprintf_unfiltered (gdb_stdlog,
@@ -5345,12 +5347,13 @@ static CORE_ADDR
 mips_o32_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			  struct regcache *regcache, CORE_ADDR bp_addr,
 			  int nargs, struct value **args, CORE_ADDR sp,
-			  int struct_return, CORE_ADDR struct_addr)
+			  function_call_return_method return_method,
+			  CORE_ADDR struct_addr)
 {
   int argreg;
   int float_argreg;
   int argnum;
-  int len = 0;
+  int arg_space = 0;
   int stack_offset = 0;
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR func_addr = find_function_addr (function, NULL);
@@ -5379,23 +5382,24 @@ mips_o32_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 
       /* Align to double-word if necessary.  */
       if (mips_type_needs_double_align (arg_type))
-	len = align_up (len, MIPS32_REGSIZE * 2);
+	arg_space = align_up (arg_space, MIPS32_REGSIZE * 2);
       /* Allocate space on the stack.  */
-      len += align_up (TYPE_LENGTH (arg_type), MIPS32_REGSIZE);
+      arg_space += align_up (TYPE_LENGTH (arg_type), MIPS32_REGSIZE);
     }
-  sp -= align_up (len, 16);
+  sp -= align_up (arg_space, 16);
 
   if (mips_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_o32_push_dummy_call: sp=%s allocated %ld\n",
-			paddress (gdbarch, sp), (long) align_up (len, 16));
+			paddress (gdbarch, sp),
+			(long) align_up (arg_space, 16));
 
   /* Initialize the integer and float register pointers.  */
   argreg = MIPS_A0_REGNUM;
   float_argreg = mips_fpa0_regnum (gdbarch);
 
   /* The struct_return pointer occupies the first parameter-passing reg.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (mips_debug)
 	fprintf_unfiltered (gdb_stdlog,
@@ -5869,12 +5873,12 @@ mips_o64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			  struct regcache *regcache, CORE_ADDR bp_addr,
 			  int nargs,
 			  struct value **args, CORE_ADDR sp,
-			  int struct_return, CORE_ADDR struct_addr)
+			  function_call_return_method return_method, CORE_ADDR struct_addr)
 {
   int argreg;
   int float_argreg;
   int argnum;
-  int len = 0;
+  int arg_space = 0;
   int stack_offset = 0;
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR func_addr = find_function_addr (function, NULL);
@@ -5902,21 +5906,22 @@ mips_o64_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
       struct type *arg_type = check_typedef (value_type (args[argnum]));
 
       /* Allocate space on the stack.  */
-      len += align_up (TYPE_LENGTH (arg_type), MIPS64_REGSIZE);
+      arg_space += align_up (TYPE_LENGTH (arg_type), MIPS64_REGSIZE);
     }
-  sp -= align_up (len, 16);
+  sp -= align_up (arg_space, 16);
 
   if (mips_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_o64_push_dummy_call: sp=%s allocated %ld\n",
-			paddress (gdbarch, sp), (long) align_up (len, 16));
+			paddress (gdbarch, sp),
+			(long) align_up (arg_space, 16));
 
   /* Initialize the integer and float register pointers.  */
   argreg = MIPS_A0_REGNUM;
   float_argreg = mips_fpa0_regnum (gdbarch);
 
   /* The struct_return pointer occupies the first parameter-passing reg.  */
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       if (mips_debug)
 	fprintf_unfiltered (gdb_stdlog,
@@ -6493,8 +6498,7 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
 
   /* For GP registers, we print a separate row of names above the vals.  */
   for (col = 0, regnum = start_regnum;
-       col < ncols && regnum < gdbarch_num_regs (gdbarch)
-			       + gdbarch_num_pseudo_regs (gdbarch);
+       col < ncols && regnum < gdbarch_num_cooked_regs (gdbarch);
        regnum++)
     {
       if (*gdbarch_register_name (gdbarch, regnum) == '\0')
@@ -6532,8 +6536,7 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
 
   /* Now print the values in hex, 4 or 8 to the row.  */
   for (col = 0, regnum = start_regnum;
-       col < ncols && regnum < gdbarch_num_regs (gdbarch)
-			       + gdbarch_num_pseudo_regs (gdbarch);
+       col < ncols && regnum < gdbarch_num_cooked_regs (gdbarch);
        regnum++)
     {
       if (*gdbarch_register_name (gdbarch, regnum) == '\0')
@@ -6599,8 +6602,7 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
     /* Do all (or most) registers.  */
     {
       regnum = gdbarch_num_regs (gdbarch);
-      while (regnum < gdbarch_num_regs (gdbarch)
-		      + gdbarch_num_pseudo_regs (gdbarch))
+      while (regnum < gdbarch_num_cooked_regs (gdbarch))
 	{
 	  if (mips_float_register_p (gdbarch, regnum))
 	    {
@@ -8980,8 +8982,6 @@ _initialize_mips_tdep (void)
     internal_error (__FILE__, __LINE__, _("mips_abi_strings out of sync"));
 
   gdbarch_register (bfd_arch_mips, mips_gdbarch_init, mips_dump_tdep);
-
-  mips_pdr_data = register_objfile_data ();
 
   /* Create feature sets with the appropriate properties.  The values
      are not important.  */

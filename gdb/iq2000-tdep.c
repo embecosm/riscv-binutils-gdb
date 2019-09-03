@@ -1,7 +1,7 @@
 /* Target-dependent code for the IQ2000 architecture, for GDB, the GNU
    Debugger.
 
-   Copyright (C) 2000-2018 Free Software Foundation, Inc.
+   Copyright (C) 2000-2019 Free Software Foundation, Inc.
 
    Contributed by Red Hat.
 
@@ -435,25 +435,6 @@ static const struct frame_unwind iq2000_frame_unwind = {
 };
 
 static CORE_ADDR
-iq2000_unwind_sp (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, E_SP_REGNUM);
-}   
-
-static CORE_ADDR
-iq2000_unwind_pc (struct gdbarch *gdbarch, struct frame_info *next_frame)
-{
-  return frame_unwind_register_unsigned (next_frame, E_PC_REGNUM);
-}
-
-static struct frame_id
-iq2000_dummy_id (struct gdbarch *gdbarch, struct frame_info *this_frame)
-{
-  CORE_ADDR sp = get_frame_register_unsigned (this_frame, E_SP_REGNUM);
-  return frame_id_build (sp, get_frame_pc (this_frame));
-}
-
-static CORE_ADDR
 iq2000_frame_base_address (struct frame_info *this_frame, void **this_cache)
 {
   struct iq2000_frame_cache *cache = iq2000_frame_cache (this_frame,
@@ -645,7 +626,8 @@ static CORE_ADDR
 iq2000_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 		        struct regcache *regcache, CORE_ADDR bp_addr,
 		        int nargs, struct value **args, CORE_ADDR sp,
-		        int struct_return, CORE_ADDR struct_addr)
+			function_call_return_method return_method,
+			CORE_ADDR struct_addr)
 {
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   const bfd_byte *val;
@@ -657,7 +639,9 @@ iq2000_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
   CORE_ADDR struct_ptr;
 
   /* First determine how much stack space we will need.  */
-  for (i = 0, argreg = E_1ST_ARGREG + (struct_return != 0); i < nargs; i++)
+  for (i = 0, argreg = E_1ST_ARGREG + (return_method == return_method_struct);
+       i < nargs;
+       i++)
     {
       type = value_type (args[i]);
       typelen = TYPE_LENGTH (type);
@@ -716,7 +700,7 @@ iq2000_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
   stackspace = 0;
 
   argreg = E_1ST_ARGREG;
-  if (struct_return)
+  if (return_method == return_method_struct)
     {
       /* A function that returns a struct will consume one argreg to do so.
        */
@@ -840,9 +824,6 @@ iq2000_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_inner_than           (gdbarch, core_addr_lessthan);
   set_gdbarch_register_type (gdbarch, iq2000_register_type);
   set_gdbarch_frame_align (gdbarch, iq2000_frame_align);
-  set_gdbarch_unwind_sp (gdbarch, iq2000_unwind_sp);
-  set_gdbarch_unwind_pc (gdbarch, iq2000_unwind_pc);
-  set_gdbarch_dummy_id (gdbarch, iq2000_dummy_id);
   frame_base_set_default (gdbarch, &iq2000_frame_base);
   set_gdbarch_push_dummy_call (gdbarch, iq2000_push_dummy_call);
 

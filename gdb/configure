@@ -701,6 +701,8 @@ ALLOCA
 LTLIBIPT
 LIBIPT
 HAVE_LIBIPT
+SRCHIGH_CFLAGS
+SRCHIGH_LIBS
 HAVE_GUILE_FALSE
 HAVE_GUILE_TRUE
 GUILE_LIBS
@@ -755,7 +757,6 @@ MAKEINFO_EXTRA_FLAGS
 MAKEINFOFLAGS
 MAKEINFO
 PACKAGE
-GNULIB_STDINT_H
 CATOBJEXT
 GENCAT
 INSTOBJEXT
@@ -877,7 +878,7 @@ with_mpfr
 with_libmpfr_prefix
 with_python
 with_guile
-enable_libmcheck
+enable_source_highlight
 with_intel_pt
 with_libipt_prefix
 with_included_regex
@@ -886,16 +887,17 @@ with_system_gdbinit
 enable_werror
 enable_build_warnings
 enable_gdb_build_warnings
+enable_ubsan
 with_lzma
 with_liblzma_prefix
 with_tcl
 with_tk
 with_x
 enable_sim
-enable_multi_ice
 enable_gdbserver
 with_babeltrace
 with_libbabeltrace_prefix
+enable_unit_tests
 '
       ac_precious_vars='build_alias
 host_alias
@@ -916,7 +918,6 @@ YFLAGS
 XMKMF'
 ac_subdirs_all='testsuite
 gdbtk
-multi-ice
 gdbserver'
 
 # Initialize some variables set by options.
@@ -1552,16 +1553,19 @@ Optional Features:
   --enable-profiling      enable profiling of GDB
   --enable-codesign=CERT  sign gdb with 'codesign -s CERT'
   --disable-rpath         do not hardcode runtime library paths
-  --enable-libmcheck      Try linking with -lmcheck if available
+  --enable-source-highlight
+                          enable source-highlight for source listings
   --enable-werror         treat compile warnings as errors
   --enable-build-warnings enable build-time compiler warnings if gcc is used
   --enable-gdb-build-warnings
                           enable GDB specific build-time compiler warnings if
                           gcc is used
+  --enable-ubsan          enable undefined behavior sanitizer (auto/yes/no)
   --enable-sim            link gdb with simulator
-  --enable-multi-ice      build the multi-ice-gdb-server
   --enable-gdbserver      automatically build gdbserver (yes/no/auto, default
                           is auto)
+  --enable-unit-tests     Enable the inclusion of unit tests when compiling
+                          GDB
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2451,6 +2455,52 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_decl
+
+# ac_fn_cxx_try_link LINENO
+# -------------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_cxx_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_cxx_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_cxx_try_link
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -6141,119 +6191,6 @@ else CCDEPMODE=depmode=$am_cv_CC_dependencies_compiler_type
 fi
 
 
-gnulib_extra_configure_args=
-# If large-file support is disabled, make sure gnulib does the same.
-if test "$enable_largefile" = no; then
-gnulib_extra_configure_args="$gnulib_extra_configure_args --disable-largefile"
-fi
-
-# Configure gnulib.  We need to build gnulib under some other
-# directory not "gnulib", to avoid the problem of both GDB and
-# GDBserver wanting to build it in the same directory, when building
-# in the source dir.
-
-  in_src="gnulib"
-  in_build="build-gnulib"
-  in_extra_args="$gnulib_extra_configure_args"
-
-  # Remove --cache-file, --srcdir, and --disable-option-checking arguments
-  # so they do not pile up.
-  ac_sub_configure_args=
-  ac_prev=
-  eval "set x $ac_configure_args"
-  shift
-  for ac_arg
-  do
-    if test -n "$ac_prev"; then
-      ac_prev=
-      continue
-    fi
-    case $ac_arg in
-    -cache-file | --cache-file | --cache-fil | --cache-fi \
-    | --cache-f | --cache- | --cache | --cach | --cac | --ca | --c)
-      ac_prev=cache_file ;;
-    -cache-file=* | --cache-file=* | --cache-fil=* | --cache-fi=* \
-    | --cache-f=* | --cache-=* | --cache=* | --cach=* | --cac=* | --ca=* \
-    | --c=*)
-      ;;
-    --config-cache | -C)
-      ;;
-    -srcdir | --srcdir | --srcdi | --srcd | --src | --sr)
-      ac_prev=srcdir ;;
-    -srcdir=* | --srcdir=* | --srcdi=* | --srcd=* | --src=* | --sr=*)
-      ;;
-    -prefix | --prefix | --prefi | --pref | --pre | --pr | --p)
-      ac_prev=prefix ;;
-    -prefix=* | --prefix=* | --prefi=* | --pref=* | --pre=* | --pr=* | --p=*)
-      ;;
-    --disable-option-checking)
-      ;;
-    *)
-      case $ac_arg in
-      *\'*) ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
-      esac
-      as_fn_append ac_sub_configure_args " '$ac_arg'" ;;
-    esac
-  done
-
-  # Always prepend --prefix to ensure using the same prefix
-  # in subdir configurations.
-  ac_arg="--prefix=$prefix"
-  case $ac_arg in
-  *\'*) ac_arg=`$as_echo "$ac_arg" | sed "s/'/'\\\\\\\\''/g"` ;;
-  esac
-  ac_sub_configure_args="'$ac_arg' $ac_sub_configure_args"
-
-  # Pass --silent
-  if test "$silent" = yes; then
-    ac_sub_configure_args="--silent $ac_sub_configure_args"
-  fi
-
-  # Always prepend --disable-option-checking to silence warnings, since
-  # different subdirs can have different --enable and --with options.
-  ac_sub_configure_args="--disable-option-checking $ac_sub_configure_args"
-
-  ac_popdir=`pwd`
-  ac_dir=$in_build
-
-  ac_msg="=== configuring in $ac_dir (`pwd`/$ac_dir)"
-  $as_echo "$as_me:${as_lineno-$LINENO}: $ac_msg" >&5
-  $as_echo "$ac_msg" >&6
-  as_dir="$ac_dir"; as_fn_mkdir_p
-
-  case $srcdir in
-  [\\/]* | ?:[\\/]* )
-    ac_srcdir=$srcdir/$in_src ;;
-  *) # Relative name.
-    ac_srcdir=../$srcdir/$in_src ;;
-  esac
-
-  cd "$ac_dir"
-
-  ac_sub_configure=$ac_srcdir/configure
-
-  # Make the cache file name correct relative to the subdirectory.
-  case $cache_file in
-  [\\/]* | ?:[\\/]* ) ac_sub_cache_file=$cache_file ;;
-  *) # Relative name.
-    ac_sub_cache_file=$ac_top_build_prefix$cache_file ;;
-  esac
-
-  if test -n "$in_extra_args"; then
-    # Add the extra args at the end.
-    ac_sub_configure_args="$ac_sub_configure_args $in_extra_args"
-  fi
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: running $SHELL $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&5
-$as_echo "$as_me: running $SHELL $ac_sub_configure $ac_sub_configure_args --cache-file=$ac_sub_cache_file --srcdir=$ac_srcdir" >&6;}
-  # The eval makes quoting arguments work.
-  eval "\$SHELL \"\$ac_sub_configure\" $ac_sub_configure_args \
-       --cache-file=\"\$ac_sub_cache_file\" --srcdir=\"\$ac_srcdir\"" ||
-    as_fn_error $? "$ac_sub_configure failed for $ac_dir" "$LINENO" 5
-
-  cd "$ac_popdir"
-
-
 
 CONFIG_OBS=
 CONFIG_DEPS=
@@ -6345,15 +6282,6 @@ if test x"$USE_NLS" = xyes; then
    CONFIG_INSTALL="$CONFIG_INSTALL install-po"
    CONFIG_UNINSTALL="$CONFIG_UNINSTALL uninstall-po"
 fi
-
-GNULIB=build-gnulib/import
-
-# For Makefile dependencies.
-GNULIB_STDINT_H=
-if test x"$STDINT_H" != x; then
-  GNULIB_STDINT_H=$GNULIB/$STDINT_H
-fi
-
 
 PACKAGE=gdb
 
@@ -6531,7 +6459,7 @@ else
   with_auto_load_dir='$debugdir:$datadir/auto-load'
 fi
 
-escape_dir=`echo $with_auto_load_dir | sed 's/[$]\(datadir\|debugdir\)\>/\\\\\\\\\\\\&/g'`
+escape_dir=`echo $with_auto_load_dir | sed -e 's/[$]datadir\>/\\\\\\\\\\\\&/g' -e 's/[$]debugdir\>/\\\\\\\\\\\\&/g'`
 
   test "x$prefix" = xNONE && prefix="$ac_default_prefix"
   test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
@@ -6558,7 +6486,7 @@ else
   with_auto_load_safe_path="$with_auto_load_dir"
 fi
 
-escape_dir=`echo $with_auto_load_safe_path | sed 's/[$]\(datadir\|debugdir\)\>/\\\\\\\\\\\\&/g'`
+escape_dir=`echo $with_auto_load_safe_path | sed -e 's/[$]datadir\>/\\\\\\\\\\\\&/g' -e 's/[$]debugdir\>/\\\\\\\\\\\\&/g'`
 
   test "x$prefix" = xNONE && prefix="$ac_default_prefix"
   test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
@@ -6615,7 +6543,7 @@ fi
 . $srcdir/configure.host
 
 # Add in the common host objects.
-. $srcdir/common/common.host
+. $srcdir/gdbsupport/common.host
 gdb_host_obs="$gdb_host_obs $common_host_obs"
 
 # Accumulate some settings from configure.tgt over all enabled targets
@@ -8671,7 +8599,7 @@ rm -f core conftest.err conftest.$ac_objext \
     if test "$am_cv_func_iconv" != yes; then
       am_save_CPPFLAGS="$CPPFLAGS"
       am_save_LIBS="$LIBS"
-      CPPFLAGS="$LIBS $INCICONV"
+      CPPFLAGS="$CPPFLAGS $INCICONV"
       LIBS="$LIBS $LIBICONV"
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -8979,7 +8907,7 @@ return tgetent ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' termcap tinfo curses ncursesw ncurses; do
+for ac_lib in '' termcap tinfow tinfo curses ncursesw ncurses; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else
@@ -9024,6 +8952,38 @@ fi
 
 
 if test "$with_system_readline" = yes; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system readline is new enough" >&5
+$as_echo_n "checking whether system readline is new enough... " >&6; }
+if ${gdb_cv_readline_ok+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+#include <readline/readline.h>
+int
+main ()
+{
+#if RL_VERSION_MAJOR < 7
+# error "readline version 7 required"
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  gdb_cv_readline_ok=yes
+else
+  gdb_cv_readline_ok=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gdb_cv_readline_ok" >&5
+$as_echo "$gdb_cv_readline_ok" >&6; }
+  if test "$gdb_cv_readline_ok" != yes; then
+    as_fn_error $? "system readline is not new enough" "$LINENO" 5
+  fi
+
   READLINE=-lreadline
   READLINE_DEPS=
   READLINE_CFLAGS=
@@ -9840,7 +9800,7 @@ fi
   rpathdirs=
   ltrpathdirs=
   names_already_handled=
-  names_next_round='mpfr '
+  names_next_round='mpfr gmp'
   while test -n "$names_next_round"; do
     names_this_round="$names_next_round"
     names_next_round=
@@ -10607,82 +10567,6 @@ rm -f core conftest.err conftest.$ac_objext \
 $as_echo "${found_usable_python}" >&6; }
 
     fi
-    if test ${have_libpython} = no; then
-
-  version=python2.5
-
-  new_CPPFLAGS=${python_includes}
-  new_LIBS="-lpython2.5 ${python_libs}"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${version}" >&5
-$as_echo_n "checking for ${version}... " >&6; }
-  save_CPPFLAGS=$CPPFLAGS
-  save_LIBS=$LIBS
-  CPPFLAGS="$CPPFLAGS $new_CPPFLAGS"
-  LIBS="$new_LIBS $LIBS"
-  found_usable_python=no
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include "Python.h"
-int
-main ()
-{
-Py_Initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_libpython=${version}
-                  found_usable_python=yes
-                  PYTHON_CPPFLAGS=$new_CPPFLAGS
-                  PYTHON_LIBS=$new_LIBS
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  CPPFLAGS=$save_CPPFLAGS
-  LIBS=$save_LIBS
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${found_usable_python}" >&5
-$as_echo "${found_usable_python}" >&6; }
-
-    fi
-    if test ${have_libpython} = no; then
-
-  version=python2.4
-
-  new_CPPFLAGS=${python_includes}
-  new_LIBS="-lpython2.4 ${python_libs}"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${version}" >&5
-$as_echo_n "checking for ${version}... " >&6; }
-  save_CPPFLAGS=$CPPFLAGS
-  save_LIBS=$LIBS
-  CPPFLAGS="$CPPFLAGS $new_CPPFLAGS"
-  LIBS="$new_LIBS $LIBS"
-  found_usable_python=no
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include "Python.h"
-int
-main ()
-{
-Py_Initialize ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_libpython=${version}
-                  found_usable_python=yes
-                  PYTHON_CPPFLAGS=$new_CPPFLAGS
-                  PYTHON_LIBS=$new_LIBS
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  CPPFLAGS=$save_CPPFLAGS
-  LIBS=$save_LIBS
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${found_usable_python}" >&5
-$as_echo "${found_usable_python}" >&6; }
-
-    fi
   fi
   if test "${have_libpython}" = python2.7 -o "${have_libpython}" = python27; then
 
@@ -10691,14 +10575,6 @@ $as_echo "#define HAVE_LIBPYTHON2_7 1" >>confdefs.h
   elif test "${have_libpython}" = python2.6 -o "${have_libpython}" = python26; then
 
 $as_echo "#define HAVE_LIBPYTHON2_6 1" >>confdefs.h
-
-  elif test "${have_libpython}" = python2.5 -o "${have_libpython}" = python25; then
-
-$as_echo "#define HAVE_LIBPYTHON2_5 1" >>confdefs.h
-
-  elif test "${have_libpython}" = python2.4 -o "${have_libpython}" = python24; then
-
-$as_echo "#define HAVE_LIBPYTHON2_4 1" >>confdefs.h
 
   fi
 
@@ -10765,7 +10641,11 @@ $as_echo "#define HAVE_PYTHON 1" >>confdefs.h
   # would make the python-related objects be compiled differently from the
   # rest of GDB (e.g., -O2 and -fPIC).
   if test "${GCC}" = yes; then
-    tentative_python_cflags="-fno-strict-aliasing -DNDEBUG -fwrapv"
+    tentative_python_cflags="-fno-strict-aliasing -fwrapv"
+    # Python headers recommend -DNDEBUG, but it's unclear if that just
+    # refers to building Python itself.  In release mode, though, it
+    # doesn't hurt for the Python code in gdb to follow.
+    $development || tentative_python_cflags="$tentative_python_cflags -DNDEBUG"
   fi
 
   if test "x${tentative_python_cflags}" != x; then
@@ -11417,84 +11297,60 @@ else
 fi
 
 
-# --------------------- #
-# Check for libmcheck.  #
-# --------------------- #
+# ---------------------------- #
+# Check for source highlight.  #
+# ---------------------------- #
 
-# Enable -lmcheck by default (it provides cheap-enough memory mangling),
-# but turn it off if Python is enabled with threads, since -lmcheck is
-# not thread safe (http://sourceware.org/bugzilla/show_bug.cgi?id=9939),
-# and for releases.
-if test \( "${have_libpython}" = "no" -o "${python_has_threads}" = "no" \) \
-   && $development; then
-  libmcheck_default=yes
+SRCHIGH_LIBS=
+SRCHIGH_CFLAGS=
+
+# Check whether --enable-source-highlight was given.
+if test "${enable_source_highlight+set}" = set; then :
+  enableval=$enable_source_highlight; case "${enableval}" in
+  yes)  enable_source_highlight=yes ;;
+  no)   enable_source_highlight=no  ;;
+  *)    as_fn_error $? "bad value ${enableval} for source-highlight option" "$LINENO" 5 ;;
+esac
 else
-  libmcheck_default=no
+  enable_source_highlight=auto
 fi
 
-  # Check whether --enable-libmcheck was given.
-if test "${enable_libmcheck+set}" = set; then :
-  enableval=$enable_libmcheck; case "${enableval}" in
-      yes | y) ENABLE_LIBMCHECK="yes" ;;
-      no | n)  ENABLE_LIBMCHECK="no" ;;
-      *) as_fn_error $? "bad value ${enableval} for --enable-libmcheck" "$LINENO" 5 ;;
+
+if test "${enable_source_highlight}" != "no"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for the source-highlight library" >&5
+$as_echo_n "checking for the source-highlight library... " >&6; }
+  if test "${pkg_config_prog_path}" = "missing"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no - pkg-config not found" >&5
+$as_echo "no - pkg-config not found" >&6; }
+    if test "${enable_source_highlight}" = "yes"; then
+      as_fn_error $? "pkg-config was not found in your system" "$LINENO" 5
+    fi
+  else
+    case "$LDFLAGS" in
+      *static-libstdc*)
+        as_fn_error $? "source highlight is incompatible with -static-libstdc++; either use --disable-source-highlight or --without-static-standard-libraries" "$LINENO" 5
+        ;;
     esac
-fi
 
+    if ${pkg_config_prog_path} --exists source-highlight; then
+      SRCHIGH_CFLAGS=`${pkg_config_prog_path} --cflags source-highlight`
+      SRCHIGH_LIBS=`${pkg_config_prog_path} --libs source-highlight`
 
-  if test -z "${ENABLE_LIBMCHECK}"; then
-    ENABLE_LIBMCHECK=${libmcheck_default}
+$as_echo "#define HAVE_SOURCE_HIGHLIGHT 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      if test "${enable_source_highlight}" = "yes"; then
+        as_fn_error $? "source-highlight was not found in your system" "$LINENO" 5
+      fi
+    fi
   fi
-
-  if test "$ENABLE_LIBMCHECK" = "yes" ; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lmcheck" >&5
-$as_echo_n "checking for main in -lmcheck... " >&6; }
-if ${ac_cv_lib_mcheck_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lmcheck  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_mcheck_main=yes
-else
-  ac_cv_lib_mcheck_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mcheck_main" >&5
-$as_echo "$ac_cv_lib_mcheck_main" >&6; }
-if test "x$ac_cv_lib_mcheck_main" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBMCHECK 1
-_ACEOF
-
-  LIBS="-lmcheck $LIBS"
-
 fi
 
-  fi
 
-
-if test "$ENABLE_LIBMCHECK" = "yes" \
-	-a "${have_libpython}" != "no" \
-	-a "${python_has_threads}" = "yes" ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --enable-libmcheck may lead to spurious crashes if threads are used in python" >&5
-$as_echo "$as_me: WARNING: --enable-libmcheck may lead to spurious crashes if threads are used in python" >&2;}
-fi
 
 
 # Check whether --with-intel_pt was given.
@@ -12164,12 +12020,11 @@ fi
 
 # elf_hp.h is for HP/UX 64-bit shared library support.
 for ac_header in nlist.h machine/reg.h poll.h sys/poll.h proc_service.h \
-                  thread_db.h \
+                  thread_db.h linux/elf.h \
 		  sys/file.h sys/filio.h sys/ioctl.h sys/param.h \
 		  sys/resource.h sys/procfs.h sys/ptrace.h ptrace.h \
 		  sys/reg.h sys/debugreg.h sys/select.h \
-		  termios.h elf_hp.h \
-		  dlfcn.h
+		  termios.h elf_hp.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -13268,7 +13123,7 @@ for ac_func in getauxval getrusage getuid getgid \
 		sigaction sigprocmask sigsetmask socketpair \
 		ttrace wborder wresize setlocale iconvlist libiconvlist btowc \
 		setrlimit getrlimit posix_madvise waitpid \
-		ptrace64 sigaltstack mkdtemp setns
+		ptrace64 sigaltstack setns use_default_colors
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -13660,7 +13515,7 @@ $as_echo "#define HAVE_LANGINFO_CODESET 1" >>confdefs.h
   fi
 
 
-  for ac_header in linux/perf_event.h locale.h memory.h signal.h 		   sys/resource.h sys/socket.h 		   sys/un.h sys/wait.h 		   thread_db.h wait.h 		   termios.h
+  for ac_header in linux/perf_event.h locale.h memory.h signal.h 		   sys/resource.h sys/socket.h 		   sys/un.h sys/wait.h 		   thread_db.h wait.h 		   termios.h 		   dlfcn.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -14635,47 +14490,43 @@ $as_echo "#define HAVE_PSADDR_T 1" >>confdefs.h
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $bfd_cv_have_sys_procfs_type_psaddr_t" >&5
 $as_echo "$bfd_cv_have_sys_procfs_type_psaddr_t" >&6; }
 
-
-
-
-  if test $bfd_cv_have_sys_procfs_type_prfpregset_t = yes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether prfpregset_t type is broken" >&5
-$as_echo_n "checking whether prfpregset_t type is broken... " >&6; }
-    if ${gdb_cv_prfpregset_t_broken+:} false; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for elf_fpregset_t in sys/procfs.h" >&5
+$as_echo_n "checking for elf_fpregset_t in sys/procfs.h... " >&6; }
+ if ${bfd_cv_have_sys_procfs_type_elf_fpregset_t+:} false; then :
   $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  gdb_cv_prfpregset_t_broken=yes
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+
+#define _SYSCALL32
+/* Needed for new procfs interface on sparc-solaris.  */
+#define _STRUCTURED_PROC 1
 #include <sys/procfs.h>
-       int main ()
-       {
-         if (sizeof (prfpregset_t) == sizeof (void *))
-           return 1;
-         return 0;
-       }
+int
+main ()
+{
+elf_fpregset_t avar
+  ;
+  return 0;
+}
 _ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  gdb_cv_prfpregset_t_broken=no
+if ac_fn_c_try_compile "$LINENO"; then :
+  bfd_cv_have_sys_procfs_type_elf_fpregset_t=yes
 else
-  gdb_cv_prfpregset_t_broken=yes
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
+  bfd_cv_have_sys_procfs_type_elf_fpregset_t=no
 
 fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
 
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gdb_cv_prfpregset_t_broken" >&5
-$as_echo "$gdb_cv_prfpregset_t_broken" >&6; }
-    if test $gdb_cv_prfpregset_t_broken = yes; then
+ if test $bfd_cv_have_sys_procfs_type_elf_fpregset_t = yes; then
 
-$as_echo "#define PRFPREGSET_T_BROKEN 1" >>confdefs.h
+$as_echo "#define HAVE_ELF_FPREGSET_T 1" >>confdefs.h
 
-    fi
-  fi
+ fi
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: $bfd_cv_have_sys_procfs_type_elf_fpregset_t" >&5
+$as_echo "$bfd_cv_have_sys_procfs_type_elf_fpregset_t" >&6; }
+
 fi
 
 # Check if the compiler supports the `long long' type.
@@ -15412,12 +15263,16 @@ build_warnings="-Wall -Wpointer-arith \
 -Wno-unused -Wunused-value -Wunused-variable -Wunused-function \
 -Wno-switch -Wno-char-subscripts \
 -Wempty-body -Wunused-but-set-parameter -Wunused-but-set-variable \
--Wno-sign-compare -Wno-narrowing -Wno-error=maybe-uninitialized \
+-Wno-sign-compare -Wno-error=maybe-uninitialized \
 -Wno-mismatched-tags \
 -Wno-error=deprecated-register \
 -Wsuggest-override \
 -Wimplicit-fallthrough=3 \
--Wduplicated-cond"
+-Wduplicated-cond \
+-Wshadow=local \
+-Wdeprecated-copy \
+-Wdeprecated-copy-dtor \
+-Wredundant-move"
 
 case "${host}" in
   *-*-mingw32*)
@@ -15430,7 +15285,10 @@ case "${host}" in
     build_warnings="$build_warnings -Wno-unknown-pragmas"
     # Solaris 11 <unistd.h> marks vfork deprecated.
     build_warnings="$build_warnings -Wno-deprecated-declarations" ;;
-  *) build_warnings="$build_warnings -Wformat-nonliteral" ;;
+  *)
+    # Note that gcc requires -Wformat for -Wformat-nonliteral to work,
+    # but there's a special case for this below.
+    build_warnings="$build_warnings -Wformat-nonliteral" ;;
 esac
 
 # Check whether --enable-build-warnings was given.
@@ -15486,6 +15344,12 @@ $as_echo_n "checking compiler warning flags... " >&6; }
 	case $w in
 	-Wno-*)
 		wtest=`echo $w | sed 's/-Wno-/-W/g'` ;;
+        -Wformat-nonliteral)
+		# gcc requires -Wformat before -Wformat-nonliteral
+		# will work, so stick them together.
+		w="-Wformat $w"
+		wtest="$w"
+		;;
 	*)
 		wtest=$w ;;
 	esac
@@ -15555,6 +15419,63 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+# Check whether --enable-ubsan was given.
+if test "${enable_ubsan+set}" = set; then :
+  enableval=$enable_ubsan;
+else
+  enable_ubsan=no
+fi
+
+if test "x$enable_ubsan" = xauto; then
+  if $development; then
+    enable_ubsan=yes
+  fi
+fi
+ac_ext=cpp
+ac_cpp='$CXXCPP $CPPFLAGS'
+ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
+
+if test "x$enable_ubsan" = xyes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -fsanitize=undefined is accepted" >&5
+$as_echo_n "checking whether -fsanitize=undefined is accepted... " >&6; }
+  saved_CXXFLAGS="$CXXFLAGS"
+  CXXFLAGS="$CXXFLAGS -fsanitize=undefined -fno-sanitize-recover=undefined"
+        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_cxx_try_link "$LINENO"; then :
+  enable_ubsan=yes
+else
+  enable_ubsan=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CXXFLAGS="$saved_CXXFLAGS"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_ubsan" >&5
+$as_echo "$enable_ubsan" >&6; }
+  if test "x$enable_ubsan" = xyes; then
+    WARN_CFLAGS="$WARN_CFLAGS -fsanitize=undefined -fno-sanitize-recover=undefined"
+    CONFIG_LDFLAGS="$CONFIG_LDFLAGS -fsanitize=undefined"
+  fi
+fi
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
 # In the Cygwin environment, we need some additional flags.
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cygwin" >&5
 $as_echo_n "checking for cygwin... " >&6; }
@@ -15586,6 +15507,7 @@ case ${host} in
   *go32* ) SER_HARDWIRE=ser-go32.o ;;
   *djgpp* ) SER_HARDWIRE=ser-go32.o ;;
   *mingw32*) SER_HARDWIRE="ser-base.o ser-tcp.o ser-mingw.o" ;;
+  *) SER_HARDWIRE="$SER_HARDWIRE ser-uds.o" ;;
 esac
 
 
@@ -17089,21 +17011,6 @@ _ACEOF
 
 fi
 
-# Enable multi-ice-gdb-server.
-# Check whether --enable-multi-ice was given.
-if test "${enable_multi_ice+set}" = set; then :
-  enableval=$enable_multi_ice; case $enableval in
-    yes | no)
-      ;;
-    *) as_fn_error $? "bad value $enableval for --enable-multi-ice" "$LINENO" 5 ;;
-  esac
-fi
-
-if test "x$enable_multi_ice" = xyes; then
-   subdirs="$subdirs multi-ice"
-
-fi
-
 # Check whether --enable-gdbserver was given.
 if test "${enable_gdbserver+set}" = set; then :
   enableval=$enable_gdbserver; case "${enableval}" in
@@ -17740,13 +17647,35 @@ ac_config_links="$ac_config_links $ac_config_links_1"
 $as_echo "#define GDB_DEFAULT_HOST_CHARSET \"UTF-8\"" >>confdefs.h
 
 
-if $development; then
+
+# Check whether we will enable the inclusion of unit tests when
+# compiling GDB.
+#
+# The default value of this option changes depending whether we're on
+# development mode (in which case it's "true") or not (in which case
+# it's "false").
+# Check whether --enable-unit-tests was given.
+if test "${enable_unit_tests+set}" = set; then :
+  enableval=$enable_unit_tests; case "${enableval}" in
+  yes)  enable_unittests=true  ;;
+  no)   enable_unittests=false ;;
+  *)    as_fn_error $? "bad value ${enableval} for --{enable,disable}-unit-tests option" "$LINENO" 5 ;;
+esac
+else
+  enable_unittests=$development
+fi
+
+
+if $enable_unittests; then
 
 $as_echo "#define GDB_SELF_TEST 1" >>confdefs.h
 
-  CONFIG_OBS="$CONFIG_OBS \$(SUBDIR_UNITTESTS_OBS) common/selftest.o selftest-arch.o"
-  CONFIG_SRCS="$CONFIG_SRCS \$(SUBDIR_UNITTESTS_SRCS) common/selftest.c selftest-arch.c"
+
+  CONFIG_OBS="$CONFIG_OBS \$(SUBDIR_UNITTESTS_OBS) gdbsupport/selftest.o selftest-arch.o"
+  CONFIG_SRCS="$CONFIG_SRCS \$(SUBDIR_UNITTESTS_SRCS) gdbsupport/selftest.c selftest-arch.c"
+
 fi
+
 
 
   gdb_ac_transform=`echo "$program_transform_name" | sed -e 's/\\$\\$/\\$/g'`

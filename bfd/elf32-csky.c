@@ -1,5 +1,5 @@
 /* 32-bit ELF support for C-SKY.
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
    Contributed by C-SKY Microsystems and Mentor Graphics.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -150,7 +150,7 @@ static reloc_howto_type csky_elf_howto_table[] =
 	 TRUE,                        /* pc_relative */
 	 0,                           /* bitpos */
 	 complain_overflow_dont,      /* complain_on_overflow */
-	 NULL,                        /* special_function */
+	 bfd_elf_generic_reloc,       /* special_function */
 	 "R_CKCORE_PCREL32",          /* name */
 	 FALSE,                       /* partial_inplace */
 	 0x0,                         /* src_mask */
@@ -2873,9 +2873,7 @@ csky_elf_check_relocs (bfd * abfd,
 	  /* This relocation describes which C++ vtable entries are actually
 	     used.  Record for later use during GC.  */
 	case R_CKCORE_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 	}
@@ -3098,9 +3096,9 @@ group_sections (struct csky_elf_link_hash_table *htab,
 	continue;
 
       /* Reverse the list: we must avoid placing stubs at the
-         beginning of the section because the beginning of the text
-         section may be required for an interrupt vector in bare metal
-         code.  */
+	 beginning of the section because the beginning of the text
+	 section may be required for an interrupt vector in bare metal
+	 code.  */
 #define NEXT_SEC PREV_SEC
       head = NULL;
       while (tail != NULL)
@@ -4307,6 +4305,10 @@ csky_elf_relocate_section (bfd *                  output_bfd,
 	  if (h == NULL && (addend & 0x80000000))
 	    addend &= 0xffffffff;
 	  break;
+
+	case R_CKCORE_PCREL32:
+	  break;
+
 	case R_CKCORE_GOT12:
 	case R_CKCORE_PLT12:
 	case R_CKCORE_GOT_HI16:
@@ -4505,7 +4507,7 @@ csky_elf_relocate_section (bfd *                  output_bfd,
 			{
 			  h->got.offset |= 1;
 			  if (GENERATE_RELATIVE_RELOC_P (info, h))
-                            relative_reloc = TRUE;
+			    relative_reloc = TRUE;
 			}
 		    }
 		  bfd_put_32 (output_bfd, relocation,
@@ -5027,6 +5029,7 @@ csky_elf_relocate_section (bfd *                  output_bfd,
 
       if (howto->size == 2
 	  && (howto->type == R_CKCORE_ADDR32
+	      || howto->type == R_CKCORE_PCREL32
 	      || howto->type == R_CKCORE_GOT32
 	      || howto->type == R_CKCORE_GOTOFF
 	      || howto->type == R_CKCORE_GOTPC

@@ -1,5 +1,5 @@
 /* V850-specific support for 32-bit ELF
-   Copyright (C) 1996-2018 Free Software Foundation, Inc.
+   Copyright (C) 1996-2019 Free Software Foundation, Inc.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -101,9 +101,7 @@ v850_elf_check_relocs (bfd *abfd,
 	/* This relocation describes which C++ vtable entries
 	   are actually used.  Record for later use during GC.  */
 	case R_V850_GNU_VTENTRY:
-	  BFD_ASSERT (h != NULL);
-	  if (h != NULL
-	      && !bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
+	  if (!bfd_elf_gc_record_vtentry (abfd, sec, h, rel->r_addend))
 	    return FALSE;
 	  break;
 
@@ -2720,9 +2718,8 @@ v850_elf_object_p (bfd *abfd)
 
 /* Store the machine number in the flags field.  */
 
-static void
-v850_elf_final_write_processing (bfd *abfd,
-				 bfd_boolean linker ATTRIBUTE_UNUSED)
+static bfd_boolean
+v850_elf_final_write_processing (bfd *abfd)
 {
   unsigned long val;
 
@@ -2752,6 +2749,7 @@ v850_elf_final_write_processing (bfd *abfd,
     default:
       break;
     }
+  return _bfd_elf_final_write_processing (abfd);
 }
 
 /* Function to keep V850 specific file flags.  */

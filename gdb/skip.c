@@ -1,6 +1,6 @@
 /* Skipping uninteresting files and functions while stepping.
 
-   Copyright (C) 2011-2018 Free Software Foundation, Inc.
+   Copyright (C) 2011-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,8 +34,12 @@
 #include "filenames.h"
 #include "fnmatch.h"
 #include "gdb_regex.h"
-#include "common/gdb_optional.h"
+#include "gdbsupport/gdb_optional.h"
 #include <list>
+
+/* True if we want to print debug printouts related to file/function
+   skipping. */
+static int debug_skip = 0;
 
 class skiplist_entry
 {
@@ -395,7 +399,7 @@ info_skip_command (const char *arg, int from_tty)
 	continue;
 
       ui_out_emit_tuple tuple_emitter (current_uiout, "blklst-entry");
-      current_uiout->field_int ("number", e.number ()); /* 1 */
+      current_uiout->field_signed ("number", e.number ()); /* 1 */
 
       if (e.enabled ())
 	current_uiout->field_string ("enabled", "y"); /* 2 */
@@ -409,7 +413,8 @@ info_skip_command (const char *arg, int from_tty)
 
       current_uiout->field_string ("file",
 				   e.file ().empty () ? "<none>"
-				   : e.file ().c_str ()); /* 4 */
+				   : e.file ().c_str (),
+				   ui_out_style_kind::FILE); /* 4 */
       if (e.function_is_regexp ())
 	current_uiout->field_string ("regexp", "y"); /* 5 */
       else
@@ -417,7 +422,8 @@ info_skip_command (const char *arg, int from_tty)
 
       current_uiout->field_string ("function",
 				   e.function ().empty () ? "<none>"
-				   : e.function ().c_str ()); /* 6 */
+				   : e.function ().c_str (),
+				   ui_out_style_kind::FUNCTION); /* 6 */
 
       current_uiout->text ("\n");
     }
@@ -482,59 +488,77 @@ skip_delete_command (const char *arg, int from_tty)
 bool
 skiplist_entry::do_skip_file_p (const symtab_and_line &function_sal) const
 {
+  if (debug_skip)
+    fprintf_unfiltered (gdb_stdlog,
+			"skip: checking if file %s matches non-glob %s...",
+			function_sal.symtab->filename, m_file.c_str ());
+
+  bool result;
+
   /* Check first sole SYMTAB->FILENAME.  It may not be a substring of
      symtab_to_fullname as it may contain "./" etc.  */
   if (compare_filenames_for_search (function_sal.symtab->filename,
 				    m_file.c_str ()))
-    return true;
+    result = true;
 
   /* Before we invoke realpath, which can get expensive when many
      files are involved, do a quick comparison of the basenames.  */
-  if (!basenames_may_differ
-      && filename_cmp (lbasename (function_sal.symtab->filename),
-		       lbasename (m_file.c_str ())) != 0)
-    return false;
+  else if (!basenames_may_differ
+	   && filename_cmp (lbasename (function_sal.symtab->filename),
+			    lbasename (m_file.c_str ())) != 0)
+    result = false;
+  else
+    {
+      /* Note: symtab_to_fullname caches its result, thus we don't have to.  */
+      const char *fullname = symtab_to_fullname (function_sal.symtab);
 
-  /* Note: symtab_to_fullname caches its result, thus we don't have to.  */
-  {
-    const char *fullname = symtab_to_fullname (function_sal.symtab);
+      result = compare_filenames_for_search (fullname, m_file.c_str ());
+    }
 
-    if (compare_filenames_for_search (fullname, m_file.c_str ()))
-      return true;
-  }
+  if (debug_skip)
+    fprintf_unfiltered (gdb_stdlog, result ? "yes.\n" : "no.\n");
 
-  return false;
+  return result;
 }
 
 bool
 skiplist_entry::do_skip_gfile_p (const symtab_and_line &function_sal) const
 {
+  if (debug_skip)
+    fprintf_unfiltered (gdb_stdlog,
+			"skip: checking if file %s matches glob %s...",
+			function_sal.symtab->filename, m_file.c_str ());
+
+  bool result;
+
   /* Check first sole SYMTAB->FILENAME.  It may not be a substring of
      symtab_to_fullname as it may contain "./" etc.  */
   if (gdb_filename_fnmatch (m_file.c_str (), function_sal.symtab->filename,
 			    FNM_FILE_NAME | FNM_NOESCAPE) == 0)
-    return true;
+    result = true;
 
   /* Before we invoke symtab_to_fullname, which is expensive, do a quick
      comparison of the basenames.
      Note that we assume that lbasename works with glob-style patterns.
      If the basename of the glob pattern is something like "*.c" then this
      isn't much of a win.  Oh well.  */
-  if (!basenames_may_differ
+  else if (!basenames_may_differ
       && gdb_filename_fnmatch (lbasename (m_file.c_str ()),
 			       lbasename (function_sal.symtab->filename),
 			       FNM_FILE_NAME | FNM_NOESCAPE) != 0)
-    return false;
+    result = false;
+  else
+    {
+      /* Note: symtab_to_fullname caches its result, thus we don't have to.  */
+      const char *fullname = symtab_to_fullname (function_sal.symtab);
 
-  /* Note: symtab_to_fullname caches its result, thus we don't have to.  */
-  {
-    const char *fullname = symtab_to_fullname (function_sal.symtab);
+      result = compare_glob_filenames_for_search (fullname, m_file.c_str ());
+    }
 
-    if (compare_glob_filenames_for_search (fullname, m_file.c_str ()))
-      return true;
-  }
+  if (debug_skip)
+    fprintf_unfiltered (gdb_stdlog, result ? "yes.\n" : "no.\n");
 
-  return false;
+  return result;
 }
 
 bool
@@ -558,14 +582,33 @@ skiplist_entry::skip_function_p (const char *function_name) const
   if (m_function.empty ())
     return false;
 
+  bool result;
+
   if (m_function_is_regexp)
     {
+      if (debug_skip)
+        fprintf_unfiltered (gdb_stdlog,
+			    "skip: checking if function %s matches regex %s...",
+			    function_name, m_function.c_str ());
+
       gdb_assert (m_compiled_function_regexp);
-      return (m_compiled_function_regexp->exec (function_name, 0, NULL, 0)
-	      == 0);
+      result
+	= (m_compiled_function_regexp->exec (function_name, 0, NULL, 0) == 0);
     }
   else
-    return strcmp_iw (function_name, m_function.c_str ()) == 0;
+    {
+      if (debug_skip)
+        fprintf_unfiltered (gdb_stdlog,
+			    ("skip: checking if function %s matches non-regex "
+			     "%s..."),
+			    function_name, m_function.c_str ());
+      result = (strcmp_iw (function_name, m_function.c_str ()) == 0);
+    }
+
+  if (debug_skip)
+    fprintf_unfiltered (gdb_stdlog, result ? "yes.\n" : "no.\n");
+
+  return result;
 }
 
 /* See skip.h.  */
@@ -598,6 +641,23 @@ function_name_is_marked_for_skip (const char *function_name,
     }
 
   return false;
+}
+
+/* Completer for skip numbers.  */
+
+static void
+complete_skip_number (cmd_list_element *cmd,
+		      completion_tracker &completer,
+		      const char *text, const char *word)
+{
+  size_t word_len = strlen (word);
+
+  for (const skiplist_entry &entry : skiplist_entries)
+    {
+      gdb::unique_xmalloc_ptr<char> name (xstrprintf ("%d", entry.number ()));
+      if (strncmp (word, name.get (), word_len) == 0)
+	completer.add_completion (std::move (name));
+    }
 }
 
 void
@@ -635,33 +695,48 @@ If no function name is given, skip the current function."),
 	       &skiplist);
   set_cmd_completer (c, location_completer);
 
-  add_cmd ("enable", class_breakpoint, skip_enable_command, _("\
-Enable skip entries.  You can specify numbers (e.g. \"skip enable 1 3\"), \
+  c = add_cmd ("enable", class_breakpoint, skip_enable_command, _("\
+Enable skip entries.\n\
+Usage: skip enable [NUMBER | RANGE]...\n\
+You can specify numbers (e.g. \"skip enable 1 3\"),\n\
 ranges (e.g. \"skip enable 4-8\"), or both (e.g. \"skip enable 1 3 4-8\").\n\n\
-If you don't specify any numbers or ranges, we'll enable all skip entries.\n\n\
-Usage: skip enable [NUMBER | RANGE]..."),
-	   &skiplist);
+If you don't specify any numbers or ranges, we'll enable all skip entries."),
+	       &skiplist);
+  set_cmd_completer (c, complete_skip_number);
 
-  add_cmd ("disable", class_breakpoint, skip_disable_command, _("\
-Disable skip entries.  You can specify numbers (e.g. \"skip disable 1 3\"), \
+  c = add_cmd ("disable", class_breakpoint, skip_disable_command, _("\
+Disable skip entries.\n\
+Usage: skip disable [NUMBER | RANGE]...\n\
+You can specify numbers (e.g. \"skip disable 1 3\"),\n\
 ranges (e.g. \"skip disable 4-8\"), or both (e.g. \"skip disable 1 3 4-8\").\n\n\
-If you don't specify any numbers or ranges, we'll disable all skip entries.\n\n\
-Usage: skip disable [NUMBER | RANGE]..."),
-	   &skiplist);
+If you don't specify any numbers or ranges, we'll disable all skip entries."),
+	       &skiplist);
+  set_cmd_completer (c, complete_skip_number);
 
-  add_cmd ("delete", class_breakpoint, skip_delete_command, _("\
-Delete skip entries.  You can specify numbers (e.g. \"skip delete 1 3\"), \
+  c = add_cmd ("delete", class_breakpoint, skip_delete_command, _("\
+Delete skip entries.\n\
+Usage: skip delete [NUMBER | RANGES]...\n\
+You can specify numbers (e.g. \"skip delete 1 3\"),\n\
 ranges (e.g. \"skip delete 4-8\"), or both (e.g. \"skip delete 1 3 4-8\").\n\n\
-If you don't specify any numbers or ranges, we'll delete all skip entries.\n\n\
-Usage: skip delete [NUMBER | RANGES]..."),
-           &skiplist);
+If you don't specify any numbers or ranges, we'll delete all skip entries."),
+	       &skiplist);
+  set_cmd_completer (c, complete_skip_number);
 
   add_info ("skip", info_skip_command, _("\
-Display the status of skips.  You can specify numbers (e.g. \"skip info 1 3\"), \
-ranges (e.g. \"skip info 4-8\"), or both (e.g. \"skip info 1 3 4-8\").\n\n\
-If you don't specify any numbers or ranges, we'll show all skips.\n\n\
-Usage: skip info [NUMBER | RANGES]...\n\
-The \"Type\" column indicates one of:\n\
-\tfile        - ignored file\n\
-\tfunction    - ignored function"));
+Display the status of skips.\n\
+Usage: info skip [NUMBER | RANGES]...\n\
+You can specify numbers (e.g. \"info skip 1 3\"), \n\
+ranges (e.g. \"info skip 4-8\"), or both (e.g. \"info skip 1 3 4-8\").\n\n\
+If you don't specify any numbers or ranges, we'll show all skips."));
+  set_cmd_completer (c, complete_skip_number);
+
+  add_setshow_boolean_cmd ("skip", class_maintenance,
+			   &debug_skip, _("\
+Set whether to print the debug output about skipping files and functions."),
+			   _("\
+Show whether the debug output about skipping files and functions is printed."),
+			   _("\
+When non-zero, debug output about skipping files and functions is displayed."),
+			   NULL, NULL,
+			   &setdebuglist, &showdebuglist);
 }

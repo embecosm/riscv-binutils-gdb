@@ -1,4 +1,4 @@
-# Copyright 2009-2018 Free Software Foundation, Inc.
+# Copyright 2009-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,9 +25,10 @@ if { ![istarget x86_64-*-* ] || ![is_lp64_target] } {
 
 set newline "\[\r\n\]*"
 
+set opts {debug nopie}
 standard_testfile .S
 
-if { [prepare_for_testing "failed to prepare" $testfile $srcfile] } {
+if { [prepare_for_testing "failed to prepare" $testfile $srcfile $opts] } {
     return -1
 }
 

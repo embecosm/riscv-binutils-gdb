@@ -1,5 +1,5 @@
 /* COFF specific linker code.
-   Copyright (C) 1994-2018 Free Software Foundation, Inc.
+   Copyright (C) 1994-2019 Free Software Foundation, Inc.
    Written by Ian Lance Taylor, Cygnus Support.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -221,7 +221,7 @@ coff_link_check_archive_element (bfd *abfd,
     return TRUE;
   *pneeded = TRUE;
 
-  return coff_link_add_object_symbols (abfd, info);
+  return bfd_link_add_symbols (abfd, info);
 }
 
 /* Add all the symbols from an object file to the hash table.  */
@@ -310,7 +310,9 @@ coff_link_add_symbols (bfd *abfd,
 	    case COFF_SYMBOL_GLOBAL:
 	      flags = BSF_EXPORT | BSF_GLOBAL;
 	      section = coff_section_from_bfd_index (abfd, sym.n_scnum);
-	      if (! obj_pe (abfd))
+	      if (discarded_section (section))
+		section = bfd_und_section_ptr;
+	      else if (! obj_pe (abfd))
 		value -= section->vma;
 	      break;
 
@@ -327,6 +329,8 @@ coff_link_add_symbols (bfd *abfd,
 	    case COFF_SYMBOL_PE_SECTION:
 	      flags = BSF_SECTION_SYM | BSF_GLOBAL;
 	      section = coff_section_from_bfd_index (abfd, sym.n_scnum);
+	      if (discarded_section (section))
+		section = bfd_und_section_ptr;
 	      break;
 	    }
 
@@ -3080,7 +3084,7 @@ _bfd_coff_generic_relocate_section (bfd *output_bfd,
       if (sec != NULL && discarded_section (sec))
 	{
 	  _bfd_clear_contents (howto, input_bfd, input_section,
-			       contents + (rel->r_vaddr - input_section->vma));
+			       contents, rel->r_vaddr - input_section->vma);
 	  continue;
 	}
 

@@ -1,6 +1,6 @@
 /* Process record and replay target for GDB, the GNU debugger.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,12 +17,13 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef _RECORD_H_
-#define _RECORD_H_
+#ifndef RECORD_H
+#define RECORD_H
 
 #include "target/waitstatus.h" /* For enum target_stop_reason.  */
-#include "common/enum-flags.h"
+#include "gdbsupport/enum-flags.h"
 
+struct address_space;
 struct cmd_list_element;
 struct inferior;
 
@@ -113,4 +114,4 @@ extern void record_start (const char *method, const char *format,
 /* Stop recording.  Throw on failure.  */
 extern void record_stop (int from_tty);
 
-#endif /* _RECORD_H_ */
+#endif /* RECORD_H */

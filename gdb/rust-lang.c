@@ -1,6 +1,6 @@
 /* Rust language support routines for GDB, the GNU debugger.
 
-   Copyright (C) 2016-2018 Free Software Foundation, Inc.
+   Copyright (C) 2016-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -74,9 +74,22 @@ rust_enum_p (const struct type *type)
 	  && TYPE_FLAG_DISCRIMINATED_UNION (TYPE_FIELD_TYPE (type, 0)));
 }
 
+/* Return true if TYPE, which must be an enum type, has no
+   variants.  */
+
+static bool
+rust_empty_enum_p (const struct type *type)
+{
+  gdb_assert (rust_enum_p (type));
+  /* In Rust the enum always fills the containing structure.  */
+  gdb_assert (TYPE_FIELD_BITPOS (type, 0) == 0);
+
+  return TYPE_NFIELDS (TYPE_FIELD_TYPE (type, 0)) == 0;
+}
+
 /* Given an enum type and contents, find which variant is active.  */
 
-struct field *
+static struct field *
 rust_enum_variant (struct type *type, const gdb_byte *contents)
 {
   /* In Rust the enum always fills the containing structure.  */
@@ -213,6 +226,26 @@ rust_chartype_p (struct type *type)
 	  && TYPE_UNSIGNED (type));
 }
 
+/* Return true if TYPE is a string type.  */
+
+static bool
+rust_is_string_type_p (struct type *type)
+{
+  LONGEST low_bound, high_bound;
+
+  type = check_typedef (type);
+  return ((TYPE_CODE (type) == TYPE_CODE_STRING)
+	  || (TYPE_CODE (type) == TYPE_CODE_PTR
+	      && (TYPE_CODE (TYPE_TARGET_TYPE (type)) == TYPE_CODE_ARRAY
+		  && rust_u8_type_p (TYPE_TARGET_TYPE (TYPE_TARGET_TYPE (type)))
+		  && get_array_bounds (TYPE_TARGET_TYPE (type), &low_bound,
+				       &high_bound)))
+	  || (TYPE_CODE (type) == TYPE_CODE_STRUCT
+	      && !rust_enum_p (type)
+	      && rust_slice_type_p (type)
+	      && strcmp (TYPE_NAME (type), "&str") == 0));
+}
+
 /* If VALUE represents a trait object pointer, return the underlying
    pointer with the correct (i.e., runtime) type.  Otherwise, return
    NULL.  */
@@ -345,6 +378,14 @@ val_print_struct (struct type *type, int embedded_offset,
 
   if (rust_slice_type_p (type) && strcmp (TYPE_NAME (type), "&str") == 0)
     {
+      /* If what we are printing here is actually a string within a
+	 structure then VAL will be the original parent value, while TYPE
+	 will be the type of the structure representing the string we want
+	 to print.
+	 However, RUST_VAL_PRINT_STR looks up the fields of the string
+	 inside VAL, assuming that VAL is the string.
+	 So, recreate VAL as a value representing just the string.  */
+      val = value_at_lazy (type, value_address (val) + embedded_offset);
       rust_val_print_str (stream, val, options);
       return;
     }
@@ -428,6 +469,13 @@ rust_print_enum (struct type *type, int embedded_offset,
   struct value_print_options opts = *options;
 
   opts.deref_ref = 0;
+
+  if (rust_empty_enum_p (type))
+    {
+      /* Print the enum type name here to be more clear.  */
+      fprintf_filtered (stream, _("%s {<No data fields>}"), TYPE_NAME (type));
+      return;
+    }
 
   const gdb_byte *valaddr = value_contents_for_printing (val);
   struct field *variant_field = rust_enum_variant (type, valaddr);
@@ -664,6 +712,18 @@ rust_print_struct_def (struct type *type, const char *varstring,
       if (is_enum)
 	{
 	  fputs_filtered ("enum ", stream);
+
+	  if (rust_empty_enum_p (type))
+	    {
+	      if (tagname != NULL)
+		{
+		  fputs_filtered (tagname, stream);
+		  fputs_filtered (" ", stream);
+		}
+	      fputs_filtered ("{}", stream);
+	      return;
+	    }
+
 	  type = TYPE_FIELD_TYPE (type, 0);
 
 	  struct dynamic_prop *discriminant_prop
@@ -779,8 +839,6 @@ rust_internal_print_type (struct type *type, const char *varstring,
 			  const struct type_print_options *flags,
 			  bool for_rust_enum, print_offset_data *podata)
 {
-  int i;
-
   QUIT;
   if (show <= 0
       && TYPE_NAME (type) != NULL)
@@ -814,7 +872,7 @@ rust_internal_print_type (struct type *type, const char *varstring,
       if (varstring != NULL)
 	fputs_filtered (varstring, stream);
       fputs_filtered ("(", stream);
-      for (i = 0; i < TYPE_NFIELDS (type); ++i)
+      for (int i = 0; i < TYPE_NFIELDS (type); ++i)
 	{
 	  QUIT;
 	  if (i > 0)
@@ -859,7 +917,7 @@ rust_internal_print_type (struct type *type, const char *varstring,
 
     case TYPE_CODE_ENUM:
       {
-	int i, len = 0;
+	int len = 0;
 
 	fputs_filtered ("enum ", stream);
 	if (TYPE_NAME (type) != NULL)
@@ -870,7 +928,7 @@ rust_internal_print_type (struct type *type, const char *varstring,
 	  }
 	fputs_filtered ("{\n", stream);
 
-	for (i = 0; i < TYPE_NFIELDS (type); ++i)
+	for (int i = 0; i < TYPE_NFIELDS (type); ++i)
 	  {
 	    const char *name = TYPE_FIELD_NAME (type, i);
 
@@ -885,6 +943,20 @@ rust_internal_print_type (struct type *type, const char *varstring,
 	  }
 
 	fputs_filtered ("}", stream);
+      }
+      break;
+
+    case TYPE_CODE_PTR:
+      {
+	if (TYPE_NAME (type) != nullptr)
+	  fputs_filtered (TYPE_NAME (type), stream);
+	else
+	  {
+	    /* We currently can't distinguish between pointers and
+	       references.  */
+	    fputs_filtered ("*mut ", stream);
+	    type_print (TYPE_TARGET_TYPE (type), "", stream, 0);
+	  }
       }
       break;
 
@@ -1128,7 +1200,7 @@ rust_evaluate_funcall (struct expression *exp, int *pos, enum noside noside)
   if (noside == EVAL_AVOID_SIDE_EFFECTS)
     result = value_zero (TYPE_TARGET_TYPE (fn_type), not_lval);
   else
-    result = call_function_by_hand (function, NULL, num_args + 1, args.data ());
+    result = call_function_by_hand (function, NULL, args);
   return result;
 }
 
@@ -1604,6 +1676,10 @@ rust_evaluate_subexp (struct type *expect_type, struct expression *exp,
 
 	    if (rust_enum_p (type))
 	      {
+		if (rust_empty_enum_p (type))
+		  error (_("Cannot access field %d of empty enum %s"),
+			 field_number, TYPE_NAME (type));
+
 		const gdb_byte *valaddr = value_contents (lhs);
 		struct field *variant_field = rust_enum_variant (type, valaddr);
 
@@ -1672,6 +1748,10 @@ tuple structs, and tuple-like enum variants"));
         type = value_type (lhs);
         if (TYPE_CODE (type) == TYPE_CODE_STRUCT && rust_enum_p (type))
 	  {
+	    if (rust_empty_enum_p (type))
+	      error (_("Cannot access field %s of empty enum %s"),
+		     field_name, TYPE_NAME (type));
+
 	    const gdb_byte *valaddr = value_contents (lhs);
 	    struct field *variant_field = rust_enum_variant (type, valaddr);
 
@@ -1686,23 +1766,22 @@ tuple structs, and tuple-like enum variants"));
 	    struct type *outer_type = type;
 	    type = value_type (lhs);
 	    if (rust_tuple_type_p (type) || rust_tuple_struct_type_p (type))
-		error (_("Attempting to access named field foo of tuple "
+		error (_("Attempting to access named field %s of tuple "
 			 "variant %s::%s, which has only anonymous fields"),
-		       TYPE_NAME (outer_type),
+		       field_name, TYPE_NAME (outer_type),
 		       rust_last_path_segment (TYPE_NAME (type)));
 
-	    TRY
+	    try
 	      {
 		result = value_struct_elt (&lhs, NULL, field_name,
 					   NULL, "structure");
 	      }
-	    CATCH (except, RETURN_MASK_ERROR)
+	    catch (const gdb_exception_error &except)
 	      {
 		error (_("Could not find field %s of struct variant %s::%s"),
 		       field_name, TYPE_NAME (outer_type),
 		       rust_last_path_segment (TYPE_NAME (type)));
 	      }
-	    END_CATCH
 	  }
 	else
 	  result = value_struct_elt (&lhs, NULL, field_name, NULL, "structure");
@@ -1968,7 +2047,7 @@ rust_lookup_symbol_nonlocal (const struct language_defn *langdef,
 			     const struct block *block,
 			     const domain_enum domain)
 {
-  struct block_symbol result = {NULL, NULL};
+  struct block_symbol result = {};
 
   if (symbol_lookup_debug)
     {
@@ -2091,5 +2170,6 @@ extern const struct language_defn rust_language_defn =
   &default_varobj_ops,
   NULL,
   NULL,
-  LANG_MAGIC
+  rust_is_string_type_p,
+  "{...}"			/* la_struct_too_deep_ellipsis */
 };

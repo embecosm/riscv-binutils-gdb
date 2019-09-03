@@ -1,5 +1,5 @@
 /* Declarations for C-SKY opcode table
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
    Contributed by C-SKY Microsystems and Mentor Graphics.
 
    This file is part of the GNU opcodes library.
@@ -2327,7 +2327,7 @@ const struct csky_opcode csky_v1_opcodes[] =
 				(NONE, FEREG, OPRND_SHIFT_0_BIT)),
 		  CSKY_ISA_FLOAT_E1,
 		  v1_work_fpu_readd),
-  {NULL}
+  {NULL, 0, {}, {}, 0, 0, 0, 0, 0, NULL}
 };
 
 #undef _TRANSFER
@@ -8123,5 +8123,5 @@ const struct csky_opcode csky_v2_opcodes[] =
 	   OPCODE_INFO1 (0xc4007c40,
 			 (0_4or16_20, DUP_AREG, OPRND_SHIFT_0_BIT)),
 	   CSKYV2_ISA_1E2),
-    {NULL}
+    {NULL, 0, {}, {}, 0, 0, 0, 0, 0, NULL}
   };

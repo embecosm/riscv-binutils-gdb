@@ -1,5 +1,5 @@
 /* Host file transfer support for gdbserver.
-   Copyright (C) 2007-2018 Free Software Foundation, Inc.
+   Copyright (C) 2007-2019 Free Software Foundation, Inc.
 
    Contributed by CodeSourcery.
 
@@ -27,9 +27,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "fileio.h"
-
-extern int remote_debug;
+#include "gdbsupport/fileio.h"
 
 struct fd_list
 {

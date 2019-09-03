@@ -8,7 +8,7 @@ fi
 rm -f e${EMULATION_NAME}.c
 (echo;echo;echo;echo;echo)>e${EMULATION_NAME}.c # there, now line numbers match ;-)
 fragment <<EOF
-/* Copyright (C) 1995-2018 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2019 Free Software Foundation, Inc.
 
    This file is part of the GNU Binutils.
 
@@ -1360,7 +1360,8 @@ gld_${EMULATION_NAME}_after_open (void)
      FIXME: This should be done via a function, rather than by
      including an internal BFD header.  */
 
-  if (coff_data (link_info.output_bfd) == NULL
+  if (bfd_get_flavour (link_info.output_bfd) != bfd_target_coff_flavour
+      || coff_data (link_info.output_bfd) == NULL
       || coff_data (link_info.output_bfd)->pe == 0)
     einfo (_("%F%P: cannot perform PE operations on non PE output file '%pB'\n"),
 	   link_info.output_bfd);
@@ -2153,8 +2154,7 @@ gld_${EMULATION_NAME}_place_orphan (asection *s,
 						       NULL);
 	  if (after == NULL)
 	    /* *ABS* is always the first output section statement.  */
-	    after = (&lang_output_section_statement.head
-		     ->output_section_statement);
+	    after = &lang_os_list.head->output_section_statement;
 	}
 
       /* All sections in an executable must be aligned to a page boundary.
@@ -2165,7 +2165,7 @@ gld_${EMULATION_NAME}_place_orphan (asection *s,
 			       &add_child);
       if (bfd_link_relocatable (&link_info))
 	{
-	  os->section_alignment = s->alignment_power;
+	  os->section_alignment = exp_intop (1U << s->alignment_power);
 	  os->bfd_section->alignment_power = s->alignment_power;
 	}
     }

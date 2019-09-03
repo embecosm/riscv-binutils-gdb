@@ -1,6 +1,6 @@
 /* Target-dependent code for FreeBSD/sparc64.
 
-   Copyright (C) 2003-2018 Free Software Foundation, Inc.
+   Copyright (C) 2003-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -30,6 +30,7 @@
 #include "sparc64-tdep.h"
 #include "fbsd-tdep.h"
 #include "solib-svr4.h"
+#include "gdbarch.h"
 
 /* From <machine/reg.h>.  */
 const struct sparc_gregmap sparc64fbsd_gregmap =

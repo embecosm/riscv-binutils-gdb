@@ -1,6 +1,6 @@
 /* General GDB/Guile code.
 
-   Copyright (C) 2014-2018 Free Software Foundation, Inc.
+   Copyright (C) 2014-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -30,7 +30,7 @@
 #include "top.h"
 #include "extension-priv.h"
 #include "utils.h"
-#include "version.h"
+#include "gdbsupport/version.h"
 #ifdef HAVE_GUILE
 #include "guile.h"
 #include "guile-internal.h"
@@ -307,7 +307,7 @@ gdbscm_execute_gdb_command (SCM command_scm, SCM rest)
 
       scoped_restore preventer = prevent_dont_repeat ();
       if (to_string)
-	to_string_res = execute_command_to_string (command, from_tty);
+	to_string_res = execute_command_to_string (command, from_tty, false);
       else
 	execute_command (command, from_tty);
 
@@ -568,7 +568,7 @@ handle_boot_error (void *boot_scm_file, SCM key, SCM args)
   warning (_("Could not complete Guile gdb module initialization from:\n"
 	     "%s.\n"
 	     "Limited Guile support is available.\n"
-	     "Suggest passing --data-directory=/path/to/gdb/data-directory.\n"),
+	     "Suggest passing --data-directory=/path/to/gdb/data-directory."),
 	   (const char *) boot_scm_file);
 
   return SCM_UNSPECIFIED;
@@ -700,6 +700,9 @@ gdbscm_set_backtrace (int enable)
 
 #endif /* HAVE_GUILE */
 
+/* See guile.h.  */
+cmd_list_element *guile_cmd_element = nullptr;
+
 /* Install the various gdb commands used by Guile.  */
 
 static void
@@ -725,7 +728,7 @@ This command is only a placeholder.")
 
   /* Since "help guile" is easy to type, and intuitive, we add general help
      in using GDB+Guile to this command.  */
-  add_com ("guile", class_obscure, guile_command,
+  guile_cmd_element = add_com ("guile", class_obscure, guile_command,
 #ifdef HAVE_GUILE
 	   _("\
 Evaluate one or more Guile expressions.\n\

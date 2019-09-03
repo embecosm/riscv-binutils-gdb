@@ -1,6 +1,6 @@
 /* Dynamic architecture support for GDB, the GNU debugger.
 
-   Copyright (C) 1998-2018 Free Software Foundation, Inc.
+   Copyright (C) 1998-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -17,10 +17,11 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifndef GDBARCH_UTILS_H
-#define GDBARCH_UTILS_H
+#ifndef ARCH_UTILS_H
+#define ARCH_UTILS_H
 
-struct gdbarch;
+#include "gdbarch.h"
+
 struct frame_info;
 struct minimal_symbol;
 struct type;
@@ -271,4 +272,8 @@ extern bool default_in_indirect_branch_thunk (gdbarch *gdbarch,
 extern ULONGEST default_type_align (struct gdbarch *gdbarch,
 				    struct type *type);
 
-#endif
+/* Default implementation of gdbarch get_pc_address_flags method.  */
+extern std::string default_get_pc_address_flags (frame_info *frame,
+						 CORE_ADDR pc);
+
+#endif /* ARCH_UTILS_H */

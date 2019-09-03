@@ -1,6 +1,6 @@
 /* Scheme interface to objfiles.
 
-   Copyright (C) 2008-2018 Free Software Foundation, Inc.
+   Copyright (C) 2008-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -366,17 +366,16 @@ gdbscm_get_current_objfile (void)
 static SCM
 gdbscm_objfiles (void)
 {
-  struct objfile *objf;
   SCM result;
 
   result = SCM_EOL;
 
-  ALL_OBJFILES (objf)
-  {
-    SCM item = ofscm_scm_from_objfile (objf);
+  for (objfile *objf : current_program_space->objfiles ())
+    {
+      SCM item = ofscm_scm_from_objfile (objf);
 
-    result = scm_cons (item, result);
-  }
+      result = scm_cons (item, result);
+    }
 
   return scm_reverse_x (result, SCM_EOL);
 }

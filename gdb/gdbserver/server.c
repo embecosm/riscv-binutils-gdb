@@ -1,5 +1,5 @@
 /* Main code for remote server for GDB.
-   Copyright (C) 1989-2018 Free Software Foundation, Inc.
+   Copyright (C) 1989-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -18,31 +18,32 @@
 
 #include "server.h"
 #include "gdbthread.h"
-#include "agent.h"
+#include "gdbsupport/agent.h"
 #include "notif.h"
 #include "tdesc.h"
-#include "rsp-low.h"
-#include "signals-state-save-restore.h"
+#include "gdbsupport/rsp-low.h"
+#include "gdbsupport/signals-state-save-restore.h"
 #include <ctype.h>
 #include <unistd.h>
 #if HAVE_SIGNAL_H
 #include <signal.h>
 #endif
-#include "gdb_vecs.h"
-#include "gdb_wait.h"
-#include "btrace-common.h"
-#include "filestuff.h"
+#include "gdbsupport/gdb_vecs.h"
+#include "gdbsupport/gdb_wait.h"
+#include "gdbsupport/btrace-common.h"
+#include "gdbsupport/filestuff.h"
 #include "tracepoint.h"
 #include "dll.h"
 #include "hostio.h"
 #include <vector>
-#include "common-inferior.h"
-#include "job-control.h"
-#include "environ.h"
+#include "gdbsupport/common-inferior.h"
+#include "gdbsupport/job-control.h"
+#include "gdbsupport/environ.h"
 #include "filenames.h"
-#include "pathstuff.h"
+#include "gdbsupport/pathstuff.h"
 
-#include "common/selftest.h"
+#include "gdbsupport/selftest.h"
+#include "gdbsupport/scope-exit.h"
 
 #define require_running_or_return(BUF)		\
   if (!target_running ())			\
@@ -139,10 +140,8 @@ static unsigned char *mem_buf;
    relative to a single stop reply.  We keep a queue of these to
    push to GDB in non-stop mode.  */
 
-struct vstop_notif
+struct vstop_notif : public notif_event
 {
-  struct notif_event base;
-
   /* Thread or process that got the event.  */
   ptid_t ptid;
 
@@ -153,8 +152,6 @@ struct vstop_notif
 /* The current btrace configuration.  This is gdbserver's mirror of GDB's
    btrace configuration.  */
 static struct btrace_config current_btrace_conf;
-
-DEFINE_QUEUE_P (notif_event_p);
 
 /* The client remote protocol state. */
 
@@ -173,32 +170,20 @@ get_client_state ()
 static void
 queue_stop_reply (ptid_t ptid, struct target_waitstatus *status)
 {
-  struct vstop_notif *new_notif = XNEW (struct vstop_notif);
+  struct vstop_notif *new_notif = new struct vstop_notif;
 
   new_notif->ptid = ptid;
   new_notif->status = *status;
 
-  notif_event_enque (&notif_stop, (struct notif_event *) new_notif);
+  notif_event_enque (&notif_stop, new_notif);
 }
 
-static int
-remove_all_on_match_ptid (QUEUE (notif_event_p) *q,
-			  QUEUE_ITER (notif_event_p) *iter,
-			  struct notif_event *event,
-			  void *data)
+static bool
+remove_all_on_match_ptid (struct notif_event *event, ptid_t filter_ptid)
 {
-  ptid_t filter_ptid = *(ptid_t *) data;
   struct vstop_notif *vstop_event = (struct vstop_notif *) event;
 
-  if (vstop_event->ptid.matches (filter_ptid))
-    {
-      if (q->free_func != NULL)
-	q->free_func (event);
-
-      QUEUE_remove_elem (notif_event_p, q, iter);
-    }
-
-  return 1;
+  return vstop_event->ptid.matches (filter_ptid);
 }
 
 /* See server.h.  */
@@ -206,8 +191,19 @@ remove_all_on_match_ptid (QUEUE (notif_event_p) *q,
 void
 discard_queued_stop_replies (ptid_t ptid)
 {
-  QUEUE_iterate (notif_event_p, notif_stop.queue,
-		 remove_all_on_match_ptid, &ptid);
+  std::list<notif_event *>::iterator iter, next, end;
+  end = notif_stop.queue.end ();
+  for (iter = notif_stop.queue.begin (); iter != end; iter = next)
+    {
+      next = iter;
+      ++next;
+
+      if (remove_all_on_match_ptid (*iter, ptid))
+	{
+	  delete *iter;
+	  notif_stop.queue.erase (iter);
+	}
+    }
 }
 
 static void
@@ -218,27 +214,23 @@ vstop_notif_reply (struct notif_event *event, char *own_buf)
   prepare_resume_reply (own_buf, vstop->ptid, &vstop->status);
 }
 
-/* QUEUE_iterate callback helper for in_queued_stop_replies.  */
+/* Helper for in_queued_stop_replies.  */
 
-static int
-in_queued_stop_replies_ptid (QUEUE (notif_event_p) *q,
-			     QUEUE_ITER (notif_event_p) *iter,
-			     struct notif_event *event,
-			     void *data)
+static bool
+in_queued_stop_replies_ptid (struct notif_event *event, ptid_t filter_ptid)
 {
-  ptid_t filter_ptid = *(ptid_t *) data;
   struct vstop_notif *vstop_event = (struct vstop_notif *) event;
 
   if (vstop_event->ptid.matches (filter_ptid))
-    return 0;
+    return true;
 
   /* Don't resume fork children that GDB does not know about yet.  */
   if ((vstop_event->status.kind == TARGET_WAITKIND_FORKED
        || vstop_event->status.kind == TARGET_WAITKIND_VFORKED)
       && vstop_event->status.value.related_pid.matches (filter_ptid))
-    return 0;
+    return true;
 
-  return 1;
+  return false;
 }
 
 /* See server.h.  */
@@ -246,13 +238,18 @@ in_queued_stop_replies_ptid (QUEUE (notif_event_p) *q,
 int
 in_queued_stop_replies (ptid_t ptid)
 {
-  return !QUEUE_iterate (notif_event_p, notif_stop.queue,
-			 in_queued_stop_replies_ptid, &ptid);
+  for (notif_event *event : notif_stop.queue)
+    {
+      if (in_queued_stop_replies_ptid (event, ptid))
+	return true;
+    }
+
+  return false;
 }
 
 struct notif_server notif_stop =
 {
-  "vStopped", "Stop", NULL, vstop_notif_reply,
+  "vStopped", "Stop", {}, vstop_notif_reply,
 };
 
 static int
@@ -261,7 +258,7 @@ target_running (void)
   return get_first_thread () != NULL;
 }
 
-/* See common/common-inferior.h.  */
+/* See gdbsupport/common-inferior.h.  */
 
 const char *
 get_exec_wrapper ()
@@ -269,7 +266,7 @@ get_exec_wrapper ()
   return !wrapper_argv.empty () ? wrapper_argv.c_str () : NULL;
 }
 
-/* See common/common-inferior.h.  */
+/* See gdbsupport/common-inferior.h.  */
 
 char *
 get_exec_file (int err)
@@ -294,6 +291,9 @@ attach_inferior (int pid)
   client_state &cs = get_client_state ();
   /* myattach should return -1 if attaching is unsupported,
      0 if it succeeded, and call error() otherwise.  */
+
+  if (find_process_pid (pid) != nullptr)
+    error ("Already attached to process %d\n", pid);
 
   if (myattach (pid) != 0)
     return -1;
@@ -323,8 +323,6 @@ attach_inferior (int pid)
 
   return 0;
 }
-
-extern int remote_debug;
 
 /* Decode a qXfer read request.  Return 0 if everything looks OK,
    or -1 otherwise.  */
@@ -455,7 +453,7 @@ handle_btrace_general_set (char *own_buf)
       return -1;
     }
 
-  TRY
+  try
     {
       if (strcmp (op, "bts") == 0)
 	handle_btrace_enable_bts (thread);
@@ -468,11 +466,10 @@ handle_btrace_general_set (char *own_buf)
 
       write_ok (own_buf);
     }
-  CATCH (exception, RETURN_MASK_ERROR)
+  catch (const gdb_exception_error &exception)
     {
-      sprintf (own_buf, "E.%s", exception.message);
+      sprintf (own_buf, "E.%s", exception.what ());
     }
-  END_CATCH
 
   return 1;
 }
@@ -1029,7 +1026,7 @@ gdb_write_memory (CORE_ADDR memaddr, const unsigned char *myaddr, int len)
       if (ret == 0)
 	{
 	  if (set_desired_thread ())
-	    ret = write_inferior_memory (memaddr, myaddr, len);
+	    ret = target_write_memory (memaddr, myaddr, len);
 	  else
 	    ret = EIO;
 	  done_accessing_memory ();
@@ -1255,11 +1252,15 @@ handle_detach (char *own_buf)
 
   fprintf (stderr, "Detaching from process %d\n", process->pid);
   stop_tracing ();
+
+  /* We'll need this after PROCESS has been destroyed.  */
+  int pid = process->pid;
+
   if (detach_inferior (process) != 0)
     write_enn (own_buf);
   else
     {
-      discard_queued_stop_replies (ptid_t (process->pid));
+      discard_queued_stop_replies (ptid_t (pid));
       write_ok (own_buf);
 
       if (extended_protocol || target_running ())
@@ -1269,7 +1270,7 @@ handle_detach (char *own_buf)
 	     and instead treat this like a normal program exit.  */
 	  cs.last_status.kind = TARGET_WAITKIND_EXITED;
 	  cs.last_status.value.integer = 0;
-	  cs.last_ptid = ptid_t (process->pid);
+	  cs.last_ptid = ptid_t (pid);
 
 	  current_thread = NULL;
 	}
@@ -1281,7 +1282,7 @@ handle_detach (char *own_buf)
 	  /* If we are attached, then we can exit.  Otherwise, we
 	     need to hang around doing nothing, until the child is
 	     gone.  */
-	  join_inferior (process);
+	  join_inferior (pid);
 	  exit (0);
 	}
     }
@@ -1398,6 +1399,10 @@ handle_monitor_command (char *mon, char *own_buf)
 	  write_enn (own_buf);
 	}
     }
+  else if (strcmp (mon, "set debug-file") == 0)
+    debug_set_output (nullptr);
+  else if (startswith (mon, "set debug-file "))
+    debug_set_output (mon + sizeof ("set debug-file ") - 1);
   else if (strcmp (mon, "help") == 0)
     monitor_show_help ();
   else if (strcmp (mon, "exit") == 0)
@@ -1868,18 +1873,17 @@ handle_qxfer_btrace (const char *annex,
     {
       buffer_free (&cache);
 
-      TRY
+      try
 	{
 	  result = target_read_btrace (thread->btrace, &cache, type);
 	  if (result != 0)
 	    memcpy (cs.own_buf, cache.buffer, cache.used_size);
 	}
-      CATCH (exception, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &exception)
 	{
-	  sprintf (cs.own_buf, "E.%s", exception.message);
+	  sprintf (cs.own_buf, "E.%s", exception.what ());
 	  result = -1;
 	}
-      END_CATCH
 
       if (result != 0)
 	return -3;
@@ -1940,18 +1944,17 @@ handle_qxfer_btrace_conf (const char *annex,
     {
       buffer_free (&cache);
 
-      TRY
+      try
 	{
 	  result = target_read_btrace_conf (thread->btrace, &cache);
 	  if (result != 0)
 	    memcpy (cs.own_buf, cache.buffer, cache.used_size);
 	}
-      CATCH (exception, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &exception)
 	{
-	  sprintf (cs.own_buf, "E.%s", exception.message);
+	  sprintf (cs.own_buf, "E.%s", exception.what ());
 	  result = -1;
 	}
-      END_CATCH
 
       if (result != 0)
 	return -3;
@@ -3240,14 +3243,13 @@ queue_stop_reply_callback (thread_info *thread)
      manage the thread's last_status field.  */
   if (the_target->thread_stopped == NULL)
     {
-      struct vstop_notif *new_notif = XNEW (struct vstop_notif);
+      struct vstop_notif *new_notif = new struct vstop_notif;
 
       new_notif->ptid = thread->id;
       new_notif->status = thread->last_status;
       /* Pass the last stop reply back to GDB, but don't notify
 	 yet.  */
-      notif_event_enque (&notif_stop,
-			 (struct notif_event *) new_notif);
+      notif_event_enque (&notif_stop, new_notif);
     }
   else
     {
@@ -3367,9 +3369,9 @@ handle_status (char *own_buf)
       /* If the last event thread is not found for some reason, look
 	 for some other thread that might have an event to report.  */
       if (thread == NULL)
-	thread = find_thread ([] (thread_info *thread)
+	thread = find_thread ([] (thread_info *thr_arg)
 	  {
-	    return thread->status_pending_p;
+	    return thr_arg->status_pending_p;
 	  });
 
       /* If we're still out of luck, simply pick the first thread in
@@ -3402,7 +3404,7 @@ static void
 gdbserver_version (void)
 {
   printf ("GNU gdbserver %s%s\n"
-	  "Copyright (C) 2018 Free Software Foundation, Inc.\n"
+	  "Copyright (C) 2019 Free Software Foundation, Inc.\n"
 	  "gdbserver is free software, covered by the "
 	  "GNU General Public License.\n"
 	  "This gdbserver was configured as \"%s\"\n",
@@ -3450,14 +3452,14 @@ gdbserver_usage (FILE *stream)
 	   "Debug options:\n"
 	   "\n"
 	   "  --debug               Enable general debugging output.\n"
-	   "  --debug-format=opt1[,opt2,...]\n"
+	   "  --debug-format=OPT1[,OPT2,...]\n"
 	   "                        Specify extra content in debugging output.\n"
 	   "                          Options:\n"
 	   "                            all\n"
 	   "                            none\n"
 	   "                            timestamp\n"
 	   "  --remote-debug        Enable remote protocol debugging output.\n"
-	   "  --disable-packet=opt1[,opt2,...]\n"
+	   "  --disable-packet=OPT1[,OPT2,...]\n"
 	   "                        Disable support for RSP packets or features.\n"
 	   "                          Options:\n"
 	   "                            vCont, Tthread, qC, qfThreadInfo and \n"
@@ -3538,24 +3540,23 @@ detach_or_kill_for_exit (void)
 /* Value that will be passed to exit(3) when gdbserver exits.  */
 static int exit_code;
 
-/* Cleanup version of detach_or_kill_for_exit.  */
+/* Wrapper for detach_or_kill_for_exit that catches and prints
+   errors.  */
 
 static void
-detach_or_kill_for_exit_cleanup (void *ignore)
+detach_or_kill_for_exit_cleanup ()
 {
-
-  TRY
+  try
     {
       detach_or_kill_for_exit ();
     }
-
-  CATCH (exception, RETURN_MASK_ALL)
+  catch (const gdb_exception &exception)
     {
       fflush (stdout);
-      fprintf (stderr, "Detach or kill failed: %s\n", exception.message);
+      fprintf (stderr, "Detach or kill failed: %s\n",
+	       exception.what ());
       exit_code = 1;
     }
-  END_CATCH
 }
 
 /* Main function.  This is called by the real "main" function,
@@ -3647,6 +3648,8 @@ captured_main (int argc, char *argv[])
 	}
       else if (strcmp (*next_arg, "--remote-debug") == 0)
 	remote_debug = 1;
+      else if (startswith (*next_arg, "--debug-file="))
+	debug_set_output ((*next_arg) + sizeof ("--debug-file=") -1);
       else if (strcmp (*next_arg, "--disable-packet") == 0)
 	{
 	  gdbserver_show_disableable (stdout);
@@ -3781,7 +3784,6 @@ captured_main (int argc, char *argv[])
   initialize_event_loop ();
   if (target_supports_tracepoints ())
     initialize_tracepoint ();
-  initialize_notif ();
 
   mem_buf = (unsigned char *) xmalloc (PBUFSIZ);
 
@@ -3790,7 +3792,7 @@ captured_main (int argc, char *argv[])
 #if GDB_SELF_TEST
       selftests::run_tests (selftest_filter);
 #else
-      printf (_("Selftests are not available in a non-development build.\n"));
+      printf (_("Selftests have been disabled for this build.\n"));
 #endif
       throw_quit ("Quit");
     }
@@ -3800,7 +3802,7 @@ captured_main (int argc, char *argv[])
       int i, n;
 
       n = argc - (next_arg - argv);
-      program_path.set (gdb::unique_xmalloc_ptr<char> (xstrdup (next_arg[0])));
+      program_path.set (make_unique_xstrdup (next_arg[0]));
       for (i = 1; i < n; i++)
 	program_args.push_back (xstrdup (next_arg[i]));
       program_args.push_back (NULL);
@@ -3825,7 +3827,8 @@ captured_main (int argc, char *argv[])
       cs.last_status.value.integer = 0;
       cs.last_ptid = minus_one_ptid;
     }
-  make_cleanup (detach_or_kill_for_exit_cleanup, NULL);
+
+  SCOPE_EXIT { detach_or_kill_for_exit_cleanup (); };
 
   /* Don't report shared library events on the initial connection,
      even if some libraries are preloaded.  Avoids the "stopped by
@@ -3857,7 +3860,7 @@ captured_main (int argc, char *argv[])
 
       remote_open (port);
 
-      TRY
+      try
 	{
 	  /* Wait for events.  This will return when all event sources
 	     are removed from the event loop.  */
@@ -3922,10 +3925,10 @@ captured_main (int argc, char *argv[])
 		}
 	    }
 	}
-      CATCH (exception, RETURN_MASK_ERROR)
+      catch (const gdb_exception_error &exception)
 	{
 	  fflush (stdout);
-	  fprintf (stderr, "gdbserver: %s\n", exception.message);
+	  fprintf (stderr, "gdbserver: %s\n", exception.what ());
 
 	  if (response_needed)
 	    {
@@ -3936,7 +3939,6 @@ captured_main (int argc, char *argv[])
 	  if (run_once)
 	    throw_quit ("Quit");
 	}
-      END_CATCH
     }
 }
 
@@ -3946,23 +3948,22 @@ int
 main (int argc, char *argv[])
 {
 
-  TRY
+  try
     {
       captured_main (argc, argv);
     }
-  CATCH (exception, RETURN_MASK_ALL)
+  catch (const gdb_exception &exception)
     {
       if (exception.reason == RETURN_ERROR)
 	{
 	  fflush (stdout);
-	  fprintf (stderr, "%s\n", exception.message);
+	  fprintf (stderr, "%s\n", exception.what ());
 	  fprintf (stderr, "Exiting\n");
 	  exit_code = 1;
 	}
 
       exit (exit_code);
     }
-  END_CATCH
 
   gdb_assert_not_reached ("captured_main should never return");
 }
@@ -4028,7 +4029,6 @@ process_serial_event (void)
   client_state &cs = get_client_state ();
   int signal;
   unsigned int len;
-  int res;
   CORE_ADDR mem_addr;
   unsigned char sig;
   int packet_len;
@@ -4172,13 +4172,15 @@ process_serial_event (void)
 	}
       break;
     case 'm':
-      require_running_or_break (cs.own_buf);
-      decode_m_packet (&cs.own_buf[1], &mem_addr, &len);
-      res = gdb_read_memory (mem_addr, mem_buf, len);
-      if (res < 0)
-	write_enn (cs.own_buf);
-      else
-	bin2hex (mem_buf, cs.own_buf, res);
+      {
+	require_running_or_break (cs.own_buf);
+	decode_m_packet (&cs.own_buf[1], &mem_addr, &len);
+	int res = gdb_read_memory (mem_addr, mem_buf, len);
+	if (res < 0)
+	  write_enn (cs.own_buf);
+	else
+	  bin2hex (mem_buf, cs.own_buf, res);
+      }
       break;
     case 'M':
       require_running_or_break (cs.own_buf);
@@ -4404,12 +4406,12 @@ handle_serial_event (int err, gdb_client_data client_data)
 static void
 push_stop_notification (ptid_t ptid, struct target_waitstatus *status)
 {
-  struct vstop_notif *vstop_notif = XNEW (struct vstop_notif);
+  struct vstop_notif *vstop_notif = new struct vstop_notif;
 
   vstop_notif->status = *status;
   vstop_notif->ptid = ptid;
   /* Push Stop notification.  */
-  notif_push (&notif_stop, (struct notif_event *) vstop_notif);
+  notif_push (&notif_stop, vstop_notif);
 }
 
 /* Event-loop callback for target events.  */

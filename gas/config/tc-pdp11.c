@@ -1,5 +1,5 @@
 /* tc-pdp11.c - pdp11-specific -
-   Copyright (C) 2001-2018 Free Software Foundation, Inc.
+   Copyright (C) 2001-2019 Free Software Foundation, Inc.
 
    This file is part of GAS, the GNU Assembler.
 
@@ -248,6 +248,10 @@ md_apply_fix (fixS *fixP,
 
   switch (fixP->fx_r_type)
     {
+    case BFD_RELOC_8:
+      mask = 0xff;
+      shift = 0;
+      break;
     case BFD_RELOC_16:
     case BFD_RELOC_16_PCREL:
       mask = 0xffff;

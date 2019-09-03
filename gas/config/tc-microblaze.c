@@ -1,6 +1,6 @@
 /* tc-microblaze.c -- Assemble code for Xilinx MicroBlaze
 
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
 
    This file is part of GAS, the GNU Assembler.
 
@@ -1766,13 +1766,10 @@ md_undefined_symbol (char * name ATTRIBUTE_UNUSED)
   return NULL;
 }
 
-/* Various routines to kill one day.  */
-/* Equal to MAX_PRECISION in atof-ieee.c */
-#define MAX_LITTLENUMS 6
-
 /* Turn a string in input_line_pointer into a floating point constant of type
    type, and store the appropriate bytes in *litP.  The number of LITTLENUMS
    emitted is stored in *sizeP.  An error message is returned, or NULL on OK.*/
+
 const char *
 md_atof (int type, char * litP, int * sizeP)
 {

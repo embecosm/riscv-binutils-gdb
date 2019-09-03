@@ -1,5 +1,5 @@
 /* tc-tic4x.c -- Assemble for the Texas Instruments TMS320C[34]x.
-   Copyright (C) 1997-2018 Free Software Foundation, Inc.
+   Copyright (C) 1997-2019 Free Software Foundation, Inc.
 
    Contributed by Michael P. Hayes (m.hayes@elec.canterbury.ac.nz)
 
@@ -51,9 +51,6 @@
    not requiring `@' in front of direct addresses.  */
 
 #define TIC4X_ALT_SYNTAX
-
-/* Equal to MAX_PRECISION in atof-ieee.c.  */
-#define MAX_LITTLENUMS 6	/* (12 bytes) */
 
 /* Handle of the inst mnemonic hash table.  */
 static struct hash_control *tic4x_op_hash = NULL;
@@ -2487,7 +2484,8 @@ md_assemble (char *str)
                 first_inst = inst;
               ok = 0;
             }
-      } while (!ok && !strcmp (inst->name, inst[1].name) && inst++);
+	}
+      while (!ok && !strcmp (inst->name, inst[1].name) && inst++);
 
       if (ok > 0)
         {

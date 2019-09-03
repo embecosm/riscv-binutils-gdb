@@ -1,6 +1,6 @@
 /* This testcase is part of GDB, the GNU debugger.
 
-   Copyright 2010-2018 Free Software Foundation, Inc.
+   Copyright 2010-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,9 +32,14 @@ class SimpleClass
     return i; /* Break in class. */
   }
 };
+
+namespace {
+  int anon = 10;
+};
 #endif
 
 int qq = 72;			/* line of qq */
+static int rr = 42;		/* line of rr */
 
 int func (int arg)
 {

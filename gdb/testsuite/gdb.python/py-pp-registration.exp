@@ -1,4 +1,4 @@
-# Copyright (C) 2010-2018 Free Software Foundation, Inc.
+# Copyright (C) 2010-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ with_test_prefix "verbose on" {
     gdb_test "py gdb.printing.register_pretty_printer(gdb, lookup_function_lookup_test)" \
 	"Registering global lookup_function_lookup_test pretty-printer ..."
     gdb_test "py gdb.printing.register_pretty_printer(progspace, my_pretty_printer1)" \
-	"Registering pp-test pretty-printer for .*/py-pp-registration ..."
+	"Registering pp-test pretty-printer for .*py-pp-registration ..."
 
     test_printers "s1"
 }

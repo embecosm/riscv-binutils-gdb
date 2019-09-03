@@ -1,5 +1,5 @@
 /* BFD support for AArch64.
-   Copyright (C) 2009-2018 Free Software Foundation, Inc.
+   Copyright (C) 2009-2019 Free Software Foundation, Inc.
    Contributed by ARM Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
@@ -68,10 +68,11 @@ static struct
 }
 processors[] =
 {
-  /* These two are example CPUs supported in GCC, once we have real
-     CPUs they will be removed.  */
-  { bfd_mach_aarch64, "example-1" },
-  { bfd_mach_aarch64, "example-2" }
+  { bfd_mach_aarch64,	  "cortex-a34"	    },
+  { bfd_mach_aarch64,	  "cortex-a65"	    },
+  { bfd_mach_aarch64,	  "cortex-a65ae"    },
+  { bfd_mach_aarch64,	  "cortex-a76ae"    },
+  { bfd_mach_aarch64,	  "cortex-a77"	    }
 };
 
 static bfd_boolean

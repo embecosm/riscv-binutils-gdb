@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2018 Free Software Foundation, Inc.
+/* Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -59,6 +59,10 @@
 #  define DIAGNOSTIC_IGNORE_SWITCH_DIFFERENT_ENUM_TYPES \
    DIAGNOSTIC_IGNORE ("-Wenum-compare-switch")
 # endif
+
+# define DIAGNOSTIC_IGNORE_FORMAT_NONLITERAL \
+  DIAGNOSTIC_IGNORE ("-Wformat-nonliteral")
+
 #elif defined (__GNUC__) /* GCC */
 
 # define DIAGNOSTIC_IGNORE_UNUSED_FUNCTION \
@@ -66,6 +70,10 @@
 
 # define DIAGNOSTIC_IGNORE_STRINGOP_TRUNCATION \
   DIAGNOSTIC_IGNORE ("-Wstringop-truncation")
+
+# define DIAGNOSTIC_IGNORE_FORMAT_NONLITERAL \
+  DIAGNOSTIC_IGNORE ("-Wformat-nonliteral")
+
 #endif
 
 #ifndef DIAGNOSTIC_IGNORE_SELF_MOVE
@@ -90,6 +98,10 @@
 
 #ifndef DIAGNOSTIC_IGNORE_STRINGOP_TRUNCATION
 # define DIAGNOSTIC_IGNORE_STRINGOP_TRUNCATION
+#endif
+
+#ifndef DIAGNOSTIC_IGNORE_FORMAT_NONLITERAL
+# define DIAGNOSTIC_IGNORE_FORMAT_NONLITERAL
 #endif
 
 #endif /* DIAGNOSTICS_H */

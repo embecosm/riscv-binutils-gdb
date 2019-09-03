@@ -1,4 +1,4 @@
-# Copyright (C) 1993-2018 Free Software Foundation, Inc.
+# Copyright (C) 1993-2019 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,11 +19,6 @@
 # dejagnu@gnu.org
 
 # This file was written by Ken Raeburn (raeburn@cygnus.com).
-
-# temporary fix until cgen is rebased onto upstream, at which point,
-# this variable will be set by make
-global experimental
-set experimental true
 
 proc load_common_lib { name } {
     global srcdir

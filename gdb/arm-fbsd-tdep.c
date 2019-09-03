@@ -1,6 +1,6 @@
 /* Target-dependent code for FreeBSD/arm.
 
-   Copyright (C) 2017-2018 Free Software Foundation, Inc.
+   Copyright (C) 2017-2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 
@@ -20,6 +20,8 @@
 #include "defs.h"
 
 #include "elf/common.h"
+#include "target-descriptions.h"
+#include "aarch32-tdep.h"
 #include "arm-tdep.h"
 #include "arm-fbsd-tdep.h"
 #include "auxv.h"
@@ -29,6 +31,25 @@
 #include "solib-svr4.h"
 #include "trad-frame.h"
 #include "tramp-frame.h"
+
+/* Register maps.  */
+
+static const struct regcache_map_entry arm_fbsd_gregmap[] =
+  {
+    { 13, ARM_A1_REGNUM, 4 }, /* r0 ... r12 */
+    { 1, ARM_SP_REGNUM, 4 },
+    { 1, ARM_LR_REGNUM, 4 },
+    { 1, ARM_PC_REGNUM, 4 },
+    { 1, ARM_PS_REGNUM, 4 },
+    { 0 }
+  };
+
+static const struct regcache_map_entry arm_fbsd_vfpregmap[] =
+  {
+    { 32, ARM_D0_REGNUM, 8 }, /* d0 ... d31 */
+    { 1, ARM_FPSCR_REGNUM, 4 },
+    { 0 }
+  };
 
 /* In a signal frame, sp points to a 'struct sigframe' which is
    defined as:
@@ -67,8 +88,6 @@
    the sigframe, otherwise it is NULL.  There is no non-VFP floating
    point register state saved in the signal frame.  */
 
-#define ARM_MCONTEXT_REG_SIZE		4
-#define ARM_MCONTEXT_VFP_REG_SIZE	8
 #define ARM_SIGFRAME_UCONTEXT_OFFSET	64
 #define ARM_UCONTEXT_MCONTEXT_OFFSET	16
 #define ARM_MCONTEXT_VFP_PTR_OFFSET	72
@@ -89,31 +108,16 @@ arm_fbsd_sigframe_init (const struct tramp_frame *self,
 			     + ARM_UCONTEXT_MCONTEXT_OFFSET);
   ULONGEST mcontext_vfp_addr;
 
-  for (int i = 0; i < 16; i++)
-    {
-      trad_frame_set_reg_addr (this_cache,
-			       ARM_A1_REGNUM + i,
-			       mcontext_addr + i * ARM_MCONTEXT_REG_SIZE);
-    }
-  trad_frame_set_reg_addr (this_cache, ARM_PS_REGNUM,
-			   mcontext_addr + 16 * ARM_MCONTEXT_REG_SIZE);
+  trad_frame_set_reg_regmap (this_cache, arm_fbsd_gregmap, mcontext_addr,
+			     regcache_map_entry_size (arm_fbsd_gregmap));
 
   if (safe_read_memory_unsigned_integer (mcontext_addr
 					 + ARM_MCONTEXT_VFP_PTR_OFFSET, 4,
 					 byte_order,
 					 &mcontext_vfp_addr)
       && mcontext_vfp_addr != 0)
-    {
-      for (int i = 0; i < 32; i++)
-	{
-	  trad_frame_set_reg_addr (this_cache, ARM_D0_REGNUM + i,
-				   mcontext_vfp_addr
-				   + i * ARM_MCONTEXT_VFP_REG_SIZE);
-	}
-      trad_frame_set_reg_addr (this_cache, ARM_FPSCR_REGNUM,
-			       mcontext_vfp_addr
-			       + 32 * ARM_MCONTEXT_VFP_REG_SIZE);
-    }
+    trad_frame_set_reg_regmap (this_cache, arm_fbsd_vfpregmap, mcontext_vfp_addr,
+			       regcache_map_entry_size (arm_fbsd_vfpregmap));
 
   trad_frame_set_id (this_cache, frame_id_build (sp, func));
 }
@@ -123,33 +127,14 @@ static const struct tramp_frame arm_fbsd_sigframe =
   SIGTRAMP_FRAME,
   4,
   {
-    {0xe1a0000d, -1},		/* mov  r0, sp  */
-    {0xe2800040, -1},		/* add  r0, r0, #SIGF_UC  */
-    {0xe59f700c, -1},		/* ldr  r7, [pc, #12]  */
-    {0xef0001a1, -1},		/* swi  SYS_sigreturn  */
-    {TRAMP_SENTINEL_INSN, -1}
+    {0xe1a0000d, ULONGEST_MAX},		/* mov  r0, sp  */
+    {0xe2800040, ULONGEST_MAX},		/* add  r0, r0, #SIGF_UC  */
+    {0xe59f700c, ULONGEST_MAX},		/* ldr  r7, [pc, #12]  */
+    {0xef0001a1, ULONGEST_MAX},		/* swi  SYS_sigreturn  */
+    {TRAMP_SENTINEL_INSN, ULONGEST_MAX}
   },
   arm_fbsd_sigframe_init
 };
-
-/* Register maps.  */
-
-static const struct regcache_map_entry arm_fbsd_gregmap[] =
-  {
-    { 13, ARM_A1_REGNUM, 4 }, /* r0 ... r12 */
-    { 1, ARM_SP_REGNUM, 4 },
-    { 1, ARM_LR_REGNUM, 4 },
-    { 1, ARM_PC_REGNUM, 4 },
-    { 1, ARM_PS_REGNUM, 4 },
-    { 0 }
-  };
-
-static const struct regcache_map_entry arm_fbsd_vfpregmap[] =
-  {
-    { 32, ARM_D0_REGNUM, 8 }, /* d0 ... d31 */
-    { 1, ARM_FPSCR_REGNUM, 4 },
-    { 0 }
-  };
 
 /* Register set definitions.  */
 
@@ -175,14 +160,15 @@ arm_fbsd_iterate_over_regset_sections (struct gdbarch *gdbarch,
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
-  cb (".reg", ARM_FBSD_SIZEOF_GREGSET, &arm_fbsd_gregset, NULL, cb_data);
+  cb (".reg", ARM_FBSD_SIZEOF_GREGSET, ARM_FBSD_SIZEOF_GREGSET,
+      &arm_fbsd_gregset, NULL, cb_data);
 
   /* While FreeBSD/arm cores do contain a NT_FPREGSET / ".reg2"
      register set, it is not populated with register values by the
      kernel but just contains all zeroes.  */
   if (tdep->vfp_register_count > 0)
-    cb (".reg-arm-vfp", ARM_FBSD_SIZEOF_VFPREGSET, &arm_fbsd_vfpregset,
-	"VFP floating-point", cb_data);
+    cb (".reg-arm-vfp", ARM_FBSD_SIZEOF_VFPREGSET, ARM_FBSD_SIZEOF_VFPREGSET,
+	&arm_fbsd_vfpregset, "VFP floating-point", cb_data);
 }
 
 /* Lookup a target description from a target's AT_HWCAP auxiliary
@@ -194,20 +180,20 @@ arm_fbsd_read_description_auxv (struct target_ops *target)
   CORE_ADDR arm_hwcap = 0;
 
   if (target_auxv_search (target, AT_FREEBSD_HWCAP, &arm_hwcap) != 1)
-    return NULL;
+    return nullptr;
 
   if (arm_hwcap & HWCAP_VFP)
     {
       if (arm_hwcap & HWCAP_NEON)
-	return tdesc_arm_with_neon;
+	return aarch32_read_description ();
       else if ((arm_hwcap & (HWCAP_VFPv3 | HWCAP_VFPD32))
 	  == (HWCAP_VFPv3 | HWCAP_VFPD32))
-	return tdesc_arm_with_vfpv3;
+	return arm_read_description (ARM_FP_TYPE_VFPV3);
       else
-	return tdesc_arm_with_vfpv2;
+      return arm_read_description (ARM_FP_TYPE_VFPV2);
     }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Implement the "core_read_description" gdbarch method.  */

@@ -1,5 +1,5 @@
 # This shell script emits a C file. -*- C -*-
-#   Copyright (C) 2004-2018 Free Software Foundation, Inc.
+#   Copyright (C) 2004-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
 #
@@ -18,6 +18,15 @@
 # Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
 # MA 02110-1301, USA.
 
+case ${target} in
+  *-*-*gnu*)
+    gnu_target=TRUE
+    ;;
+  *)
+    gnu_target=FALSE
+    ;;
+esac
+
 fragment <<EOF
 
 #include "ldctor.h"
@@ -35,21 +44,7 @@ static bfd *stub_bfd;
 
 static bfd_boolean insn32;
 static bfd_boolean ignore_branch_isa;
-
-static void
-mips_after_parse (void)
-{
-  /* .gnu.hash and the MIPS ABI require .dynsym to be sorted in different
-     ways.  .gnu.hash needs symbols to be grouped by hash code whereas the
-     MIPS ABI requires a mapping between the GOT and the symbol table.  */
-  if (link_info.emit_gnu_hash)
-    {
-      einfo (_("%X%P: .gnu.hash is incompatible with the MIPS ABI\n"));
-      link_info.emit_hash = TRUE;
-      link_info.emit_gnu_hash = FALSE;
-    }
-  gld${EMULATION_NAME}_after_parse ();
-}
+static bfd_boolean compact_branches;
 
 struct hook_stub_info
 {
@@ -203,10 +198,14 @@ mips_create_output_section_statements (void)
 
   htab = elf_hash_table (&link_info);
   if (is_elf_hash_table (htab) && is_mips_elf (link_info.output_bfd))
-    _bfd_mips_elf_linker_flags (&link_info, insn32, ignore_branch_isa);
+    _bfd_mips_elf_linker_flags (&link_info, insn32, ignore_branch_isa,
+				${gnu_target});
 
   if (is_mips_elf (link_info.output_bfd))
-    _bfd_mips_elf_init_stubs (&link_info, mips_add_stub_section);
+    {
+      _bfd_mips_elf_compact_branches (&link_info, compact_branches);
+      _bfd_mips_elf_init_stubs (&link_info, mips_add_stub_section);
+    }
 }
 
 /* This is called after we have merged the private data of the input bfds.  */
@@ -259,7 +258,9 @@ enum
     OPTION_INSN32 = 301,
     OPTION_NO_INSN32,
     OPTION_IGNORE_BRANCH_ISA,
-    OPTION_NO_IGNORE_BRANCH_ISA
+    OPTION_NO_IGNORE_BRANCH_ISA,
+    OPTION_COMPACT_BRANCHES,
+    OPTION_NO_COMPACT_BRANCHES
   };
 '
 
@@ -268,6 +269,8 @@ PARSE_AND_LIST_LONGOPTS='
   { "no-insn32", no_argument, NULL, OPTION_NO_INSN32 },
   { "ignore-branch-isa", no_argument, NULL, OPTION_IGNORE_BRANCH_ISA },
   { "no-ignore-branch-isa", no_argument, NULL, OPTION_NO_IGNORE_BRANCH_ISA },
+  { "compact-branches", no_argument, NULL, OPTION_COMPACT_BRANCHES },
+  { "no-compact-branches", no_argument, NULL, OPTION_NO_COMPACT_BRANCHES },
 '
 
 PARSE_AND_LIST_OPTIONS='
@@ -284,6 +287,12 @@ PARSE_AND_LIST_OPTIONS='
   fprintf (file, _("\
   --no-ignore-branch-isa      Reject invalid branch relocations requiring\n\
                               an ISA mode switch\n"
+		   ));
+  fprintf (file, _("\
+  --compact-branches          Generate compact branches/jumps for MIPS R6\n"
+		   ));
+  fprintf (file, _("\
+  --no-compact-branches       Generate delay slot branches/jumps for MIPS R6\n"
 		   ));
 '
 
@@ -303,8 +312,15 @@ PARSE_AND_LIST_ARGS_CASES='
     case OPTION_NO_IGNORE_BRANCH_ISA:
       ignore_branch_isa = FALSE;
       break;
+
+    case OPTION_COMPACT_BRANCHES:
+      compact_branches = TRUE;
+      break;
+
+    case OPTION_NO_COMPACT_BRANCHES:
+      compact_branches = FALSE;
+      break;
 '
 
-LDEMUL_AFTER_PARSE=mips_after_parse
 LDEMUL_BEFORE_ALLOCATION=mips_before_allocation
 LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS=mips_create_output_section_statements

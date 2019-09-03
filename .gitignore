@@ -59,6 +59,3 @@ stamp-*
 /mpc*
 /gmp*
 /isl*
-
-# ignore cgen
-/cgen

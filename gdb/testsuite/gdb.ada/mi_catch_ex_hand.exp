@@ -1,4 +1,4 @@
-# Copyright 2011-2018 Free Software Foundation, Inc.
+# Copyright 2011-2019 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@ if ![mi_run_to_main] then {
 }
 
 mi_gdb_test "-catch-handlers" \
-            "\\^done,bkptno=\"$decimal\",bkpt={.*disp=\"keep\",enabled=\"y\",addr=\"$hex\",what=\"all Ada exceptions handlers\",.*}" \
+            "\\^done,bkptno=\"$decimal\",bkpt={.*disp=\"keep\",enabled=\"y\",what=\"all Ada exceptions handlers\",.*}" \
             "catch all exceptions handlers"
 
 # Continue to exception handler.
@@ -120,7 +120,7 @@ if ![mi_run_to_main] then {
 }
 
 mi_gdb_test "-catch-handlers -e Constraint_Error" \
-            "\\^done,bkptno=\"$decimal\",bkpt={.*disp=\"keep\",enabled=\"y\",addr=\"$hex\",what=\"`Constraint_Error' Ada exception handlers\",.*}" \
+            "\\^done,bkptno=\"$decimal\",bkpt={.*disp=\"keep\",enabled=\"y\",what=\"`Constraint_Error' Ada exception handlers\",.*}" \
             "catch Constraint_Error"
 
 mi_execute_to "exec-continue" \
