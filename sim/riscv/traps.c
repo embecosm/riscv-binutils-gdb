@@ -70,6 +70,16 @@ sim_engine_invalid_insn (SIM_CPU * current_cpu, IADDR cia, SEM_PC pc)
   return 0;
 }
 
+/* Floating point errors.  */
+
+void
+CPU_FUNC(_fpu_error) (CGEN_FPU *fpu, int status)
+{
+  /* FIXME: Handle floating point errors properly. At the moment we just
+     ignore them and continue, but as a minimum this should set CSRs.  */
+  return;
+}
+
 /* Handle syscalls */
 
 void

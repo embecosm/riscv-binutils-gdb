@@ -131,7 +131,8 @@ sim_open (kind, callback, abfd, argv)
   cgen_init (sd);
 
   SIM_CPU *current_cpu = STATE_CPU (sd, i);
-  cgen_init_accurate_fpu (current_cpu, CGEN_CPU_FPU (current_cpu), NULL);
+  cgen_init_accurate_fpu (current_cpu, CGEN_CPU_FPU (current_cpu),
+                          CPU_FUNC(_fpu_error));
 
   return sd;
 }
