@@ -75,10 +75,19 @@ sim_open (kind, callback, abfd, argv)
       sim_do_commandf (sd, "memory region 0,0x%x", RISCV_DEFAULT_MEM_SIZE);
     }
 
-  /* Allocate the stack separately at the top of a 32-bit memory space.  */
-  sim_do_commandf (sd, "memory region 0x%x,0x%x",
-                   0xffffffff - RISCV_DEFAULT_STACK_SIZE + 1,
-                   RISCV_DEFAULT_STACK_SIZE);
+  /* If there's no OS to manage memory, then the simulator is responsible
+     for setting up the stack pointer and handling the program break. By
+     default these are seperate memory regions allocated at the top of
+     a 2GiB address space, far away from the static program memory.  */
+  if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
+    {
+      sim_do_commandf (sd, "memory region 0x%x,0x%x",
+                       RISCV_DEFAULT_STACK_START,
+                       RISCV_DEFAULT_STACK_SIZE);
+      sim_do_commandf (sd, "memory region 0x%x,0x%x",
+                       RISCV_DEFAULT_HEAP_START,
+                       RISCV_DEFAULT_HEAP_SIZE);
+    }
 
   /* check for/establish the reference program image */
   if (sim_analyze_program (sd,
@@ -155,8 +164,8 @@ sim_create_inferior (sd, abfd, argv, envp)
     }
 
   /* Put the stack pointer somewhere sensible by default (at the top of the
-     32-bit address space).  */
-  char buf[8] = { 0xf0, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00 };
+     2GiB address space).  */
+  char buf[8] = { 0xf0, 0xff, 0xff, 0x7f, 0x00, 0x00, 0x00, 0x00 };
   sim_store_register (sd, RISCV_SP_REGNUM, buf, XLEN / 8);
 
   return SIM_RC_OK;
