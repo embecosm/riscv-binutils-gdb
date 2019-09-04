@@ -7119,7 +7119,7 @@ SEM_FN_NAME (riscv64bf_rv64,fcvt_s_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    DF opval = SUBWORDDIDF (ORDI (ZEXTSIDI (TRUNCDISI (SUBWORDDFDI (CPU (h_fpr[FLD (f_rs1)])))), MAKEDI (0xffffffff, 0)));
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->ftruncdfsf (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
     CPU (h_fpr[FLD (f_rd)]) = opval;
     CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
   }
@@ -7140,7 +7140,7 @@ SEM_FN_NAME (riscv64bf_rv64,fcvt_d_s) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    DF opval = SUBWORDDIDF (ZEXTSIDI (TRUNCDISI (SUBWORDDFDI (CPU (h_fpr[FLD (f_rs1)])))));
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->fextsfdf (CGEN_CPU_FPU (current_cpu), 0, SUBWORDSISF (TRUNCDISI (SUBWORDDFDI (CPU (h_fpr[FLD (f_rs1)])))));
     CPU (h_fpr[FLD (f_rd)]) = opval;
     CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
   }

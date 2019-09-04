@@ -2989,9 +2989,9 @@
 
 ; Float <-> float conversions
 (define-pmacro fcvt-s-d-sem  ;DF -> SF
-  (set fl-rd (subword DF (or (zext UDI (trunc SI (subword DI fl-rs1 0))) #xffffffff00000000) 0)))
+  (set fl-rd (ftrunc SF 0 fl-rs1)))
 (define-pmacro fcvt-d-s-sem  ;SF -> DF
-  (set fl-rd (subword DF (zext DI (trunc SI (subword DI fl-rs1 0))) 0)))
+  (set fl-rd (fext DF 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
 
 (define-pmacro fsqrt-d-sem
   (set DF fl-rd (sqrt fl-rs1)))
