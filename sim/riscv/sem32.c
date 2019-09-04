@@ -970,7 +970,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_fldsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 static SEM_PC
 SEM_FN_NAME (riscv32bf_rv32,c_fsdsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_c_swsp.f
+#define FLD(f) abuf->fields.sfmt_c_fsdsp.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
@@ -978,7 +978,7 @@ SEM_FN_NAME (riscv32bf_rv32,c_fsdsp) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
   {
     DF opval = CPU (h_fpr[FLD (f_uimm5_65)]);
-    SETMEMDF (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm8_82_124_00)), opval);
+    SETMEMDF (current_cpu, pc, ADDSI (GET_H_GPR (((UINT) 2)), FLD (f_uimm9_93_123_000)), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'f', opval);
   }
 
