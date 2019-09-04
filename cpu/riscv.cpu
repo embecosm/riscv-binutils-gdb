@@ -2863,17 +2863,17 @@
   (set rd (cnd lhs rhs))))
 
 ; Integer <-> float conversions
-(define-pmacro fcvt-s-w-s-sem (sequence ((SF lhs)) ; SI -> SF
+(define-pmacro fcvt-s-w-sem (sequence ((SF lhs)) ; SI -> SF
   (set lhs (float SF 0 (trunc SI rs1)))
   (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
-(define-pmacro fcvt-s-wu-s-sem (sequence ((SF lhs)) ; USI -> SF
+(define-pmacro fcvt-s-wu-sem (sequence ((SF lhs)) ; USI -> SF
   (set lhs (ufloat SF 0 (trunc SI rs1)))
   (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
 
 ; FIXME: Handle clipping correctly
-(define-pmacro fcvt-w-s-s-sem
+(define-pmacro fcvt-w-s-sem
   (set rd (ext (fix SI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))))
-(define-pmacro fcvt-wu-s-s-sem
+(define-pmacro fcvt-wu-s-sem
   (set rd (zext (ufix USI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))))
 
 ; Moves
@@ -2906,30 +2906,30 @@
 (rv-format-f-8    "flt.s"     (all-isas f-ext f-machs) #b1010000 #b001 #b1010011 (fcond-s-sem lt))
 (rv-format-f-8    "fle.s"     (all-isas f-ext f-machs) #b1010000 #b000 #b1010011 (fcond-s-sem le))
 (rv-format-f-5-rm "fsqrt.s"   (all-isas f-ext f-machs) #b0101100 #b00000 #b1010011 fsqrt-s-sem)
-(rv-format-f-7-rm "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 fcvt-w-s-s-sem)
-(rv-format-f-7-rm "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 fcvt-wu-s-s-sem)
+(rv-format-f-7-rm "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 fcvt-w-s-sem)
+(rv-format-f-7-rm "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 fcvt-wu-s-sem)
 (rv-format-f-7    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011 fmv-x-w-s-sem)
 (rv-format-f-7    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011 (nop)) ;FIXME:sem
-(rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 fcvt-s-w-s-sem)
-(rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 fcvt-s-wu-s-sem)
+(rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 fcvt-s-w-sem)
+(rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 fcvt-s-wu-sem)
 (rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 fmv-w-x-s-sem)
 
 ;RV64F
-(define-pmacro fcvt-s-l-s-sem
+(define-pmacro fcvt-s-l-sem
   (set fl-rd (subword DF (or (zext UDI (subword SI (float SF 0 rs1) 0)) #xffffffff00000000) 0)))
-(define-pmacro fcvt-s-lu-s-sem
+(define-pmacro fcvt-s-lu-sem
   (set fl-rd (subword DF (or (zext UDI (subword SI (ufloat SF 0 rs1) 0)) #xffffffff00000000) 0)))
 
 ; FIXME: Handle clipping correctly
-(define-pmacro fcvt-l-s-s-sem
+(define-pmacro fcvt-l-s-sem
   (set rd (fix DI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
-(define-pmacro fcvt-lu-s-s-sem
+(define-pmacro fcvt-lu-s-sem
   (set rd (ufix UDI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
 
-(rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 fcvt-s-l-s-sem)
-(rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 fcvt-s-lu-s-sem)
-(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 fcvt-l-s-s-sem)
-(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 fcvt-lu-s-s-sem)
+(rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 fcvt-s-l-sem)
+(rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 fcvt-s-lu-sem)
+(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 fcvt-l-s-sem)
+(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 fcvt-lu-s-sem)
 
 ;===-------------------- 'D' extension instructions -------------------------===
 
@@ -2948,16 +2948,6 @@
 ; Simple binary ops
 (define-pmacro (fbinop-d-sem binop) 
   (set fl-rd  (binop DF fl-rs1 fl-rs2)))
-
-(define-pmacro fcvt-d-w-d-sem
-  (set fl-rd (float DF 0 (trunc SI rs1)))) ; SI -> DF
-(define-pmacro fcvt-d-wu-d-sem
-  (set fl-rd (ufloat DF 0 (trunc USI rs1)))) ; USI -> DF
-; FIXME: Handle clipping correctly
-(define-pmacro fcvt-w-d-d-sem
-  (set rd (ext (trunc SI (fix DI 0 fl-rs1))))) ; DF -> SI
-(define-pmacro fcvt-wu-d-d-sem
-  (set rd (ext (trunc USI (ufix DI 0 fl-rs1))))) ; DF -> USI
 
 ; Sign injection
 (define-pmacro fsgnj-d-sem (sequence ((DI lhs) (DI rhs) (DI res))
@@ -2985,17 +2975,23 @@
 (define-pmacro (fcond-d-sem cnd) 
   (set DI rd (cnd fl-rs1 fl-rs2)))
 
-; Float <-> float conversions
-(define-pmacro fcvt-s-d-d-sem  ;DF -> SF
-  (set fl-rd (subword DF (or (zext UDI (trunc SI (subword DI fl-rs1 0))) #xffffffff00000000) 0)))
-(define-pmacro fcvt-d-s-d-sem  ;SF -> DF
-  (set fl-rd (subword DF (zext DI (trunc SI (subword DI fl-rs1 0))) 0)))
-
 ; Integer <-> float conversions
-(define-pmacro fcvt-d-w-d-sem  ;DF->SI
-  (set rd (fix SI 0 fl-rs1)))
-(define-pmacro fcvt-d-wu-d-sem  ;DF->USI
-  (set rd (ufix USI 0 fl-rs1)))
+(define-pmacro fcvt-d-w-sem
+  (set fl-rd (float DF 0 (trunc SI rs1)))) ; SI -> DF
+(define-pmacro fcvt-d-wu-sem
+  (set fl-rd (ufloat DF 0 (trunc USI rs1)))) ; USI -> DF
+
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-w-d-sem
+  (set rd (ext (trunc SI (fix DI 0 fl-rs1))))) ; DF -> SI
+(define-pmacro fcvt-wu-d-sem
+  (set rd (ext (trunc USI (ufix DI 0 fl-rs1))))) ; DF -> USI
+
+; Float <-> float conversions
+(define-pmacro fcvt-s-d-sem  ;DF -> SF
+  (set fl-rd (subword DF (or (zext UDI (trunc SI (subword DI fl-rs1 0))) #xffffffff00000000) 0)))
+(define-pmacro fcvt-d-s-sem  ;SF -> DF
+  (set fl-rd (subword DF (zext DI (trunc SI (subword DI fl-rs1 0))) 0)))
 
 (define-pmacro fsqrt-d-sem
   (set DF fl-rd (sqrt fl-rs1)))
@@ -3019,13 +3015,14 @@
 (rv-format-f-8    "flt.d"     (all-isas d-ext d-machs) #b1010001 #b001 #b1010011 (fcond-d-sem lt))
 (rv-format-f-8    "fle.d"     (all-isas d-ext d-machs) #b1010001 #b000 #b1010011 (fcond-d-sem le))
 (rv-format-f-5-rm "fsqrt.d"   (all-isas d-ext d-machs) #b0101101 #b00000 #b1010011 fsqrt-d-sem)
-(rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 fcvt-d-w-d-sem)
-(rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 fcvt-d-wu-d-sem)
-(rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011 (nop)) ;FIXME: sem
-(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt-d-w-d-sem)
-(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt-d-wu-d-sem)
-(rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 fcvt-s-d-d-sem)
-(rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 fcvt-d-s-d-sem)
+(rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 fcvt-w-d-sem)
+(rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 fcvt-wu-d-sem)
+; FIXME: Implement fclass
+(rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011 (nop))
+(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt-d-w-sem)
+(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt-d-wu-sem)
+(rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 fcvt-s-d-sem)
+(rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 fcvt-d-s-sem)
 
 ;RV64D
 ; Moves
@@ -3039,6 +3036,7 @@
   (set fl-rd (float DF 0 rs1)))
 (define-pmacro fcvt-d-lu-sem
   (set fl-rd (ufloat DF 0 rs1)))
+
 ; FIXME: Handle clipping correctly
 (define-pmacro fcvt-l-d-sem ;DF->DI
   (set rd (fix DI 0 fl-rs1)))
