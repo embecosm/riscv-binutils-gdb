@@ -37,6 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
   #error XLEN not defined, or not 32 or 64 bits
 #endif
 
+void CPU_FUNC(_fpu_error) (CGEN_FPU *fpu, int status);
 void CPU_FUNC(_exception) (sim_cpu *current_cpu, USI pc, USI exnum);
 UWI  CPU_FUNC(_h_xlen_get_handler) (SIM_CPU * current_cpu);
 UWI  CPU_FUNC(_h_csr_get_handler)  (SIM_CPU * current_cpu, UINT csr);
