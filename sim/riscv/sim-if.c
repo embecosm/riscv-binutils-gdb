@@ -113,25 +113,6 @@ sim_open (kind, callback, abfd, argv)
 	SIM_CPU *cpu = STATE_CPU (sd, i);
 	CPU_CPU_DESC (cpu) = cd;
 	CPU_DISASSEMBLER (cpu) = sim_cgen_disassemble_insn;
-
-  //sim_cgen_disassemble_insn (SIM_CPU *cpu, const CGEN_INSN *insn,
-  //                           const ARGBUF *abuf, IADDR pc, char *buf)
-  //print_insn_riscv (bfd_vma memaddr, struct disassemble_info *info)
-  //
-  //init_disassemble_info(&info, stdout, (fprintf_type) fprintf);
-  //
-  //Mirrors behavior of binutils/objdump.c
-  //info.flavor = bfd_get_flavour(bfd);
-  //info.arch = bfd_get_arch(bfd);
-  //info.mach = bfd_get_mach(bfd);
-  //info.disassembler_options = disassembler_options;
-  //info.octets_per_byte = bfd_octets_per_byte (bfd);
-  //info.skip_zeroes = DEFAULT_SKIP_ZEROES;
-  //info.skip_zeroes_at_end = DEFAULT_SKIP_ZEROES_AT_END;
-  //info.disassembler_needs_relocs = FALSE;
-  //info.endian = BFD_ENDIAN_LITTLE;
-  //
-  //disassemble_init_for_target (struct disassemble_info * info)
       }
 
     riscv_cgen_init_dis (cd);
