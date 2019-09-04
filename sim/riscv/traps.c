@@ -41,10 +41,11 @@
 #define TARGET_SYS_exit    93
 #define TARGET_SYS_kill    129
 #define TARGET_SYS_getpid  172
+#define TARGET_SYS_brk     214
 #define TARGET_SYS_open    1024
 #define TARGET_SYS_unlink  1026
 
-static const CB_TARGET_DEFS_MAP syscall_map[] =
+static CB_TARGET_DEFS_MAP syscall_map[] =
 {
   { "exit",   CB_SYS_exit,   TARGET_SYS_exit },
   { "open",   CB_SYS_open,   TARGET_SYS_open },
@@ -91,9 +92,37 @@ CPU_FUNC(_exception) (sim_cpu *current_cpu, USI pc, USI exnum)
 
       if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
 	{
-	  long result = sim_syscall (current_cpu, GET_H_GPR(17), GET_H_GPR (10),
-	                             GET_H_GPR (11), GET_H_GPR (12),
-	                             GET_H_GPR (13));
+	  long syscall_id = GET_H_GPR(17);
+
+	  long result;
+	  if (syscall_id == TARGET_SYS_brk)
+	    {
+	      unsigned long addr = (unsigned long)GET_H_GPR (10);
+	      unsigned long heap_end =
+	          RISCV_DEFAULT_HEAP_START + RISCV_DEFAULT_HEAP_SIZE;
+
+	      static unsigned long brk = -1;
+	      if (addr == 0)
+		{
+		  brk = RISCV_DEFAULT_HEAP_START;
+		  result = (long)brk;
+		}
+	      else if ((addr >= RISCV_DEFAULT_HEAP_START) && (addr < heap_end))
+		{
+		  brk = addr;
+		  result = (long)brk;
+		}
+	      else
+		{
+		  result = (long)brk;
+		}
+	    }
+	  else
+	    {
+	      result = sim_syscall (current_cpu, syscall_id, GET_H_GPR (10),
+	                            GET_H_GPR (11), GET_H_GPR (12),
+	                            GET_H_GPR (13));
+	    }
 	  SET_H_GPR (10, result);
 	}
       else

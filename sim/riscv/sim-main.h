@@ -75,8 +75,15 @@ struct sim_state {
 
 /* Misc.  */
 
-/* Default memory size.  */
-#define RISCV_DEFAULT_MEM_SIZE   0x2000000 /* 32MB */
-#define RISCV_DEFAULT_STACK_SIZE 0x100000  /* 1MB */
+/* Default memory size and addresses.  */
+#define RISCV_DEFAULT_MEM_SIZE    0x2000000 /* 32MB */
+#define RISCV_DEFAULT_STACK_SIZE  0x100000  /* 1MB  */
+#define RISCV_DEFAULT_HEAP_SIZE   0x400000  /* 16MB */
+
+/* The stack is by-default allocated at the top of a 2GiB memory space.
+   The heap is allocated just below the stack. This keeps the heap and the
+   stack far away from the program which starts at address 0.  */
+#define RISCV_DEFAULT_STACK_START (0x7fffffff - RISCV_DEFAULT_STACK_SIZE + 1)
+#define RISCV_DEFAULT_HEAP_START  (RISCV_DEFAULT_STACK_START - RISCV_DEFAULT_HEAP_SIZE)
 
 #endif /* SIM_MAIN_H */
