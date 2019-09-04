@@ -6922,7 +6922,7 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_w_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    SI opval = CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+    SI opval = EXTSISI (TRUNCDISI (CGEN_CPU_FPU (current_cpu)->ops->fixdfdi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]))));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
   }
@@ -6943,7 +6943,7 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_wu_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    SI opval = CGEN_CPU_FPU (current_cpu)->ops->ufixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
+    SI opval = EXTSISI (TRUNCDISI (CGEN_CPU_FPU (current_cpu)->ops->ufixdfdi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]))));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
   }
@@ -6981,9 +6981,9 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_d_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    SI opval = CGEN_CPU_FPU (current_cpu)->ops->fixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->floatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
   }
 
   return vpc;
@@ -7002,9 +7002,9 @@ SEM_FN_NAME (riscv32bf_rv32,fcvt_d_wu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    SI opval = CGEN_CPU_FPU (current_cpu)->ops->ufixdfsi (CGEN_CPU_FPU (current_cpu), 0, CPU (h_fpr[FLD (f_rs1)]));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);
+    DF opval = CGEN_CPU_FPU (current_cpu)->ops->ufloatsidf (CGEN_CPU_FPU (current_cpu), 0, TRUNCSISI (GET_H_GPR (FLD (f_rs1))));
+    CPU (h_fpr[FLD (f_rd)]) = opval;
+    CGEN_TRACE_RESULT (current_cpu, abuf, "fpr", 'f', opval);
   }
 
   return vpc;
