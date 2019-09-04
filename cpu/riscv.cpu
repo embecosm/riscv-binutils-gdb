@@ -2203,7 +2203,7 @@
   (set fl-rd (mem DF (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
 (rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs) ;Good
   #b101 #b10
-  (set (mem DF (add (reg h-gpr 2) uimm8-82-124-00-abs)) fc-rs3))
+  (set (mem DF (add (reg h-gpr 2) uimm9-93-123-000-abs)) fc-rs3))
 (rv-format-cs-4   "c.fsd"   (all-isas c-ext c-machs)
   #b101 #b00
   (set (mem DF (add c-reg97 uimm8-62-123-000-abs)) fc-rs2))

@@ -209,6 +209,10 @@ union sem_fields {
     UINT f_rd;
   } sfmt_lui;
   struct { /*  */
+    DI f_uimm9_93_123_000;
+    UDI f_uimm5_65;
+  } sfmt_c_fsdsp;
+  struct { /*  */
     DI f_uimm9_43_121_62_000;
     UINT f_rd;
   } sfmt_c_fldsp;
