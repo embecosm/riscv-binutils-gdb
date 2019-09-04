@@ -3861,26 +3861,24 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   {
     const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
     CGEN_INSN_WORD insn = entire_insn;
-#define FLD(f) abuf->fields.sfmt_c_fswsp.f
-    UDI f_uimm3_123;
-    UDI f_uimm1_61;
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+    UDI f_uimm4_124;
+    UDI f_uimm2_82;
     UDI f_uimm5_65;
-    UDI f_uimm1_51;
-    DI f_uimm7_51_123_61_00;
+    DI f_uimm8_82_124_00;
 
-    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
-    f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1);
+    f_uimm4_124 = EXTRACT_LSB0_UINT (insn, 16, 12, 4);
+    f_uimm2_82 = EXTRACT_LSB0_UINT (insn, 16, 8, 2);
     f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5);
-    f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1);
 {
-  f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));
+  f_uimm8_82_124_00 = ((((f_uimm2_82) << (4))) | (f_uimm4_124));
 }
-  f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));
+  f_uimm8_82_124_00 = ((f_uimm8_82_124_00) << (2));
 
   /* Record the fields for the semantic handler.  */
   FLD (f_uimm5_65) = f_uimm5_65;
-  FLD (f_uimm7_51_123_61_00) = f_uimm7_51_123_61_00;
-  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fswsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm7_51_123_61_00 0x%x", 'x', f_uimm7_51_123_61_00, (char *) 0));
+  FLD (f_uimm8_82_124_00) = f_uimm8_82_124_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fswsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm8_82_124_00 0x%x", 'x', f_uimm8_82_124_00, (char *) 0));
 
 #undef FLD
     return idesc;

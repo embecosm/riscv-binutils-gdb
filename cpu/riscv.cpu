@@ -2188,7 +2188,7 @@
   (set fl-rd (subword DF (or (zext UDI (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))) #xffffffff00000000) 0)))
 (rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b10
-  (set (mem SI (add (reg h-gpr 2) uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs3 0))))
+  (set (mem SI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (trunc SI (subword DI fc-rs3 0))))
 (rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b111 #b00
   (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs2 0))))
