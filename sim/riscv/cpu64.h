@@ -63,7 +63,7 @@ CPU (h_gpr[(index)]) = (x);\
 #define GET_H_CSR(index) riscv64bf_h_csr_get_handler (current_cpu, index)
 #define SET_H_CSR(index, x) \
 do { \
-((void) 0); /*nop*/\
+riscv64bf_h_csr_set_handler (current_cpu, (index), (x));\
 ;} while (0)
   /* Floating Point Registers */
   DF h_fpr[32];

@@ -488,8 +488,10 @@
 
   )
   (get (index) (c-call UWI "@cpu@_h_csr_get_handler" index))
-  ; Writes to CSRs are always a nop
-  (set (index newval) (nop))
+  ; Whether a write is allowed to a CSR depends on the CSR, and some CSRs
+  ; only allow writes to some bits. We defer to C code to handle CSR writes
+  ; on a case-by-case basis.
+  (set (index newval) (c-call VOID "@cpu@_h_csr_set_handler" index newval))
 )
 
 (define-pmacro fpr-names () (
