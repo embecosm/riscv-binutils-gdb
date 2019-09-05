@@ -1,0 +1,26 @@
+# mach: riscv
+
+.include "testutils.inc"
+
+  start
+
+  # lr.w rd, (rs1)
+  la a1, test_word1
+  lr.w a0, (a1)
+  li a1, 6
+  bne a0, a1, .Lfailure
+  la a1, test_word2
+  lr.w a0, (a1)
+  li a1, -4
+  bne a0, a1, .Lfailure
+
+  pass
+.Lfailure:
+  fail
+
+  .data
+  .align 2
+test_word1:
+  .word 6
+test_word2:
+  .word -4
