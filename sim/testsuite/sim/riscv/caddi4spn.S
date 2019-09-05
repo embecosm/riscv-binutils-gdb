@@ -4,7 +4,7 @@
 
   start
 
-  # c.addi4spn imm
+  # c.addi4spn rd', imm
   li x2, 1
   c.addi4spn a0, 1
   li a1, 5
