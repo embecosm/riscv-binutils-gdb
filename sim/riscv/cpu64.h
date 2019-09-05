@@ -266,6 +266,16 @@ union sem_fields {
     UINT f_rs1;
   } sfmt_slli_shift6;
   struct { /*  */
+    UDI f_uimm5_195;
+    UINT f_csr;
+    UINT f_rd;
+  } sfmt_csrrwi;
+  struct { /*  */
+    UINT f_csr;
+    UINT f_rd;
+    UINT f_rs1;
+  } sfmt_csrrw;
+  struct { /*  */
     UDI f_uimm5_245;
     UINT f_rd;
     UINT f_rs1;

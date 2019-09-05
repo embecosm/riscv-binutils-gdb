@@ -1180,7 +1180,7 @@
   (comment "csr")
   (attrs all-isas)
   (type h-csr)
-  (mode UDI)
+  (mode UWI)
   (index f-csr)
   (handlers (parse "csr") (print "csr"))
 )
@@ -2363,22 +2363,52 @@
 
 (rv-format-csr-reg "csrrw"   (all-isas i-ext all-machs)
   #b001 #b1110011
-  (nop))
+  ; riscv spec v2.2, section 2.8:
+  ;   If rd=x0, then the instruction shall not read the CSR and shall not cause
+  ;   any of the side-effects that might occur on a CSR read.
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (if (ne (regno rd) 0)
+      (set rd csr))
+    (set csr tmp)))
 (rv-format-csr-reg "csrrs"   (all-isas i-ext all-machs)
   #b010 #b1110011
-  (nop))
+  ; riscv spec v2.2, section 2.8:
+  ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
+  ;   to the CSR at all, and so shall not cause any of the side effects that
+  ;   might otherwise occur on a CSR write
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (set rd csr)
+    (if (ne (regno rs1) 0)
+      (set csr (or tmp csr)))))
 (rv-format-csr-reg "csrrc"   (all-isas i-ext all-machs)
   #b011 #b1110011
-  (nop))
+  ; riscv spec v2.2, section 2.8:
+  ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
+  ;   to the CSR at all, and so shall not cause any of the side effects that
+  ;   might otherwise occur on a CSR write
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (set rd csr)
+    (if (ne (regno rs1) 0)
+      (set csr (and (inv tmp) csr)))))
 (rv-format-csr-imm "csrrwi"  (all-isas i-ext all-machs)
   #b101 #b1110011
-  (nop))
+  (sequence ()
+    (set rd csr)
+    (set csr uimm5)))
 (rv-format-csr-imm "csrrsi"  (all-isas i-ext all-machs)
   #b110 #b1110011
-  (nop))
+  (sequence ()
+    (set rd csr)
+    (set csr (or uimm5 csr))))
 (rv-format-csr-imm "csrrci"  (all-isas i-ext all-machs)
   #b111 #b1110011
-  (nop))
+  (sequence ((WI tmp))
+    (set rd csr)
+    (set csr (and (inv uimm5) csr))))
+
 (rv-format-raw     "uret"    (all-isas i-ext all-machs)
   #b00000000001000000000000001110011
   (nop))
