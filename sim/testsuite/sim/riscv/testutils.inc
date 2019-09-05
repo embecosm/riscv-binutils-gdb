@@ -24,6 +24,12 @@ fail_string:
   .text
   .global _start
 _start:
+  # Initialize the global pointer
+  .option push
+  .option norelax
+  1:auipc gp, %pcrel_hi(__global_pointer$)
+    addi  gp, gp, %pcrel_lo(1b)
+  .option pop
   .endm
 
   .macro pass
