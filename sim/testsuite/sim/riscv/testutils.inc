@@ -1,4 +1,4 @@
-/* Tests basic instructions
+/* RISC-V simulator test suite utility functions.
 
    Copyright (C) 2019 Free Software Foundation, Inc.
 
@@ -15,42 +15,40 @@
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-# mach: riscv
-
-
+  .macro start
   .data
-  .global pass_string
 pass_string:
-  .ascii "pass\n"
-
+  .asciz "pass\n"
+fail_string:
+  .asciz "fail\n"
   .text
-  .global pass
-pass:
+  .global _start
+_start:
+  .endm
+
+  .macro pass
   # Call the 'write' syscall (64)
   li a7, 64
   li a0, 0             # fd:   stdout
   la a1, pass_string   # buf:  "pass\n"
   li a2, 5             # count: 5
-  mv a3, zero
-  mv a4, zero
-  mv a5, zero
   scall
-  ret
+  exit 0
+  .endm
 
-  .global exit
-exit:
+  .macro fail
+  # Call the 'write' syscall (64)
+  li a7, 64
+  li a0, 0             # fd:   stdout
+  la a1, fail_string   # buf:  "pass\n"
+  li a2, 5             # count: 5
+  scall
+  exit 1
+  .endm
+
+  .macro exit rc
   # Call the 'exit' syscall (93)
   li a7, 93
-  # a0 contains the return code
-  mv a1, zero
-  mv a2, zero
-  mv a3, zero
-  mv a4, zero
-  mv a5, zero
+  li a0, \rc
   scall
-
-  .global _start
-_start:
-  call pass
-  li   a0, 0
-  call exit
+  .endm
