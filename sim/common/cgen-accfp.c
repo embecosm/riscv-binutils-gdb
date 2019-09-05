@@ -425,6 +425,17 @@ ufixsfsi (CGEN_FPU* fpu, int how UNUSED, SF x)
   sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
   return res;
 }
+
+static USI
+ufixdfsi (CGEN_FPU* fpu, int how UNUSED, DF x)
+{
+  sim_fpu op1;
+  unsigned32 res;
+
+  sim_fpu_64to (&op1, x);
+  sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
+  return res;
+}
 
 /* DF mode support */
 
@@ -724,17 +735,6 @@ unordereddf (CGEN_FPU* fpu, DF x, DF y)
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
   return sim_fpu_is_nan (&op1) || sim_fpu_is_nan (&op2);
-}
-
-static USI
-ufixdfsi (CGEN_FPU* fpu, int how UNUSED, DF x)
-{
-  sim_fpu op1;
-  unsigned32 res;
-
-  sim_fpu_64to (&op1, x);
-  sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
-  return res;
 }
 
 /* Initialize FP_OPS to use accurate library.  */

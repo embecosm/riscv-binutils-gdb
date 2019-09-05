@@ -2983,9 +2983,9 @@
 
 ; FIXME: Handle clipping correctly
 (define-pmacro fcvt-w-d-sem
-  (set rd (ext (trunc SI (fix DI 0 fl-rs1))))) ; DF -> SI
+  (set rd (ext (fix SI 0 fl-rs1)))) ; DF -> SI
 (define-pmacro fcvt-wu-d-sem
-  (set rd (ext (trunc USI (ufix DI 0 fl-rs1))))) ; DF -> USI
+  (set rd (ext (ufix USI 0 fl-rs1)))) ; DF -> USI
 
 ; Float <-> float conversions
 (define-pmacro fcvt-s-d-sem  ;DF -> SF
