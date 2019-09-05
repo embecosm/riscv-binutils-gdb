@@ -6,11 +6,11 @@
 
   # jalr rd, offset(rs1)
   la a1, .Ljalr2
-  jalr a0, 4(a1)
+  jalr a0, 2(a1)
 .Ljalr1:
   fail
 .Ljalr2:
-  j .Lfailure
+  c.j .Lfailure
 .Ljalr3:
   la a1, .Ljalr1
   bne a0, a1, .Lfailure
