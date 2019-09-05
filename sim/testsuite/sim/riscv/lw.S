@@ -6,7 +6,7 @@
 
   # lw rd, offset(rs1)
   la a1, test_words
-  lw a0, 10(a1)
+  lw a0, 20(a1)
   li a1, -6
   bne a0, a1, .Lfailure
 
