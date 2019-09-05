@@ -94,6 +94,13 @@ CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
     }
 }
 
+void
+CPU_FUNC(_h_csr_set_handler) (SIM_CPU *current_cpu, UINT rn, UWI val)
+{
+  /* Currently all CSRs are treated as read-only, so any writes are just
+     ignored.  */
+}
+
 /* The contents of BUF are in target byte order.  */
 int
 CPU_FUNC(_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
