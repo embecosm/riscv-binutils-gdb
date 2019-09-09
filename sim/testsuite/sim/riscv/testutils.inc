@@ -35,7 +35,7 @@ _start:
   .macro pass
   # Call the 'write' syscall (64)
   li a7, 64
-  li a0, 0             # fd:   stdout
+  li a0, 1             # fd:   stdout
   la a1, pass_string   # buf:  "pass\n"
   li a2, 5             # count: 5
   scall
