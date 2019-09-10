@@ -40,7 +40,8 @@
 
 /* The _sim_cpu struct.  */
 
-struct _sim_cpu {
+struct _sim_cpu
+{
   /* sim/common cpu base.  */
   sim_cpu_base base;
 
@@ -64,7 +65,8 @@ struct _sim_cpu {
 
 /* The sim_state struct.  */
 
-struct sim_state {
+struct sim_state
+{
   sim_cpu *cpu[MAX_NR_PROCESSORS];
 
   CGEN_STATE cgen_state;
@@ -75,9 +77,9 @@ struct sim_state {
 /* Misc.  */
 
 /* Default memory size and addresses.  */
-#define RISCV_DEFAULT_MEM_SIZE    0x2000000 /* 32MB */
-#define RISCV_DEFAULT_STACK_SIZE  0x100000  /* 1MB  */
-#define RISCV_DEFAULT_HEAP_SIZE   0x400000  /* 16MB */
+#define RISCV_DEFAULT_MEM_SIZE    0x2000000	/* 32MB */
+#define RISCV_DEFAULT_STACK_SIZE  0x100000	/* 1MB  */
+#define RISCV_DEFAULT_HEAP_SIZE   0x400000	/* 16MB */
 
 /* The stack is by-default allocated at the top of a 2GiB memory space.
    The heap is allocated just below the stack. This keeps the heap and the

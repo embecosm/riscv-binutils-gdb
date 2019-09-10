@@ -41,8 +41,9 @@ static int riscv_cgen_rvc = RVEXT_RVNONE;
 /* Supported extensions (excluding 'C' extensions)  */
 static CGEN_BITSET *riscv_cgen_extensions = NULL;
 
-int riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                               const CGEN_INSN *insn)
+int
+riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+			   const CGEN_INSN * insn)
 {
   if (!riscv_cgen_extensions)
     return TRUE;
@@ -53,20 +54,21 @@ int riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   int insn_exts = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_RVEXT);
   if (insn_exts & (1 << riscv_cgen_rvc))
     return TRUE;
-  for (int i = 0; insn_exts != 0; )
+  for (int i = 0; insn_exts != 0;)
     {
       if ((insn_exts & 1) && cgen_bitset_contains (riscv_cgen_extensions, i))
-        return TRUE;
+	return TRUE;
       insn_exts >>= 1;
       i++;
     }
   return FALSE;
 }
 
-void riscv_cgen_init_riscv_extensions (CGEN_BITSET *exts)
+void
+riscv_cgen_init_riscv_extensions (CGEN_BITSET * exts)
 {
-  assert (riscv_cgen_extensions == NULL &&
-          "Extensions should only be initialized once");
+  assert (riscv_cgen_extensions == NULL
+	  && "Extensions should only be initialized once");
 
   /* Copy all of the extensions across except the RV32C/RV64C extensions, as
      these will be toggleable after initialization.  Save the initial 'C'
@@ -82,13 +84,14 @@ void riscv_cgen_init_riscv_extensions (CGEN_BITSET *exts)
   for (int i = 0; i < RVEXT_RVMAX; i++)
     {
       if (i == RVEXT_RV32C || i == RVEXT_RV64C)
-        continue;
+	continue;
       if (cgen_bitset_contains (exts, i))
-        cgen_bitset_add (riscv_cgen_extensions, i);
+	cgen_bitset_add (riscv_cgen_extensions, i);
     }
 }
 
-void riscv_cgen_set_rvc (int rvc)
+void
+riscv_cgen_set_rvc (int rvc)
 {
   assert (rvc == RVEXT_RVNONE || rvc == RVEXT_RV32C || rvc == RVEXT_RV64C);
   riscv_cgen_rvc = rvc;
