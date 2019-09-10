@@ -1,8 +1,5 @@
 ; RISCV CPU description.  -*- Scheme -*-
-; Copyright 2018-2019 Embecosm Limited.
-;
-; Contributed by Mary Bennett (mary.bennett@embecosm.com)
-;                Edward Jones (ed.jones@embecosm.com)
+; Copyright (C) 2019 Free Software Foundation, Inc.
 ;
 ; This file is part of GNU Binutils.
 ;
@@ -28,9 +25,9 @@
 ;  fl-tied- : Tied floating point register
 ;  c-       : Compressed registers
 ;  c-tied-  : Tied compressed register
-;  -ne0     : Non zero register
-;  -ne2     : Non two register
-;  -ne0-ne2 : Non zero or two register
+;  -ne0     : Any register except 'zero' (x0)
+;  -ne2     : Any register except 'sp' (x2)
+;  -ne0-ne2 : Any register exception 'zero' or 'sp'
 ;  fc-      : Compressed floating point register
 ;
 ;===---------------- Naming scheme for fields and operands ------------------===
@@ -56,7 +53,6 @@
 ; *4* of length *2*, bit 6 comes from a field starting at bit *5* of length *1*,
 ; bit 5 comes from a field starting at *2* of length *1*, bit 4 comes
 ; from a field at *6* of length *1*, and bits 3 to 0 are all *0*.
-
 
 (include "simplify.inc")
 
@@ -88,12 +84,12 @@
   ; To make matters worse, setting <base-insn-bitsize> to 32 here causes
   ; a different error, as the generated decoder will try and use bits 16-32
   ; when decoding a 16-bit instruction and triggers an assertion
-  ; (assert (< bitnum word-bitsize)) when it accesses a bit outside the
+  ; "(assert (< bitnum word-bitsize))" when it accesses a bit outside the
   ; instruction mask.
   ;
   ; The solution has been to patch cgen to avoid tripping this last error,
   ; restricting the decoder to use only bits 0-15 until it has read more
-  ; of the instruction in.
+  ; of the instruction bits.
   (base-insn-bitsize 32)
 )
 (define-isa
@@ -105,8 +101,8 @@
 (define-pmacro all-isas (ISA rv32 rv64))
 
 ; Bitset describing the extensions which a given instruction belongs to.
-; These attributes are used by the assembler to disable instructions when
-; an extension is not specified in the arch provided to -march.
+; These attributes are used by a cgen-based assembler to disable instructions
+; when an extension is not specified in the arch provided to -march.
 (define-attr
   (name RVEXT)
   (comment "RISC-V Extensions")
@@ -169,6 +165,8 @@
 ;   2) Add the machine to the (define-arch) at the top of this file
 ;   3) Update the RVxxx-MACHS macros as appropriate.
 ;   4) Add to the list of machs in the cgen invocations in sim/riscv/Makefile.in
+; A new machine will need to be added if you want the simulator to be able to
+; target a different combination of extensions.
 (if (keep-mach? (rv32i rv32ic rv32im rv32imc rv32g rv32gc rv32gqc))
   (begin
     (define-cpu
@@ -301,8 +299,8 @@
 
 (define-pmacro gpr-names (
   ; ABI names
-  ; These are first as that appear to cause them to be prioritized
-  ; over the generic names
+  ; These are first as that causes them to be prioritized
+  ; over the generic names when printed
   (zero 0) (ra   1) (sp   2) (gp   3) (tp   4) (t0   5) (t1   6)
   (t2   7) (s0   8) (s1   9) (a0  10) (a1  11) (a2  12) (a3  13)
   (a4  14) (a5  15) (a6  16) (a7  17) (s2  18) (s3  19) (s4  20)
@@ -511,7 +509,10 @@
 ; There is one register file of floating point registers, which is
 ; shared by the 'F' (single precision) and 'D' (double precision)
 ; extensions. The registers are defined as being 64 bits wide, with only
-; the lower 32 bits used by the 'F' instructions.
+; the lower 32 bits used by the 'F' instructions. When operating on
+; a float value in one of these registers the value is NaN-boxed by
+; padding the upper 32 bits with 0xffff - this is performed by the
+; semantics of the 'F' extension instructions.
 (define-hardware
   (name h-fpr)
   (comment "Floating Point Registers")
@@ -2043,7 +2044,7 @@
 
 ;; Instructions
 ;;
-;; We have defined a set of macros above which will not be called to
+;; We have defined a set of macros above which will be invoked to
 ;; specify each of the instructions in the ISA.
 ;; The macros above are really just utilities to save us from
 ;; the verbosity of writing a `dni` specification for each instructions,
@@ -2053,6 +2054,9 @@
 ;; (macro-name mnemonic-str attribute-list
 ;;   binary-fields ...
 ;;   semantics)
+;;
+;; TODO: It may be a good idea to split this out into multiple files
+
 ;===-------------------- 'C' extension instructions -------------------------===
 
 (dni c.addi16sp "c.addi16sp" (all-isas c-ext c-machs)
@@ -3130,16 +3134,16 @@
 ; assembly/disassembly is dependent on the order they are defined, and we want
 ; to try shorter compressed instructions first.
 ;
-; Also where there are multiple ways to assembler or disassemble an
+; Also where there are multiple ways to assemble or disassemble an
 ; instruction, the order in this list determines the priority.
-; It would be nice to not rely on this.
+; FIXME: It would be nice to not rely on this.
 ;
 ; Aside from jumps and branches, compressed instructions reject anything
 ; which isn't an absolute value. This avoids two problems; First, we cannot
-; generate locations for symbols in most compressed instructions; and second,
+; generate relocations for symbols in most compressed instructions; and second,
 ; a number of instructions share the same mnemonic and differ only in the
-; type of an operand (immediate vs register operand). If this case, we don't
-; want to accidentally parse the register name as a symbol for an immediate
+; type of an operand (immediate vs register operand). If this is the case, we
+; don't want to accidentally parse the register name as a symbol in an immediate
 ; field.
 
 (define-pmacro (rvc-macro macro-name mnemonic attr-list asm expansion)

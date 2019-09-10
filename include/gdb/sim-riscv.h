@@ -1,8 +1,5 @@
 /* This file defines the interface between the RISCV simulator and GDB.
-
    Copyright (C) 2018-2019 Free Software Foundation, Inc.
-
-   Contributed by Embecosm
 
    This file is part of GDB.
 

@@ -1,7 +1,5 @@
 /* Main simulator entry points specific to the RISCV
-
-   Copyright (C) 2018-2019 Free Software Foundation, Inc.
-   Contributed by Embecosm
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of GDB, the GNU debugger.
 

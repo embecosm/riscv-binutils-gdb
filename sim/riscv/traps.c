@@ -1,7 +1,5 @@
 /* RISCV exception and system call support.
-   Contributed by Edward Jones  <ed.jones@embecosm.com>
-
-   Copyright (C) 2018-2019 Free Software Foundation, Inc.
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of GDB.
 

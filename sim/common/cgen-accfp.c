@@ -335,6 +335,7 @@ ftruncdfsf (CGEN_FPU* fpu, int how UNUSED, DF x)
 
   sim_fpu_64to (&op1, x);
   sim_fpu_to32 (&res, &op1);
+
   return res;
 }
 

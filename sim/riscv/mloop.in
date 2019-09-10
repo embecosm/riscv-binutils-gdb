@@ -1,5 +1,4 @@
 # Simulator main loop for riscv. -*- C -*-
-#
 # Copyright (C) 1996-2019 Free Software Foundation, Inc.
 #
 # This file is part of the GNU Simulators.

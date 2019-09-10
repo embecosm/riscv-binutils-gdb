@@ -1,8 +1,5 @@
 /* RISCV opcode support.  -*- C -*-
-   Copyright 2018-2019 Embecosm Limited.
-
-   Contributed by Mary Bennett (mary.bennett@embecosm.com)
-                  Edward Jones (ed.jones@embecosm.com)
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of GNU Binutils.
 
