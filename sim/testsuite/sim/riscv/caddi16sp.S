@@ -4,10 +4,10 @@
 
   start
 
-  # c.addi16sp imm
+  # c.addi16sp sp, imm
   li x2, 1
-  c.addi16sp 1
-  li a1, 17
+  c.addi16sp sp, 32
+  li a1, 33
   bne x2, a1, .Lfailure
 
   pass
