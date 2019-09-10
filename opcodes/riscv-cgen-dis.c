@@ -262,7 +262,7 @@ print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 {
   disassemble_info *info = dis_info;
 
-  (*info->fprintf_func) (info->stream, "%#010lx", value);
+  (*info->fprintf_func) (info->stream, "%#010x", value);
 }
 
 static void

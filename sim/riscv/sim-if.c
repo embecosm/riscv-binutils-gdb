@@ -1,7 +1,5 @@
 /* Main simulator entry points specific to the RISCV
-
-   Copyright (C) 1996-2017 Free Software Foundation, Inc.
-   Contributed by Cygnus Support.
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
    This file is part of GDB, the GNU debugger.
 
@@ -123,6 +121,7 @@ sim_open (kind, callback, abfd, argv)
 	CPU_CPU_DESC (cpu) = cd;
 	CPU_DISASSEMBLER (cpu) = sim_cgen_disassemble_insn;
       }
+
     riscv_cgen_init_dis (cd);
   }
 
