@@ -32,13 +32,14 @@ extern "C" {
 
 /* -- opc.h */
 
-extern int  riscv_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn);
-extern void riscv_cgen_init_riscv_extensions (CGEN_BITSET *exts);
+extern int riscv_cgen_insn_supported (CGEN_CPU_DESC cd,
+				      const CGEN_INSN * insn);
+extern void riscv_cgen_init_riscv_extensions (CGEN_BITSET * exts);
 extern void riscv_cgen_set_rvc (int rvc);
 
-#undef  CGEN_DIS_HASH_SIZE
+#undef CGEN_DIS_HASH_SIZE
 #define CGEN_DIS_HASH_SIZE 1
-#undef  CGEN_DIS_HASH
+#undef CGEN_DIS_HASH
 #define CGEN_DIS_HASH(buffer, value) 0
 
 struct disassemble_info;

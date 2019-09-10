@@ -41,7 +41,7 @@ sim_open (kind, callback, abfd, argv)
      SIM_OPEN_KIND kind;
      host_callback *callback;
      struct bfd *abfd;
-     char * const *argv;
+     char *const *argv;
 {
   SIM_DESC sd = sim_state_alloc (kind, callback);
   char c;
@@ -55,7 +55,7 @@ sim_open (kind, callback, abfd, argv)
 
   if (sim_pre_argv_init (sd, argv[0]) != SIM_RC_OK)
     {
-      free_state(sd);
+      free_state (sd);
       return 0;
     }
 
@@ -80,19 +80,16 @@ sim_open (kind, callback, abfd, argv)
   if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
     {
       sim_do_commandf (sd, "memory region 0x%x,0x%x",
-                       RISCV_DEFAULT_STACK_START,
-                       RISCV_DEFAULT_STACK_SIZE);
+		       RISCV_DEFAULT_STACK_START, RISCV_DEFAULT_STACK_SIZE);
       sim_do_commandf (sd, "memory region 0x%x,0x%x",
-                       RISCV_DEFAULT_HEAP_START,
-                       RISCV_DEFAULT_HEAP_SIZE);
+		       RISCV_DEFAULT_HEAP_START, RISCV_DEFAULT_HEAP_SIZE);
     }
 
   /* check for/establish the reference program image */
   if (sim_analyze_program (sd,
-                           (STATE_PROG_ARGV (sd) != NULL
-                           ? *STATE_PROG_ARGV (sd)
-                           : NULL),
-                           abfd) != SIM_RC_OK)
+			   (STATE_PROG_ARGV (sd) != NULL
+			    ? *STATE_PROG_ARGV (sd)
+			    : NULL), abfd) != SIM_RC_OK)
     {
       free_state (sd);
       return 0;
@@ -113,8 +110,9 @@ sim_open (kind, callback, abfd, argv)
 
   /* Open a copy of the cpu descriptor table.  */
   {
-    CGEN_CPU_DESC cd = riscv_cgen_cpu_open_1 (STATE_ARCHITECTURE (sd)->printable_name,
-                                              CGEN_ENDIAN_LITTLE);
+    CGEN_CPU_DESC cd =
+      riscv_cgen_cpu_open_1 (STATE_ARCHITECTURE (sd)->printable_name,
+			     CGEN_ENDIAN_LITTLE);
     for (i = 0; i < MAX_NR_PROCESSORS; ++i)
       {
 	SIM_CPU *cpu = STATE_CPU (sd, i);
@@ -131,7 +129,7 @@ sim_open (kind, callback, abfd, argv)
 
   SIM_CPU *current_cpu = STATE_CPU (sd, i);
   cgen_init_accurate_fpu (current_cpu, CGEN_CPU_FPU (current_cpu),
-                          CPU_FUNC(_fpu_error));
+			  CPU_FUNC (_fpu_error));
 
   return sd;
 }
@@ -140,8 +138,8 @@ SIM_RC
 sim_create_inferior (sd, abfd, argv, envp)
      SIM_DESC sd;
      struct bfd *abfd;
-     char * const *argv;
-     char * const *envp;
+     char *const *argv;
+     char *const *envp;
 {
   SIM_CPU *current_cpu = STATE_CPU (sd, 0);
   SIM_ADDR addr;

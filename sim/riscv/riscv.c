@@ -17,13 +17,13 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if XLEN == 32
-  #define WANT_CPU riscv32bf
-  #define WANT_CPU_RISCV32BF
+#define WANT_CPU riscv32bf
+#define WANT_CPU_RISCV32BF
 #elif XLEN == 64
-  #define WANT_CPU riscv64bf
-  #define WANT_CPU_RISCV64BF
+#define WANT_CPU riscv64bf
+#define WANT_CPU_RISCV64BF
 #else
-  #error XLEN not defined, or not 32 or 64 bits
+#error XLEN not defined, or not 32 or 64 bits
 #endif
 
 #include <assert.h>
@@ -32,34 +32,32 @@
 #include "gdb/sim-riscv.h"
 
 
-UWI
-CPU_FUNC(_h_xlen_get_handler) (SIM_CPU *current_cpu)
+UWI CPU_FUNC (_h_xlen_get_handler) (SIM_CPU * current_cpu)
 {
   return XLEN;
 }
 
-UWI
-CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
+UWI CPU_FUNC (_h_csr_get_handler) (SIM_CPU * current_cpu, UINT rn)
 {
   int csr = rn + RISCV_FIRST_CSR_REGNUM;
   if (csr == RISCV_CSR_MISA_REGNUM)
     {
       UWI misa = 0;
 
-      /* Encode the base field in misa.  */ 
+      /* Encode the base field in misa.  */
       assert (XLEN == 32 || XLEN == 64);
-      misa |= (UWI)(XLEN == 32 ? 1 : 2) << (XLEN - 2);
+      misa |= (UWI) (XLEN == 32 ? 1 : 2) << (XLEN - 2);
 
       /* Encode the supported extensions.  */
       const char *mach_name = MACH_NAME (CPU_MACH (current_cpu));
       assert (!strncmp (mach_name, "rv32", strlen ("rv32"))
-              || !strncmp (mach_name, "rv64", strlen ("rv64")));
+	      || !strncmp (mach_name, "rv64", strlen ("rv64")));
       mach_name += strlen ("rv32");
 
-      for (const char *ext = mach_name; *ext != '\0'; ext++) 
+      for (const char *ext = mach_name; *ext != '\0'; ext++)
 	{
 	  /* Set the bit in misa for each supported extension.  */
-	  #define EXTENSION_TO_MASK(EXT) (1 << (EXT - 'a'))
+#define EXTENSION_TO_MASK(EXT) (1 << (EXT - 'a'))
 	  switch (*ext)
 	    {
 	    case 'i':
@@ -69,22 +67,22 @@ CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
 	    case 'q':
 	    case 'm':
 	    case 'c':
-	      misa |= EXTENSION_TO_MASK(*ext);
+	      misa |= EXTENSION_TO_MASK (*ext);
 	      break;
 	    case 'g':
-	      misa |= EXTENSION_TO_MASK('i');
-	      misa |= EXTENSION_TO_MASK('a');
-	      misa |= EXTENSION_TO_MASK('f');
-	      misa |= EXTENSION_TO_MASK('d');
-	      misa |= EXTENSION_TO_MASK('m');
+	      misa |= EXTENSION_TO_MASK ('i');
+	      misa |= EXTENSION_TO_MASK ('a');
+	      misa |= EXTENSION_TO_MASK ('f');
+	      misa |= EXTENSION_TO_MASK ('d');
+	      misa |= EXTENSION_TO_MASK ('m');
 	      break;
 	    default:
 	      assert (0 && "Unsupported extension in machine name");
 	    }
-	  #undef EXTENSION_MASK
+#undef EXTENSION_MASK
 	}
       return misa;
-    } 
+    }
   else
     {
       /* No special handling, just return the raw value.  */
@@ -92,12 +90,11 @@ CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
     }
 }
 
-void
-CPU_FUNC(_h_csr_set_handler) (SIM_CPU *current_cpu, UINT rn, UWI val)
+void CPU_FUNC (_h_csr_set_handler) (SIM_CPU * current_cpu, UINT rn, UWI val)
 {
   /* Most CSRs are currently treated as read-only, and any writes are just
      ignored. This will be gradually expanded as more features are added.  */
-  if (rn == 0x3/*fcsr*/)
+  if (rn == 0x3 /*fcsr */ )
     {
       CPU (h_csr[rn]) = (CPU (h_csr[rn]) & 0xff00) | (val & 0xff);
     }
@@ -105,8 +102,8 @@ CPU_FUNC(_h_csr_set_handler) (SIM_CPU *current_cpu, UINT rn, UWI val)
 
 /* The contents of BUF are in target byte order.  */
 int
-CPU_FUNC(_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                           int len)
+CPU_FUNC (_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
+			    int len)
 {
   if (RISCV_ZERO_REGNUM <= rn && rn < RISCV_PC_REGNUM)
     {
@@ -149,8 +146,8 @@ CPU_FUNC(_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
 
 /* The contents of BUF are in target byte order.  */
 int
-CPU_FUNC(_store_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
-                           int len)
+CPU_FUNC (_store_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
+			    int len)
 {
   if (RISCV_ZERO_REGNUM <= rn && rn < RISCV_PC_REGNUM)
     {
@@ -184,86 +181,116 @@ CPU_FUNC(_store_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
 
 #ifdef WANT_CPU_RISCV32BF
 
-int riscv32bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                            int unit_num, int referenced)
+int
+riscv32bf_model_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			int unit_num, int referenced)
 {
   return -1;
 }
-int riscv32bf_model_rv32i_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                  int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32i_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			      int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32ic_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32ic_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32im_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32im_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32imc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32imc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+				int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32g_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                  int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32g_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			      int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32gc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32gc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+
+int
+riscv32bf_model_rv32gqc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+				int unit_num, int referenced)
 {
   return riscv32bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
 
 #elif defined(WANT_CPU_RISCV64BF)
 
-int riscv64bf_model_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                            int unit_num, int referenced)
+int
+riscv64bf_model_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			int unit_num, int referenced)
 {
   return -1;
 }
-int riscv64bf_model_rv64i_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                  int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64i_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			      int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64ic_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64ic_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64im_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64im_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64imc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64imc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+				int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64g_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                  int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64g_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			      int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64gc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                   int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64gc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+			       int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
-int riscv64bf_model_rv64gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
-                                    int unit_num, int referenced)
+
+int
+riscv64bf_model_rv64gqc_u_exec (SIM_CPU * current_cpu, const IDESC * idesc,
+				int unit_num, int referenced)
 {
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }

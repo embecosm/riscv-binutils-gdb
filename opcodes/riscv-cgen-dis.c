@@ -77,9 +77,10 @@ disassemble_init_riscv (struct disassemble_info *info)
     }
 }
 
-static inline unsigned int riscv_insn_length (bfd_vma insn)
+static inline unsigned int
+riscv_insn_length (bfd_vma insn)
 {
-  if ((insn & 0x3) != 0x3) /* RVC.  */
+  if ((insn & 0x3) != 0x3)	/* RVC.  */
     return 2;
   /* Currently no instrs > 32-bits.  */
   return 4;
@@ -88,7 +89,7 @@ static inline unsigned int riscv_insn_length (bfd_vma insn)
 #define CGEN_PRINT_INSN riscv_print_insn
 
 static int
-riscv_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+riscv_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info * info)
 {
   bfd_byte buf[CGEN_MAX_INSN_SIZE];
   int buflen;
@@ -122,11 +123,8 @@ riscv_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
 }
 
 static void
-print_sp (CGEN_CPU_DESC cd,
-          void * dis_info,
-          CGEN_KEYWORD * valuep,
-          bfd_vma field ATTRIBUTE_UNUSED,
-          int length ATTRIBUTE_UNUSED)
+print_sp (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * valuep,
+	  bfd_vma field ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
   print_keyword (cd, info, valuep, /*SP*/ 2, 0);
@@ -134,11 +132,8 @@ print_sp (CGEN_CPU_DESC cd,
 
 /* Print a single value as a tied register pair */
 static void
-print_tied_reg_pair (CGEN_CPU_DESC cd,
-                     void * dis_info,
-                     CGEN_KEYWORD * valuep,
-                     bfd_vma field,
-                     int length ATTRIBUTE_UNUSED)
+print_tied_reg_pair (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * valuep,
+		     bfd_vma field, int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
 
@@ -149,26 +144,21 @@ print_tied_reg_pair (CGEN_CPU_DESC cd,
 
 /* CSR, either a known value, or an explicit address.  */
 static void
-print_csr (CGEN_CPU_DESC cd,
-           void * dis_info,
-           CGEN_KEYWORD * keyword_table,
-           bfd_vma field,
-           int length)
+print_csr (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * keyword_table,
+	   bfd_vma field, int length)
 {
   disassemble_info *info = dis_info;
   if (cgen_keyword_lookup_value (keyword_table, field))
-    print_keyword (cd, info, keyword_table, field, 0 /*attrs*/);
+    print_keyword (cd, info, keyword_table, field, 0 /*attrs */ );
   else
-    print_address (cd, info, field, 0 /*attrs*/, 0 /*pc*/, length);
+    print_address (cd, info, field, 0 /*attrs */ , 0 /*pc */ , length);
 }
 
 static void
-print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                       void * dis_info,
-                       long value,
-                       unsigned int attrs ATTRIBUTE_UNUSED,
-                       bfd_vma pc ATTRIBUTE_UNUSED,
-                       int length ATTRIBUTE_UNUSED)
+print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+		       long value, unsigned int attrs ATTRIBUTE_UNUSED,
+		       bfd_vma pc ATTRIBUTE_UNUSED,
+		       int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
   if (value & 0x8)
@@ -182,24 +172,34 @@ print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
-print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                           void * dis_info,
-                           long value,
-                           unsigned int attrs ATTRIBUTE_UNUSED,
-                           bfd_vma pc ATTRIBUTE_UNUSED,
-                           int length ATTRIBUTE_UNUSED)
+print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+			   long value, unsigned int attrs ATTRIBUTE_UNUSED,
+			   bfd_vma pc ATTRIBUTE_UNUSED,
+			   int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
   const char *str;
 
   switch (value)
     {
-    case 0x0:  str = "rne";  break;
-    case 0x1:  str = "rtz";  break;
-    case 0x2:  str = "rdn";  break;
-    case 0x3:  str = "rup";  break;
-    case 0x4:  str = "rmm";  break;
-    case 0x7:  str = "";     break;
+    case 0x0:
+      str = "rne";
+      break;
+    case 0x1:
+      str = "rtz";
+      break;
+    case 0x2:
+      str = "rdn";
+      break;
+    case 0x3:
+      str = "rup";
+      break;
+    case 0x4:
+      str = "rmm";
+      break;
+    case 0x7:
+      str = "";
+      break;
     default:
       str = "<invalid>";
     }
@@ -208,43 +208,32 @@ print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
-print_uimm32_hi20 (CGEN_CPU_DESC cd,
-                   void * dis_info,
-                   unsigned long value,
-                   unsigned int attrs,
-                   bfd_vma pc,
-                   int length)
+print_uimm32_hi20 (CGEN_CPU_DESC cd, void *dis_info, unsigned long value,
+		   unsigned int attrs, bfd_vma pc, int length)
 {
   value >>= 12;
   print_normal (cd, dis_info, value, attrs, pc, length);
 }
 
 static void
-print_nzuimm18_hi6 (CGEN_CPU_DESC cd,
-                    void * dis_info,
-                    unsigned long value,
-                    unsigned int attrs,
-                    bfd_vma pc,
-                    int length)
+print_nzuimm18_hi6 (CGEN_CPU_DESC cd, void *dis_info, unsigned long value,
+		    unsigned int attrs, bfd_vma pc, int length)
 {
   value >>= 12;
 
   /* Although this is only a 6 bit immediate, it represents a 20 bit immediate
      value where the upper 14 bits are a copy of the sign in bit 5.  Manually
      sign extend up to 20 bits here.  */
-  value = (char)(value << 2) >> 2;
+  value = (char) (value << 2) >> 2;
   value &= 0xfffff;
 
   print_normal (cd, dis_info, value, attrs, pc, length);
 }
 
 static void
-print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                void * dis_info,
-                unsigned long value,
-                unsigned int attrs ATTRIBUTE_UNUSED,
-                bfd_vma pc ATTRIBUTE_UNUSED,
-                int length ATTRIBUTE_UNUSED)
+print_ldst_uimm (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+		 unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+		 bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
 
@@ -253,12 +242,9 @@ print_ldst_uimm(CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
-print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                void * dis_info,
-                unsigned long value,
-                unsigned int attrs ATTRIBUTE_UNUSED,
-                bfd_vma pc ATTRIBUTE_UNUSED,
-                int length ATTRIBUTE_UNUSED)
+print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	    unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+	    bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
 
@@ -266,12 +252,9 @@ print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
 }
 
 static void
-print_dec (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
-                void * dis_info,
-                unsigned long value,
-                unsigned int attrs ATTRIBUTE_UNUSED,
-                bfd_vma pc ATTRIBUTE_UNUSED,
-                int length ATTRIBUTE_UNUSED)
+print_dec (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	   unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+	   bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
 {
   disassemble_info *info = dis_info;
 
