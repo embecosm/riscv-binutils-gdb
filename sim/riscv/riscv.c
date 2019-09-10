@@ -89,16 +89,20 @@ CPU_FUNC(_h_csr_get_handler) (SIM_CPU *current_cpu, UINT rn)
     } 
   else
     {
-      /* Unhandled CSR, just return 0 */
-      return 0;
+      /* No special handling, just return the raw value.  */
+      return CPU (h_csr[rn]);
     }
 }
 
 void
 CPU_FUNC(_h_csr_set_handler) (SIM_CPU *current_cpu, UINT rn, UWI val)
 {
-  /* Currently all CSRs are treated as read-only, so any writes are just
-     ignored.  */
+  /* Most CSRs are currently treated as read-only, and any writes are just
+     ignored. This will be gradually expanded as more features are added.  */
+  if (rn == 0x3/*fcsr*/)
+    {
+      CPU (h_csr[rn]) = (CPU (h_csr[rn]) & 0xff00) | (val & 0xff);
+    }
 }
 
 /* The contents of BUF are in target byte order.  */

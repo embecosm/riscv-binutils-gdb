@@ -30,6 +30,7 @@
 
 #include "sim-main.h"
 #include "sim-syscall.h"
+#include "sim-fpu.h"
 
 
 // Syscall numbers defined in newlib libgloss
@@ -76,7 +77,33 @@ void
 CPU_FUNC(_fpu_error) (CGEN_FPU *fpu, int status)
 {
   /* FIXME: Handle floating point errors properly. At the moment we just
-     ignore them and continue, but as a minimum this should set CSRs.  */
+     ignore most of them and continue, instead of updating the float csr.  */
+  /* FIXME: Use symbolic values for fcsr and the exception flags.  */
+  SIM_CPU *current_cpu = (SIM_CPU *)fpu->owner;
+  if (status & sim_fpu_status_inexact)
+    SET_H_CSR (0x3/*fcsr*/, GET_H_CSR (0x3/*fcsr*/) | 0x1);
+
+  if (status & sim_fpu_status_underflow)
+    SET_H_CSR (0x3/*fcsr*/, GET_H_CSR (0x3/*fcsr*/) | 0x2);
+
+  if (status & sim_fpu_status_overflow)
+    SET_H_CSR (0x3/*fcsr*/, GET_H_CSR (0x3/*fcsr*/) | 0x4);
+
+  if (status & sim_fpu_status_invalid_div0)
+    SET_H_CSR (0x3/*fcsr*/, GET_H_CSR (0x3/*fcsr*/) | 0x8);
+
+  if (status
+      & (sim_fpu_status_invalid_snan
+         | sim_fpu_status_invalid_qnan
+         | sim_fpu_status_invalid_isi
+         | sim_fpu_status_invalid_idi
+         | sim_fpu_status_invalid_zdz
+         | sim_fpu_status_invalid_imz
+         | sim_fpu_status_invalid_cvi
+         | sim_fpu_status_invalid_cmp
+         | sim_fpu_status_invalid_sqrt))
+    SET_H_CSR (0x3/*fcsr*/, GET_H_CSR (0x3/*fcsr*/) | 0x10);
+
   return;
 }
 
