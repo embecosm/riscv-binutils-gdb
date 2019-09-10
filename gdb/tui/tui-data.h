@@ -98,7 +98,6 @@ public:
 
 /* Constant definitions.  */
 #define DEFAULT_TAB_LEN         8
-#define NO_DATA_STRING          "[ No Data Values Displayed ]"
 #define SRC_NAME                "src"
 #define CMD_NAME                "cmd"
 #define DATA_NAME               "regs"
@@ -160,12 +159,6 @@ protected:
 public:
 
   ~tui_win_info () override
-  {
-  }
-
-  /* Called after all the TUI windows are refreshed, to let this
-     window have a chance to update itself further.  */
-  virtual void refresh_all ()
   {
   }
 

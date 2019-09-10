@@ -37,6 +37,10 @@ struct tui_data_item_window : public tui_gen_win_info
 
   tui_data_item_window (tui_data_item_window &&) = default;
 
+  void rerender () override;
+
+  void refresh_window () override;
+
   const char *name = nullptr;
   /* The register number, or data display number.  */
   int item_no = -1;
@@ -54,8 +58,6 @@ struct tui_data_window : public tui_win_info
 
   DISABLE_COPY_AND_ASSIGN (tui_data_window);
 
-  void refresh_all () override;
-
   void refresh_window () override;
 
   const char *name () const override
@@ -63,14 +65,14 @@ struct tui_data_window : public tui_win_info
     return DATA_NAME;
   }
 
-  /* Windows that are used to display registers.  */
-  std::vector<tui_data_item_window> regs_content;
-  int regs_column_count = 0;
-  struct reggroup *current_group = nullptr;
-
   void check_register_values (struct frame_info *frame);
 
   void show_registers (struct reggroup *group);
+
+  struct reggroup *get_current_group () const
+  {
+    return current_group;
+  }
 
 protected:
 
@@ -121,15 +123,16 @@ private:
      past the register area (-1) is returned.  */
   int first_reg_element_no_inline (int line_no) const;
 
-  /* Displays the data that is in the data window's content.  It does
-     not set the content.  */
-  void display_all_data ();
-
   /* Delete all the item windows in the data window.  This is usually
      done when the data window is scrolled.  */
   void delete_data_content_windows ();
 
   void erase_data_content (const char *prompt);
+
+  /* Windows that are used to display registers.  */
+  std::vector<tui_data_item_window> regs_content;
+  int regs_column_count = 0;
+  struct reggroup *current_group = nullptr;
 };
 
 #endif /* TUI_TUI_REGS_H */

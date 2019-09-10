@@ -1,3 +1,76 @@
+2019-09-09  Phil Blundell  <pb@pbcl.net>
+
+	binutils 2.33 branch created.
+
+2019-09-06  Alan Modra  <amodra@gmail.com>
+
+	* aout-target.h (object_p): Formatting.
+	* bfd-in.h (bfd_get_filename): Don't cast to char*.
+	* corefile.c (generic_core_file_matches_executable_p): Constify
+	variables and remove cast.
+	* bfd-in2.h: Regenerate.
+
+2019-09-05  Alan Modra  <amodra@gmail.com>
+
+	* elf64-ppc.c (ppc64_elf_check_relocs): Interpret an addend in
+	GOT_PCREL and PLT_PCREL relocs as affecting the value stored
+	in the GOT/PLT entry rather than affecting the offset to that
+	GOI/PLT entry.
+	(ppc64_elf_edit_toc, ppc64_elf_relocate_section): Likewise.
+
+2019-09-05  Alan Modra  <amodra@gmail.com>
+
+	* elf64-ppc.c (xlate_pcrel_opt): Handle prefix loads and stores
+	in second instruction.
+	(ppc64_elf_relocate_section): Likewise.
+
+2019-09-05  Alan Modra  <amodra@gmail.com>
+
+	PR 24955
+	* libbfd-in.h (bfd_strdup): New inline function.
+	* archive.c (_bfd_get_elt_at_filepos): Use bfd_strdup.  Close
+	bfd on error.
+	* elfcode.h (_bfd_elf_bfd_from_remote_memory): Use bfd_strdup.
+	* opncls.c (bfd_fopen): Use bfd_strdup.  Close fd and stream
+	on error.
+	(bfd_openstreamr): Use bfd_strdup.
+	(bfd_openr_iovec, bfd_openw, bfd_create): Likewise.
+	* plugin.c (try_load_plugin): Use bfd_malloc.
+	* libbfd.h: Regenerate.
+
+2019-09-02  Alan Modra  <amodra@gmail.com>
+
+	PR 11983
+	* dwarf2.c (_bfd_dwarf2_slurp_debug_info): Free debug_filename
+	on success.  Tidy.
+	(read_alt_indirect_string): Likewise.
+	(read_alt_indirect_ref): Likewise.
+
+2019-08-31  Jim Wilson  <jimw@sifive.com>
+
+	PR 23825
+	* elfnn-riscv.c (riscv_elf_create_dynamic_sections): Add SEC_LOAD,
+	SEC_DATA, and SEC_HAS_CONTENTS to .tdata.dyn section.
+
+2019-08-30  Jim Wilson  <jimw@sifive.com>
+
+	* elfnn-riscv.c (riscv_elf_relocate_section): For unresolvable reloc
+	error, call bfd_set_error, set ret to FALSE, and goto out label.
+
+2019-08-30  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/24951
+	* archive.c (_bfd_get_elt_at_filepos): Copy BFD_COMPRESS,
+	BFD_DECOMPRESS and BFD_COMPRESS_GABI flags for thin archive.
+
+2019-08-29  Alan Modra  <amodra@gmail.com>
+
+	PR 24697
+	* elf32-ppc.c (ppc_elf_check_relocs): Call bad_shared_reloc
+	when !bfd_link_executable for R_PPC_EMB_SDA2I16 and
+	R_PPC_EMB_SDA2REL.  Don't call bad_shared_reloc for any other
+	reloc.
+
 2019-08-29  Alan Modra  <amodra@gmail.com>
 
 	* elf64-ppc.c (xlate_pcrel_opt): Add poff parameter.  Allow offset

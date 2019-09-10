@@ -82,7 +82,6 @@ show_layout (enum tui_layout_type layout)
 	case SRC_DATA_COMMAND:
 	case DISASSEM_DATA_COMMAND:
 	  show_data (layout);
-	  tui_refresh_all ();
 	  break;
 	  /* Now show the new layout.  */
 	case SRC_COMMAND:
@@ -189,7 +188,7 @@ tui_set_layout (enum tui_layout_type layout_type)
       tui_update_source_windows_with_addr (gdbarch, addr);
       if (new_layout == SRC_DATA_COMMAND
 	  || new_layout == DISASSEM_DATA_COMMAND)
-	TUI_DATA_WIN->show_registers (TUI_DATA_WIN->current_group);
+	TUI_DATA_WIN->show_registers (TUI_DATA_WIN->get_current_group ());
     }
 }
 
@@ -580,6 +579,11 @@ void
 tui_gen_win_info::resize (int height_, int width_,
 			  int origin_x_, int origin_y_)
 {
+  if (width == width_ && height == height_
+      && origin.x == origin_x_ && origin.y == origin_y_
+      && handle != nullptr)
+    return;
+
   width = width_;
   height = height_;
   if (height > 1)

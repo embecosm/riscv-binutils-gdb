@@ -42,8 +42,6 @@
 
 #include "gdb_curses.h"
 
-static void tui_display_register (struct tui_data_item_window *data);
-
 /* Get the register from the frame and return a printable
    representation of it.  */
 
@@ -98,14 +96,9 @@ tui_get_register (struct frame_info *frame,
 int
 tui_data_window::last_regs_line_no () const
 {
-  int num_lines = (-1);
-
-  if (!regs_content.empty ())
-    {
-      num_lines = regs_content.size () / regs_column_count;
-      if (regs_content.size () % regs_column_count)
-	num_lines++;
-    }
+  int num_lines = regs_content.size () / regs_column_count;
+  if (regs_content.size () % regs_column_count)
+    num_lines++;
   return num_lines;
 }
 
@@ -161,7 +154,7 @@ tui_data_window::show_registers (struct reggroup *group)
       for (auto &&data_item_win : regs_content)
 	data_item_win.highlight = false;
       current_group = group;
-      display_all_data ();
+      rerender ();
     }
   else
     {
@@ -245,74 +238,46 @@ tui_data_window::show_register_group (struct reggroup *group,
 void
 tui_data_window::display_registers_from (int start_element_no)
 {
-  if (!regs_content.empty ())
+  int j, item_win_width, cur_y;
+
+  int max_len = 0;
+  for (auto &&data_item_win : regs_content)
     {
-      int j, item_win_width, cur_y;
+      const char *p;
+      int len;
 
-      int max_len = 0;
-      for (auto &&data_item_win : regs_content)
-        {
-          const char *p;
-          int len;
+      len = 0;
+      p = data_item_win.content.get ();
+      if (p != 0)
+	len = strlen (p);
 
-          len = 0;
-          p = data_item_win.content.get ();
-          if (p != 0)
-	    len = strlen (p);
+      if (len > max_len)
+	max_len = len;
+    }
+  item_win_width = max_len + 1;
+  int i = start_element_no;
 
-          if (len > max_len)
-            max_len = len;
-        }
-      item_win_width = max_len + 1;
-      int i = start_element_no;
+  regs_column_count = (width - 2) / item_win_width;
+  if (regs_column_count == 0)
+    regs_column_count = 1;
+  item_win_width = (width - 2) / regs_column_count;
 
-      regs_column_count = (width - 2) / item_win_width;
-      if (regs_column_count == 0)
-        regs_column_count = 1;
-      item_win_width = (width - 2) / regs_column_count;
-
-      /* Now create each data "sub" window, and write the display into
-	 it.  */
-      cur_y = 1;
-      while (i < regs_content.size ()
-	     && cur_y <= viewport_height)
+  /* Now create each data "sub" window, and write the display into
+     it.  */
+  cur_y = 1;
+  while (i < regs_content.size ()
+	 && cur_y <= viewport_height)
+    {
+      for (j = 0;
+	   j < regs_column_count && i < regs_content.size ();
+	   j++)
 	{
-	  for (j = 0;
-	       j < regs_column_count && i < regs_content.size ();
-	       j++)
-	    {
-	      struct tui_data_item_window *data_item_win;
-
-	      /* Create the window if necessary.  */
-	      data_item_win = &regs_content[i];
-              if (data_item_win->handle != NULL
-                  && (data_item_win->height != 1
-                      || data_item_win->width != item_win_width
-                      || data_item_win->origin.x != (item_win_width * j) + 1
-                      || data_item_win->origin.y != cur_y))
-                {
-                  tui_delete_win (data_item_win->handle);
-                  data_item_win->handle = 0;
-                }
-                  
-	      if (data_item_win->handle == NULL)
-		{
-		  data_item_win->height = 1;
-		  data_item_win->width = item_win_width;
-		  data_item_win->origin.x = (item_win_width * j) + 1;
-		  data_item_win->origin.y = cur_y;
-		  data_item_win->make_visible (true);
-                  scrollok (data_item_win->handle, FALSE);
-		}
-              touchwin (data_item_win->handle);
-
-	      /* Get the printable representation of the register
-                 and display it.  */
-              tui_display_register (data_item_win);
-	      i++;		/* Next register.  */
-	    }
-	  cur_y++;		/* Next row.  */
+	  /* Create the window if necessary.  */
+	  regs_content[i].resize (1, item_win_width,
+				  (item_win_width * j) + 1, cur_y);
+	  i++;		/* Next register.  */
 	}
+      cur_y++;		/* Next row.  */
     }
 }
 
@@ -322,27 +287,24 @@ void
 tui_data_window::display_reg_element_at_line (int start_element_no,
 					      int start_line_no)
 {
-  if (!regs_content.empty ())
+  int element_no = start_element_no;
+
+  if (start_element_no != 0 && start_line_no != 0)
     {
-      int element_no = start_element_no;
+      int last_line_no, first_line_on_last_page;
 
-      if (start_element_no != 0 && start_line_no != 0)
-	{
-	  int last_line_no, first_line_on_last_page;
+      last_line_no = last_regs_line_no ();
+      first_line_on_last_page = last_line_no - (height - 2);
+      if (first_line_on_last_page < 0)
+	first_line_on_last_page = 0;
 
-	  last_line_no = last_regs_line_no ();
-	  first_line_on_last_page = last_line_no - (height - 2);
-	  if (first_line_on_last_page < 0)
-	    first_line_on_last_page = 0;
-
-	  /* If the element_no causes us to scroll past the end of the
-	     registers, adjust what element to really start the
-	     display at.  */
-	  if (start_line_no > first_line_on_last_page)
-	    element_no = first_reg_element_no_inline (first_line_on_last_page);
-	}
-      display_registers_from (element_no);
+      /* If the element_no causes us to scroll past the end of the
+	 registers, adjust what element to really start the
+	 display at.  */
+      if (start_line_no > first_line_on_last_page)
+	element_no = first_reg_element_no_inline (first_line_on_last_page);
     }
+  display_registers_from (element_no);
 }
 
 /* See tui-regs.h.  */
@@ -350,35 +312,29 @@ tui_data_window::display_reg_element_at_line (int start_element_no,
 int
 tui_data_window::display_registers_from_line (int line_no)
 {
-  check_and_display_highlight_if_needed ();
-  if (!regs_content.empty ())
+  int element_no;
+
+  if (line_no < 0)
+    line_no = 0;
+  else
     {
-      int element_no;
-
-      if (line_no < 0)
-	line_no = 0;
-      else
+      /* Make sure that we don't display off the end of the
+	 registers.  */
+      if (line_no >= last_regs_line_no ())
 	{
-	  /* Make sure that we don't display off the end of the
-	     registers.  */
-	  if (line_no >= last_regs_line_no ())
-	    {
-	      line_no = line_from_reg_element_no (regs_content.size () - 1);
-	      if (line_no < 0)
-		line_no = 0;
-	    }
+	  line_no = line_from_reg_element_no (regs_content.size () - 1);
+	  if (line_no < 0)
+	    line_no = 0;
 	}
-
-      element_no = first_reg_element_no_inline (line_no);
-      if (element_no < regs_content.size ())
-	display_reg_element_at_line (element_no, line_no);
-      else
-	line_no = (-1);
-
-      return line_no;
     }
 
-  return (-1);			/* Nothing was displayed.  */
+  element_no = first_reg_element_no_inline (line_no);
+  if (element_no < regs_content.size ())
+    display_reg_element_at_line (element_no, line_no);
+  else
+    line_no = (-1);
+
+  return line_no;
 }
 
 
@@ -434,42 +390,15 @@ tui_data_window::erase_data_content (const char *prompt)
 /* See tui-regs.h.  */
 
 void
-tui_data_window::display_all_data ()
+tui_data_window::rerender ()
 {
   if (regs_content.empty ())
-    erase_data_content (NO_DATA_STRING);
+    erase_data_content (_("[ Register Values Unavailable ]"));
   else
     {
       erase_data_content (NULL);
       delete_data_content_windows ();
-      check_and_display_highlight_if_needed ();
       display_registers_from (0);
-    }
-}
-
-
-/* Function to redisplay the contents of the data window.  */
-void
-tui_data_window::refresh_all ()
-{
-  erase_data_content (NULL);
-  if (!regs_content.empty ())
-    {
-      int first_element = first_data_item_displayed ();
-
-      if (first_element >= 0)	/* Re-use existing windows.  */
-	{
-	  int first_line = (-1);
-
-	  if (first_element < regs_content.size ())
-	    first_line = line_from_reg_element_no (first_element);
-
-	  if (first_line >= 0)
-	    {
-	      erase_data_content (NULL);
-	      display_registers_from_line (first_line);
-	    }
-	}
     }
 }
 
@@ -496,20 +425,6 @@ tui_data_window::do_scroll_vertical (int num_to_scroll)
       delete_data_content_windows ();
       display_registers_from_line (first_line);
     }
-}
-
-/* See tui-regs.h.  */
-
-void
-tui_data_window::rerender ()
-{
-  /* Delete all data item windows.  */
-  for (auto &&win : regs_content)
-    {
-      tui_delete_win (win.handle);
-      win.handle = NULL;
-    }
-  display_all_data ();
 }
 
 /* See tui-regs.h.  */
@@ -543,43 +458,54 @@ tui_data_window::check_register_values (struct frame_info *frame)
 			    &data_item_win.highlight);
 
 	  if (data_item_win.highlight || was_hilighted)
-	    tui_display_register (&data_item_win);
+	    data_item_win.rerender ();
 	}
     }
 }
 
 /* Display a register in a window.  If hilite is TRUE, then the value
    will be displayed in reverse video.  */
-static void
-tui_display_register (struct tui_data_item_window *data)
+void
+tui_data_item_window::rerender ()
 {
-  if (data->handle != NULL)
-    {
-      int i;
+  int i;
 
-      if (data->highlight)
-	/* We ignore the return value, casting it to void in order to avoid
-	   a compiler warning.  The warning itself was introduced by a patch
-	   to ncurses 5.7 dated 2009-08-29, changing this macro to expand
-	   to code that causes the compiler to generate an unused-value
-	   warning.  */
-	(void) wstandout (data->handle);
+  scrollok (handle, FALSE);
+  if (highlight)
+    /* We ignore the return value, casting it to void in order to avoid
+       a compiler warning.  The warning itself was introduced by a patch
+       to ncurses 5.7 dated 2009-08-29, changing this macro to expand
+       to code that causes the compiler to generate an unused-value
+       warning.  */
+    (void) wstandout (handle);
       
-      wmove (data->handle, 0, 0);
-      for (i = 1; i < data->width; i++)
-        waddch (data->handle, ' ');
-      wmove (data->handle, 0, 0);
-      if (data->content)
-        waddstr (data->handle, data->content.get ());
+  wmove (handle, 0, 0);
+  for (i = 1; i < width; i++)
+    waddch (handle, ' ');
+  wmove (handle, 0, 0);
+  if (content)
+    waddstr (handle, content.get ());
 
-      if (data->highlight)
-	/* We ignore the return value, casting it to void in order to avoid
-	   a compiler warning.  The warning itself was introduced by a patch
-	   to ncurses 5.7 dated 2009-08-29, changing this macro to expand
-	   to code that causes the compiler to generate an unused-value
-	   warning.  */
-	(void) wstandend (data->handle);
-      data->refresh_window ();
+  if (highlight)
+    /* We ignore the return value, casting it to void in order to avoid
+       a compiler warning.  The warning itself was introduced by a patch
+       to ncurses 5.7 dated 2009-08-29, changing this macro to expand
+       to code that causes the compiler to generate an unused-value
+       warning.  */
+    (void) wstandend (handle);
+  refresh_window ();
+}
+
+void
+tui_data_item_window::refresh_window ()
+{
+  if (handle != nullptr)
+    {
+      /* This seems to be needed because the data items are nested
+	 windows, which according to the ncurses man pages aren't well
+	 supported.  */
+      touchwin (handle);
+      wrefresh (handle);
     }
 }
 
@@ -657,7 +583,7 @@ tui_reg_command (const char *args, int from_tty)
       if (TUI_DATA_WIN == NULL || !TUI_DATA_WIN->is_visible ())
 	tui_reg_layout ();
 
-      struct reggroup *current_group = TUI_DATA_WIN->current_group;
+      struct reggroup *current_group = TUI_DATA_WIN->get_current_group ();
       if (strncmp (args, "next", len) == 0)
 	match = tui_reg_next (current_group, gdbarch);
       else if (strncmp (args, "prev", len) == 0)

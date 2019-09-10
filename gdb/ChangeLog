@@ -1,3 +1,233 @@
+
+2019-09-09  Ali Tamur  <tamur@google.com>
+
+	* dwarf2read.c (comp_unit_head): Update comment.                     
+	(dwarf2_dwo_name): New function declaration.                             
+	(dwarf_unit_type_name): New function declaration.                        
+	(read_comp_unit_head): Add support for new compilation units,            
+	DW_UT_partial, DW_UT_skeleton, DW_UT_split_compile, DW_UT_split_type.    
+	Particularly, DW_UT_skeleton and DW_UT_split_compile have dwo_id         
+	(currently named as "signature") in their header. Also clarify error     
+	messages.                                                                
+	(lookup_dwo_id): New function. Returns the dwo id of the given           
+	compile unit.                                                            
+	(lookup_dwo_unit): Use the new lookup_dwo_id function.                   
+	(init_cutu_and_read_dies): Use the new dwarf2_dwo_name and lookup_dwo_id 
+	functions.                                                               
+	(create_dwo_cu_reader): Use the added lookup_dwo_id function.            
+	(dwarf2_dwo_name): Get the dwo name if present.                          
+	(dwarf_unit_type_name): Convert DW_UT_* types to string for diagnostic   
+	purposes.
+
+2019-09-09  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-win.c (tui_all_windows_info): Use ui_out.
+
+2019-09-09  Philippe Waroquiers  <philippe.waroquiers@skynet.be>
+
+	* python/python.c (do_start_initialization): Make progname_copy static,
+	to avoid a leak report.
+
+2019-09-08  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (box_win): Truncate long window titles.
+
+2019-09-07  Simon Marchi  <simon.marchi@efficios.com>
+
+	* dwarf2read.c (struct dw2_symtab_iterator) <block_index>:
+	Change type to gdb::optional<block_enum>.
+	(dw2_symtab_iter_init): Change block_index parameter type
+	to gdb::optional<block_enum>.
+	(dw2_lookup_symbol): Change block_index parameter
+	type to block_enum.c
+	(dw2_debug_names_lookup_symbol): Likewise.
+	* psymtab.c (psym_lookup_symbol): Likewise.
+	* symfile-debug.c (debug_qf_lookup_symbol): Likewise.
+	* symfile.h (struct quick_symbol_functions) <lookup_symbol>:
+	Likewise.
+
+2019-09-06  Christian Biesinger  <cbiesinger@google.com>
+
+	* defs.h (relocate_gdb_directory): Change int to bool in
+	signature and rename flag to relocatable.
+	* main.c (relocate_path): Likewise.
+	(relocate_gdb_directory): Likewise.
+
+2019-09-06  Alan Modra  <amodra@gmail.com>
+
+	* coffread.c (coff_symfile_read): Constify filename variable.
+	* dbxread.c (dbx_symfile_init, coffstab_build_psymtabs),
+	(elfstab_build_psymtabs, stabsect_build_psymtabs): Likewise.
+	* gdb_bfd.c (gdb_bfd_close_or_warn): Likewise.
+	* solib.c (reload_shared_libraries_1): Likewise.
+	* symfile.c (reread_symbols): Likewise.
+	* solib-aix.c (solib_aix_bfd_open): Add cast for xfree of filename.
+	* solib-darwin.c (darwin_bfd_open): Likewise.
+	* symfile-mem.c (symbol_file_add_from_memory): Likewise.
+
+2019-09-03  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* psymtab.c (print_partial_symbols): Handle missing domain_enum
+	values MODULE_DOMAIN and COMMON_BLOCK_DOMAIN.
+
+2019-09-03  Tom Tromey  <tromey@adacore.com>
+
+	* ada-valprint.c (ada_val_print_num): Don't recurse for range
+	types.
+	(has_negatives): Unbias a range type bound.
+	* dwarf2read.c (read_subrange_type): Handle DW_AT_GNU_bias.
+	* gdbtypes.c (operator==): Handle new field.
+	(create_range_type): Add "bias" parameter.
+	(create_static_range_type, resolve_dynamic_range): Update.
+	* gdbtypes.h (struct range_bounds) <bias>: New member.
+	(create_range_type): Add bias parameter.
+	* printcmd.c (print_scalar_formatted): Unbias range types.
+	* value.c (unpack_long): Unbias range types.
+	(pack_long): Bias range types.
+
+2019-09-02  Alan Hayward  <alan.hayward@arm.com>
+
+	* solib-svr4.c (svr4_find_and_create_probe_breakpoints): Check all
+	probe arguments.
+
+2019-09-02  Alan Hayward  <alan.hayward@arm.com>
+
+	* break-catch-throw.c (fetch_probe_arguments): Use gdbarch.
+	* dtrace-probe.c (dtrace_probe::get_argument_count): Likewise.
+	* probe.c (probe_safe_evaluate_at_pc) (compute_probe_arg)
+	(compile_probe_arg): Likewise.
+	* probe.h (get_argument_count): Likewise.
+	* solib-svr4.c (solib_event_probe_action): Likewise.
+	* stap-probe.c (stap_probe::get_argument_count): Likewise.
+
+2019-09-02  Alan Hayward  <alan.hayward@arm.com>
+
+	* solib-svr4.c (svr4_find_and_create_probe_breakpoints): Move
+	code to here...
+	(svr4_create_solib_event_breakpoints): ...from here.
+
+2019-08-30  Sergio Durigan Junior  <sergiodj@redhat.com>
+
+	* nat/fork-inferior.c (trace_start_error): Remove "\nError: "
+	suffix from warning message.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-winsource.h (struct tui_source_window_base)
+	<refresh_all>: Don't declare.
+	* tui/tui-winsource.c (tui_source_window_base::refresh_all):
+	Remove.
+	* tui/tui-win.c (tui_refresh_all_win): Don't call refresh_all or
+	tui_show_locator_content.
+	* tui/tui-regs.h (struct tui_data_window) <refresh_all>: Don't
+	declare.
+	* tui/tui-regs.c (tui_data_window::refresh_all): Remove.
+	* tui/tui-data.h (struct tui_win_info) <refresh_all>: Don't
+	declare.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-io.c (tui_cont_sig): Don't call wrefresh.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (_initialize_tui_stack): Move later.
+	Remove unnecessary forward declarations.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_locator_window::set_locator_fullname): Call
+	rerender.
+	(tui_update_locator_fullname, tui_show_frame_info): Don't call
+	tui_show_locator_content.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.c (tui_show_locator_content): Move lower.  Rewrite.
+	(tui_locator_window::rerender): Rewrite using body of previous
+	tui_show_locator_content.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-stack.h (struct tui_locator_window) <set_locator_info,
+	set_locator_fullname>: New methods.
+	* tui/tui-stack.c (tui_locator_window::set_locator_fullname):
+	Rename from tui_set_locator_fullname.
+	(tui_locator_window::set_locator_info): Rename from
+	tui_set_locator_info.  Return bool.
+	(tui_update_locator_fullname, tui_show_frame_info): Update.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-layout.c (show_layout): Don't call tui_refresh_all.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (tui_gen_win_info::refresh_window): Don't
+	call touchwin.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-wingeneral.c (box_win): Assume win_info and
+	win_info->handle cannot be NULL.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_item_window) <rerender,
+	refresh_window>: Declare.
+	* tui/tui-regs.c (tui_data_window::display_registers_from): Call
+	resize.
+	(tui_data_item_window::rerender): Rename from
+	tui_display_register.
+	(tui_data_item_window::refresh_window): New method.
+	* tui/tui-layout.c (tui_gen_win_info::resize): Do nothing on
+	no-op.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <regs_content,
+	regs_column_count, current_group>: Move later.  Now private.
+	<get_current_group>: New method.
+	* tui/tui-regs.c (tui_reg_command): Update.
+	* tui/tui-layout.c (tui_set_layout): Update.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_data_window::display_registers_from_line)
+	(tui_data_window::rerender): Don't call
+	check_and_display_highlight_if_needed.
+	(tui_data_window::refresh_all): Remove call to
+	erase_data_content.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_data_window::last_regs_line_no)
+	(tui_data_window::display_registers_from)
+	(tui_data_window::display_reg_element_at_line)
+	(tui_data_window::display_registers_from_line): Remove checks of
+	"empty".
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.h (struct tui_data_window) <display_all_data>:
+	Don't declare.
+	* tui/tui-regs.c (tui_data_window::show_registers): Call
+	rerender.
+	(tui_data_window::rerender): Rename from display_all_data.
+	(tui_data_window::rerender): Remove old implementation.
+
+2019-08-30  Tom Tromey  <tom@tromey.com>
+
+	* tui/tui-regs.c (tui_data_window::display_all_data): Change
+	text.
+	* tui/tui-data.h (NO_DATA_STRING): Remove define.
+
+2019-08-29  Bernhard Wodok  <barto@gmx.net>
+	    Sergio Durigan Junior  <sergiodj@redhat.com>
+
+	PR win32/24284
+	* mingw-hdep.c (gdb_select): Handle case when 'n' is zero.
+
 2019-08-28  Andrew Burgess  <andrew.burgess@embecosm.com>
 
 	* symtab.c (search_symbols): Don't include MODULE_DOMAIN symbols
