@@ -2365,7 +2365,7 @@ SEM_FN_NAME (riscv32bf_rv32,mulhsu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
 if (EQSI (GET_H_XLEN (), 32)) {
   {
-    SI opval = SRLDI (MULDI (GET_H_GPR (FLD (f_rs1)), ZEXTSISI (TRUNCSISI (GET_H_GPR (FLD (f_rs2))))), 32);
+    SI opval = SRLDI (MULDI (EXTSIDI (GET_H_GPR (FLD (f_rs1))), ZEXTSIDI (TRUNCSISI (GET_H_GPR (FLD (f_rs2))))), 32);
     SET_H_GPR (FLD (f_rd), opval);
     written |= (1 << 3);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'x', opval);

@@ -2523,7 +2523,7 @@
 )
 (rv-format-multi "mulhsu" (all-isas m-ext m-machs) #b0000001 #b010 #b0110011
   (if (eq (reg h-xlen) 32)
-    (set rd (srl (mul DI rs1 (zext (trunc SI rs2))) 32))
+    (set rd (srl (mul DI (ext DI rs1) (zext DI (trunc SI rs2))) 32))
 	  (sequence ((DI rs1-lo) (DI rs1-hi) (DI rs2-lo) (DI rs2-hi)
                (DI lo) (DI mid1) (DI mid2) (DI hi)
                (DI res-lo) (DI res-hi) (DI tmp))
