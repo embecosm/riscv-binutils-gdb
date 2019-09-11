@@ -1,0 +1,1052 @@
+/* RISCV opcode support.  -*- C -*-
+   Copyright (C) 2019 Free Software Foundation, Inc.
+
+   This file is part of GNU Binutils.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, see <http://www.gnu.org/licenses/>. */
+
+/* This file is an addendum to riscv.cpu.  Heavy use of C code isn't
+   appropriate in .cpu files, so it resides here.  This especially applies
+   to assembly/disassembly where parsing/printing can be quite involved.
+   Such things aren't really part of the specification of the cpu, per se,
+   so .cpu files provide the general framework and .opc files handle the
+   nitty-gritty details as necessary.
+
+   Each section is delimited with start and end markers.
+
+   <arch>-opc.h additions use: "-- opc.h"
+   <arch>-opc.c additions use: "-- opc.c"
+   <arch>-asm.c additions use: "-- asm.c"
+   <arch>-dis.c additions use: "-- dis.c"
+   <arch>-ibd.h additions use: "-- ibd.h"  */
+
+/* -- opc.h */
+
+extern int riscv_cgen_insn_supported (CGEN_CPU_DESC cd,
+				      const CGEN_INSN * insn);
+extern void riscv_cgen_init_riscv_extensions (CGEN_BITSET * exts);
+extern void riscv_cgen_set_rvc (int rvc);
+
+#undef CGEN_DIS_HASH_SIZE
+#define CGEN_DIS_HASH_SIZE 1
+#undef CGEN_DIS_HASH
+#define CGEN_DIS_HASH(buffer, value) 0
+
+struct disassemble_info;
+extern void disassemble_init_riscv (struct disassemble_info *info);
+
+/* -- */
+
+/* -- opc.c */
+
+#include <assert.h>
+
+/* Current enabled rvc extension.  */
+static int riscv_cgen_rvc = RVEXT_RVNONE;
+
+/* Supported extensions (excluding 'C' extensions)  */
+static CGEN_BITSET *riscv_cgen_extensions = NULL;
+
+int
+riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+			   const CGEN_INSN * insn)
+{
+  if (!riscv_cgen_extensions)
+    return TRUE;
+
+  /* We *should* use CGEN_INSN_BITSET_ATTR_VALUE to access the value of
+     CGEN_INSN_RVEXT as a bitset, however despite the fact that it is declared
+     as `bitset' attribute it's actually stored as a mask.  */
+  int insn_exts = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_RVEXT);
+  if (insn_exts & (1 << riscv_cgen_rvc))
+    return TRUE;
+  for (int i = 0; insn_exts != 0;)
+    {
+      if ((insn_exts & 1) && cgen_bitset_contains (riscv_cgen_extensions, i))
+	return TRUE;
+      insn_exts >>= 1;
+      i++;
+    }
+  return FALSE;
+}
+
+void
+riscv_cgen_init_riscv_extensions (CGEN_BITSET * exts)
+{
+  assert (riscv_cgen_extensions == NULL
+	  && "Extensions should only be initialized once");
+
+  /* Copy all of the extensions across except the RV32C/RV64C extensions, as
+     these will be toggleable after initialization.  Save the initial 'C'
+     extension if one is enabled.  */
+  if (cgen_bitset_contains (exts, RVEXT_RV32C))
+    riscv_cgen_rvc = RVEXT_RV32C;
+  else if (cgen_bitset_contains (exts, RVEXT_RV64C))
+    riscv_cgen_rvc = RVEXT_RV64C;
+  else
+    riscv_cgen_rvc = RVEXT_RVNONE;
+
+  riscv_cgen_extensions = cgen_bitset_create (RVEXT_RVMAX);
+  for (int i = 0; i < RVEXT_RVMAX; i++)
+    {
+      if (i == RVEXT_RV32C || i == RVEXT_RV64C)
+	continue;
+      if (cgen_bitset_contains (exts, i))
+	cgen_bitset_add (riscv_cgen_extensions, i);
+    }
+}
+
+void
+riscv_cgen_set_rvc (int rvc)
+{
+  assert (rvc == RVEXT_RVNONE || rvc == RVEXT_RV32C || rvc == RVEXT_RV64C);
+  riscv_cgen_rvc = rvc;
+}
+
+/* -- */
+
+/* -- asm.c */
+
+#define CGEN_VALIDATE_INSN_SUPPORTED
+#define CGEN_VERBOSE_ASSEMBLER_ERRORS
+
+#include "../include/cgen/bitset.h"
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
+#ifndef CHAR_BIT
+#define CHAR_BIT 8
+#endif
+
+
+#define MISSING_CLOSING_PARENS  _("missing closing parenthesis")
+#define TLS_RELOC_AGAINST_CONST _("TLS relocation against a constant")
+#define ILLEGAL_OPERANDS        _("illegal operands")
+#define UNKNOWN_CSR             _("unknown CSR")
+#define OUT_OF_RANGE            _("operand out of range")
+#define TIED_REGISTERS_NO_MATCH _("tied register operands do not match")
+#define SYMBOL_NOT_ALLOWED      _("operand can not be a symbol")
+#define ILLEGAL_REGISTER        _("register illegal in RV32E")
+#define UNKNOWN_ROUNDING_MODE   _("unknown rounding mode for floating point " \
+                                  "operation")
+
+static const char *
+parse_value (CGEN_CPU_DESC cd, const char **strp, int opindex,
+	     bfd_vma * valuep, int non_zero, bfd_vma mask)
+{
+  enum cgen_parse_operand_result result_type;
+  const char *errmsg;
+
+  if (**strp == '%')
+    return SYMBOL_NOT_ALLOWED;
+
+  errmsg
+    = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_INTEGER, strp, opindex,
+			       BFD_RELOC_NONE, &result_type, valuep);
+  if (errmsg)
+    return errmsg;
+  else if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    {
+      if (non_zero && *valuep == 0)
+	return ILLEGAL_OPERANDS;
+      if (*valuep & mask)
+	return ILLEGAL_OPERANDS;
+      return NULL;
+    }
+  else
+    return ILLEGAL_OPERANDS;
+}
+
+static const char *
+parse_imm (CGEN_CPU_DESC cd, const char **strp, int opindex, long *valuep,
+	   int non_zero, long min, long max, bfd_vma mask)
+{
+  bfd_vma value;
+  const char *errmsg =
+    parse_value (cd, strp, opindex, &value, non_zero, mask);
+  if (!errmsg)
+    *valuep = (long) value;
+  if (*valuep < min || *valuep > max)
+    return OUT_OF_RANGE;
+  return errmsg;
+}
+
+static const char *
+parse_uimm (CGEN_CPU_DESC cd, const char **strp, int opindex,
+	    unsigned long *valuep, int non_zero, unsigned long min,
+	    unsigned long max, bfd_vma mask)
+{
+  bfd_vma value;
+  const char *errmsg =
+    parse_value (cd, strp, opindex, &value, non_zero, mask);
+  if (!errmsg)
+    *valuep = (unsigned long) value;
+  if (*valuep < min || *valuep > max)
+    return OUT_OF_RANGE;
+  return errmsg;
+}
+
+#define DEF_PARSE_IMM_FN(name, non_zero, min, max, mask)                      \
+  static const char *parse_##name (CGEN_CPU_DESC cd, const char **strp,       \
+                                   int opindex, long *valuep)                 \
+  {                                                                           \
+    return parse_imm (cd, strp, opindex, valuep, non_zero, min, max, mask);   \
+  }
+#define DEF_PARSE_UIMM_FN(name, non_zero, min, max, mask)                     \
+  static const char *parse_##name (CGEN_CPU_DESC cd, const char **strp,       \
+                                   int opindex, unsigned long *valuep)        \
+  {                                                                           \
+    return parse_uimm (cd, strp, opindex, valuep, non_zero, min, max, mask);  \
+  }
+
+DEF_PARSE_UIMM_FN (nzuimm6_abs, 1, 0, 63, 0x0)
+DEF_PARSE_UIMM_FN (nzuimm10_mask2_abs, 0, 1, 1023, 0x3)
+DEF_PARSE_UIMM_FN (uimm5_abs, 0, 0, 31, 0x0)
+DEF_PARSE_UIMM_FN (uimm6_abs, 0, 0, 63, 0x0)
+DEF_PARSE_UIMM_FN (uimm7_mask2_abs, 0, 0, 127, 0x3)
+DEF_PARSE_UIMM_FN (uimm8_mask2_abs, 0, 0, 255, 0x3)
+DEF_PARSE_UIMM_FN (uimm8_mask3_abs, 0, 0, 255, 0x7)
+DEF_PARSE_UIMM_FN (uimm9_mask3_abs, 0, 0, 511, 0x7)
+DEF_PARSE_IMM_FN (nzimm6_abs, 1, -32, 31, 0x0)
+DEF_PARSE_IMM_FN (nzimm10_mask4_abs, 1, -512, 511, 0xf)
+DEF_PARSE_IMM_FN (imm6_abs, 0, -32, 31, 0x0)
+#undef DEF_PARSE_IMM_FN
+#undef DEF_PARSE_UIMM_FN
+
+static const char *parse_imm_lo12 (CGEN_CPU_DESC cd, const char **strp,
+				   int opindex, long *valuep,
+				   int lo_reloc_info,
+				   int pcrel_reloc_info,
+				   int tprel_reloc_info);
+
+static const char *parse_imm_lo12_i (CGEN_CPU_DESC cd, const char **strp,
+				     int opindex, long *valuep)
+{
+  return parse_imm_lo12 (cd, strp, opindex, valuep, BFD_RELOC_RISCV_LO12_I,
+			 BFD_RELOC_RISCV_PCREL_LO12_I,
+			 BFD_RELOC_RISCV_TPREL_LO12_I);
+}
+
+static const char *
+parse_imm_lo12_s (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		  long *valuep)
+{
+  return parse_imm_lo12 (cd, strp, opindex, valuep, BFD_RELOC_RISCV_LO12_S,
+			 BFD_RELOC_RISCV_PCREL_LO12_S,
+			 BFD_RELOC_RISCV_TPREL_LO12_S);
+}
+
+static const char *
+parse_imm_lo12 (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		long *valuep, int lo_reloc_info, int pcrel_reloc_info,
+		int tprel_reloc_info)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  if (strncasecmp (*strp, "%lo(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, lo_reloc_info,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	{
+	  /* sign extend bottom 12 bits */
+	  int shift = sizeof (value) * CHAR_BIT - 12;
+	  value = (bfd_signed_vma) (value) << shift >> shift;
+	}
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%pcrel_lo(", 10) == 0)
+    {
+      *strp += 10;
+      errmsg = cgen_parse_address (cd, strp, opindex, pcrel_reloc_info,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      /* TODO: generate a reloc for offset relative to current pc */
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	{
+	  /* sign extend bottom 12 bits */
+	  int shift = sizeof (value) * CHAR_BIT - 12;
+	  value = (bfd_signed_vma) (value) << shift >> shift;
+	}
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%tprel_lo(", 10) == 0)
+    {
+      *strp += 10;
+      errmsg = cgen_parse_address (cd, strp, opindex, tprel_reloc_info,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	return TLS_RELOC_AGAINST_CONST;
+      *valuep = value;
+      return NULL;
+    }
+  else if (**strp == '%')
+    {
+      return ILLEGAL_OPERANDS;
+    }
+  else
+    {
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_NONE,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	return ILLEGAL_OPERANDS;
+      if ((bfd_signed_vma) value > 2047 || (bfd_signed_vma) value < -2048)
+	return ILLEGAL_OPERANDS;
+      *valuep = value;
+      return NULL;
+    }
+}
+
+/* This is like simm_lo12, but it must be an absolute value (no symbols) */
+static const char *
+parse_imm_lo12_abs (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		    long *valuep)
+{
+  bfd_vma value;
+  enum cgen_parse_operand_result result_type;
+  const char *errmsg;
+
+  errmsg
+    = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_INTEGER, strp, opindex,
+			       BFD_RELOC_NONE, &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return ILLEGAL_OPERANDS;
+  *valuep = value;
+  if (*valuep > 2047 || *valuep < -2048)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
+parse_uimm32_hi20 (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		   unsigned long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  if (strncasecmp (*strp, "%hi(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_RISCV_HI20,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%pcrel_hi(", 10) == 0)
+    {
+      *strp += 10;
+      errmsg =
+	cgen_parse_address (cd, strp, opindex, BFD_RELOC_RISCV_PCREL_HI20,
+			    &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%tls_ie_pcrel_hi(", 17) == 0)
+    {
+      *strp += 17;
+      errmsg = cgen_parse_address (cd, strp, opindex,
+				   BFD_RELOC_RISCV_TLS_GOT_HI20, &result_type,
+				   &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%tls_gd_pcrel_hi(", 17) == 0)
+    {
+      *strp += 17;
+      errmsg
+	= cgen_parse_address (cd, strp, opindex, BFD_RELOC_RISCV_TLS_GD_HI20,
+			      &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (strncasecmp (*strp, "%tprel_hi(", 10) == 0)
+    {
+      *strp += 10;
+      errmsg =
+	cgen_parse_address (cd, strp, opindex, BFD_RELOC_RISCV_TPREL_HI20,
+			    &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	return TLS_RELOC_AGAINST_CONST;
+
+      *valuep = value;
+      return NULL;
+    }
+  else if (**strp == '%')
+    {
+      return ILLEGAL_OPERANDS;
+    }
+  else
+    {
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_NONE,
+				   &result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	return ILLEGAL_OPERANDS;
+      if (value > 1048575)
+	return ILLEGAL_OPERANDS;
+      *valuep = value << 12;
+      return NULL;
+    }
+}
+
+static const char *
+parse_branch13 (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp,
+				    opindex, BFD_RELOC_12_PCREL, &result_type,
+				    &value);
+  if (errmsg)
+    return errmsg;
+  *valuep = 0;
+  return NULL;
+}
+
+static const char *
+parse_jmp21 (CGEN_CPU_DESC cd, const char **strp, int opindex, long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp,
+				    opindex, BFD_RELOC_RISCV_JMP,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  *valuep = 0;
+  return NULL;
+}
+
+static const char *
+parse_csr (CGEN_CPU_DESC cd, const char **strp, CGEN_KEYWORD * keyword,
+	   long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (!errmsg)
+    return NULL;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_INTEGER, strp,
+				    /*opindex */ 0, BFD_RELOC_NONE,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return UNKNOWN_CSR;
+
+  *valuep = value;
+  if (*valuep < 0 || *valuep > 4095)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
+parse_opcode7 (CGEN_CPU_DESC cd, const char **strp, CGEN_KEYWORD * keyword,
+	       long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (!errmsg)
+    return NULL;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_INTEGER, strp,
+				    /*opindex */ 0, BFD_RELOC_NONE,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return UNKNOWN_CSR;
+
+  *valuep = value;
+  if (*valuep < 0 || *valuep > 127)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
+parse_copcode2 (CGEN_CPU_DESC cd, const char **strp, CGEN_KEYWORD * keyword,
+		long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (!errmsg)
+    return NULL;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_INTEGER, strp,
+				    /*opindex */ 0, BFD_RELOC_NONE,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  else if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return UNKNOWN_CSR;
+
+  *valuep = value;
+  if (*valuep < 0 || *valuep > 3)
+    return ILLEGAL_OPERANDS;
+  return NULL;
+}
+
+static const char *
+parse_gpr (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, const char **strp,
+	   CGEN_KEYWORD * keyword, long *valuep)
+{
+  const char *errmsg;
+
+  errmsg = cgen_parse_keyword (cd, strp, keyword, valuep);
+  if (errmsg)
+    return errmsg;
+
+  /*if ((*valuep >= 16) && cgen_bitset_contains (cd->isas, ISA_RV32))
+     return ILLEGAL_REGISTER; */
+
+  return NULL;
+}
+
+static const char *
+parse_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, const char **strp,
+		       int opindex ATTRIBUTE_UNUSED, unsigned long *valuep)
+{
+  unsigned long res = 0;
+  if (**strp == 'i')
+    {
+      res |= 0x8;
+      (*strp)++;
+    }
+  if (**strp == 'o')
+    {
+      res |= 0x4;
+      (*strp)++;
+    }
+  if (**strp == 'r')
+    {
+      res |= 0x2;
+      (*strp)++;
+    }
+  if (**strp == 'w')
+    {
+      res |= 0x1;
+      (*strp)++;
+    }
+
+  /* Return an error if none of the above characters were matched.  */
+  if (res == 0)
+    return ILLEGAL_OPERANDS;
+  *valuep = res;
+  return NULL;
+}
+
+static const char *
+parse_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
+			   const char **strp, int opindex ATTRIBUTE_UNUSED,
+			   unsigned long *valuep)
+{
+  unsigned long res = 0;
+  if (!strncmp (*strp, "rne", strlen ("rne")))
+    {
+      res = 0x0;
+      *strp += strlen ("rne");
+    }
+  else if (!strncmp (*strp, "rtz", strlen ("rtz")))
+    {
+      res = 0x1;
+      *strp += strlen ("rtz");
+    }
+  else if (!strncmp (*strp, "rdn", strlen ("rdn")))
+    {
+      res = 0x2;
+      *strp += strlen ("rdn");
+    }
+  else if (!strncmp (*strp, "rup", strlen ("rup")))
+    {
+      res = 0x3;
+      *strp += strlen ("rup");
+    }
+  else if (!strncmp (*strp, "rmm", strlen ("rmm")))
+    {
+      res = 0x4;
+      *strp += strlen ("rmm");
+    }
+  else
+    return ILLEGAL_OPERANDS;
+  *valuep = res;
+  return NULL;
+}
+
+/* A tprel_add operand is only used as an optional final operand to the
+   add instruction. It only parses %tprel_add(<x>) where <x> is a symbol,
+   and is used to attach a BFD_RELOC_RISCV_TPREL_ADD reloc to the add.  */
+static const char *
+parse_tprel_add (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		 long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  if (strncasecmp (*strp, "%tprel_add(", strlen ("%tprel_add(")) == 0)
+    {
+      *strp += strlen ("%tprel_add(");
+
+      errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp,
+					opindex, BFD_RELOC_RISCV_TPREL_ADD,
+					&result_type, &value);
+      if (errmsg)
+	return errmsg;
+      if (**strp != ')')
+	return MISSING_CLOSING_PARENS;
+      ++*strp;
+
+      if (result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	return TLS_RELOC_AGAINST_CONST;
+      *valuep = 0;
+      return NULL;
+    }
+  return ILLEGAL_OPERANDS;
+}
+
+static const char *
+parse_cjmp12 (CGEN_CPU_DESC cd, const char **strp, int opindex, long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp,
+				    opindex, BFD_RELOC_RISCV_RVC_JUMP,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  *valuep = 0;
+  return NULL;
+}
+
+static const char *
+parse_cbranch9 (CGEN_CPU_DESC cd, const char **strp, int opindex,
+		long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  errmsg = (*cd->parse_operand_fn) (cd, CGEN_PARSE_OPERAND_SYMBOLIC, strp,
+				    opindex, BFD_RELOC_RISCV_RVC_BRANCH,
+				    &result_type, &value);
+  if (errmsg)
+    return errmsg;
+  *valuep = 0;
+  return NULL;
+}
+
+static const char *parse_tied_regs (CGEN_CPU_DESC cd, const char **strp,
+				    CGEN_KEYWORD * keyword, long *valuep,
+				    bfd_boolean is_commutative);
+
+static const char *
+parse_tied_reg_pair_commutative (CGEN_CPU_DESC cd, const char **strp,
+				 CGEN_KEYWORD * keyword, long *valuep)
+{
+  return parse_tied_regs (cd, strp, keyword, valuep, /*is_commutative */
+			  TRUE);
+}
+
+static const char *
+parse_tied_reg_pair (CGEN_CPU_DESC cd, const char **strp,
+		     CGEN_KEYWORD * keyword, long *valuep)
+{
+  return parse_tied_regs (cd, strp, keyword, valuep, /*is_commutative */
+			  FALSE);
+}
+
+static const char *
+parse_tied_regs (CGEN_CPU_DESC cd, const char **strp, CGEN_KEYWORD * keyword,
+		 long *valuep, bfd_boolean is_commutative)
+{
+  const char *errmsg;
+
+  long rs1;
+  errmsg = cgen_parse_keyword (cd, strp, keyword, &rs1);
+  if (errmsg)
+    return errmsg;
+  const char *after_1st_op = *strp;
+
+  for (; **strp == ' ' || **strp == '\t'; *strp += 1)
+    ;
+  if (**strp != ',')
+    return ILLEGAL_OPERANDS;
+  *strp += 1;
+  for (; **strp == ' ' || **strp == '\t'; *strp += 1)
+    ;
+
+  long rs2;
+  errmsg = cgen_parse_keyword (cd, strp, keyword, &rs2);
+  if (errmsg)
+    return errmsg;
+
+  /* Check the rs1 and rs2 both have the same value */
+  if (rs1 == rs2)
+    {
+      *valuep = rs1;
+      return NULL;
+    }
+  if (!is_commutative)
+    return TIED_REGISTERS_NO_MATCH;
+
+  const char *after_2nd_op = (char *) *strp;
+
+  for (; **strp == ' ' || **strp == '\t'; *strp += 1)
+    ;
+  if (**strp != ',')
+    return ILLEGAL_OPERANDS;
+  *strp += 1;
+  for (; **strp == ' ' || **strp == '\t'; *strp += 1)
+    ;
+
+  long rs3;
+  errmsg = cgen_parse_keyword (cd, strp, keyword, &rs3);
+  if (errmsg)
+    return errmsg;
+
+  /* Check that the rs1 and rs3 both have the same value.  */
+  if (rs1 == rs3)
+    {
+      *valuep = rs1;
+
+      /* Remove rs3 from *strp by injecting a comment character
+         after the second operand.  */
+      *(char *) after_2nd_op = '\0';
+
+      /* Jump back to after the first operand, so that we can
+         now parse the second operand.  */
+      *strp = after_1st_op;
+    }
+  else
+    {
+      return TIED_REGISTERS_NO_MATCH;
+    }
+
+  return NULL;
+}
+
+static const char *
+parse_nzuimm18_hi6_abs (CGEN_CPU_DESC cd, const char **strp, int opindex,
+			unsigned long *valuep)
+{
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+  const char *errmsg;
+
+  if (**strp == '%')
+    return SYMBOL_NOT_ALLOWED;
+
+  errmsg =
+    cgen_parse_address (cd, strp, opindex, BFD_RELOC_NONE, &result_type,
+			&value);
+  if (errmsg)
+    return errmsg;
+  if (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER)
+    return ILLEGAL_OPERANDS;
+
+  /* Although only a 6-bit immediate can be parsed, we can actually parse up
+     to a 20-bit immediate *iff* the upper 14 bits are just a copy of bit 5. */
+  if (value > 1048575 || value == 0)
+    return ILLEGAL_OPERANDS;
+  if (value != ((((char) (value << 2) << 12) >> 14) & 0xfffff))
+    return ILLEGAL_OPERANDS;
+  value &= 0x3f;
+
+  *valuep = value << 12;
+  return NULL;
+}
+
+/* -- dis.c */
+
+#define CGEN_VALIDATE_INSN_SUPPORTED
+
+void
+disassemble_init_riscv (struct disassemble_info *info)
+{
+  if (!info->insn_sets)
+    info->insn_sets = cgen_bitset_create (ISA_MAX);
+  if (info->mach == bfd_mach_riscv32)
+    {
+      cgen_bitset_add (info->insn_sets, ISA_RV32);
+    }
+  else
+    {
+      cgen_bitset_add (info->insn_sets, ISA_RV64);
+    }
+}
+
+static inline unsigned int
+riscv_insn_length (bfd_vma insn)
+{
+  if ((insn & 0x3) != 0x3)	/* RVC.  */
+    return 2;
+  /* Currently no instrs > 32-bits.  */
+  return 4;
+}
+
+#define CGEN_PRINT_INSN riscv_print_insn
+
+static int
+riscv_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info * info)
+{
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  int buflen;
+  int status;
+  int insnlen;
+
+  /* Attempt to read the base part of the insn.  */
+  buflen = cd->base_insn_bitsize / 8;
+  status = (*info->read_memory_func) (pc, buf, buflen, info);
+
+  /* Try again with the minimum part, if min < base.  */
+  if (status != 0 && (cd->min_insn_bitsize < cd->base_insn_bitsize))
+    {
+      buflen = cd->min_insn_bitsize / 8;
+      status = (*info->read_memory_func) (pc, buf, buflen, info);
+    }
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  bfd_vma word = buf[0];
+  insnlen = riscv_insn_length (word);
+
+  info->bytes_per_chunk = insnlen % 4 == 0 ? 4 : 2;
+  info->bytes_per_line = 8;
+
+  return print_insn (cd, pc, info, buf, buflen);
+}
+
+static void
+print_sp (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * valuep,
+	  bfd_vma field ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  print_keyword (cd, info, valuep, /*SP*/ 2, 0);
+}
+
+/* Print a single value as a tied register pair */
+static void
+print_tied_reg_pair (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * valuep,
+		     bfd_vma field, int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  print_keyword (cd, info, valuep, field, 0);
+  (*info->fprintf_func) (info->stream, ",");
+  print_keyword (cd, info, valuep, field, 0);
+}
+
+/* CSR, either a known value, or an explicit address.  */
+static void
+print_csr (CGEN_CPU_DESC cd, void *dis_info, CGEN_KEYWORD * keyword_table,
+	   bfd_vma field, int length)
+{
+  disassemble_info *info = dis_info;
+  if (cgen_keyword_lookup_value (keyword_table, field))
+    print_keyword (cd, info, keyword_table, field, 0 /*attrs */ );
+  else
+    print_address (cd, info, field, 0 /*attrs */ , 0 /*pc */ , length);
+}
+
+static void
+print_fence_succ_pred (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+		       long value, unsigned int attrs ATTRIBUTE_UNUSED,
+		       bfd_vma pc ATTRIBUTE_UNUSED,
+		       int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  if (value & 0x8)
+    (*info->fprintf_func) (info->stream, "i");
+  if (value & 0x4)
+    (*info->fprintf_func) (info->stream, "o");
+  if (value & 0x2)
+    (*info->fprintf_func) (info->stream, "r");
+  if (value & 0x1)
+    (*info->fprintf_func) (info->stream, "w");
+}
+
+static void
+print_float_rounding_mode (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+			   long value, unsigned int attrs ATTRIBUTE_UNUSED,
+			   bfd_vma pc ATTRIBUTE_UNUSED,
+			   int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+  const char *str;
+
+  switch (value)
+    {
+    case 0x0:
+      str = "rne";
+      break;
+    case 0x1:
+      str = "rtz";
+      break;
+    case 0x2:
+      str = "rdn";
+      break;
+    case 0x3:
+      str = "rup";
+      break;
+    case 0x4:
+      str = "rmm";
+      break;
+    case 0x7:
+      str = "";
+      break;
+    default:
+      str = "<invalid>";
+    }
+
+  (*info->fprintf_func) (info->stream, str, "%s");
+}
+
+static void
+print_uimm32_hi20 (CGEN_CPU_DESC cd, void *dis_info, unsigned long value,
+		   unsigned int attrs, bfd_vma pc, int length)
+{
+  value >>= 12;
+  print_normal (cd, dis_info, value, attrs, pc, length);
+}
+
+static void
+print_nzuimm18_hi6 (CGEN_CPU_DESC cd, void *dis_info, unsigned long value,
+		    unsigned int attrs, bfd_vma pc, int length)
+{
+  value >>= 12;
+
+  /* Although this is only a 6 bit immediate, it represents a 20 bit immediate
+     value where the upper 14 bits are a copy of the sign in bit 5.  Manually
+     sign extend up to 20 bits here.  */
+  value = (char) (value << 2) >> 2;
+  value &= 0xfffff;
+
+  print_normal (cd, dis_info, value, attrs, pc, length);
+}
+
+static void
+print_ldst_uimm (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+		 unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+		 bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  /* We should print the number in decimal, like upstream does. */
+  (*info->fprintf_func) (info->stream, "%lu", value);
+}
+
+static void
+print_hexi (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	    unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+	    bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  (*info->fprintf_func) (info->stream, "%#010x", value);
+}
+
+static void
+print_dec (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	   unsigned long value, unsigned int attrs ATTRIBUTE_UNUSED,
+	   bfd_vma pc ATTRIBUTE_UNUSED, int length ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = dis_info;
+
+  (*info->fprintf_func) (info->stream, "%d", value);
+}
+
+/* -- ibd.h */
+
+/* -- */

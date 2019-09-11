@@ -1,3 +1,25 @@
+2019-09-10  Edward Jones  <ed.jones@embecosm.com>
+
+	* Makefile.am: Add rules for the files generated from
+	cpu/riscv.cpu and cpu/riscv.opc.
+	* Makefile.in: Regenerated.
+	* configure: Regenerated.
+	* configure.ac (bfd_riscv_arch): Specify that cgen is used and
+	add cgen generated dependencies.
+	* disassemble.c (disassembler): Rename print_insn_riscv call
+	to print_insn_riscv_orig.
+	* disassemble.h (disassembler): Rename prototype of
+	print_insn_riscv to print_insn_riscv_orig.
+	* riscv-cgen-asm.c: Generated.
+	* riscv-cgen-desc.c: Likewise.
+	* riscv-cgen-desc.h: Likewise.
+	* riscv-cgen-dis.c: Likewise.
+	* riscv-cgen-ibld.c: Likewise.
+	* riscv-cgen-opc.c: Likewise.
+	* riscv-cgen-opc.h: Likewise.
+	* riscv-dis.c (print_insn_riscv): Rename to ...
+	(print_insn_riscv_orig): ... this.
+
 2019-09-09  Phil Blundell  <pb@pbcl.net>
 
 	binutils 2.33 branch created.
