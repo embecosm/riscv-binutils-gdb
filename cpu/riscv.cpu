@@ -2523,7 +2523,7 @@
 )
 (rv-format-multi "mulhsu" (all-isas m-ext m-machs) #b0000001 #b010 #b0110011
   (if (eq (reg h-xlen) 32)
-    (set rd (srl (mul DI (ext DI rs1) (zext DI (trunc SI rs2))) 32))
+    (set rd (srl (mul DI (ext DI (trunc SI rs1)) (zext DI (trunc SI rs2))) 32))
 	  (sequence ((DI rs1-lo) (DI rs1-hi) (DI rs2-lo) (DI rs2-hi)
                (DI lo) (DI mid1) (DI mid2) (DI hi)
                (DI res-lo) (DI res-hi) (DI tmp))
@@ -2627,7 +2627,7 @@
 ; never fail (even if there was never a corresponding lr.w to the sc.w
 ; address). As a consequence lr.w and sc.w just behave like lw and sw
 ; respectively.
-(define-pmacro lr.w-sem (set rd (mem USI rs1)))
+(define-pmacro lr.w-sem (set rd (mem SI rs1)))
 (rv-format-a-1 "lr.w"           (all-isas a-ext a-machs) #b00010 #b010 #b0 #b0 lr.w-sem)
 (rv-format-a-1 "lr.w.aq"        (all-isas a-ext a-machs) #b00010 #b010 #b1 #b0 lr.w-sem)
 (rv-format-a-1 "lr.w.rl"        (all-isas a-ext a-machs) #b00010 #b010 #b0 #b1 lr.w-sem)
@@ -2732,13 +2732,20 @@
 (rv-format-a-2 "amomaxu.w.aqrl" (all-isas a-ext a-machs) #b11100 #b010 #b1 #b1 amomaxu.w-sem)
 
 ;RV64A
-(define-pmacro lr.d-sem (set rd (mem UDI rs1)))
+
+; Currently lr.d doesn't make a reservation of any memory and sc.d will
+; never fail (even if there was never a corresponding lr.d to the sc.d
+; address). As a consequence lr.d and sc.d just behave like ld and sd
+; respectively.
+(define-pmacro lr.d-sem (set rd (mem DI rs1)))
 (rv-format-a-1 "lr.d"           ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b0 #b0 lr.d-sem)
 (rv-format-a-1 "lr.d.aq"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b1 #b0 lr.d-sem)
 (rv-format-a-1 "lr.d.rl"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b0 #b1 lr.d-sem)
 (rv-format-a-1 "lr.d.aqrl"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b1 #b1 lr.d-sem)
 
-(define-pmacro sc.d-sem (set (mem UDI rs1) rs2))
+(define-pmacro sc.d-sem (sequence ()
+  (set (mem UDI rs1) rs2)
+  (set rd 0)))
 (rv-format-a-2 "sc.d"           ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b0 #b0 sc.d-sem)
 (rv-format-a-2 "sc.d.aq"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b1 #b0 sc.d-sem)
 (rv-format-a-2 "sc.d.rl"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b0 #b1 sc.d-sem)

@@ -4712,17 +4712,20 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
   {
     const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
     CGEN_INSN_WORD insn = entire_insn;
-#define FLD(f) abuf->fields.sfmt_sb.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
     UINT f_rs2;
     UINT f_rs1;
+    UINT f_rd;
 
     f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
     f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
 
   /* Record the fields for the semantic handler.  */
   FLD (f_rs1) = f_rs1;
   FLD (f_rs2) = f_rs2;
-  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sc_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, (char *) 0));
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sc_d", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;
