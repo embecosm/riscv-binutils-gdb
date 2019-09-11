@@ -1,3 +1,6 @@
+2019-09-10  Edward Jones  <ed.jones@embecosm.com>
+
+	* configure.tgt: Add riscv*.
 
 2019-09-09  Ali Tamur  <tamur@google.com>
 
