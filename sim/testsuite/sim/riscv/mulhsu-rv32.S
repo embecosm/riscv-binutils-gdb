@@ -1,4 +1,4 @@
-# mach: riscv
+# mach: riscv32
 
 .include "testutils.inc"
 

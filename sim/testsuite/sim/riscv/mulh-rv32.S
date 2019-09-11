@@ -1,4 +1,4 @@
-# mach: riscv
+# mach: riscv32
 
 .include "testutils.inc"
 
@@ -10,6 +10,7 @@
   mulh a0, a0, a1
   li a1, 0x0f000000
   bne a0, a1, .Lfailure
+
   li a0, 0x80000000
   li a1, 0x04
   mulh a0, a0, a1
