@@ -41,7 +41,6 @@
 	* cor.S: New file.
 	* csrc.S: New file.
 	* csrci.S: New file.
-	* csrr.S: New file.
 	* csrrc.S: New file.
 	* csrrci.S: New file.
 	* csrrs.S: New file.
@@ -86,11 +85,16 @@
 	* lrw.S: New file.
 	* lui.S: New file.
 	* lw.S: New file.
+	* misa-xlen-rv32.S: New file.
+	* misa-xlen-rv64.S: New file.
 	* mret.S: New file.
 	* mul.S: New file.
-	* mulh.S: New file.
-	* mulhsu.S: New file.
-	* mulhu.S: New file.
+	* mulh-rv32.S: New file.
+	* mulh-rv64.S: New file.
+	* mulhsu-rv32.S: New file.
+	* mulhsu-rv64.S: New file.
+	* mulhu-rv32.S: New file.
+	* mulhu-rv64.S: New file.
 	* mv.S: New file.
 	* neg.S: New file.
 	* nop.S: New file.
