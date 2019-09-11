@@ -16,7 +16,11 @@
 
 if [istarget riscv*-*-*] {
 
-    set all_machs "riscv"
+    if [istarget riscv32*] {
+	set all_machs "riscv riscv32"
+    } elseif [istarget riscv64*] {
+	set all_machs "riscv riscv64"
+    }
 
     foreach src [lsort [glob -nocomplain $srcdir/$subdir/*.S]] {
 
