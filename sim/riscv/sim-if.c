@@ -70,7 +70,9 @@ sim_open (kind, callback, abfd, argv)
      Use address 4 here in case the user wanted address 0 unmapped.  */
   if (sim_core_read_buffer (sd, NULL, read_map, &c, 4, 1) == 0)
     {
-      sim_do_commandf (sd, "memory region 0,0x%x", RISCV_DEFAULT_MEM_SIZE);
+      /* Leave 0 unmapped so NULL pointer dereferences cause a segfault.  */
+      sim_do_commandf (sd, "memory region 0x8,0x%x",
+		       RISCV_DEFAULT_MEM_SIZE - 0x8);
     }
 
   /* If there's no OS to manage memory, then the simulator is responsible
