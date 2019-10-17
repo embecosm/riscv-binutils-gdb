@@ -97,7 +97,7 @@ riscv_cgen_set_rvc (int rvc)
   riscv_cgen_rvc = rvc;
 }
 
-/* -- */
+/* -- asm.c */
 /* The hash functions are recorded here to help keep assembler code out of
    the disassembler and vice versa.  */
 
