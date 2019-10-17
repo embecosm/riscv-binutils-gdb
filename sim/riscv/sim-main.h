@@ -26,6 +26,8 @@
    one of -scache/-pbb.  */
 #define WITH_SCACHE_PBB 0
 
+#include <stdlib.h>
+
 #include "symcat.h"
 #include "sim-basics.h"
 #include "cgen-types.h"
