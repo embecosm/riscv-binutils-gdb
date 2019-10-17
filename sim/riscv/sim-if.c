@@ -33,6 +33,12 @@ free_state (SIM_DESC sd)
   sim_state_free (sd);
 }
 
+static void
+disassemble_insn_stub (SIM_CPU *cpu, const CGEN_INSN *insn,
+                       const ARGBUF *abuf, IADDR pc, char *buf)
+{
+  /* TODO: Implement disassembly.  */
+}
 
 /* Create an instance of the simulator.  */
 
@@ -119,10 +125,9 @@ sim_open (kind, callback, abfd, argv)
       {
 	SIM_CPU *cpu = STATE_CPU (sd, i);
 	CPU_CPU_DESC (cpu) = cd;
-	CPU_DISASSEMBLER (cpu) = sim_cgen_disassemble_insn;
+	CPU_DISASSEMBLER (cpu) = disassemble_insn_stub;
       }
 
-    riscv_cgen_init_dis (cd);
   }
 
   /* Initialize various cgen things not done by common framework.
