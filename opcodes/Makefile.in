@@ -619,10 +619,7 @@ TARGET_LIBOPCODES_CFILES = \
 	riscv-dis.c \
 	riscv-opc.c \
 	riscv-cgen-desc.c \
-	riscv-cgen-dis.c \
-	riscv-cgen-ibld.c \
 	riscv-cgen-opc.c \
-	riscv-cgen-asm.c \
 	rl78-decode.c \
 	rl78-dis.c \
 	rx-decode.c \
