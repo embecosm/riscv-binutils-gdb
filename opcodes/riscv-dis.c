@@ -487,7 +487,7 @@ riscv_disassemble_insn (bfd_vma memaddr, insn_t word, disassemble_info *info)
 }
 
 int
-print_insn_riscv_orig (bfd_vma memaddr, struct disassemble_info *info)
+print_insn_riscv (bfd_vma memaddr, struct disassemble_info *info)
 {
   bfd_byte packet[2];
   insn_t insn = 0;
