@@ -787,8 +787,8 @@ with_bugurl
 enable_sim_endian
 enable_sim_alignment
 enable_sim_scache
-enable_sim_default_model
 enable_cgen_maint
+enable_sim_default_model
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1456,9 +1456,9 @@ Optional Features:
                           memory accesses
   --enable-sim-scache=size
                           Specify simulator execution cache size
+  --enable-cgen-maint=DIR build cgen generated files
   --enable-sim-default-model=model
                           Specify default model to simulate
-  --enable-cgen-maint=DIR build cgen generated files
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -13663,22 +13663,6 @@ fi
 
 
 
-default_sim_default_model="riscv"
-# Check whether --enable-sim-default-model was given.
-if test "${enable_sim_default_model+set}" = set; then :
-  enableval=$enable_sim_default_model; case "${enableval}" in
-  yes|no) as_fn_error $? "\"Missing argument to --enable-sim-default-model\"" "$LINENO" 5;;
-  *)	sim_default_model="-DWITH_DEFAULT_MODEL='\"${enableval}\"'";;
-esac
-if test x"$silent" != x"yes" && test x"$sim_default_model" != x""; then
-  echo "Setting default model = $sim_default_model" 6>&1
-fi
-else
-  sim_default_model="-DWITH_DEFAULT_MODEL='\"${default_sim_default_model}\"'"
-fi
-
-
-
 cgen_maint=no
 cgen=guile
 cgendir='$(srcdir)/../../cgen'
@@ -13716,6 +13700,22 @@ case ${target} in
   riscv64*) riscv_xlen=64 ;;
   *)        riscv_xlen=32 ;;
 esac
+
+
+default_sim_default_model=""rv${riscv_xlen}gc""
+# Check whether --enable-sim-default-model was given.
+if test "${enable_sim_default_model+set}" = set; then :
+  enableval=$enable_sim_default_model; case "${enableval}" in
+  yes|no) as_fn_error $? "\"Missing argument to --enable-sim-default-model\"" "$LINENO" 5;;
+  *)	sim_default_model="-DWITH_DEFAULT_MODEL='\"${enableval}\"'";;
+esac
+if test x"$silent" != x"yes" && test x"$sim_default_model" != x""; then
+  echo "Setting default model = $sim_default_model" 6>&1
+fi
+else
+  sim_default_model="-DWITH_DEFAULT_MODEL='\"${default_sim_default_model}\"'"
+fi
+
 
 
 
