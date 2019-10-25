@@ -19,10 +19,13 @@
 #ifndef SIM_RISCV_H
 #define SIM_RISCV_H
 
-/* RiscV register numbers.  */
-/* NOTE: This is a copy of the table found in gdb/riscv-tdep.h */
+/* RISC-V register numbers.  */
 enum
 {
+  RISCV_DWARF_REGNUM_X0 = 0,
+  RISCV_DWARF_REGNUM_X31 = 31,
+  RISCV_DWARF_REGNUM_F0 = 32,
+  RISCV_DWARF_REGNUM_F31 = 63,
   RISCV_ZERO_REGNUM = 0,	/* Read-only register, always 0.  */
   RISCV_RA_REGNUM = 1,		/* Return Address.  */
   RISCV_SP_REGNUM = 2,		/* Stack Pointer.  */
@@ -32,6 +35,8 @@ enum
   RISCV_A0_REGNUM = 10,		/* First argument.  */
   RISCV_A1_REGNUM = 11,		/* Second argument.  */
   RISCV_PC_REGNUM = 32,		/* Program Counter.  */
+
+  RISCV_NUM_INTEGER_REGS = 32,
 
   RISCV_FIRST_FP_REGNUM = 33,	/* First Floating Point Register */
   RISCV_FA0_REGNUM = 43,
