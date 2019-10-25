@@ -2149,7 +2149,8 @@
   #b101 #b01
   (set pc (add pc cjmp12)))
 
-; RV32/64C hints (these are instructions in RV128C)
+; RV32/64C hints
+; TODO: These are instructions in RV128C - not supported yet
 (rv-format-ci-10 "c.slli64" (all-isas c-ext)
   #b000      #b0 #b00000 #b10 (nop))
 (rv-format-cb-4  "c.srli64" (all-isas c-ext)
@@ -2188,7 +2189,7 @@
   (set (mem UDI (add c-reg97 uimm8-62-123-000-abs)) c-reg42))
 
 ;RV32FC
-; This should maybe be moved to a separate rv32fc isa
+; TODO: This should maybe be moved to a separate rv32fc isa
 (rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
   #b011 #b10
   (set fl-rd (subword DF (or (zext UDI (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))) #xffffffff00000000) 0)))
@@ -2203,7 +2204,7 @@
   (set fc-rs2 (subword DF (or (zext UDI (mem SI (add c-reg97 uimm7-51-123-61-00-abs))) #xffffffff00000000) 0)))
 
 ;RV32DC/RV64DC
-; These should maybe be moved to a separate rv32/64dc isa
+; TODO: These should maybe be moved to a separate rv32/64dc isa
 (rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs) ;Good
   #b001 #b10
   (set fl-rd (mem DF (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
@@ -2622,10 +2623,9 @@
 ; is only one hart running one thread, so there is no shared memory and
 ; there are no context switches. The atomic instructions just perform the
 ; basic underlying operations.
-
-; Currently lr.w doesn't make a reservation of any memory and sc.w will
+;
+; TODO: Currently lr.w doesn't make a reservation of any memory and sc.w will
 ; never fail (even if there was never a corresponding lr.w to the sc.w
-; address). As a consequence lr.w and sc.w just behave like lw and sw
 ; respectively.
 (define-pmacro lr.w-sem (set rd (mem SI rs1)))
 (rv-format-a-1 "lr.w"           (all-isas a-ext a-machs) #b00010 #b010 #b0 #b0 lr.w-sem)
@@ -2733,7 +2733,7 @@
 
 ;RV64A
 
-; Currently lr.d doesn't make a reservation of any memory and sc.d will
+; TODO: Currently lr.d doesn't make a reservation of any memory and sc.d will
 ; never fail (even if there was never a corresponding lr.d to the sc.d
 ; address). As a consequence lr.d and sc.d just behave like ld and sd
 ; respectively.
@@ -3137,7 +3137,7 @@
 (rv-format-f-6-rm "fcvt.q.l"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00010 #b1010011 (nop))
 (rv-format-f-6-rm "fcvt.q.lu" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00011 #b1010011 (nop))
 
-;RV128Q (not supported yet)
+; TODO: RV128Q not supported yet
 ;(rv-format-f-7    "fmv.x.q"  ((ISA rv128) (RVEXT RV128Q) rv128q-machs) #b1110011 #b00000 #b000 #b1010011)
 ;(rv-format-f-6    "fmv.q.x"  ((ISA rv128) (RVEXT RV128Q) rv128q-machs) #b1111011 #b00000 #b000 #b1010011)
 
