@@ -5,16 +5,16 @@
 
   start
 
-  # mulhu rd, rs1, rs2
-  li a0, 0x80000000
-  li a1, 2
-  mulhu a0, a0, a1
-  li a1, 1
+  # mul rd, rs1, rs2
+  li a0, 3
+  li a1, 5
+  mul a0, a0, a1
+  li a1, 15
   bne a0, a1, .Lfailure
-  li a0, 2
-  li a1, 0x80000000
-  mulhu a0, a0, a1
-  li a1, 1
+  li a0, 3
+  li a1, -5
+  mul a0, a0, a1
+  li a1, -15
   bne a0, a1, .Lfailure
 
   pass

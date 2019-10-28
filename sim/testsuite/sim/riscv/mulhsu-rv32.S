@@ -1,4 +1,5 @@
 # mach: riscv32
+# as: -march=rv32im
 
 .include "testutils.inc"
 
