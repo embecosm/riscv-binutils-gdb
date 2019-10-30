@@ -319,7 +319,7 @@
   (name h-gpr)
   (comment "General Purpose Registers")
   (attrs all-isas all-machs)
-  (type register WI (64))
+  (type register WI (32))
   (indices keyword "" gpr-names)
   (get (index) (raw-reg h-gpr index))
   ; x0/zero is tied to zero, so any writes are swallowed
