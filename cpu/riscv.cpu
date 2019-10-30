@@ -18,7 +18,26 @@
 ; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
 ; MA 02110-1301, USA.
 
-
+;===----------------------- Known Limitations -------------------------------===
+;
+; * The E extension is not yet supported.
+; * It is not possible to select an arbitrary subset of extensions to be
+;   enabled in an instance of the simulator - it is only possible to choose
+;   from a fixed set of machines.
+; * Some instructions requires both F and C, or both D and C extensions to
+;   be enabled, but at the moment these instructions only need the C
+;   extension to be enabled.
+; * The load-reserve (lr.w) instruction does not emulate the reservation of
+;   memory, and the store-conditional (sc.w) does not check for a reservation
+;   before storing. These instructions simply behave like lw and sw.
+; * fence.i and fence.tso should be part of the Zifencei and Ztso extensions
+;   respectively, but currently remain part of the base instruction set.
+; * The Q extension is not yet supported in the simulator.
+; * xlen == 128 is unsupported
+; * Simulators for xlen == 32 and xlen == 64 are generated and built
+;   separately. The simulator can only be built to target one or the
+;   other.
+;
 ;===------------------- Naming schemes for registers ------------------------===
 ;
 ;  fl-      : Floating point registers
@@ -27,7 +46,7 @@
 ;  c-tied-  : Tied compressed register
 ;  -ne0     : Any register except 'zero' (x0)
 ;  -ne2     : Any register except 'sp' (x2)
-;  -ne0-ne2 : Any register exception 'zero' or 'sp'
+;  -ne0-ne2 : Any register except 'zero' (x0) or 'sp' (x2)
 ;  fc-      : Compressed floating point register
 ;
 ;===---------------- Naming scheme for fields and operands ------------------===
@@ -321,8 +340,9 @@
   (attrs all-isas all-machs)
   (type register WI (32))
   (indices keyword "" gpr-names)
+  ; x0/zero are tied to 0, so the setter ignores any writes to it. As a
+  ; consequence the getter will always return 0 on read too.
   (get (index) (raw-reg h-gpr index))
-  ; x0/zero is tied to zero, so any writes are swallowed
   (set (index newval)
     (if (ne index 0)
       (set (raw-reg h-gpr index) newval)))
@@ -332,7 +352,9 @@
   (comment "General Purpose Registers (except x0)")
   (attrs VIRTUAL all-isas all-machs)
   (type register WI (32))
+  ; filter x0/zero out of the h-gpr indices
   (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 0)) gpr-names))
+  ; Defer to h-gpr getter and setter
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -341,7 +363,10 @@
   (comment "General Purpose Registers (except x2)")
   (attrs VIRTUAL all-isas all-machs)
   (type register WI (32))
+  ; filter x2/sp out of the h-gpr indices
   (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 2)) gpr-names))
+  ; This defers to the h-gpr getters/setters. Writes to x0/zero are ignored,
+  ; and therefore reads will also always return 0.
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -350,7 +375,9 @@
   (comment "General Purpose Registers (except x0/x2)")
   (attrs VIRTUAL all-isas all-machs)
   (type register WI (32))
+  ; filter x0/zero and x2/sp out of the h-gpr indices
   (indices keyword "" (.find (.pmacro (n) (.andif (.ne (.ref n 1) 0) (.ne (.ref n 1) 2))) gpr-names))
+  ; Defer to h-gpr getter and setter
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -359,7 +386,10 @@
   (comment "zero (x0/ zero)")
   (attrs VIRTUAL all-isas all-machs)
   (type register WI (32))
+  ; filter everything but x0/zero out of the h-gpr indices
   (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 0)) gpr-names))
+  ; This defers to the h-gpr getters/setters. Writes to x0/zero are ignored,
+  ; and therefore reads will also always return 0.
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -368,7 +398,9 @@
   (comment "stack pointer (x2/sp)")
   (attrs VIRTUAL all-isas all-machs)
   (type register WI (32))
+  ; filter everything but x2/sp out of the h-gpr indices
   (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 2)) gpr-names))
+  ; Defer to h-gpr getter and setter
   (get (index) (reg h-gpr index))
   (set (index newval) (set (reg h-gpr index) newval))
 )
@@ -386,6 +418,7 @@
     )
   )
   ; Remap register numbers from [0,7] range back to the original range [8,15]
+  ; Defer to h-gpr getter and setter
   (get (index) (reg h-gpr (add index 8)))
   (set (index newval) (set (reg h-gpr (add index 8)) newval))
 )
@@ -485,6 +518,8 @@
     (mdbase  #x384) (mdbound #x385) (mhcounteren #x322))
 
   )
+  ; The exact value returned when reading a CSR depends on the CSR, so
+  ; this is handled on a case-by-case basis.
   (get (index) (c-call UWI "@cpu@_h_csr_get_handler" index))
   ; Whether a write is allowed to a CSR depends on the CSR, and some CSRs
   ; only allow writes to some bits. We defer to C code to handle CSR writes
@@ -2239,7 +2274,7 @@
     (set pc (add src-reg imm-lo12))))
 
 ; Branches
-;; Another macro just so we don't to keep rewriting the semantic part
+;; Another macro just so we don't have to keep rewriting the semantic part
 (define-pmacro (rv-branch mnemonic attr funct3 opcode cc)
   (rv-format-b mnemonic attr funct3 opcode
     (if (cc rs1 rs2) (set pc (add pc (sra (sll DI branch13 51) 51))))))
