@@ -5033,7 +5033,7 @@ SEM_FN_NAME (riscv64bf_rv64,amoand_d) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   DI tmp_tmp;
   tmp_tmp = GETMEMDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)));
   {
-    UDI opval = ADDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
+    UDI opval = ANDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
     SETMEMUDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
   }
@@ -5063,7 +5063,7 @@ SEM_FN_NAME (riscv64bf_rv64,amoand_d_aq) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   DI tmp_tmp;
   tmp_tmp = GETMEMDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)));
   {
-    UDI opval = ADDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
+    UDI opval = ANDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
     SETMEMUDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
   }
@@ -5093,7 +5093,7 @@ SEM_FN_NAME (riscv64bf_rv64,amoand_d_rl) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   DI tmp_tmp;
   tmp_tmp = GETMEMDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)));
   {
-    UDI opval = ADDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
+    UDI opval = ANDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
     SETMEMUDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
   }
@@ -5123,7 +5123,7 @@ SEM_FN_NAME (riscv64bf_rv64,amoand_d_aqrl) (SIM_CPU *current_cpu, SEM_ARG sem_ar
   DI tmp_tmp;
   tmp_tmp = GETMEMDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)));
   {
-    UDI opval = ADDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
+    UDI opval = ANDDI (tmp_tmp, GET_H_GPR (FLD (f_rs2)));
     SETMEMUDI (current_cpu, pc, GET_H_GPR (FLD (f_rs1)), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "memory", 'D', opval);
   }
