@@ -30,8 +30,6 @@
 ; * The load-reserve (lr.w) instruction does not emulate the reservation of
 ;   memory, and the store-conditional (sc.w) does not check for a reservation
 ;   before storing. These instructions simply behave like lw and sw.
-; * fence.i and fence.tso should be part of the Zifencei and Ztso extensions
-;   respectively, but currently remain part of the base instruction set.
 ; * The Q extension is not yet supported in the simulator.
 ; * xlen == 128 is unsupported
 ; * Simulators for xlen == 32 and xlen == 64 are generated and built
@@ -128,6 +126,8 @@
   (type bitset)
   (for mach insn)
   (values RVNONE
+          RV32IFENCEI RV64IFENCEI
+          RV32ICSR RV64ICSR
           RV32I RV64I RV32E
           RV32M RV64M
           RV32C RV64C
@@ -145,6 +145,8 @@
 (define-pmacro q-ext (RVEXT RV32Q RV64Q))
 (define-pmacro m-ext (RVEXT RV32M RV64M))
 (define-pmacro c-ext (RVEXT RV32C RV64C))
+(define-pmacro ifencei-ext (RVEXT RV32IFENCEI RV64IFENCEI))
+(define-pmacro icsr-ext    (RVEXT RV32ICSR RV64ICSR))
 
 ; Various macros to specify the machines which support a given extension
 (define-pmacro rv32-machs  (MACH rv32i rv32ic rv32im rv32imc rv32g rv32gc rv32gqc))
@@ -2392,9 +2394,10 @@
   (+ (f-uimm4-314 #b1000) pred succ (f-uimm20-1920 #b00000000000000001111))
   (nop) ())
 
-(rv-format-raw     "fence.i" (all-isas i-ext all-machs)
+(rv-format-raw     "fence.i" (all-isas ifencei-ext all-machs)
   #b00000000000000000001000000001111
   (nop))
+
 (rv-format-raw     "ecall"   (all-isas i-ext all-machs)
   #b00000000000000000000000001110011
   (raise-exception EXCEPT-ECALL))
@@ -2403,7 +2406,7 @@
   ; Do exception entry handling in C function
   (raise-exception EXCEPT-EBREAK))
 
-(rv-format-csr-reg "csrrw"   (all-isas i-ext all-machs)
+(rv-format-csr-reg "csrrw"   (all-isas icsr-ext all-machs)
   #b001 #b1110011
   ; riscv spec v2.2, section 2.8:
   ;   If rd=x0, then the instruction shall not read the CSR and shall not cause
@@ -2413,7 +2416,7 @@
     (if (ne (regno rd) 0)
       (set rd csr))
     (set csr tmp)))
-(rv-format-csr-reg "csrrs"   (all-isas i-ext all-machs)
+(rv-format-csr-reg "csrrs"   (all-isas icsr-ext all-machs)
   #b010 #b1110011
   ; riscv spec v2.2, section 2.8:
   ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
@@ -2424,7 +2427,7 @@
     (set rd csr)
     (if (ne (regno rs1) 0)
       (set csr (or tmp csr)))))
-(rv-format-csr-reg "csrrc"   (all-isas i-ext all-machs)
+(rv-format-csr-reg "csrrc"   (all-isas icsr-ext all-machs)
   #b011 #b1110011
   ; riscv spec v2.2, section 2.8:
   ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
@@ -2435,17 +2438,17 @@
     (set rd csr)
     (if (ne (regno rs1) 0)
       (set csr (and (inv tmp) csr)))))
-(rv-format-csr-imm "csrrwi"  (all-isas i-ext all-machs)
+(rv-format-csr-imm "csrrwi"  (all-isas icsr-ext all-machs)
   #b101 #b1110011
   (sequence ()
     (set rd csr)
     (set csr uimm5)))
-(rv-format-csr-imm "csrrsi"  (all-isas i-ext all-machs)
+(rv-format-csr-imm "csrrsi"  (all-isas icsr-ext all-machs)
   #b110 #b1110011
   (sequence ()
     (set rd csr)
     (set csr (or uimm5 csr))))
-(rv-format-csr-imm "csrrci"  (all-isas i-ext all-machs)
+(rv-format-csr-imm "csrrci"  (all-isas icsr-ext all-machs)
   #b111 #b1110011
   (sequence ((WI tmp))
     (set rd csr)
@@ -3353,22 +3356,22 @@
 (rv-macro p-ret          "ret"        (all-isas i-ext)        ""                     (emit jalr (rd 0) (rs1 1) (imm-lo12 0)))
 
 ; Misc
-(rv-macro p-unimp        "unimp"      (all-isas i-ext) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
-(rv-macro p-fence        "fence"      (all-isas i-ext) "" (emit fence (succ 15) (pred 15)))
+(rv-macro p-unimp        "unimp"      (all-isas icsr-ext) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
+(rv-macro p-fence        "fence"      (all-isas ifencei-ext) "" (emit fence (succ 15) (pred 15)))
 (rv-macro p-fence-tso    "fence.tso"  (all-isas i-ext) "" (emit fence.tso (succ 3) (pred 3)))
-(rv-macro p-rdinstret    "rdinstret"  (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
-(rv-macro p-rdcycle      "rdcycle"    (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
-(rv-macro p-rdtime       "rdtime"     (all-isas i-ext) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
-(rv-macro p-csrr         "csrr"       (all-isas i-ext)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
-(rv-macro p-csrw-1       "csrw"       (all-isas i-ext)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
-(rv-macro p-csrs-1       "csrs"       (all-isas i-ext)        " ${csr},${rs1}"      (emit csrrs  (rd 0) csr rs1))
-(rv-macro p-csrc-1       "csrc"       (all-isas i-ext)        " ${csr},${rs1}"      (emit csrrc  (rd 0) csr rs1))
-(rv-macro p-csrw-2       "csrw"       (all-isas i-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrwi (rd 0) csr uimm5))
-(rv-macro p-csrs-2       "csrs"       (all-isas i-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrsi (rd 0) csr uimm5))
-(rv-macro p-csrc-2       "csrc"       (all-isas i-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrci (rd 0) csr uimm5))
-(rv-macro p-csrwi        "csrwi"      (all-isas i-ext)        " ${csr},${uimm5}"     (emit csrrwi (rd 0) csr uimm5))
-(rv-macro p-csrsi        "csrsi"      (all-isas i-ext)        " ${csr},${uimm5}"     (emit csrrsi (rd 0) csr uimm5))
-(rv-macro p-csrci        "csrci"      (all-isas i-ext)        " ${csr},${uimm5}"     (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-rdinstret    "rdinstret"  (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
+(rv-macro p-rdcycle      "rdcycle"    (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
+(rv-macro p-rdtime       "rdtime"     (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
+(rv-macro p-csrr         "csrr"       (all-isas icsr-ext)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
+(rv-macro p-csrw-1       "csrw"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
+(rv-macro p-csrs-1       "csrs"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrs  (rd 0) csr rs1))
+(rv-macro p-csrc-1       "csrc"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrc  (rd 0) csr rs1))
+(rv-macro p-csrw-2       "csrw"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrs-2       "csrs"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrc-2       "csrc"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-csrwi        "csrwi"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrsi        "csrsi"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrci        "csrci"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrci (rd 0) csr uimm5))
 (rv-macro p-sfence-vm    "sfence.vm"  (all-isas i-ext) ""        (emit sfence.vm  (rs1 0)))
 (rv-macro p-sfence-vma-1 "sfence.vma" (all-isas i-ext) ""        (emit sfence.vma (rs1 0) (rs2 0)))
 (rv-macro p-sfence-vma-2 "sfence.vma" (all-isas i-ext) " ${rs1}" (emit sfence.vma rs1     (rs2 0)))
@@ -3377,9 +3380,9 @@
 (rv-macro p-sbreak       "sbreak"     (all-isas i-ext NO-DIS) "" (emit ebreak))
 
 ; RV32I
-(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
-(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
-(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32) (RVEXT RV32I)) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
+(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
 
 ;; RV64I
 ; Already defined above...
