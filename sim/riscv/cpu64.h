@@ -50,7 +50,7 @@ do { \
 CPU (h_pc) = (x);\
 ;} while (0)
   /* General Purpose Registers */
-  DI h_gpr[64];
+  DI h_gpr[32];
 #define GET_H_GPR(index) CPU (h_gpr[index])
 #define SET_H_GPR(index, x) \
 do { \
