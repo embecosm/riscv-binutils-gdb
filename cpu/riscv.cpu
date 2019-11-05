@@ -24,9 +24,6 @@
 ; * It is not possible to select an arbitrary subset of extensions to be
 ;   enabled in an instance of the simulator - it is only possible to choose
 ;   from a fixed set of machines.
-; * Some instructions requires both F and C, or both D and C extensions to
-;   be enabled, but at the moment these instructions only need the C
-;   extension to be enabled.
 ; * The load-reserve (lr.w) instruction does not emulate the reservation of
 ;   memory, and the store-conditional (sc.w) does not check for a reservation
 ;   before storing. These instructions simply behave like lw and sw.
@@ -134,17 +131,21 @@
           RV32A RV64A
           RV32F RV64F
           RV32D RV64D
+          RV32FC RV64FC
+          RV32DC RV64DC
           RV32Q RV64Q
           RVMAX)
   (default RVNONE)
 )
-(define-pmacro i-ext (RVEXT RV32I RV64I))
-(define-pmacro a-ext (RVEXT RV32A RV64A))
-(define-pmacro f-ext (RVEXT RV32F RV64F))
-(define-pmacro d-ext (RVEXT RV32D RV64D))
-(define-pmacro q-ext (RVEXT RV32Q RV64Q))
-(define-pmacro m-ext (RVEXT RV32M RV64M))
-(define-pmacro c-ext (RVEXT RV32C RV64C))
+(define-pmacro i-ext  (RVEXT RV32I RV64I))
+(define-pmacro a-ext  (RVEXT RV32A RV64A))
+(define-pmacro f-ext  (RVEXT RV32F RV64F))
+(define-pmacro d-ext  (RVEXT RV32D RV64D))
+(define-pmacro fc-ext (RVEXT RV32FC RV64FC))
+(define-pmacro dc-ext (RVEXT RV32DC RV64DC))
+(define-pmacro q-ext  (RVEXT RV32Q RV64Q))
+(define-pmacro m-ext  (RVEXT RV32M RV64M))
+(define-pmacro c-ext  (RVEXT RV32C RV64C))
 (define-pmacro ifencei-ext (RVEXT RV32IFENCEI RV64IFENCEI))
 (define-pmacro icsr-ext    (RVEXT RV32ICSR RV64ICSR))
 
@@ -175,6 +176,14 @@
 (define-pmacro rv32d-machs (MACH rv32g rv32gc rv32gqc))
 (define-pmacro rv64d-machs (MACH rv64g rv64gc rv64gqc))
 (define-pmacro d-machs     (MACH rv32g rv32gc rv32gqc rv64g rv64gc rv64gqc))
+
+(define-pmacro rv32fc-machs (MACH rv32gc rv32gqc))
+(define-pmacro rv64fc-machs (MACH rv64gc rv64gqc))
+(define-pmacro fc-machs     (MACH rv32gc rv32gqc rv64gc rv64gqc))
+
+(define-pmacro rv32dc-machs (MACH rv32gc rv32gqc))
+(define-pmacro rv64dc-machs (MACH rv64gc rv64gqc))
+(define-pmacro dc-machs     (MACH rv32gc rv32gqc rv64gc rv64gqc))
 
 (define-pmacro rv32q-machs (MACH rv32gqc))
 (define-pmacro rv64q-machs (MACH rv64gqc))
@@ -2226,32 +2235,30 @@
   (set (mem UDI (add c-reg97 uimm8-62-123-000-abs)) c-reg42))
 
 ;RV32FC
-; TODO: This should maybe be moved to a separate rv32fc isa
-(rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
+(rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
   #b011 #b10
   (set fl-rd (subword DF (or (zext UDI (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))) #xffffffff00000000) 0)))
-(rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32C) rv32c-machs)
+(rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
   #b111 #b10
   (set (mem SI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (trunc SI (subword DI fc-rs3 0))))
-(rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
+(rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
   #b111 #b00
   (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs2 0))))
-(rv-format-cl-3   "c.flw"   ((ISA rv32) (RVEXT RV32C) rv32c-machs)
+(rv-format-cl-3   "c.flw"   ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
   #b011 #b00
   (set fc-rs2 (subword DF (or (zext UDI (mem SI (add c-reg97 uimm7-51-123-61-00-abs))) #xffffffff00000000) 0)))
 
 ;RV32DC/RV64DC
-; TODO: These should maybe be moved to a separate rv32/64dc isa
-(rv-format-ci-8   "c.fldsp" (all-isas c-ext c-machs) ;Good
+(rv-format-ci-8   "c.fldsp" (all-isas dc-ext dc-machs) ;Good
   #b001 #b10
   (set fl-rd (mem DF (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
-(rv-format-css-4  "c.fsdsp" (all-isas c-ext c-machs) ;Good
+(rv-format-css-4  "c.fsdsp" (all-isas dc-ext dc-machs) ;Good
   #b101 #b10
   (set (mem DF (add (reg h-gpr 2) uimm9-93-123-000-abs)) fc-rs3))
-(rv-format-cs-4   "c.fsd"   (all-isas c-ext c-machs)
+(rv-format-cs-4   "c.fsd"   (all-isas dc-ext dc-machs)
   #b101 #b00
   (set (mem DF (add c-reg97 uimm8-62-123-000-abs)) fc-rs2))
-(rv-format-cl-4   "c.fld"   (all-isas c-ext c-machs)
+(rv-format-cl-4   "c.fld"   (all-isas dc-ext dc-machs)
   #b001 #b00
   (set fc-rs2 (mem DF (add c-reg97 uimm8-62-123-000-abs))))
 
@@ -3451,16 +3458,16 @@
 (rv-macro p-fcvt.s.lu  "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
 
 ;RV32FC
-;(rvc-macro p-c-flwsp   "flw"       ((ISA rv32) (RVEXT RV32C)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
-;(rvc-macro p-c-fswsp   "fsw"       ((ISA rv32) (RVEXT RV32C)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
-;(rvc-macro p-c-fsw     "fsw"       ((ISA rv32) (RVEXT RV32C)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
-;(rvc-macro p-c-flw     "flw"       ((ISA rv32) (RVEXT RV32C)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+;(rvc-macro p-c-flwsp   "flw"       ((ISA rv32) (RVEXT RV32FC)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
+;(rvc-macro p-c-fswsp   "fsw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
+;(rvc-macro p-c-fsw     "fsw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+;(rvc-macro p-c-flw     "flw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
 
 ;RV64FD
-;(rvc-macro p-c-fldsp   "fld"       (all-isas c-ext) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
-;(rvc-macro p-c-fsdsp   "fsd"       (all-isas c-ext) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
-;(rvc-macro p-c-fsd     "fsd"       (all-isas c-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
-;(rvc-macro p-c-fld     "fld"       (all-isas c-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
+;(rvc-macro p-c-fldsp   "fld"       (all-isas dc-ext) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
+;(rvc-macro p-c-fsdsp   "fsd"       (all-isas dc-ext) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
+;(rvc-macro p-c-fsd     "fsd"       (all-isas dc-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
+;(rvc-macro p-c-fld     "fld"       (all-isas dc-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
 
 ;===----------------- 'D' extension macro instructions ----------------------===
 
