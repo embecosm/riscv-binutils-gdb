@@ -1,3 +1,39 @@
+2019-11-06  Edward Jones  <ed.jones@embecosm.com>
+
+	* configure: Regenerated.
+	* configure.tgt: Add riscv simulator.
+	* riscv/Makefile.in: New file.
+	* riscv/aclocal.m4: Generated.
+	* riscv/arch.h: New file.
+	* riscv/arch32.c: Generated.
+	* riscv/arch32.h: Generated.
+	* riscv/arch64.c: Generated.
+	* riscv/arch64.h: Generated.
+	* riscv/config.in: Generated.
+	* riscv/configure: Generated.
+	* riscv/configure.ac: New file.
+	* riscv/cpu32.c: Generated.
+	* riscv/cpu32.h: Generated.
+	* riscv/cpu64.c: Generated.
+	* riscv/cpu64.h: Generated.
+	* riscv/cpuall.h: New file.
+	* riscv/cpuall32.h: Generated.
+	* riscv/cpuall64.h: Generated.
+	* riscv/decode32.c: Generated.
+	* riscv/decode32.h: Generated.
+	* riscv/decode64.c: Generated.
+	* riscv/decode64.h: Generated.
+	* riscv/mloop.in: New file.
+	* riscv/model32.c: Generated.
+	* riscv/model64.c: Generated.
+	* riscv/riscv-sim.h: New file.
+	* riscv/riscv.c: New file.
+	* riscv/sem32.c: Generated.
+	* riscv/sem64.c: Generated.
+	* riscv/sim-if.c: New file.
+	* riscv/sim-main.h: New file.
+	* riscv/traps.c: New file.
+
 2019-09-23  Dimitar Dimitrov  <dimitar@dinux.eu>
 
 	* MAINTAINERS: Add myself as PRU maintainer.

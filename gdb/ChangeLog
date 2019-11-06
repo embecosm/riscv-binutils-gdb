@@ -1,3 +1,10 @@
+2019-11-06  Edward Jones  <ed.jones@embecosm.com>
+
+	* configure.tgt: Add riscv* case.
+	* riscv-tdep.h: Move enum of RISC-V register numbers to
+	<top>/include/gdb/sim-riscv.h, and simply include that
+	header from here instead.
+
 2019-11-06  Tom Tromey  <tom@tromey.com>
 
 	* tui/tui-interp.c: Don't include readline.h.
@@ -5518,7 +5525,6 @@
 
 2019-07-04  Alan Hayward  <alan.hayward@arm.com>
 
-	PR breakpoints/25011
 	* symfile.c (symbol_file_command): Call solib_create_inferior_hook.
 
 2019-07-04  Tom Tromey  <tom@tromey.com>
@@ -7759,7 +7765,6 @@
 
 2019-05-28  Alan Hayward  <alan.hayward@arm.com>
 
-	PR gdb/25010
 	* event-top.c: Remove include comment.
 	* inflow.c (class scoped_ignore_sigttou): Move from here...
 	* inflow.h (class scoped_ignore_sigttou): ...to here.
@@ -7895,7 +7900,6 @@
 
 2019-05-16  Sergio Durigan Junior  <sergiodj@redhat.com>
 
-	PR breakpoints/24541
 	* stap-probe.c (stap_parse_register_operand): Make "regname" an
 	"std::string", simplifying the algorithm.
 

@@ -1,3 +1,10 @@
+2019-09-10  Edward Jones  <ed.jones@embecosm.com>
+
+	* cgen-accfp.c (ufloatsidf, ufixdfsi): New functions.
+	(cgen_init_accurate_fpu): Initialize ufloatsidf and ufixdfsi
+	members in CGEN_FP_OPS table.
+	* cgen-mem.h (GETTDF, SETTSF, SETTDF): New functions.
+
 2019-09-23  Dimitar Dimitrov  <dimitar@dinux.eu>
 
 	* gennltvals.sh: Add PRU libgloss target.

@@ -85,6 +85,9 @@ case "${target}" in
    rl78-*-*)
        SIM_ARCH(rl78)
        ;;
+   riscv*)
+       SIM_ARCH(riscv)
+       ;;
    rx-*-*)
        SIM_ARCH(rx)
        ;;
