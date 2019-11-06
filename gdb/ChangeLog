@@ -1,6 +1,9 @@
 2019-11-06  Edward Jones  <ed.jones@embecosm.com>
 
-	* configure.tgt: Add riscv*.
+	* configure.tgt: Add riscv* case.
+	* riscv-tdep.h: Move enum of RISC-V register numbers to
+	<top>/include/gdb/sim-riscv.h, and simply include that
+	header from here instead.
 
 2019-11-06  Tom Tromey  <tom@tromey.com>
 
