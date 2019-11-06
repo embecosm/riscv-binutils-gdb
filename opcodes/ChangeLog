@@ -1,3 +1,16 @@
+2019-11-06  Edward Jones  <ed.jones@embecosm.com>
+
+	* Makefile.am: Add rules for the files generated from
+	cpu/riscv.cpu and cpu/riscv.opc.
+	* Makefile.in: Regenerated.
+	* configure: Regenerated.
+	* configure.ac (bfd_riscv_arch): Specify that cgen is used and
+	add cgen generated dependencies.
+	* riscv-cgen-desc.c: Generated.
+	* riscv-cgen-desc.h: Likewise.
+	* riscv-cgen-opc.c: Likewise.
+	* riscv-cgen-opc.h: Likewise.
+
 2019-11-05  Jan Beulich  <jbeulich@suse.com>
 
 	* i386-dis.c (OP_Mwaitx): Delete.

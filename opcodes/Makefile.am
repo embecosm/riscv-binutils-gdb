@@ -227,6 +227,8 @@ TARGET_LIBOPCODES_CFILES = \
 	pru-opc.c \
 	riscv-dis.c \
 	riscv-opc.c \
+	riscv-cgen-desc.c \
+	riscv-cgen-opc.c \
 	rl78-decode.c \
 	rl78-dis.c \
 	rx-decode.c \
@@ -357,7 +359,7 @@ po/POTFILES.in: @MAINT@ Makefile
 CLEANFILES = \
 	stamp-epiphany stamp-fr30 stamp-frv stamp-ip2k stamp-iq2000 stamp-lm32 \
 	stamp-m32c stamp-m32r stamp-mep stamp-mt \
-	stamp-or1k stamp-xc16x stamp-xstormy16 \
+	stamp-or1k stamp-riscv stamp-xc16x stamp-xstormy16 \
 	libopcodes.a stamp-lib
 
 
@@ -510,6 +512,15 @@ $(srcdir)/or1k-desc.h $(srcdir)/or1k-desc.c $(srcdir)/or1k-opc.h $(srcdir)/or1k-
 stamp-or1k: $(CGENDEPS) $(CPUDIR)/or1k.cpu $(CPUDIR)/or1k.opc $(CPUDIR)/or1kcommon.cpu $(CPUDIR)/or1korbis.cpu $(CPUDIR)/or1korfpx.cpu
 	$(MAKE) run-cgen arch=or1k prefix=or1k options=opinst \
 		archfile=$(CPUDIR)/or1k.cpu opcfile=$(CPUDIR)/or1k.opc extrafiles=opinst
+
+$(srcdir)/riscv-cgen-desc.h $(srcdir)/riscv-cgen-desc.c $(srcdir)/riscv-cgen-opc.h $(srcdir)/riscv-cgen-opc.c: $(RISCV_DEPS)
+	@true
+stamp-riscv: $(CGENDEPS) $(CPUDIR)/riscv.cpu $(CPUDIR)/riscv.opc
+	$(MAKE) run-cgen arch=riscv prefix=riscv-cgen options= \
+		archfile=$(CPUDIR)/riscv.cpu opcfile=$(CPUDIR)/riscv.opc extrafiles=
+	rm $(srcdir)/riscv-cgen-ibld.c
+	rm $(srcdir)/riscv-cgen-asm.c
+	rm $(srcdir)/riscv-cgen-dis.c
 
 $(srcdir)/xc16x-desc.h $(srcdir)/xc16x-desc.c $(srcdir)/xc16x-opc.h $(srcdir)/xc16x-opc.c $(srcdir)/xc16x-ibld.c $(srcdir)/xc16x-asm.c $(srcdir)/xc16x-dis.c: $(XC16X_DEPS)
 	@true
