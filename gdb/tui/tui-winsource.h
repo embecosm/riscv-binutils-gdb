@@ -43,8 +43,6 @@ DEF_ENUM_FLAGS_TYPE (enum tui_bp_flag, tui_bp_flags);
 #define TUI_EXEC_POS        2
 #define TUI_EXECINFO_SIZE   4
 
-typedef char tui_exec_info_content[TUI_EXECINFO_SIZE];
-
 /* Elements in the Source/Disassembly Window.  */
 struct tui_source_element
 {
@@ -54,23 +52,17 @@ struct tui_source_element
     line_or_addr.u.line_no = 0;
   }
 
-  ~tui_source_element ()
-  {
-    xfree (line);
-  }
-
   DISABLE_COPY_AND_ASSIGN (tui_source_element);
 
   tui_source_element (tui_source_element &&other)
-    : line (other.line),
+    : line (std::move (other.line)),
       line_or_addr (other.line_or_addr),
       is_exec_point (other.is_exec_point),
       break_mode (other.break_mode)
   {
-    other.line = nullptr;
   }
 
-  char *line = nullptr;
+  std::string line;
   struct tui_line_or_address line_or_addr;
   bool is_exec_point = false;
   tui_bp_flags break_mode = 0;
@@ -84,7 +76,8 @@ struct tui_source_window_base : public tui_win_info
 {
 protected:
   explicit tui_source_window_base (enum tui_win_type type);
-  ~tui_source_window_base () override;
+  ~tui_source_window_base ();
+
   DISABLE_COPY_AND_ASSIGN (tui_source_window_base);
 
   void do_scroll_horizontal (int num_to_scroll) override;
@@ -101,8 +94,6 @@ protected:
 
 public:
 
-  void clear_detail ();
-
   /* Refill the source window's source cache and update it.  If this
      is a disassembly window, then just update it.  */
   void refill ();
@@ -113,8 +104,6 @@ public:
   void update_tab_width () override;
 
   virtual bool location_matches_p (struct bp_location *loc, int line_no) = 0;
-
-  void show_source_content ();
 
   void update_exec_info ();
 
@@ -145,13 +134,20 @@ public:
   int horizontal_offset = 0;
   struct tui_line_or_address start_line_or_addr;
 
-  /* It is the resolved form as returned by symtab_to_fullname.  */
-  char *fullname = nullptr;
-
   /* Architecture associated with code at this location.  */
   struct gdbarch *gdbarch = nullptr;
 
   std::vector<tui_source_element> content;
+
+private:
+
+  void show_source_content ();
+
+  /* Called when the user "set style enabled" setting is changed.  */
+  void style_changed ();
+
+  /* A token used to register and unregister an observer.  */
+  gdb::observers::token m_observable;
 };
 
 
@@ -238,6 +234,16 @@ extern void tui_display_main (void);
 extern void tui_update_source_windows_with_addr (struct gdbarch *, CORE_ADDR);
 extern void tui_update_source_windows_with_line (struct symtab *, 
 						 int);
+
+/* Extract some source text from PTR.  LINE_NO is the line number.  If
+   it is positive, it is printed at the start of the line.  FIRST_COL
+   is the first column to extract, and LINE_WIDTH is the number of
+   characters to display.  Returns a string holding the desired text.
+   PTR is updated to point to the start of the next line.  */
+
+extern std::string tui_copy_source_line (const char **ptr,
+					 int line_no, int first_col,
+					 int line_width);
 
 /* Constant definitions. */
 #define SCROLL_THRESHOLD 2	/* Threshold for lazy scroll.  */

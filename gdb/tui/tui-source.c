@@ -37,90 +37,6 @@
 #include "tui/tui-source.h"
 #include "gdb_curses.h"
 
-/* A helper function for tui_set_source_content that extracts some
-   source text from PTR.  LINE_NO is the line number; FIRST_COL is the
-   first column to extract, and LINE_WIDTH is the number of characters
-   to display.  Returns a string holding the desired text.  */
-
-static std::string
-copy_source_line (const char **ptr, int line_no, int first_col,
-		  int line_width)
-{
-  const char *lineptr = *ptr;
-
-  /* Init the line with the line number.  */
-  std::string result = string_printf ("%-6d", line_no);
-  int len = result.size ();
-  len = len - ((len / tui_tab_width) * tui_tab_width);
-  result.append (len, ' ');
-
-  int column = 0;
-  char c;
-  do
-    {
-      int skip_bytes;
-
-      c = *lineptr;
-      if (c == '\033' && skip_ansi_escape (lineptr, &skip_bytes))
-	{
-	  /* We always have to preserve escapes.  */
-	  result.append (lineptr, lineptr + skip_bytes);
-	  lineptr += skip_bytes;
-	  continue;
-	}
-
-      ++lineptr;
-      ++column;
-
-      auto process_tab = [&] ()
-	{
-	  int max_tab_len = tui_tab_width;
-
-	  --column;
-	  for (int j = column % max_tab_len;
-	       j < max_tab_len && column < first_col + line_width;
-	       column++, j++)
-	    if (column >= first_col)
-	      result.push_back (' ');
-	};
-
-      /* We have to process all the text in order to pick up all the
-	 escapes.  */
-      if (column <= first_col || column > first_col + line_width)
-	{
-	  if (c == '\t')
-	    process_tab ();
-	  continue;
-	}
-
-      if (c == '\n' || c == '\r' || c == '\0')
-	{
-	  /* Nothing.  */
-	}
-      else if (c < 040 && c != '\t')
-	{
-	  result.push_back ('^');
-	  result.push_back (c + 0100);
-	}
-      else if (c == 0177)
-	{
-	  result.push_back ('^');
-	  result.push_back ('?');
-	}
-      else if (c == '\t')
-	process_tab ();
-      else
-	result.push_back (c);
-    }
-  while (c != '\0' && c != '\n' && c != '\r');
-
-  if (c == '\r' && *lineptr == '\n')
-    ++lineptr;
-  *ptr = lineptr;
-
-  return result;
-}
-
 /* Function to display source in the source window.  */
 enum tui_status
 tui_source_window::set_contents (struct gdbarch *arch,
@@ -155,8 +71,7 @@ tui_source_window::set_contents (struct gdbarch *arch,
 
 	  title = s_filename;
 
-	  xfree (fullname);
-	  fullname = xstrdup (symtab_to_fullname (s));
+	  m_fullname = make_unique_xstrdup (symtab_to_fullname (s));
 
 	  cur_line = 0;
 	  gdbarch = get_objfile_arch (SYMTAB_OBJFILE (s));
@@ -172,21 +87,20 @@ tui_source_window::set_contents (struct gdbarch *arch,
 
 	      std::string text;
 	      if (*iter != '\0')
-		text = copy_source_line (&iter, cur_line_no, horizontal_offset,
-					 line_width);
+		text = tui_copy_source_line (&iter, cur_line_no,
+					     horizontal_offset,
+					     line_width);
 
 	      /* Set whether element is the execution point
 		 and whether there is a break point on it.  */
 	      element->line_or_addr.loa = LOA_LINE;
 	      element->line_or_addr.u.line_no = cur_line_no;
 	      element->is_exec_point
-		= (filename_cmp (locator->full_name,
+		= (filename_cmp (locator->full_name.c_str (),
 				 symtab_to_fullname (s)) == 0
 		   && cur_line_no == locator->line_no);
 
-	      xfree (content[cur_line].line);
-	      content[cur_line].line
-		= xstrdup (text.c_str ());
+	      content[cur_line].line = std::move (text);
 
 	      cur_line++;
 	      cur_line_no++;
@@ -216,7 +130,7 @@ bool
 tui_source_window::showing_source_p (const char *fullname) const
 {
   return (!content.empty ()
-	  && (filename_cmp (tui_locator_win_info_ptr ()->full_name,
+	  && (filename_cmp (tui_locator_win_info_ptr ()->full_name.c_str (),
 			    fullname) == 0));
 }
 
@@ -252,33 +166,13 @@ tui_source_window::do_scroll_vertical (int num_to_scroll)
     }
 }
 
-tui_source_window::tui_source_window ()
-  : tui_source_window_base (SRC_WIN)
-{
-  gdb::observers::source_styling_changed.attach
-    (std::bind (&tui_source_window::style_changed, this),
-     m_observable);
-}
-
-tui_source_window::~tui_source_window ()
-{
-  gdb::observers::source_styling_changed.detach (m_observable);
-}
-
-void
-tui_source_window::style_changed ()
-{
-  if (tui_active && is_visible ())
-    refill ();
-}
-
 bool
 tui_source_window::location_matches_p (struct bp_location *loc, int line_no)
 {
   return (content[line_no].line_or_addr.loa == LOA_LINE
 	  && content[line_no].line_or_addr.u.line_no == loc->line_number
 	  && loc->symtab != NULL
-	  && filename_cmp (fullname,
+	  && filename_cmp (m_fullname.get (),
 			   symtab_to_fullname (loc->symtab)) == 0);
 }
 
@@ -310,7 +204,7 @@ tui_source_window::maybe_update (struct frame_info *fi, symtab_and_line sal,
     start_line = 1;
 
   bool source_already_displayed = (sal.symtab != 0
-				   && showing_source_p (fullname));
+				   && showing_source_p (m_fullname.get ()));
 
   struct tui_line_or_address l;
 

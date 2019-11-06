@@ -401,7 +401,6 @@ extern const struct language_defn objc_language_defn = {
   c_language_arch_info,
   default_print_array_index,
   default_pass_by_reference,
-  default_get_string,
   c_watch_location_expression,
   NULL,				/* la_get_symbol_name_matcher */
   iterate_over_symbols,
@@ -1063,7 +1062,7 @@ find_methods (char type, const char *theclass, const char *category,
     }
 }
 
-/* Uniquify a VEC of strings.  */
+/* Uniquify a vector of strings.  */
 
 static void
 uniquify_strings (std::vector<const char *> *strings)
