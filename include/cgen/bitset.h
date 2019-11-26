@@ -34,7 +34,7 @@ extern "C" {
 */
 typedef struct cgen_bitset
 {
-  unsigned length;
+  unsigned long long length;
   char *bits;
 } CGEN_BITSET;
 

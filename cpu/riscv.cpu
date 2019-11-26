@@ -2912,16 +2912,35 @@
 (rv-format-r "bext"   (all-isas zbe-ext b-machs)  #b0000100 #b110 #b0110011  (nop)) ;FIXME: sem
 (rv-format-r "pack"   (all-isas zbb-ext b-machs)  #b0000100 #b100 #b0110011  (nop)) ;FIXME: sem
 
-(rv-format-shift7 "grevi"   (all-isas zbp-ext b-machs) #b01000 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sloi"    (all-isas zbb-ext b-machs) #b00100 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sroi"    (all-isas zbb-ext b-machs) #b00100 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "rori"    (all-isas zbb-ext b-machs) #b01100 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbseti"  (all-isas zbs-ext b-machs) #b00101 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbclri"  (all-isas zbs-ext b-machs) #b01001 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbinvi"  (all-isas zbs-ext b-machs) #b01101 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift7 "sbexti"  (all-isas zbs-ext b-machs) #b01001 #b101 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift6 "shfli"   (all-isas zbp-ext b-machs) #b000010 #b001 #b0010011 (nop))  ;FIXME: sem
-(rv-format-shift6 "unshfli" (all-isas zbp-ext b-machs) #b000010 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift5 "grevi"   (all-isas zbp-ext b-machs) #b01000 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "grevi"   (all-isas zbp-ext b-machs) #b010000 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sloi"    (all-isas zbb-ext b-machs) #b00100 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sloi"    ((ISA rv64) zbb-ext b-machs) #b001000 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sroi"    (all-isas zbb-ext b-machs) #b00100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sroi"    ((ISA rv64) zbb-ext b-machs) #b001000 #b101 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "rori"    (all-isas zbb-ext b-machs) #b01100 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "rori"    ((ISA rv64) zbb-ext b-machs) #b011000 #b101 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sbseti"  (all-isas zbs-ext b-machs) #b00101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sbseti"  ((ISA rv64) zbs-ext b-machs) #b001010 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sbclri"  (all-isas zbs-ext b-machs) #b01001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sbclri"  ((ISA rv64) zbs-ext b-machs) #b010010 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sbinvi"  (all-isas zbs-ext b-machs) #b01101 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sbinvi"  ((ISA rv64) zbs-ext b-machs) #b011010 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "sbexti"  (all-isas zbs-ext b-machs) #b01001 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "sbexti"  ((ISA rv64) zbs-ext b-machs) #b010010 #b101 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "shfli"   (all-isas zbp-ext b-machs) #b00001 #b001 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "shfli"   ((ISA rv64) zbp-ext b-machs) #b000010 #b001 #b0010011 (nop))  ;FIXME: sem
+
+(rv-format-shift5 "unshfli" (all-isas zbp-ext b-machs) #b00001 #b101 #b0010011 (nop))  ;FIXME: sem
+(rv-format-shift6 "unshfli" ((ISA rv64) zbp-ext b-machs) #b000010 #b101 #b0010011 (nop))  ;FIXME: sem
 
 (rv-format-r-3 "cmix" (all-isas zbt-ext b-machs) #b11 #b001 #b0110011 (nop))  ;FIXME: sem
 (rv-format-r-3 "cmov" (all-isas zbt-ext b-machs) #b11 #b101 #b0110011 (nop))  ;FIXME: sem
@@ -3327,14 +3346,37 @@
 
 
 ;===----------------- 'B' extension macro instructions ----------------------===
-(rv-macro p-sloi "slo"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sloi rd rs1 uimm7-267))
-(rv-macro p-sroi "sro"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sroi rd rs1 uimm7-267))
-(rv-macro p-rori "ror"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit rori rd rs1 uimm7-267))
-(rv-macro p-sbseti "sbset" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbseti rd rs1 uimm7-267))
-(rv-macro p-sbclri "sbclr" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbclri rd rs1 uimm7-267))
-(rv-macro p-sbinvi "sbinv" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbinvi rd rs1 uimm7-267))
-(rv-macro p-sbexti "sbext" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbexti rd rs1 uimm7-267))
+(rv-macro p-slo-1        "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sloi-shift5 rd rs1 uimm5-245))
+(rv-macro p-slo-2        "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sloi-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-sro-1        "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sroi-shift5 rd rs1 uimm5-245))
+(rv-macro p-sro-2        "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sroi-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-ror-1        "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit rori-shift5 rd rs1 uimm5-245))
+(rv-macro p-ror-2        "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit rori-shift6 rd rs1 uimm6-256))
+
+; These aren't technically shifts, but the encoding and 5/6 bit difference for rv32/rv64 is equivalent.
+(rv-macro p-sbset-1        "sbset"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbseti-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbset-2        "sbset"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbseti-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-sbclr-1        "sbclr"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbclri-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbclr-2        "sbclr"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbclri-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-sbinv-1        "sbinv"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbinvi-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbinv-2        "sbinv"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbinvi-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-sbext-1        "sbext"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbexti-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbext-2        "sbext"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbexti-shift6 rd rs1 uimm6-256))
+
 (rv-macro p-fsri "fsr"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${rs3},${uimm6-256}" (emit fsri rd rs1 rs3 uimm6-256))
+
+;(rv-macro p-sloi "slo"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sloi rd rs1 uimm7-267))
+;(rv-macro p-sroi "sro"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sroi rd rs1 uimm7-267))
+;(rv-macro p-rori "ror"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit rori rd rs1 uimm7-267))
+;(rv-macro p-sbseti "sbset" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbseti rd rs1 uimm7-267))
+;(rv-macro p-sbclri "sbclr" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbclri rd rs1 uimm7-267))
+;(rv-macro p-sbinvi "sbinv" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbinvi rd rs1 uimm7-267))
+;(rv-macro p-sbexti "sbext" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbexti rd rs1 uimm7-267))
 
 (rv-macro p-sloiw "slow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sloiw rd rs1 uimm5-245))
 (rv-macro p-sroiw "srow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sroiw rd rs1 uimm5-245))

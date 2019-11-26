@@ -120,7 +120,7 @@ typedef struct cgen_cpu_desc *CGEN_CPU_DESC;
 /* Type of attribute values.  */
 
 typedef CGEN_BITSET     CGEN_ATTR_VALUE_BITSET_TYPE;
-typedef int             CGEN_ATTR_VALUE_ENUM_TYPE;
+typedef unsigned long long             CGEN_ATTR_VALUE_ENUM_TYPE;
 typedef union
 {
   CGEN_ATTR_VALUE_BITSET_TYPE bitset;

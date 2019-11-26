@@ -124,6 +124,16 @@ cpu | decode | cpu-decode)
 	*/semsw/*) fileopts="${fileopts} -X ${tmp}-semsw.c1" ;;
 	esac
 
+	echo "cgen = $cgen"
+	echo "cgendir = $cgendir"
+	echo "cgenflags = $cgenflags"
+	echo "opcfile = $opcfile"
+	echo "archflags = $archflags"
+	echo "mach = $mach"
+	echo "archfile = $archfile"
+	echo "isa = $isa"
+	echo "fileopts = $fileopts"
+
 	${cgen} ${cgendir}/cgen-sim.scm \
 		-s ${cgendir} \
 		${cgenflags} \
