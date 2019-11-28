@@ -276,9 +276,9 @@ riscv_set_arch (const char *s)
 
 	  while (*++q != '\0' && *q != '_')
 	    {
-	      if (*q == '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9')
+	      if (*q >= '0' && *q <= '9')
 		as_fatal ("-march=%s: Version numbers not yet supported.", s);
-	      else if (*q == 'p' && *++q != '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9')
+	      else if (*q == 'p' && (q[1] < '0' || q[1] > '9'))
 	        as_fatal ("-march=%s: Expect number after version.", s);
 	    }
 

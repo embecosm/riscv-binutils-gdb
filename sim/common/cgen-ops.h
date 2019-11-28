@@ -131,6 +131,8 @@ extern HI ROLHI (HI, int);
 #define SLLSI(x, y) ((USI) (x) << (y))
 extern SI RORSI (SI, int);
 extern SI ROLSI (SI, int);
+extern DI RORDI (DI, int);
+extern DI ROLDI (DI, int);
 #define ANDSI(x, y) ((x) & (y))
 #define ORSI(x, y) ((x) | (y))
 #define XORSI(x, y) ((x) ^ (y))
