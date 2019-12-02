@@ -217,5 +217,100 @@ int riscv64bf_model_rv64gqc_u_exec (SIM_CPU * current_cpu, const IDESC *idesc,
   return riscv64bf_model_u_exec (current_cpu, idesc, unit_num, referenced);
 }
 
-#endif
+DI
+riscv64_shuffle64_stage(DI src, DI maskl, DI maskr, int n)
+{
+  DI x = src & ~(maskl | maskr);
+  x |= ((src << n) & maskl) | ((src >> n) & maskr);
+  return x;
+}
 
+DI
+riscv64_shfl64 (DI rs1, DI rs2)
+{
+  DI x = rs1;
+  int shamt = rs2 & 31;
+
+  if (shamt & 16) x = riscv64_shuffle64_stage (x,
+					       0x0000ffff00000000LL,
+					       0x00000000ffff0000LL, 16);
+
+  if (shamt & 8) x = riscv64_shuffle64_stage (x,
+					      0x00ff000000ff0000LL,
+					      0x0000ff000000ff00LL, 8);
+
+  if (shamt & 4) x = riscv64_shuffle64_stage (x,
+					      0x0f000f000f000f00LL,
+					      0x00f000f000f000f0LL, 4);
+
+  if (shamt & 2) x = riscv64_shuffle64_stage (x,
+					      0x3030303030303030LL,
+					      0x0c0c0c0c0c0c0c0cLL, 2);
+
+  if (shamt & 1) x = riscv64_shuffle64_stage (x,
+					      0x4444444444444444LL,
+					      0x2222222222222222LL, 1);
+  return x;
+}
+
+DI
+riscv64_bmatflip (SIM_CPU *current_cpu, DI rs1)
+{
+  DI x = rs1;
+  x = riscv64_shfl64 (x, 31);
+  x = riscv64_shfl64 (x, 31);
+  x = riscv64_shfl64 (x, 31);
+  return x;
+}
+
+DI
+riscv64_bmator (SIM_CPU *current_cpu, DI rs1, DI rs2)
+{
+  DI rs2t = riscv64_bmatflip (current_cpu, rs2);
+
+  QI u[8];
+  QI v[8];
+
+  int i;
+
+  for (i = 0; i < 8; ++i)
+    {
+      u[i] = rs1 >> (i * 8);
+      v[i] = rs2t >> (i * 8);
+    }
+
+  DI x = 0;
+
+  for (i = 0; i < 64; ++i)
+    if ((u[i / 8] & v[i % 8]) != 0)
+      x |= 1LL << i;
+
+  return x;
+}
+
+DI
+riscv64_bmatxor (SIM_CPU *current_cpu, DI rs1, DI rs2)
+{
+  DI rs2t = riscv64_bmatflip (current_cpu, rs2);
+
+  unsigned char u[8];
+  unsigned char v[8];
+
+  int i;
+
+  for (i = 0; i < 8; ++i)
+    {
+      u[i] = rs1 >> (i * 8);
+      v[i] = rs2t >> (i * 8);
+    }
+
+  DI x = 0;
+
+  for (i = 0; i < 64; ++i)
+    if (__builtin_popcountl (u[i / 8] & v[i % 8]) & 1)
+      x |= 1LL << i;
+
+  return x;
+}
+
+#endif

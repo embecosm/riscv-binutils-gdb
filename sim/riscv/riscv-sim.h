@@ -36,6 +36,10 @@ DI   riscv64bf_h_gpr_get_handler (SIM_CPU * current_cpu, UINT gpr);
 void riscv64bf_h_gpr_set_handler (SIM_CPU * current_cpu, UINT gpr, DI newval);
 UDI  riscv64bf_h_csr_get_handler (SIM_CPU * current_cpu, UINT csr);
 void riscv64bf_h_csr_set_handler (SIM_CPU * current_cpu, UINT csr, UDI newval);
+
+DI riscv64_bmatflip (SIM_CPU *current_cpu, DI rs1);
+DI riscv64_bmator (SIM_CPU *current_cpu, DI rs1, DI rs2);
+DI riscv64_bmatxor (SIM_CPU *current_cpu, DI rs1, DI rs2);
 #endif
 
 #endif /* RISCV_SIM_H */
