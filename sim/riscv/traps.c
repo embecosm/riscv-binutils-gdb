@@ -30,6 +30,7 @@
 #include "sim-syscall.h"
 #include "sim-fpu.h"
 
+#include <assert.h>
 
 // Syscall numbers defined in newlib libgloss
 #define TARGET_SYS_close   57
@@ -112,17 +113,21 @@ void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)
 
   if (exnum == EXCEPT_EBREAK)
     {
-      /* ebreak, used for breakpoints, sends control back to gdb breakpoint
-         handling.  */
+      /* ebreak, used for breakpoints, sends control back to gdb or otherwise
+         halts execution.  */
       sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
     }
-  else if (exnum == EXCEPT_ECALL)
+  else
     {
-      CB_SYSCALL s;
-      CB_SYSCALL_INIT (&s);
-
-      if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
+      assert (exnum == EXCEPT_ECALL);
+      if (STATE_ENVIRONMENT (sd) == USER_ENVIRONMENT)
 	{
+	  /* In a user environment, emulate system calls. The syscall numbers
+	     are the same for both Linux and newlib, so we don't differentiate
+	     between them here.  */
+	  CB_SYSCALL s;
+	  CB_SYSCALL_INIT (&s);
+
 	  long syscall_id = GET_H_GPR (17);
 
 	  long result;
@@ -152,14 +157,25 @@ void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)
 	  else
 	    {
 	      result = sim_syscall (current_cpu, syscall_id, GET_H_GPR (10),
-				    GET_H_GPR (11), GET_H_GPR (12),
-				    GET_H_GPR (13));
+	                            GET_H_GPR (11), GET_H_GPR (12),
+	                            GET_H_GPR (13));
 	    }
 	  SET_H_GPR (10, result);
 	}
+      else if (STATE_ENVIRONMENT (sd) == VIRTUAL_ENVIRONMENT)
+	{
+	  /* If running in a virtual environment, just trap on any syscalls
+	     and let the environment deal with it.  */
+	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
+	}
       else
 	{
-	  // TODO: Jump to exception handler
+	  assert (STATE_ENVIRONMENT (sd) == OPERATING_ENVIRONMENT);
+	  /* If running in an environment appropriate for an operating
+	     system, jump to the trap handler.  */
+	  /* TODO: Implement a jump into the exception handler. Currently
+	     this just halts.  */
+	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
 	}
     }
 }
