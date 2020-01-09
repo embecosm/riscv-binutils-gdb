@@ -166,7 +166,7 @@ void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)
 	{
 	  /* If running in a virtual environment, just trap on any syscalls
 	     and let the environment deal with it.  */
-	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
+	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGSYS);
 	}
       else
 	{
@@ -175,7 +175,7 @@ void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)
 	     system, jump to the trap handler.  */
 	  /* TODO: Implement a jump into the exception handler. Currently
 	     this just halts.  */
-	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGTRAP);
+	  sim_engine_halt (sd, current_cpu, NULL, pc, sim_stopped, SIM_SIGSYS);
 	}
     }
 }

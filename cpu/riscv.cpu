@@ -2226,7 +2226,11 @@
 (rv-format-craw  "c.ebreak" (all-isas c-ext c-machs)
   #b1001000000000010
   ; Do exception entry handling in C function
-  (raise-exception EXCEPT-EBREAK))
+  (sequence ()
+    ; When an exception occurs, the pc is first stored to mepc (0x341)
+    ; Exception handling itself is done in a C function
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-EBREAK)))
 (rv-format-craw  "c.unimp"  (all-isas c-ext c-machs)
   #b0000000000000000
   (nop))
@@ -2512,11 +2516,18 @@
 
 (rv-format-raw     "ecall"   (all-isas i-ext all-machs)
   #b00000000000000000000000001110011
-  (raise-exception EXCEPT-ECALL))
+  ; When an exception occurs, the pc is first stored to mepc (0x341)
+  ; Exception handling itself is done in a C function
+  (sequence ()
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-ECALL)))
 (rv-format-raw     "ebreak"  (all-isas i-ext all-machs)
   #b00000000000100000000000001110011
-  ; Do exception entry handling in C function
-  (raise-exception EXCEPT-EBREAK))
+  ; When an exception occurs, the pc is first stored to mepc (0x341)
+  ; Exception handling itself is done in a C function
+  (sequence ()
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-EBREAK)))
 
 (rv-format-csr-reg "csrrw"   (all-isas icsr-ext all-machs)
   #b001 #b1110011

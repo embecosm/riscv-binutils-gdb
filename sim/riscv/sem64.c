@@ -267,7 +267,14 @@ SEM_FN_NAME (riscv64bf_rv64,c_ebreak) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 2);
 
+{
+  {
+    UDI opval = pc;
+    SET_H_CSR (((UINT) 833), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "csr", 'D', opval);
+  }
 riscv64bf_exception (current_cpu, pc, EXCEPT_EBREAK);
+}
 
   return vpc;
 #undef FLD
@@ -1990,7 +1997,14 @@ SEM_FN_NAME (riscv64bf_rv64,ecall) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
+{
+  {
+    UDI opval = pc;
+    SET_H_CSR (((UINT) 833), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "csr", 'D', opval);
+  }
 riscv64bf_exception (current_cpu, pc, EXCEPT_ECALL);
+}
 
   return vpc;
 #undef FLD
@@ -2007,7 +2021,14 @@ SEM_FN_NAME (riscv64bf_rv64,ebreak) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
+{
+  {
+    UDI opval = pc;
+    SET_H_CSR (((UINT) 833), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "csr", 'D', opval);
+  }
 riscv64bf_exception (current_cpu, pc, EXCEPT_EBREAK);
+}
 
   return vpc;
 #undef FLD

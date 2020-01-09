@@ -94,9 +94,14 @@ void CPU_FUNC (_h_csr_set_handler) (SIM_CPU * current_cpu, UINT rn, UWI val)
 {
   /* Most CSRs are currently treated as read-only, and any writes are just
      ignored. This will be gradually expanded as more features are added.  */
-  if (rn == 0x3 /*fcsr */ )
+  int csr = rn + RISCV_FIRST_CSR_REGNUM;
+  if (csr == RISCV_CSR_FCSR_REGNUM)
     {
       CPU (h_csr[rn]) = (CPU (h_csr[rn]) & 0xff00) | (val & 0xff);
+    }
+  else if (csr == RISCV_CSR_MEPC_REGNUM)
+    {
+      CPU (h_csr[rn]) = val;
     }
 }
 

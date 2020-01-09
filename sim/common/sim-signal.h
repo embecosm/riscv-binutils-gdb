@@ -42,7 +42,9 @@ typedef enum {
   /* Floating point or integer divide */
   SIM_SIGFPE,
   /* simulation aborted */
-  SIM_SIGABRT
+  SIM_SIGABRT,
+  /* simulator hit a syscall that cannot be handled */
+  SIM_SIGSYS,
 } SIM_SIGNAL;
 
 int sim_signal_to_host (SIM_DESC sd, SIM_SIGNAL);

@@ -81,6 +81,12 @@ sim_signal_to_host (SIM_DESC sd, SIM_SIGNAL sig)
 #endif
       break;
 
+    case SIM_SIGSYS:
+#ifdef SIGSYS
+      return SIGSYS;
+#endif
+      break;
+
     case SIM_SIGNONE:
       return 0;
       break;
@@ -123,6 +129,9 @@ sim_signal_to_gdb_signal (SIM_DESC sd, SIM_SIGNAL sig)
     case SIM_SIGFPE:
       return GDB_SIGNAL_FPE;
       break;
+
+    case SIM_SIGSYS:
+      return GDB_SIGNAL_SYS;
 
     case SIM_SIGNONE:
       return GDB_SIGNAL_0;
