@@ -670,10 +670,23 @@ u2fpu (sim_fpu *f, unsigned64 u, int is_64bit)
       f->normal_exp = NR_FRAC_GUARD;
       f->fraction = u;
 
-      while (f->fraction < IMPLICIT_1)
+      if (f->fraction >= IMPLICIT_2)
 	{
-	  f->fraction <<= 1;
-	  f->normal_exp -= 1;
+	  do
+	    {
+	      f->fraction = (f->fraction >> 1) | (f->fraction & 1);
+	      f->normal_exp += 1;
+	    }
+	  while (f->fraction >= IMPLICIT_2);
+	}
+      else if (f->fraction < IMPLICIT_1)
+	{
+	  do
+	    {
+	      f->fraction <<= 1;
+	      f->normal_exp -= 1;
+	    }
+	  while (f->fraction < IMPLICIT_1);
 	}
     }
   return 0;
