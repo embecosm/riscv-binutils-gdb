@@ -4538,9 +4538,9 @@
 
 ;RV64F
 (define-pmacro fcvt-s-l-sem
-  (set fl-rd (subword DF (or (zext UDI (subword SI (float SF 0 rs1) 0)) #xffffffff00000000) 0)))
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (float DF 0 rs1)) 0)) #xffffffff00000000) 0)))
 (define-pmacro fcvt-s-lu-sem
-  (set fl-rd (subword DF (or (zext UDI (subword SI (ufloat SF 0 rs1) 0)) #xffffffff00000000) 0)))
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (ufloat DF 0 rs1)) 0)) #xffffffff00000000) 0)))
 
 ; FIXME: Handle clipping correctly
 (define-pmacro fcvt-l-s-sem
