@@ -30,7 +30,7 @@ This file is part of the GNU simulators.
 
 /* Get the value of h-pc.  */
 
-USI
+UDI
 riscv64bf_h_pc_get (SIM_CPU *current_cpu)
 {
   return GET_H_PC ();
@@ -39,7 +39,7 @@ riscv64bf_h_pc_get (SIM_CPU *current_cpu)
 /* Set a value for h-pc.  */
 
 void
-riscv64bf_h_pc_set (SIM_CPU *current_cpu, USI newval)
+riscv64bf_h_pc_set (SIM_CPU *current_cpu, UDI newval)
 {
   SET_H_PC (newval);
 }

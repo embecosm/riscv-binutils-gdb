@@ -25,7 +25,8 @@
   #define UWI USI
   #define SETTWI(buf, val) SETTSI(buf, val)
   #define SETTUWI(buf, val) SETTUSI(buf, val)
-  #define GETTWI(buf) GETTDI(buf)
+  #define GETTWI(buf) GETTSI(buf)
+  #define GETTUWI(buf) GETTUSI(buf)
   #define CPU_FUNC(FN) riscv32bf ## FN
 #elif XLEN == 64
   #define WI  DI
@@ -33,6 +34,7 @@
   #define SETTWI(buf, val) SETTDI(buf, val)
   #define SETTUWI(buf, val) SETTUDI(buf, val)
   #define GETTWI(buf) GETTDI(buf)
+  #define GETTUWI(buf) GETTUDI(buf)
   #define CPU_FUNC(FN) riscv64bf ## FN
 #else
   #error XLEN not defined, or not 32 or 64 bits

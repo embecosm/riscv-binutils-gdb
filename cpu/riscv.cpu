@@ -342,7 +342,7 @@
   (name h-pc)
   (comment "program counter")
   (attrs PC all-isas all-machs)
-  (type pc USI)
+  (type pc UWI)
   (get () (raw-reg h-pc))
   (set (newval) (set (raw-reg h-pc) newval))
 )

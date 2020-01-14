@@ -18,7 +18,6 @@
 
 # riscv_xlen will be set according to the target
 XLEN = @riscv_xlen@
-XLEN_CFLAG = -DXLEN=$(XLEN)
 
 RISCV_OBJS = \
 	riscv.o \
@@ -51,7 +50,16 @@ SIM_EXTRA_DEPS = \
 	riscv-sim.h \
 	$(srcdir)/../../opcodes/riscv-cgen-desc.h
 
-SIM_EXTRA_CFLAGS = $(XLEN_CFLAG)
+# Flags provided to SIM_EXTRA_CFLAGS, used when building all of the simulator
+# objects.
+#
+# XLEN_CFLAGS - allows us to switch behaviour based on the xlen
+# ADDRESS_BITSIZE_CFLAGS - affects the size of addresses and therefore the
+#                          width of the program counter
+XLEN_CFLAG = -DXLEN=$(XLEN)
+ADDRESS_BITSIZE_CFLAG = -DWITH_TARGET_ADDRESS_BITSIZE=$(XLEN)
+
+SIM_EXTRA_CFLAGS = $(XLEN_CFLAG) $(ADDRESS_BITSIZE_CFLAG)
 SIM_EXTRA_CLEAN = riscv-clean
 
 

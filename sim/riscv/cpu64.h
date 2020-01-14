@@ -43,7 +43,7 @@ typedef struct {
   /* Hardware elements.  */
   struct {
   /* program counter */
-  USI h_pc;
+  UDI h_pc;
 #define GET_H_PC() CPU (h_pc)
 #define SET_H_PC(x) \
 do { \
@@ -127,8 +127,8 @@ do { \
 ;} while (0)
 
 /* Cover fns for register access.  */
-USI riscv64bf_h_pc_get (SIM_CPU *);
-void riscv64bf_h_pc_set (SIM_CPU *, USI);
+UDI riscv64bf_h_pc_get (SIM_CPU *);
+void riscv64bf_h_pc_set (SIM_CPU *, UDI);
 DI riscv64bf_h_xlen_get (SIM_CPU *);
 void riscv64bf_h_xlen_set (SIM_CPU *, DI);
 DI riscv64bf_h_gpr_get (SIM_CPU *, UINT);

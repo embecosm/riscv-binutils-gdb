@@ -118,7 +118,8 @@ CPU_FUNC (_fetch_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
     }
   else if (rn == RISCV_PC_REGNUM)
     {
-      SETTUSI (buf, GET_H_PC ());
+      assert (len == (XLEN / 8));
+      SETTUWI (buf, GET_H_PC ());
     }
   else if (RISCV_FIRST_FP_REGNUM <= rn && rn <= RISCV_LAST_FP_REGNUM)
     {
@@ -162,7 +163,8 @@ CPU_FUNC (_store_register) (SIM_CPU * current_cpu, int rn, unsigned char *buf,
     }
   else if (rn == RISCV_PC_REGNUM)
     {
-      SET_H_PC (GETTUSI (buf));
+      assert (len == (XLEN / 8));
+      SET_H_PC (GETTUWI (buf));
     }
   else if (RISCV_FIRST_FP_REGNUM <= rn && rn <= RISCV_LAST_FP_REGNUM)
     {
