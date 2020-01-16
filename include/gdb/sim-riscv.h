@@ -19,6 +19,8 @@
 #ifndef SIM_RISCV_H
 #define SIM_RISCV_H
 
+#include "gdb/remote-sim.h"
+
 /* RISC-V register numbers.  */
 enum
 {
