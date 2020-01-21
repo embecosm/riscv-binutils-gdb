@@ -264,19 +264,10 @@ pack_fpu (const sim_fpu *src,
 	  fraction = src->fraction;
 	  /* FIXME: Need to round according to WITH_SIM_FPU_ROUNDING
              or some such.  */
-	  /* Round to nearest: If the guard bits are the all zero, but
-	     the first, then we're half way between two numbers,
-	     choose the one which makes the lsb of the answer 0.  */
-	  if ((fraction & GUARDMASK) == GUARDMSB)
-	    {
-	      if ((fraction & (GUARDMSB << 1)))
-		fraction += (GUARDMSB << 1);
-	    }
-	  else
-	    {
-	      /* Add a one to the guards to force round to nearest.  */
-	      fraction += GUARDROUND;
-	    }
+	  /* Round to nearest: If the first guard bit is one, then we're
+	     half way betweewn two numbers, add one to the guards to always
+	     force round to nearest.  */
+	  fraction += GUARDMSB;
 	  if ((fraction & IMPLICIT_2)) /* Rounding resulted in carry.  */
 	    {
 	      exp += 1;
