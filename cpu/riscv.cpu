@@ -2764,19 +2764,19 @@
 ;RV64M
 (rv-format-multi "mulw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
 		 #b0000001 #b000 #b0111011
-		 (set rd (mul  SI rs1 rs2)))
+		 (set rd (ext DI (mul  SI rs1 rs2))))
 (rv-format-multi "divw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
 		 #b0000001 #b100 #b0111011
-		 (set rd (div  SI rs1 rs2)))
+		 (set rd (ext DI (div  SI rs1 rs2))))
 (rv-format-multi "divuw"  ((ISA rv64) (RVEXT RV64M) rv64m-machs)
 		 #b0000001 #b101 #b0111011
-		 (set rd (udiv SI rs1 rs2)))
+		 (set rd (ext DI (udiv SI rs1 rs2))))
 (rv-format-multi "remw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
 		 #b0000001 #b110 #b0111011
-		 (set rd (mod  SI rs1 rs2)))
+		 (set rd (ext DI (mod  SI rs1 rs2))))
 (rv-format-multi "remuw"  ((ISA rv64) (RVEXT RV64M) rv64m-machs)
 		 #b0000001 #b111 #b0111011
-		 (set rd (umod SI rs1 rs2)))
+		 (set rd (ext DI (umod SI rs1 rs2))))
 
 ;===-------------------- 'A' extension instructions -------------------------===
 
