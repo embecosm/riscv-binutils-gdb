@@ -30,6 +30,7 @@ addsf (CGEN_FPU* fpu, SF x, SF y)
   status = sim_fpu_add (&ans, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
@@ -49,6 +50,7 @@ subsf (CGEN_FPU* fpu, SF x, SF y)
   status = sim_fpu_sub (&ans, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
@@ -68,6 +70,7 @@ mulsf (CGEN_FPU* fpu, SF x, SF y)
   status = sim_fpu_mul (&ans, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
@@ -87,6 +90,7 @@ divsf (CGEN_FPU* fpu, SF x, SF y)
   status = sim_fpu_div (&ans, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
@@ -106,6 +110,7 @@ remsf (CGEN_FPU* fpu, SF x, SF y)
   status = sim_fpu_rem (&ans, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
@@ -157,6 +162,7 @@ sqrtsf (CGEN_FPU* fpu, SF x)
   status = sim_fpu_sqrt (&ans, &op1);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
+  sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
   sim_fpu_to32 (&res, &ans);
 
   return res;
