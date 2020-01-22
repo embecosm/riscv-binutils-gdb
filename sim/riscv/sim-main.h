@@ -38,6 +38,7 @@
 #include "sim-base.h"
 #include "cgen-sim.h"
 #include "riscv-sim.h"
+#include "gdb/sim-riscv.h"
 
 
 /* The _sim_cpu struct.  */

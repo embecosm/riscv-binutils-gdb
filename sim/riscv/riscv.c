@@ -39,6 +39,8 @@ UWI CPU_FUNC (_h_xlen_get_handler) (SIM_CPU * current_cpu)
 
 UWI CPU_FUNC (_h_csr_get_handler) (SIM_CPU * current_cpu, UINT rn)
 {
+  const int fcsr_rn = RISCV_CSR_FCSR_REGNUM - RISCV_FIRST_CSR_REGNUM;
+
   int csr = rn + RISCV_FIRST_CSR_REGNUM;
   if (csr == RISCV_CSR_MISA_REGNUM)
     {
@@ -83,6 +85,18 @@ UWI CPU_FUNC (_h_csr_get_handler) (SIM_CPU * current_cpu, UINT rn)
 	}
       return misa;
     }
+  if (csr == RISCV_CSR_FFLAGS_REGNUM)
+    {
+      /* The FFLAGS csr is an alias for the fflags bits of FCSR. This is
+         a 5-bit field starting at bit 0.  */
+      return (CPU (h_csr[fcsr_rn]) >> 0) & 0x1f;
+    }
+  if (csr == RISCV_CSR_FRM_REGNUM)
+    {
+      /* The FRM csr is an alias for the frm bits of FCSR. This is a
+         3-bit field starting at bit 5.  */
+      return (CPU (h_csr[fcsr_rn]) >> 5) & 0x7;
+    }
   else
     {
       /* No special handling, just return the raw value.  */
@@ -92,12 +106,26 @@ UWI CPU_FUNC (_h_csr_get_handler) (SIM_CPU * current_cpu, UINT rn)
 
 void CPU_FUNC (_h_csr_set_handler) (SIM_CPU * current_cpu, UINT rn, UWI val)
 {
+  const int fcsr_rn = RISCV_CSR_FCSR_REGNUM - RISCV_FIRST_CSR_REGNUM;
+
   /* Most CSRs are currently treated as read-only, and any writes are just
      ignored. This will be gradually expanded as more features are added.  */
   int csr = rn + RISCV_FIRST_CSR_REGNUM;
   if (csr == RISCV_CSR_FCSR_REGNUM)
     {
       CPU (h_csr[rn]) = (CPU (h_csr[rn]) & 0xff00) | (val & 0xff);
+    }
+  else if (csr == RISCV_CSR_FFLAGS_REGNUM)
+    {
+      /* The FFLAGS csr is an alias for the fflags bits of FCSR. This is
+         a 5-bit field starting at bit 0.  */
+      CPU (h_csr[fcsr_rn]) = (CPU (h_csr[fcsr_rn]) & 0xffe0) | ((val & 0x1f) << 0);
+    }
+  else if (csr == RISCV_CSR_FRM_REGNUM)
+    {
+      /* The FRM csr is an alias for the frm bits of FCSR. This is a
+         3-bit field starting at bit 5.  */
+      CPU (h_csr[fcsr_rn]) = (CPU (h_csr[fcsr_rn]) & 0xff1f) | ((val & 0x7) << 5);
     }
   else if (csr == RISCV_CSR_MEPC_REGNUM)
     {
