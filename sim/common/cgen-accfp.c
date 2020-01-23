@@ -181,6 +181,32 @@ sqrtsf (CGEN_FPU* fpu, SF x)
 }
 
 static SF
+muladdsf (CGEN_FPU* fpu, SF x, SF y, SF z)
+{
+  sim_fpu op1;
+  sim_fpu op2;
+  sim_fpu op3;
+  sim_fpu ans;
+  unsigned32 res;
+  sim_fpu_status status;
+
+  sim_fpu_32to (&op1, x);
+  sim_fpu_32to (&op2, y);
+  sim_fpu_32to (&op3, z);
+
+  status = sim_fpu_mul (&ans, &op1, &op2);
+  status = sim_fpu_add (&ans, &ans, &op3);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  sim_fpu_to32 (&res, &ans);
+
+  return res;
+}
+
+static SF
 invsf (CGEN_FPU* fpu, SF x)
 {
   sim_fpu op1;
@@ -790,6 +816,7 @@ cgen_init_accurate_fpu (SIM_CPU* cpu, CGEN_FPU* fpu, CGEN_FPU_ERROR_FN* error)
   o->negsf = negsf;
   o->abssf = abssf;
   o->sqrtsf = sqrtsf;
+  o->muladdsf = muladdsf;
   o->invsf = invsf;
   o->minsf = minsf;
   o->maxsf = maxsf;

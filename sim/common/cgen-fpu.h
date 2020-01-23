@@ -73,6 +73,7 @@ struct cgen_fp_ops {
   SF (*negsf) (CGEN_FPU*, SF);
   SF (*abssf) (CGEN_FPU*, SF);
   SF (*sqrtsf) (CGEN_FPU*, SF);
+  SF (*muladdsf) (CGEN_FPU*, SF, SF, SF);
   SF (*invsf) (CGEN_FPU*, SF);
   SF (*cossf) (CGEN_FPU*, SF);
   SF (*sinsf) (CGEN_FPU*, SF);
