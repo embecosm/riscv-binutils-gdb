@@ -243,10 +243,10 @@ typedef int (sim_fpu_op2) (sim_fpu *f,
 			   const sim_fpu *r);
 
 INLINE_SIM_FPU (int) sim_fpu_add (sim_fpu *f,
-				  sim_fpu_round_bias *round_bias,
+				  sim_fpu_round_bias *round_bias, sim_fpu_round round,
 				  const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_sub (sim_fpu *f,
-				  sim_fpu_round_bias *round_bias,
+				  sim_fpu_round_bias *round_bias, sim_fpu_round round,
 				  const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_mul (sim_fpu *f,
 				  const sim_fpu *l, const sim_fpu *r);

@@ -30,3 +30,11 @@ void
 cgen_fpu_ignore_errors (CGEN_FPU* fpu, int status)
 {
 }
+
+/* Basic handler to return the default rounding mode.  */
+
+int
+cgen_fpu_return_default_rounding_mode (CGEN_FPU* fpu)
+{
+  return sim_fpu_round_near;
+}

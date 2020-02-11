@@ -105,6 +105,27 @@ void CPU_FUNC (_fpu_error) (CGEN_FPU * fpu, int status)
   return;
 }
 
+/* Get the current dynamic rounding mode by reading the FRM csr.  */
+
+int CPU_FUNC (_fpu_rounding_mode) (CGEN_FPU * fpu)
+{
+  const int frm = RISCV_CSR_FRM_REGNUM - RISCV_FIRST_CSR_REGNUM;
+
+  SIM_CPU *current_cpu = (SIM_CPU *) fpu->owner;
+  switch (GET_H_CSR (frm))
+    {
+    case 0: return sim_fpu_round_near;
+    case 1: return sim_fpu_round_zero;
+    case 2: return sim_fpu_round_down;
+    case 3: return sim_fpu_round_up;
+    case 4:
+      assert (0 && "Round to nearest, tie to Max Magnitude not implemented");
+    default:
+      assert (0 && "Invalid rounding mode in FRM");
+    }
+  return sim_fpu_round_near;
+}
+
 /* Handle syscalls */
 
 void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)

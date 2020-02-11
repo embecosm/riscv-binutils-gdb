@@ -55,6 +55,10 @@ typedef enum {
 
 typedef void (CGEN_FPU_ERROR_FN) (CGEN_FPU*, int);
 
+/* dynamic rounding mode retrieval function  */
+
+typedef int (CGEN_FPU_ROUNDING_MODE_FN) (CGEN_FPU *);
+
 /* fpu operation table */
 
 struct cgen_fp_ops {
@@ -62,6 +66,10 @@ struct cgen_fp_ops {
   /* error (e.g. signalling nan) handler, supplied by owner */
 
   CGEN_FPU_ERROR_FN *error;
+
+  /* callback to get the current rounding mode, supplied by owner  */
+
+  CGEN_FPU_ROUNDING_MODE_FN *rounding_mode;
 
   /* basic SF ops */
 
@@ -219,12 +227,15 @@ struct cgen_fp_ops {
 
 };
 
-extern void cgen_init_accurate_fpu (SIM_CPU*, CGEN_FPU*, CGEN_FPU_ERROR_FN*);
+extern void cgen_init_accurate_fpu (SIM_CPU*, CGEN_FPU*, CGEN_FPU_ERROR_FN*,
+                                    CGEN_FPU_ROUNDING_MODE_FN*);
 
 BI cgen_sf_snan_p (CGEN_FPU*, SF);
 BI cgen_df_snan_p (CGEN_FPU*, DF);
 
 /* no-op fp error handler */
 extern CGEN_FPU_ERROR_FN cgen_fpu_ignore_errors;
+/* no-op rounding mode callback */
+extern CGEN_FPU_ROUNDING_MODE_FN cgen_fpu_return_default_rounding_mode;
 
 #endif /* CGEN_FPU_H */
