@@ -22,15 +22,15 @@ addsf (CGEN_FPU* fpu, SF x, SF y)
   sim_fpu op1;
   sim_fpu op2;
   sim_fpu ans;
+  sim_fpu_round_bias ans_round_bias;
   unsigned32 res;
   sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  status = sim_fpu_add (&ans, &op1, &op2);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status = sim_fpu_add (&ans, &ans_round_bias, &op1, &op2);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none, sim_fpu_round_near,
+                              sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -44,15 +44,15 @@ subsf (CGEN_FPU* fpu, SF x, SF y)
   sim_fpu op1;
   sim_fpu op2;
   sim_fpu ans;
+  sim_fpu_round_bias ans_round_bias;
   unsigned32 res;
   sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  status = sim_fpu_sub (&ans, &op1, &op2);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status = sim_fpu_sub (&ans, &ans_round_bias, &op1, &op2);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none,
+                              sim_fpu_round_near, sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -72,9 +72,8 @@ mulsf (CGEN_FPU* fpu, SF x, SF y)
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
   status = sim_fpu_mul (&ans, &op1, &op2);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none,
+                              sim_fpu_round_near, sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -94,9 +93,8 @@ divsf (CGEN_FPU* fpu, SF x, SF y)
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
   status = sim_fpu_div (&ans, &op1, &op2);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none,
+                              sim_fpu_round_near, sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -116,9 +114,8 @@ remsf (CGEN_FPU* fpu, SF x, SF y)
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
   status = sim_fpu_rem (&ans, &op1, &op2);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none,
+                              sim_fpu_round_near, sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -170,9 +167,8 @@ sqrtsf (CGEN_FPU* fpu, SF x)
 
   sim_fpu_32to (&op1, x);
   status = sim_fpu_sqrt (&ans, &op1);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status |= sim_fpu_round_32 (&ans, sim_fpu_round_bias_none, sim_fpu_round_near,
+                              sim_fpu_denorm_default);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -186,7 +182,9 @@ muladdsf (CGEN_FPU* fpu, SF x, SF y, SF z)
   sim_fpu op1;
   sim_fpu op2;
   sim_fpu op3;
+  sim_fpu tmp;
   sim_fpu ans;
+  sim_fpu_round_bias ans_round_bias;
   unsigned32 res;
   sim_fpu_status status;
 
@@ -194,11 +192,23 @@ muladdsf (CGEN_FPU* fpu, SF x, SF y, SF z)
   sim_fpu_32to (&op2, y);
   sim_fpu_32to (&op3, z);
 
-  status = sim_fpu_mul (&ans, &op1, &op2);
-  status = sim_fpu_add (&ans, &ans, &op3);
-  if (status != 0)
-    (*fpu->ops->error) (fpu, status);
-  status = sim_fpu_round_32 (&ans, sim_fpu_round_near, sim_fpu_denorm_default);
+  status = sim_fpu_mul (&tmp, &op1, &op2);
+
+  /* Clear the inexact, overflow and underflow flags.  */
+  status &= ~(sim_fpu_status_overflow
+              | sim_fpu_status_underflow
+              | sim_fpu_status_inexact);
+
+  status |= sim_fpu_add (&ans, &ans_round_bias, &tmp, &op3);
+  status |= sim_fpu_round_32 (&ans, ans_round_bias, sim_fpu_round_near, sim_fpu_denorm_default);
+
+  /* If the add result was inexact and we have a subnormal number as a
+     result, then this is an underflow condition.  */
+  unsigned64 denorm_inexact_flags = sim_fpu_status_denorm
+                                    | sim_fpu_status_inexact;
+  if ((status & denorm_inexact_flags) == denorm_inexact_flags)
+    status |= sim_fpu_status_underflow;
+
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to32 (&res, &ans);
@@ -534,12 +544,13 @@ adddf (CGEN_FPU* fpu, DF x, DF y)
   sim_fpu op1;
   sim_fpu op2;
   sim_fpu ans;
+  sim_fpu_round_bias ans_round_bias;
   unsigned64 res;
   sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  status = sim_fpu_add (&ans, &op1, &op2);
+  status = sim_fpu_add (&ans, &ans_round_bias, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to64 (&res, &ans);
@@ -553,12 +564,13 @@ subdf (CGEN_FPU* fpu, DF x, DF y)
   sim_fpu op1;
   sim_fpu op2;
   sim_fpu ans;
+  sim_fpu_round_bias ans_round_bias;
   unsigned64 res;
   sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  status = sim_fpu_sub (&ans, &op1, &op2);
+  status = sim_fpu_sub (&ans, &ans_round_bias, &op1, &op2);
   if (status != 0)
     (*fpu->ops->error) (fpu, status);
   sim_fpu_to64 (&res, &ans);

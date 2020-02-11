@@ -112,6 +112,23 @@ typedef enum
 } sim_fpu_round;
 
 
+/* Biasing when rounding.
+
+   An input to an operation might be too small to affect the output
+   (for example an add of a subnormal value to a large, normal number).
+   Although the output might not be affected, the small value may
+   affect the direction that the result is rounded when the result
+   would otherwise have fallen exactly between two floating point
+   numbers.  */
+
+typedef enum
+{
+  sim_fpu_round_bias_none = 0,
+  sim_fpu_round_bias_positive = 1,
+  sim_fpu_round_bias_negative = 2,
+} sim_fpu_round_bias;
+
+
 /* Options when handling denormalized numbers.  */
 
 typedef enum
@@ -204,9 +221,11 @@ INLINE_SIM_FPU (unsigned64) sim_fpu_tofraction (const sim_fpu *s, int precision)
    representation. */
 
 INLINE_SIM_FPU (int) sim_fpu_round_32 (sim_fpu *f,
+				       sim_fpu_round_bias round_bias,
 				       sim_fpu_round round,
 				       sim_fpu_denorm denorm);
 INLINE_SIM_FPU (int) sim_fpu_round_64 (sim_fpu *f,
+				       sim_fpu_round_bias round_bias,
 				       sim_fpu_round round,
 				       sim_fpu_denorm denorm);
 
@@ -224,8 +243,10 @@ typedef int (sim_fpu_op2) (sim_fpu *f,
 			   const sim_fpu *r);
 
 INLINE_SIM_FPU (int) sim_fpu_add (sim_fpu *f,
+				  sim_fpu_round_bias *round_bias,
 				  const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_sub (sim_fpu *f,
+				  sim_fpu_round_bias *round_bias,
 				  const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_mul (sim_fpu *f,
 				  const sim_fpu *l, const sim_fpu *r);

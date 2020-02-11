@@ -836,6 +836,8 @@ do_normal_underflow (sim_fpu *f,
 STATIC_INLINE_SIM_FPU (int)
 do_normal_round (sim_fpu *f,
 		 int nr_guards,
+		 int is_double,
+		 sim_fpu_round_bias round_bias,
 		 sim_fpu_round round)
 {
   unsigned64 guardmask = LSMASK64 (nr_guards - 1, 0);
@@ -844,39 +846,56 @@ do_normal_round (sim_fpu *f,
   if ((f->fraction & guardmask))
     {
       int status = sim_fpu_status_inexact;
+      /* Apply a rounding-mode dependent bias to the results. */
       switch (round)
 	{
 	case sim_fpu_round_default:
 	  return 0;
 	case sim_fpu_round_near:
-	  if ((f->fraction & guardmsb))
+	  status |= sim_fpu_status_rounded;
+	  if (f->fraction & guardmsb)
 	    {
-	      if ((f->fraction & fraclsb))
+	      if (f->fraction & (guardmask >> 1))
 		{
-		  status |= sim_fpu_status_rounded;
+		  f->fraction += fraclsb;
 		}
-	      else if ((f->fraction & (guardmask >> 1)))
+	      else if (round_bias != sim_fpu_round_bias_none)
 		{
-		  status |= sim_fpu_status_rounded;
+		  if ((f->sign == 1)
+		      && (round_bias == sim_fpu_round_bias_negative))
+		    f->fraction += fraclsb;
+		  else if ((f->sign == 0)
+		           && (round_bias == sim_fpu_round_bias_positive))
+		    f->fraction += fraclsb;
+		}
+	      else if (f->fraction & fraclsb)
+		{
+		  f->fraction += fraclsb;
 		}
 	    }
+	  if ((f->normal_exp == (NORMAL_EXPMIN - 1))
+	        && !(f->fraction & (guardmsb >> 1)))
+	    status |= sim_fpu_status_underflow;
 	  break;
 	case sim_fpu_round_up:
+	  status |= sim_fpu_status_rounded;
 	  if (!f->sign)
-	    status |= sim_fpu_status_rounded;
+	    f->fraction += fraclsb;
 	  break;
 	case sim_fpu_round_down:
+	  status |= sim_fpu_status_rounded;
 	  if (f->sign)
-	    status |= sim_fpu_status_rounded;
+	    f->fraction += fraclsb;
 	  break;
 	case sim_fpu_round_zero:
+	  status |= sim_fpu_status_rounded;
 	  break;
 	}
+      /* Now chop off any bits in the guard now the bias is applied.  */
       f->fraction &= ~guardmask;
-      /* Round if needed, handle resulting overflow.  */
+      /* Handle any overflow from the rounding.  */
       if ((status & sim_fpu_status_rounded))
 	{
-	  f->fraction += fraclsb;
 	  if ((f->fraction & IMPLICIT_2))
 	    {
 	      f->fraction >>= 1;
@@ -893,6 +912,7 @@ do_normal_round (sim_fpu *f,
 STATIC_INLINE_SIM_FPU (int)
 do_round (sim_fpu *f,
 	  int is_double,
+	  sim_fpu_round_bias round_bias,
 	  sim_fpu_round round,
 	  sim_fpu_denorm denorm)
 {
@@ -925,7 +945,8 @@ do_round (sim_fpu *f,
 	    if (shift + NR_GUARDS <= NR_FRAC_GUARD + 1
 		&& !(denorm & sim_fpu_denorm_zero))
 	      {
-		status = do_normal_round (f, shift + NR_GUARDS, round);
+		status = do_normal_round (f, shift + NR_GUARDS, is_double,
+		                          round_bias, round);
 		if (f->fraction == 0) /* Rounding underflowed.  */
 		  {
 		    status |= do_normal_underflow (f, is_double, round);
@@ -959,7 +980,8 @@ do_round (sim_fpu *f,
 	  }
 	else
 	  {
-	    status = do_normal_round (f, NR_GUARDS, round);
+	    status = do_normal_round (f, NR_GUARDS, is_double, round_bias,
+	                              round);
 	    if (f->fraction == 0)
 	      /* f->class = sim_fpu_class_zero; */
 	      status |= do_normal_underflow (f, is_double, round);
@@ -978,18 +1000,20 @@ do_round (sim_fpu *f,
 
 INLINE_SIM_FPU (int)
 sim_fpu_round_32 (sim_fpu *f,
+		  sim_fpu_round_bias round_bias,
 		  sim_fpu_round round,
 		  sim_fpu_denorm denorm)
 {
-  return do_round (f, 0, round, denorm);
+  return do_round (f, 0, round_bias, round, denorm);
 }
 
 INLINE_SIM_FPU (int)
 sim_fpu_round_64 (sim_fpu *f,
+		  sim_fpu_round_bias round_bias,
 		  sim_fpu_round round,
 		  sim_fpu_denorm denorm)
 {
-  return do_round (f, 1, round, denorm);
+  return do_round (f, 1, round_bias, round, denorm);
 }
 
 
@@ -998,9 +1022,11 @@ sim_fpu_round_64 (sim_fpu *f,
 
 INLINE_SIM_FPU (int)
 sim_fpu_add (sim_fpu *f,
+	     sim_fpu_round_bias *round_bias,
 	     const sim_fpu *l,
 	     const sim_fpu *r)
 {
+  *round_bias = sim_fpu_round_bias_none;
   if (sim_fpu_is_snan (l))
     {
       *f = *l;
@@ -1044,7 +1070,12 @@ sim_fpu_add (sim_fpu *f,
       if (sim_fpu_is_zero (r))
 	{
 	  *f = sim_fpu_zero;
-	  f->sign = l->sign & r->sign;
+	  /* The sign of 0 should be +ve for all rounding modes except
+	     round-to-negative.  FIXME: should depend on rounding mode.  */
+	  f->sign = 0;
+	  /* x+x retains the same sign as x even when x is zero.  */
+	  if (l->sign == r->sign)
+	    f->sign = l->sign;
 	}
       else
 	*f = *r;
@@ -1065,12 +1096,16 @@ sim_fpu_add (sim_fpu *f,
       {
 	/* left has much bigger magnitude */
 	*f = *l;
+	*round_bias = r->sign ? sim_fpu_round_bias_negative
+	                      : sim_fpu_round_bias_positive;
 	return sim_fpu_status_inexact;
       }
     if (shift <= - NR_FRAC_GUARD)
       {
 	/* right has much bigger magnitude */
 	*f = *r;
+	*round_bias = l->sign ? sim_fpu_round_bias_negative
+	                      : sim_fpu_round_bias_positive;
 	return sim_fpu_status_inexact;
       }
     lfraction = l->fraction;
@@ -1111,6 +1146,10 @@ sim_fpu_add (sim_fpu *f,
     if (f->fraction == 0)
       {
 	*f = sim_fpu_zero;
+	/* The sign of 0 should be +ve for all rounding modes except
+	   round-to-negative.  */
+	/* FIXME: Needs to depend on rounding mode.  */
+	f->sign = 0;
 	return 0;
       }
 
@@ -1147,9 +1186,11 @@ sim_fpu_add (sim_fpu *f,
 
 INLINE_SIM_FPU (int)
 sim_fpu_sub (sim_fpu *f,
+	     sim_fpu_round_bias *round_bias,
 	     const sim_fpu *l,
 	     const sim_fpu *r)
 {
+  *round_bias = sim_fpu_round_bias_none;
   if (sim_fpu_is_snan (l))
     {
       *f = *l;
@@ -1194,7 +1235,12 @@ sim_fpu_sub (sim_fpu *f,
       if (sim_fpu_is_zero (r))
 	{
 	  *f = sim_fpu_zero;
-	  f->sign = l->sign & !r->sign;
+	  /* The sign of 0 should be +ve for all rounding modes except
+	     round-to-negative.  FIXME: should depend on rounding mode.  */
+	  f->sign = 0;
+	  /* x-(-x) retains the same sign as x even when x is zero.  */
+	  if (l->sign == r->sign)
+	    f->sign = l->sign;
 	}
       else
 	{
@@ -1218,12 +1264,16 @@ sim_fpu_sub (sim_fpu *f,
       {
 	/* left has much bigger magnitude */
 	*f = *l;
+	*round_bias = r->sign ? sim_fpu_round_bias_positive
+	                      : sim_fpu_round_bias_negative;
 	return sim_fpu_status_inexact;
       }
     if (shift <= - NR_FRAC_GUARD)
       {
 	/* right has much bigger magnitude */
 	*f = *r;
+	*round_bias = l->sign ? sim_fpu_round_bias_negative
+	                      : sim_fpu_round_bias_positive;
 	f->sign = !r->sign;
 	return sim_fpu_status_inexact;
       }
@@ -1265,6 +1315,9 @@ sim_fpu_sub (sim_fpu *f,
     if (f->fraction == 0)
       {
 	*f = sim_fpu_zero;
+	/* The sign of 0 should be +ve for all rounding modes except
+	   round-to-negative.  FIXME: should depend on rounding mode.  */
+	f->sign = 0;
 	return 0;
       }
 
@@ -1613,7 +1666,7 @@ sim_fpu_rem (sim_fpu *f,
        nearest integer.  The variable n is rounded half even.  */
 
     sim_fpu_div (&n, l, r);
-    sim_fpu_round_64 (&n, 0, 0);
+    sim_fpu_round_64 (&n, sim_fpu_round_bias_none, 0, 0);
 
     if (n.normal_exp < -1) /* If n looks like zero just return l.  */
       {
@@ -1622,7 +1675,8 @@ sim_fpu_rem (sim_fpu *f,
       }
     else if (n.class == sim_fpu_class_number
 	     && n.normal_exp <= (NR_FRAC_GUARD)) /* If not too large round.  */
-      do_normal_round (&n, (NR_FRAC_GUARD) - n.normal_exp, sim_fpu_round_near);
+      do_normal_round (&n, (NR_FRAC_GUARD) - n.normal_exp, 1,
+                       sim_fpu_round_bias_none, sim_fpu_round_near);
 
     /* Mark 0's as zero so multiply can detect zero.  */
     if (n.fraction == 0)
@@ -1630,10 +1684,10 @@ sim_fpu_rem (sim_fpu *f,
 
     /* Calculate n*r.  */
     sim_fpu_mul (&tmp, &n, r);
-    sim_fpu_round_64 (&tmp, 0, 0);
+    sim_fpu_round_64 (&tmp, sim_fpu_round_bias_none, 0, 0);
 
     /* Finally calculate l-n*r.  */
-    sim_fpu_sub (f, l, &tmp);
+    sim_fpu_sub (f, sim_fpu_round_bias_none, l, &tmp);
 
     return 0;
   }
@@ -2336,7 +2390,7 @@ INLINE_SIM_FPU (int)
 sim_fpu_cmp (const sim_fpu *l, const sim_fpu *r)
 {
   sim_fpu res;
-  sim_fpu_sub (&res, l, r);
+  sim_fpu_sub (&res, sim_fpu_round_bias_none, l, r);
   return sim_fpu_is (&res);
 }
 
