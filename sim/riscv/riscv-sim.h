@@ -41,6 +41,7 @@
 #endif
 
 void CPU_FUNC(_fpu_error) (CGEN_FPU *fpu, int status);
+int  CPU_FUNC(_fpu_rounding_mode) (CGEN_FPU *fpu);
 void CPU_FUNC(_exception) (sim_cpu *current_cpu, USI pc, USI exnum);
 UWI  CPU_FUNC(_h_xlen_get_handler) (SIM_CPU * current_cpu);
 UWI  CPU_FUNC(_h_csr_get_handler)  (SIM_CPU * current_cpu, UINT csr);

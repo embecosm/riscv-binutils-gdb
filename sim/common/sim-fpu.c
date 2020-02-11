@@ -843,16 +843,16 @@ do_normal_round (sim_fpu *f,
   unsigned64 guardmask = LSMASK64 (nr_guards - 1, 0);
   unsigned64 guardmsb = LSBIT64 (nr_guards - 1);
   unsigned64 fraclsb = guardmsb << 1;
-  if ((f->fraction & guardmask))
+
+  int status = 0;
+  switch (round)
     {
-      int status = sim_fpu_status_inexact;
-      /* Apply a rounding-mode dependent bias to the results. */
-      switch (round)
-	{
-	case sim_fpu_round_default:
-	  return 0;
-	case sim_fpu_round_near:
-	  status |= sim_fpu_status_rounded;
+    case sim_fpu_round_default:
+      return 0;
+    case sim_fpu_round_near:
+      if (f->fraction & guardmask)
+        {
+          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
 	  if (f->fraction & guardmsb)
 	    {
 	      if (f->fraction & (guardmask >> 1))
@@ -876,36 +876,62 @@ do_normal_round (sim_fpu *f,
 	  if ((f->normal_exp == (NORMAL_EXPMIN - 1))
 	        && !(f->fraction & (guardmsb >> 1)))
 	    status |= sim_fpu_status_underflow;
-	  break;
-	case sim_fpu_round_up:
-	  status |= sim_fpu_status_rounded;
-	  if (!f->sign)
-	    f->fraction += fraclsb;
-	  break;
-	case sim_fpu_round_down:
-	  status |= sim_fpu_status_rounded;
-	  if (f->sign)
-	    f->fraction += fraclsb;
-	  break;
-	case sim_fpu_round_zero:
-	  status |= sim_fpu_status_rounded;
-	  break;
-	}
-      /* Now chop off any bits in the guard now the bias is applied.  */
-      f->fraction &= ~guardmask;
-      /* Handle any overflow from the rounding.  */
-      if ((status & sim_fpu_status_rounded))
-	{
-	  if ((f->fraction & IMPLICIT_2))
-	    {
-	      f->fraction >>= 1;
-	      f->normal_exp += 1;
-	    }
-	}
-      return status;
+        }
+      break;
+    case sim_fpu_round_up:
+      if (f->fraction & guardmask)
+        {
+          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+          if (!f->sign)
+            f->fraction += fraclsb;
+        }
+      else if (round_bias == sim_fpu_round_bias_positive)
+        {
+          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+          if (!f->sign)
+            f->fraction += fraclsb;
+          else
+            f->fraction -= guardmask;
+        }
+      break;
+    case sim_fpu_round_down:
+      if (f->fraction & guardmask)
+        {
+          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+          if (f->sign)
+            f->fraction += fraclsb;
+        }
+      else if (round_bias == sim_fpu_round_bias_negative)
+        {
+          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+          if (f->sign)
+            f->fraction += fraclsb;
+          else
+            f->fraction -= GUARDLSB;
+        }
+      break;
+    case sim_fpu_round_zero:
+      status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+      break;
     }
-  else
-    return 0;
+  /* Handle any overflow from the rounding.  */
+  if ((status & sim_fpu_status_rounded))
+    {
+      if ((f->fraction & IMPLICIT_2))
+	{
+	  f->fraction >>= 1;
+	  f->normal_exp += 1;
+	}
+      else if ((f->fraction < IMPLICIT_1))
+	{
+	  f->fraction <<= 1;
+	  f->normal_exp -= 1;
+	}
+    }
+  /* Now chop off any bits in the guard now the rounding has been performed.
+     ...but make sure to preserve the implicit bit if one was already there.  */
+  f->fraction &= (IMPLICIT_1 | ~guardmask);
+  return status;
 }
 
 
@@ -1023,6 +1049,7 @@ sim_fpu_round_64 (sim_fpu *f,
 INLINE_SIM_FPU (int)
 sim_fpu_add (sim_fpu *f,
 	     sim_fpu_round_bias *round_bias,
+	     sim_fpu_round round,
 	     const sim_fpu *l,
 	     const sim_fpu *r)
 {
@@ -1071,8 +1098,8 @@ sim_fpu_add (sim_fpu *f,
 	{
 	  *f = sim_fpu_zero;
 	  /* The sign of 0 should be +ve for all rounding modes except
-	     round-to-negative.  FIXME: should depend on rounding mode.  */
-	  f->sign = 0;
+	     round-to-negative.  */
+	  f->sign = (round == sim_fpu_round_down) ? 1 : 0;
 	  /* x+x retains the same sign as x even when x is zero.  */
 	  if (l->sign == r->sign)
 	    f->sign = l->sign;
@@ -1148,8 +1175,7 @@ sim_fpu_add (sim_fpu *f,
 	*f = sim_fpu_zero;
 	/* The sign of 0 should be +ve for all rounding modes except
 	   round-to-negative.  */
-	/* FIXME: Needs to depend on rounding mode.  */
-	f->sign = 0;
+	f->sign = (round == sim_fpu_round_down) ? 1 : 0;
 	return 0;
       }
 
@@ -1187,6 +1213,7 @@ sim_fpu_add (sim_fpu *f,
 INLINE_SIM_FPU (int)
 sim_fpu_sub (sim_fpu *f,
 	     sim_fpu_round_bias *round_bias,
+	     sim_fpu_round round,
 	     const sim_fpu *l,
 	     const sim_fpu *r)
 {
@@ -1236,10 +1263,10 @@ sim_fpu_sub (sim_fpu *f,
 	{
 	  *f = sim_fpu_zero;
 	  /* The sign of 0 should be +ve for all rounding modes except
-	     round-to-negative.  FIXME: should depend on rounding mode.  */
-	  f->sign = 0;
+	     round-to-negative.  */
+	  f->sign = (round == sim_fpu_round_down) ? 1 : 0;
 	  /* x-(-x) retains the same sign as x even when x is zero.  */
-	  if (l->sign == r->sign)
+	  if (l->sign == !r->sign)
 	    f->sign = l->sign;
 	}
       else
@@ -1316,8 +1343,8 @@ sim_fpu_sub (sim_fpu *f,
       {
 	*f = sim_fpu_zero;
 	/* The sign of 0 should be +ve for all rounding modes except
-	   round-to-negative.  FIXME: should depend on rounding mode.  */
-	f->sign = 0;
+	   round-to-negative.  */
+	f->sign = (round == sim_fpu_round_down) ? 1 : 0;
 	return 0;
       }
 
@@ -1687,7 +1714,7 @@ sim_fpu_rem (sim_fpu *f,
     sim_fpu_round_64 (&tmp, sim_fpu_round_bias_none, 0, 0);
 
     /* Finally calculate l-n*r.  */
-    sim_fpu_sub (f, sim_fpu_round_bias_none, l, &tmp);
+    sim_fpu_sub (f, sim_fpu_round_bias_none, sim_fpu_round_near, l, &tmp);
 
     return 0;
   }
@@ -2390,7 +2417,7 @@ INLINE_SIM_FPU (int)
 sim_fpu_cmp (const sim_fpu *l, const sim_fpu *r)
 {
   sim_fpu res;
-  sim_fpu_sub (&res, sim_fpu_round_bias_none, l, r);
+  sim_fpu_sub (&res, sim_fpu_round_bias_none, sim_fpu_round_near, l, r);
   return sim_fpu_is (&res);
 }
 
