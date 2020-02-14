@@ -1084,8 +1084,21 @@ do_round (sim_fpu *f,
 	    status = do_normal_round (f, NR_GUARDS, is_double, round_bias,
 	                              round);
 	    if (f->fraction == 0)
-	      /* f->class = sim_fpu_class_zero; */
-	      status |= do_normal_underflow (f, is_double, round);
+	      {
+		/* f->class = sim_fpu_class_zero; */
+		status |= do_normal_underflow (f, is_double, round);
+	      }
+	    else if (f->normal_exp < NORMAL_EXPMIN) /* rounding underflowed?  */
+	      {
+		status |= sim_fpu_status_denorm;
+		/* Any loss of precision when denormalizing is
+		   underflow. Some processors check for underflow
+		   before rounding, some after! */
+		if (status & sim_fpu_status_inexact)
+		  status |= sim_fpu_status_underflow;
+		/* Flag that resultant value has been denormalized.  */
+		f->class = sim_fpu_class_denorm;
+	      }
 	    else if (f->normal_exp > NORMAL_EXPMAX)
 	      /* Oops! rounding caused overflow.  */
 	      status |= do_normal_overflow (f, is_double, round);
