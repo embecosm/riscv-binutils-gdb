@@ -851,8 +851,8 @@ do_normal_round (sim_fpu *f,
       return 0;
     case sim_fpu_round_near:
       if (f->fraction & guardmask)
-        {
-          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+	{
+	  status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
 	  if (f->fraction & guardmsb)
 	    {
 	      if (f->fraction & (guardmask >> 1))
@@ -873,42 +873,120 @@ do_normal_round (sim_fpu *f,
 		  f->fraction += fraclsb;
 		}
 	    }
+	  /* When detecting tininess after rounding, tininess is detected ...
+
+	     """when a non-zero result computed as though the exponent range
+	        were unbounded would lie strictly between +/-b^emin"""
+
+	     The below test (and similar tests for other rounding modes)
+	     exist to handle the case where the original number, with
+	     unbounded exponent, would lie between +/-b^emin and would therefore
+	     be considered "tiny", but because the rounded result becomes
+	     a normal number (with an in-range exponent) it would not
+	     be considered "tiny" if it were *only* tested after rounding. This
+	     is important as we must set the "underflow" flag here when
+	     tininess is detected.
+
+	     Note: I have not been able to convince myself that the logic
+	     here is correct, but after some trial and error it appears to
+	     satisfy TestFloat.  */
 	  if ((f->normal_exp == (NORMAL_EXPMIN - 1))
 	        && !(f->fraction & (guardmsb >> 1)))
-	    status |= sim_fpu_status_underflow;
+	    {
+	      ASSERT (status & sim_fpu_status_inexact);
+	      status |= sim_fpu_status_underflow;
+	    }
         }
       break;
     case sim_fpu_round_up:
       if (f->fraction & guardmask)
-        {
-          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
-          if (!f->sign)
-            f->fraction += fraclsb;
-        }
+	{
+	  status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+	  if (!f->sign)
+            {
+	      /* Detect tininess. The value with an unbounded exponent is
+	         'tiny' at full precision, but after rounding the exponent
+	         will be back in a normal range.  */
+	      if (f->normal_exp == (NORMAL_EXPMIN - 1)
+	          && !(f->fraction & (fraclsb >> 1)))
+		{
+		  /* inexact & tiny -> underflow */
+		  ASSERT (status & sim_fpu_status_inexact);
+		  status |= sim_fpu_status_underflow;
+		}
+	      f->fraction += fraclsb;
+	    }
+	}
       else if (round_bias == sim_fpu_round_bias_positive)
-        {
-          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
-          if (!f->sign)
-            f->fraction += fraclsb;
-          else
-            f->fraction -= guardmask;
-        }
+	{
+	  status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+	  if (!f->sign)
+	    {
+	      /* Detect tininess. The value with an unbounded exponent is
+	         'tiny' at full precision, but after rounding the exponent
+	         will be back in a normal range.  */
+	      if (f->normal_exp == (NORMAL_EXPMIN - 1)
+	          && !(f->fraction & (fraclsb >> 1)))
+		{
+		  /* inexact & tiny -> underflow */
+		  ASSERT (status & sim_fpu_status_inexact);
+		  status |= sim_fpu_status_underflow;
+		}
+	      f->fraction += fraclsb;
+	    }
+	  else
+	    f->fraction -= guardmask;
+	}
+      /* Detect tininess */
+      if ((f->normal_exp == (NORMAL_EXPMIN - 1))
+          && !(f->fraction & (guardmsb >> 1)))
+	{
+	  if (!f->sign && (round_bias == sim_fpu_round_bias_positive))
+	    {
+	      ASSERT (status & sim_fpu_status_inexact);
+	      status |= sim_fpu_status_underflow;
+	    }
+	}
       break;
     case sim_fpu_round_down:
       if (f->fraction & guardmask)
-        {
-          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
-          if (f->sign)
-            f->fraction += fraclsb;
-        }
+	{
+	  status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+	  if (f->sign)
+	    {
+	      /* Detect tininess. The value with an unbounded exponent is
+	         'tiny' at full precision, but after rounding the exponent
+	         will be back in a normal range.  */
+	      if (f->normal_exp == (NORMAL_EXPMIN - 1)
+	          && !(f->fraction & (fraclsb >> 1)))
+		{
+		  /* inexact & tiny -> underflow */
+		  ASSERT (status & sim_fpu_status_inexact);
+		  status |= sim_fpu_status_underflow;
+		}
+	      f->fraction += fraclsb;
+	    }
+	}
       else if (round_bias == sim_fpu_round_bias_negative)
-        {
-          status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
-          if (f->sign)
-            f->fraction += fraclsb;
-          else
-            f->fraction -= GUARDLSB;
-        }
+	{
+	  status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
+	  if (f->sign)
+	    {
+	      /* Detect tininess. The value with an unbounded exponent is
+	         'tiny' at full precision, but after rounding the exponent
+	         will be back in a normal range.  */
+	      if (f->normal_exp == (NORMAL_EXPMIN - 1)
+	          && !(f->fraction & (fraclsb >> 1)))
+		{
+		  /* inexact & tiny -> underflow */
+		  ASSERT (status & sim_fpu_status_inexact);
+		  status |= sim_fpu_status_underflow;
+		}
+	      f->fraction += fraclsb;
+	    }
+	  else
+	    f->fraction -= GUARDLSB;
+	}
       break;
     case sim_fpu_round_zero:
       status |= sim_fpu_status_inexact | sim_fpu_status_rounded;
