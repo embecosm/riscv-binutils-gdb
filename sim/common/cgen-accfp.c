@@ -302,15 +302,24 @@ cmpsf (CGEN_FPU* fpu, SF x, SF y)
   return FP_CMP_EQ;
 }
 
+/* FIXME: The below float comparison operations default to either signalling
+   (for ltsf, lesf, gtsf gesf) or non-signalling (for eqsf and nesf) based
+   on the behaviour of RISC-V instructions. In reality this should be
+   configurable and there should be some way of specifying the desired
+   behaviour for the RTL for the semantics in the CPU description.  */
+
 static int
 eqsf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_eq (&op1, &op2);
+  /* Equality and inequality checks are non-signalling.  */
+  sim_fpu_eq (&res, &op1, &op2);
+  return res;
 }
 
 static int
@@ -318,10 +327,13 @@ nesf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_ne (&op1, &op2);
+  /* Equality and inequality checks are non-signalling.  */
+  sim_fpu_ne (&res, &op1, &op2);
+  return res;
 }
 
 static int
@@ -329,10 +341,15 @@ ltsf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_lt (&op1, &op2);
+  status = sim_fpu_lt (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -340,10 +357,15 @@ lesf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_le (&op1, &op2);
+  status = sim_fpu_le (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -351,10 +373,15 @@ gtsf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_gt (&op1, &op2);
+  status = sim_fpu_gt (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -362,10 +389,15 @@ gesf (CGEN_FPU* fpu, SF x, SF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_32to (&op1, x);
   sim_fpu_32to (&op2, y);
-  return sim_fpu_is_ge (&op1, &op2);
+  status = sim_fpu_ge (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -774,15 +806,24 @@ cmpdf (CGEN_FPU* fpu, DF x, DF y)
   return FP_CMP_EQ;
 }
 
+/* FIXME: The below double comparison operations default to either signalling
+   (for ltdf, ledf, gtdf gedf) or non-signalling (for eqdf and nedf) based
+   on the behaviour of RISC-V instructions. In reality this should be
+   configurable and there should be some way of specifying the desired
+   behaviour for the RTL for the semantics in the CPU description.  */
+
 static int
 eqdf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_eq (&op1, &op2);
+  /* Equality and inequality checks are non-signalling.  */
+  sim_fpu_eq (&res, &op1, &op2);
+  return res;
 }
 
 static int
@@ -790,10 +831,13 @@ nedf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_ne (&op1, &op2);
+  /* Equality and inequality checks are non-signalling.  */
+  sim_fpu_ne (&res, &op1, &op2);
+  return res;
 }
 
 static int
@@ -801,10 +845,15 @@ ltdf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_lt (&op1, &op2);
+  status = sim_fpu_lt (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -812,10 +861,15 @@ ledf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_le (&op1, &op2);
+  status = sim_fpu_le (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -823,10 +877,15 @@ gtdf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_gt (&op1, &op2);
+  status = sim_fpu_gt (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
@@ -834,10 +893,15 @@ gedf (CGEN_FPU* fpu, DF x, DF y)
 {
   sim_fpu op1;
   sim_fpu op2;
+  int res;
+  sim_fpu_status status;
 
   sim_fpu_64to (&op1, x);
   sim_fpu_64to (&op2, y);
-  return sim_fpu_is_ge (&op1, &op2);
+  status = sim_fpu_ge (&res, &op1, &op2);
+  if (status != 0)
+    (*fpu->ops->error) (fpu, status);
+  return res;
 }
 
 static int
