@@ -506,8 +506,50 @@ fpu2i (signed64 *i,
   else
     {
       shift = -shift;
-      if (tmp & ((SIGNED64 (1) << shift) - 1))
-	status |= sim_fpu_status_inexact;
+
+      unsigned64 intlsb = SIGNED64 (1) << shift;
+      unsigned64 fracmask = intlsb - 1;
+      unsigned64 fracmsb = intlsb >> 1;
+      /* When bits will be truncated bias the result based on rounding mode.  */
+      if (tmp & fracmask)
+        {
+	  status |= sim_fpu_status_inexact;
+	  switch (round)
+	    {
+	    case sim_fpu_round_default:
+	    case sim_fpu_round_zero:
+	      break;
+	    case sim_fpu_round_near:
+	      /* Exactly halfway between two integers, tie break to even.  */
+	      if ((tmp & fracmask) == fracmsb)
+		{
+		  if (tmp & intlsb)
+		    tmp += intlsb;
+		}
+	      else if (tmp & fracmsb)
+		{
+		  /* Round away from zero.  */
+		  ASSERT (tmp & (fracmask >> 1));
+		  tmp += fracmsb;
+		}
+	      /* else... round to zero  */
+	      break;
+	    case sim_fpu_round_up:
+	      /* If positive round away from zero.  */
+	      if (!s->sign)
+		tmp += intlsb;
+	      /* else... round to zero  */
+	      break;
+	    case sim_fpu_round_down:
+	      /* If negative round away from zero.  */
+	      if (s->sign)
+		tmp += intlsb;
+	      /* else... round to zero  */
+	      break;
+	    }
+	}
+      /* Truncate the fractional bits now that the rounding bias has been
+         applied.  */
       tmp >>= shift;
     }
   *i = s->sign ? (-tmp) : (tmp);
@@ -589,11 +631,12 @@ i2fpu (sim_fpu *f, signed64 i, int is_64bit)
 
 /* Convert a floating point into an integer.  */
 STATIC_INLINE_SIM_FPU (int)
-fpu2u (unsigned64 *u, const sim_fpu *s, int is_64bit)
+fpu2u (unsigned64 *u, const sim_fpu *s, int is_64bit, sim_fpu_round round)
 {
   const int is_double = 1;
   unsigned64 tmp;
   int shift;
+  int status = 0;
   if (sim_fpu_is_zero (s))
     {
       *u = 0;
@@ -638,10 +681,47 @@ fpu2u (unsigned64 *u, const sim_fpu *s, int is_64bit)
   else
     {
       shift = -shift;
+
+      unsigned64 intlsb = SIGNED64 (1) << shift;
+      unsigned64 fracmask = intlsb - 1;
+      unsigned64 fracmsb = intlsb >> 1;
+      /* When bits will be truncated bias the result based on rounding mode.  */
+      if (tmp & fracmask)
+        {
+	  status |= sim_fpu_status_inexact;
+	  switch (round)
+	    {
+	    case sim_fpu_round_default:
+	    case sim_fpu_round_zero:
+	    case sim_fpu_round_down:
+	      break;
+	    case sim_fpu_round_near:
+	      /* Exactly halfway between two integers, tie break to even.  */
+	      if ((tmp & fracmask) == fracmsb)
+		{
+		  if (tmp & intlsb)
+		    tmp += intlsb;
+		}
+	      else if (tmp & fracmsb)
+		{
+		  /* Round away from zero.  */
+		  ASSERT (tmp & (fracmask >> 1));
+		  tmp += fracmsb;
+		}
+	      /* else... round to zero  */
+	      break;
+	    case sim_fpu_round_up:
+	      /* Round away from zero.  */
+	      tmp += intlsb;
+	      break;
+	    }
+	}
+      /* Truncate the fractional bits now that the rounding bias has been
+         applied.  */
       tmp >>= shift;
     }
   *u = tmp;
-  return 0;
+  return status;
 }
 
 /* Convert an unsigned integer into a floating point.  */
@@ -2273,7 +2353,7 @@ sim_fpu_to32u (unsigned32 *u,
 	       sim_fpu_round round)
 {
   unsigned64 u64;
-  int status = fpu2u (&u64, f, 0);
+  int status = fpu2u (&u64, f, 0, round);
   *u = u64;
   return status;
 }
@@ -2292,7 +2372,7 @@ sim_fpu_to64u (unsigned64 *u,
 	       const sim_fpu *f,
 	       sim_fpu_round round)
 {
-  return fpu2u (u, f, 1);
+  return fpu2u (u, f, 1, round);
 }
 
 

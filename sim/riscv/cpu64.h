@@ -306,6 +306,7 @@ union sem_fields {
     UDI f_uimm3_93;
   } sfmt_c_lw;
   struct { /*  */
+    UINT f_funct3;
     UINT f_rd;
     UINT f_rs1;
     UINT f_rs2;

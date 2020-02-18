@@ -3733,7 +3733,7 @@ model_rv64gc_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3749,7 +3749,7 @@ model_rv64gc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3765,7 +3765,7 @@ model_rv64gc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3813,7 +3813,7 @@ model_rv64gc_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3829,7 +3829,7 @@ model_rv64gc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3861,7 +3861,7 @@ model_rv64gc_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3877,7 +3877,7 @@ model_rv64gc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3893,7 +3893,7 @@ model_rv64gc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3909,7 +3909,7 @@ model_rv64gc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gc_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8645,7 +8645,7 @@ model_rv64i_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8661,7 +8661,7 @@ model_rv64i_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8677,7 +8677,7 @@ model_rv64i_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8725,7 +8725,7 @@ model_rv64i_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8741,7 +8741,7 @@ model_rv64i_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8773,7 +8773,7 @@ model_rv64i_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8789,7 +8789,7 @@ model_rv64i_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8805,7 +8805,7 @@ model_rv64i_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -8821,7 +8821,7 @@ model_rv64i_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64i_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13557,7 +13557,7 @@ model_rv64ic_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13573,7 +13573,7 @@ model_rv64ic_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13589,7 +13589,7 @@ model_rv64ic_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13637,7 +13637,7 @@ model_rv64ic_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13653,7 +13653,7 @@ model_rv64ic_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13685,7 +13685,7 @@ model_rv64ic_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13701,7 +13701,7 @@ model_rv64ic_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13717,7 +13717,7 @@ model_rv64ic_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -13733,7 +13733,7 @@ model_rv64ic_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64ic_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18469,7 +18469,7 @@ model_rv64im_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18485,7 +18485,7 @@ model_rv64im_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18501,7 +18501,7 @@ model_rv64im_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18549,7 +18549,7 @@ model_rv64im_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18565,7 +18565,7 @@ model_rv64im_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18597,7 +18597,7 @@ model_rv64im_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18613,7 +18613,7 @@ model_rv64im_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18629,7 +18629,7 @@ model_rv64im_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -18645,7 +18645,7 @@ model_rv64im_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64im_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23381,7 +23381,7 @@ model_rv64imc_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23397,7 +23397,7 @@ model_rv64imc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23413,7 +23413,7 @@ model_rv64imc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23461,7 +23461,7 @@ model_rv64imc_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23477,7 +23477,7 @@ model_rv64imc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23509,7 +23509,7 @@ model_rv64imc_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23525,7 +23525,7 @@ model_rv64imc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23541,7 +23541,7 @@ model_rv64imc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23557,7 +23557,7 @@ model_rv64imc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64imc_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28293,7 +28293,7 @@ model_rv64g_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28309,7 +28309,7 @@ model_rv64g_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28325,7 +28325,7 @@ model_rv64g_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28373,7 +28373,7 @@ model_rv64g_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28389,7 +28389,7 @@ model_rv64g_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28421,7 +28421,7 @@ model_rv64g_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28437,7 +28437,7 @@ model_rv64g_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28453,7 +28453,7 @@ model_rv64g_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -28469,7 +28469,7 @@ model_rv64g_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64g_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33205,7 +33205,7 @@ model_rv64gqc_fle_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33221,7 +33221,7 @@ model_rv64gqc_fsqrt_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33237,7 +33237,7 @@ model_rv64gqc_fcvt_w_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_wu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33285,7 +33285,7 @@ model_rv64gqc_fclass_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33301,7 +33301,7 @@ model_rv64gqc_fcvt_s_w (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_s_wu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33333,7 +33333,7 @@ model_rv64gqc_fmv_w_x (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33349,7 +33349,7 @@ model_rv64gqc_fcvt_s_l (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33365,7 +33365,7 @@ model_rv64gqc_fcvt_s_lu (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -33381,7 +33381,7 @@ model_rv64gqc_fcvt_l_s (SIM_CPU *current_cpu, void *sem_arg)
 static int
 model_rv64gqc_fcvt_lu_s (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_slli_shift6.f
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;

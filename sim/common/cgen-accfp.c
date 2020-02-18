@@ -442,7 +442,7 @@ floatsisf (CGEN_FPU* fpu, int how UNUSED, SI x)
   sim_fpu ans;
   unsigned32 res;
 
-  sim_fpu_i32to (&ans, x, sim_fpu_round_near);
+  sim_fpu_i32to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to32 (&res, &ans);
   return res;
 }
@@ -453,7 +453,7 @@ floatsidf (CGEN_FPU* fpu, int how UNUSED, SI x)
   sim_fpu ans;
   unsigned64 res;
 
-  sim_fpu_i32to (&ans, x, sim_fpu_round_near);
+  sim_fpu_i32to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to64 (&res, &ans);
   return res;
 }
@@ -464,7 +464,7 @@ floatdidf (CGEN_FPU* fpu, int how UNUSED, DI x)
   sim_fpu ans;
   unsigned64 res;
 
-  sim_fpu_i64to (&ans, x, sim_fpu_round_near);
+  sim_fpu_i64to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to64 (&res, &ans);
   return res;
 }
@@ -475,7 +475,7 @@ ufloatsisf (CGEN_FPU* fpu, int how UNUSED, USI x)
   sim_fpu ans;
   unsigned32 res;
 
-  sim_fpu_u32to (&ans, x, sim_fpu_round_near);
+  sim_fpu_u32to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to32 (&res, &ans);
   return res;
 }
@@ -486,7 +486,7 @@ ufloatsidf (CGEN_FPU* fpu, int how UNUSED, USI x)
   sim_fpu ans;
   unsigned64 res;
 
-  sim_fpu_u32to (&ans, x, sim_fpu_round_near);
+  sim_fpu_u32to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to64 (&res, &ans);
   return res;
 }
@@ -497,7 +497,7 @@ ufloatdidf (CGEN_FPU* fpu, int how UNUSED, UDI x)
   sim_fpu ans;
   unsigned64 res;
 
-  sim_fpu_u64to (&ans, x, sim_fpu_round_near);
+  sim_fpu_u64to (&ans, x, (*fpu->ops->rounding_mode) (fpu));
   sim_fpu_to64 (&res, &ans);
   return res;
 }
@@ -509,7 +509,7 @@ fixsfsi (CGEN_FPU* fpu, int how UNUSED, SF x)
   unsigned32 res;
 
   sim_fpu_32to (&op1, x);
-  sim_fpu_to32i (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to32i (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -520,7 +520,7 @@ fixsfdi (CGEN_FPU* fpu, int how UNUSED, SF x)
   unsigned64 res;
 
   sim_fpu_32to (&op1, x);
-  sim_fpu_to64i (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to64i (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -531,7 +531,7 @@ fixdfsi (CGEN_FPU* fpu, int how UNUSED, DF x)
   unsigned32 res;
 
   sim_fpu_64to (&op1, x);
-  sim_fpu_to32i (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to32i (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -542,7 +542,7 @@ fixdfdi (CGEN_FPU* fpu, int how UNUSED, DF x)
   unsigned64 res;
 
   sim_fpu_64to (&op1, x);
-  sim_fpu_to64i (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to64i (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -553,7 +553,7 @@ ufixsfsi (CGEN_FPU* fpu, int how UNUSED, SF x)
   unsigned32 res;
 
   sim_fpu_32to (&op1, x);
-  sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to32u (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -564,7 +564,7 @@ ufixsfdi (CGEN_FPU* fpu, int how UNUSED, SF x)
   unsigned64 res;
 
   sim_fpu_32to (&op1, x);
-  sim_fpu_to64u (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to64u (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
@@ -575,7 +575,7 @@ ufixdfsi (CGEN_FPU* fpu, int how UNUSED, DF x)
   unsigned32 res;
 
   sim_fpu_64to (&op1, x);
-  sim_fpu_to32u (&res, &op1, sim_fpu_round_near);
+  sim_fpu_to32u (&res, &op1, (*fpu->ops->rounding_mode) (fpu));
   return res;
 }
 
