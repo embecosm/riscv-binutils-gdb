@@ -1287,7 +1287,7 @@
   (comment "fl-rm")
   (attrs all-isas)
   (type h-uint)
-  (mode UDI)
+  (mode UWI)
   (index f-funct3)
   (handlers (parse "float_rounding_mode") (print "float_rounding_mode"))
 )
@@ -4422,36 +4422,66 @@
   (set (mem SI (add rs1 store12)) (trunc SI (subword DI fl-rs2 0))))
 
 ; Fused-multiplies
-(define-pmacro fmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+(define-pmacro fmadd-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
   (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
   (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set SF res (muladd SF lhs rhs addend))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
-(define-pmacro fmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+(define-pmacro fmsub-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
   (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
   (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set SF res (muladd SF lhs rhs (neg addend)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
-(define-pmacro fnmsub-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+(define-pmacro fnmsub-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
   (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
   (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set SF res (muladd SF (neg lhs) rhs addend))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
-(define-pmacro fnmadd-s-sem (sequence ((SF lhs) (SF rhs) (SF addend) (SF res))
+(define-pmacro fnmadd-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
   (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
   (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
   (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set SF res (muladd SF (neg lhs) rhs (neg addend)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
 ; Simple binary ops
-(define-pmacro (fbinop-s-sem binop) (sequence ((SF lhs) (SF rhs) (SF res))
+(define-pmacro (fbinop-s-sem binop) (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF res))
   (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
   (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set SF res (binop SF lhs rhs))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
 ; Sign injection
@@ -4485,18 +4515,42 @@
   (set rd (cnd lhs rhs))))
 
 ; Integer <-> float conversions
-(define-pmacro fcvt-s-w-sem (sequence ((SF lhs)) ; SI -> SF
+(define-pmacro fcvt-s-w-sem (sequence ((UWI saved-rm) (SF lhs)) ; SI -> SF
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set lhs (float SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
-(define-pmacro fcvt-s-wu-sem (sequence ((SF lhs)) ; USI -> SF
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-s-wu-sem (sequence ((UWI saved-rm) (SF lhs)) ; USI -> SF
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set lhs (ufloat SF 0 (trunc SI rs1)))
-  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))))
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
 
 ; FIXME: Handle clipping correctly
-(define-pmacro fcvt-w-s-sem
-  (set rd (ext (fix SI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))))
-(define-pmacro fcvt-wu-s-sem
-  (set rd (zext (ufix USI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))))
+(define-pmacro fcvt-w-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (ext (fix SI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-wu-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (zext (ufix USI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
 
 ; Moves
 (define-pmacro fmv-x-w-s-sem
@@ -4504,9 +4558,15 @@
 (define-pmacro fmv-w-x-s-sem
   (set fl-rd (subword DF (or (zext UDI (trunc SI rs1)) #xffffffff00000000) 0)))
 
-(define-pmacro fsqrt-s-sem (sequence ((SF lhs) (SF res))
+(define-pmacro fsqrt-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF res))
   (set lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
   (set res (sqrt lhs))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
   (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
 
 (rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 flw-sem)
@@ -4537,16 +4597,40 @@
 (rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 fmv-w-x-s-sem)
 
 ;RV64F
-(define-pmacro fcvt-s-l-sem
-  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (float DF 0 rs1)) 0)) #xffffffff00000000) 0)))
-(define-pmacro fcvt-s-lu-sem
-  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (ufloat DF 0 rs1)) 0)) #xffffffff00000000) 0)))
+(define-pmacro fcvt-s-l-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (float DF 0 rs1)) 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-s-lu-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (ufloat DF 0 rs1)) 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
 
 ; FIXME: Handle clipping correctly
-(define-pmacro fcvt-l-s-sem
-  (set rd (fix DI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
-(define-pmacro fcvt-lu-s-sem
-  (set rd (ufix UDI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+(define-pmacro fcvt-l-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (fix DI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-lu-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (ufix UDI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
 
 (rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 fcvt-s-l-sem)
 (rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 fcvt-s-lu-sem)

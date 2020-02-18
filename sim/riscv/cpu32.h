@@ -307,11 +307,12 @@ union sem_fields {
     UINT f_rs3;
   } sfmt_fsri;
   struct { /*  */
+    UINT f_funct3;
     UINT f_rd;
     UINT f_rs1;
     UINT f_rs2;
     UINT f_rs3;
-  } sfmt_cmix;
+  } sfmt_fmadd_s;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {

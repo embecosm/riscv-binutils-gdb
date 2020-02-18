@@ -125,7 +125,20 @@ void CPU_FUNC (_h_csr_set_handler) (SIM_CPU * current_cpu, UINT rn, UWI val)
     {
       /* The FRM csr is an alias for the frm bits of FCSR. This is a
          3-bit field starting at bit 5.  */
-      CPU (h_csr[fcsr_rn]) = (CPU (h_csr[fcsr_rn]) & 0xff1f) | ((val & 0x7) << 5);
+      assert (val <= 0x7);
+      assert ((val != 0x5) && (val != 6) && "Cannot set invalid rounding mode");
+      if (val == 0x7)
+        {
+          /* Technically rounding mode 0x7 is an invalid value for the
+             rounding mode register, but in an instructions 'rm' field it
+             signifies the dynamic rounding mode should be used. By treating
+             it as a no-op here we can simplify the semantics for
+             instructions with explicit rounding modes because we can just
+             set the FRM CSR directly to the value in the instruction field,
+             knowing that a 0x7 value will be ignored.  */
+        }
+      else
+        CPU (h_csr[fcsr_rn]) = (CPU (h_csr[fcsr_rn]) & 0xff1f) | ((val & 0x7) << 5);
     }
   else if (csr == RISCV_CSR_MEPC_REGNUM)
     {
