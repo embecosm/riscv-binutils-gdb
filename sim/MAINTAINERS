@@ -30,6 +30,7 @@ moxie		Anthony Green <green@moxielogic.com>
 msp430		Nick Clifton <nickc@redhat.com>
 or1k		Stafford Horne <shorne@gmail.com>
 pru		Dimitar Dimitrov <dimitar@dinux.eu>
+riscv		Edward Jones  <ed.jones@embecosm.com>
 sh		(global maintainers)
 sh64		Dave Brolley <brolley@redhat.com>
 common		Frank Ch. Eigler <fche@redhat.com>

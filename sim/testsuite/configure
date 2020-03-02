@@ -1931,6 +1931,9 @@ case "${target}" in
    rl78-*-*)
        sim_arch=rl78
        ;;
+   riscv*)
+       sim_arch=riscv
+       ;;
    rx-*-*)
        sim_arch=rx
        ;;

@@ -182,10 +182,10 @@ DECLARE_GETT (SI, 4)  /* TAGS: GETTSI */
 DECLARE_GETT (USI, 4) /* TAGS: GETTUSI */
 DECLARE_GETT (DI, 8)  /* TAGS: GETTDI */
 DECLARE_GETT (UDI, 8) /* TAGS: GETTUDI */
+DECLARE_GETT (DF, 8)  /* TAGS: GETTDF */
 
 #if 0 /* ??? defered until necessary */
 DECLARE_GETT (SF, 4)  /* TAGS: GETTSF */
-DECLARE_GETT (DF, 8)  /* TAGS: GETTDF */
 DECLARE_GETT (TF, 16) /* TAGS: GETTTF */
 #endif
 
@@ -217,10 +217,10 @@ DECLARE_SETT (SI, 4)  /* TAGS: SETTSI */
 DECLARE_SETT (USI, 4) /* TAGS: SETTUSI */
 DECLARE_SETT (DI, 8)  /* TAGS: SETTDI */
 DECLARE_SETT (UDI, 8) /* TAGS: SETTUDI */
-
-#if 0 /* ??? defered until necessary */
 DECLARE_SETT (SF, 4)  /* TAGS: SETTSF */
 DECLARE_SETT (DF, 8)  /* TAGS: SETTDF */
+
+#if 0 /* ??? defered until necessary */
 DECLARE_SETT (TF, 16) /* TAGS: SETTTF */
 #endif
 
