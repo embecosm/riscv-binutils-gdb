@@ -276,9 +276,9 @@ riscv_set_arch (const char *s)
 
 	  while (*++q != '\0' && *q != '_')
 	    {
-	      if (*q >= '0' && *q <= '9')
+	      if (ISDIGIT (*q))
 		as_fatal ("-march=%s: Version numbers not yet supported.", s);
-	      else if (*q == 'p' && (q[1] < '0' || q[1] > '9'))
+	      else if (*q == 'p' && !ISDIGIT (q[1]))
 	        as_fatal ("-march=%s: Expect number after version.", s);
 	    }
 
