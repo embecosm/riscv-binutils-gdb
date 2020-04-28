@@ -249,11 +249,6 @@ union sem_fields {
     UDI f_uimm3_43;
   } sfmt_c_addi4spn;
   struct { /*  */
-    UINT f_rd;
-    UINT f_rs1;
-    UINT f_rs2;
-  } sfmt_add;
-  struct { /*  */
     UDI f_uimm5_245;
     UINT f_rd;
     UINT f_rs1;
@@ -278,6 +273,18 @@ union sem_fields {
     UDI f_uimm3_43;
     UDI f_uimm3_93;
   } sfmt_c_lw;
+  struct { /*  */
+    UDI f_uimm6_256;
+    UINT f_rd;
+    UINT f_rs1;
+    UINT f_rs3;
+  } sfmt_fsri;
+  struct { /*  */
+    UINT f_rd;
+    UINT f_rs1;
+    UINT f_rs2;
+    UINT f_rs3;
+  } sfmt_cmix;
 #if WITH_SCACHE_PBB
   /* Writeback handler.  */
   struct {
@@ -992,6 +999,78 @@ struct scache {
   f_aq = EXTRACT_LSB0_UINT (insn, 32, 26, 1); \
   f_rl = EXTRACT_LSB0_UINT (insn, 32, 25, 1); \
   f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5); \
+  f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
+  f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
+  f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
+
+#define EXTRACT_IFMT_CLZ_VARS \
+  UINT f_funct7; \
+  UDI f_uimm5_245; \
+  UINT f_rs1; \
+  UINT f_funct3; \
+  UINT f_rd; \
+  UINT f_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_CLZ_CODE \
+  length = 4; \
+  f_funct7 = EXTRACT_LSB0_UINT (insn, 32, 31, 7); \
+  f_uimm5_245 = EXTRACT_LSB0_UINT (insn, 32, 24, 5); \
+  f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
+  f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
+  f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
+
+#define EXTRACT_IFMT_GREVI_SHIFT6_VARS \
+  UINT f_funct6; \
+  UDI f_uimm6_256; \
+  UINT f_rs1; \
+  UINT f_funct3; \
+  UINT f_rd; \
+  UINT f_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_GREVI_SHIFT6_CODE \
+  length = 4; \
+  f_funct6 = EXTRACT_LSB0_UINT (insn, 32, 31, 6); \
+  f_uimm6_256 = EXTRACT_LSB0_UINT (insn, 32, 25, 6); \
+  f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
+  f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
+  f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
+
+#define EXTRACT_IFMT_CMIX_VARS \
+  UINT f_rs3; \
+  UINT f_funct2; \
+  UINT f_rs2; \
+  UINT f_rs1; \
+  UINT f_funct3; \
+  UINT f_rd; \
+  UINT f_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_CMIX_CODE \
+  length = 4; \
+  f_rs3 = EXTRACT_LSB0_UINT (insn, 32, 31, 5); \
+  f_funct2 = EXTRACT_LSB0_UINT (insn, 32, 26, 2); \
+  f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5); \
+  f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
+  f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
+  f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
+  f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
+
+#define EXTRACT_IFMT_FSRI_VARS \
+  UINT f_rs3; \
+  UINT f_funct1; \
+  UDI f_uimm6_256; \
+  UINT f_rs1; \
+  UINT f_funct3; \
+  UINT f_rd; \
+  UINT f_opcode; \
+  unsigned int length;
+#define EXTRACT_IFMT_FSRI_CODE \
+  length = 4; \
+  f_rs3 = EXTRACT_LSB0_UINT (insn, 32, 31, 5); \
+  f_funct1 = EXTRACT_LSB0_UINT (insn, 32, 26, 1); \
+  f_uimm6_256 = EXTRACT_LSB0_UINT (insn, 32, 25, 6); \
   f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5); \
   f_funct3 = EXTRACT_LSB0_UINT (insn, 32, 14, 3); \
   f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
