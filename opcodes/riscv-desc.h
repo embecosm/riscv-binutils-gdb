@@ -65,7 +65,7 @@ extern "C" {
 
 /* Enum declaration for Exception numbers.  */
 typedef enum except_numbers {
-  EXCEPT_NONE, EXCEPT_EBREAK
+  EXCEPT_NONE, EXCEPT_EBREAK, EXCEPT_ECALL
 } EXCEPT_NUMBERS;
 
 /* Attributes.  */
