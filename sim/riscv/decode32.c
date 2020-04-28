@@ -77,10 +77,14 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_C_SRLI64, RISCV32BF_RV32_INSN_C_SRLI64, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_SRAI64, RISCV32BF_RV32_INSN_C_SRAI64, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_C_JAL, RISCV32BF_RV32_INSN_C_JAL, RISCV32BF_RV32_SFMT_C_JAL },
-  { RISCV_INSN_C_FLWSP, RISCV32BF_RV32_INSN_C_FLWSP, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_C_FSWSP, RISCV32BF_RV32_INSN_C_FSWSP, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_C_FSW, RISCV32BF_RV32_INSN_C_FSW, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_C_FLW, RISCV32BF_RV32_INSN_C_FLW, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_C_FLWSP, RISCV32BF_RV32_INSN_C_FLWSP, RISCV32BF_RV32_SFMT_C_FLWSP },
+  { RISCV_INSN_C_FSWSP, RISCV32BF_RV32_INSN_C_FSWSP, RISCV32BF_RV32_SFMT_C_FSWSP },
+  { RISCV_INSN_C_FSW, RISCV32BF_RV32_INSN_C_FSW, RISCV32BF_RV32_SFMT_C_FSW },
+  { RISCV_INSN_C_FLW, RISCV32BF_RV32_INSN_C_FLW, RISCV32BF_RV32_SFMT_C_FLW },
+  { RISCV_INSN_C_FLDSP, RISCV32BF_RV32_INSN_C_FLDSP, RISCV32BF_RV32_SFMT_C_FLDSP },
+  { RISCV_INSN_C_FSDSP, RISCV32BF_RV32_INSN_C_FSDSP, RISCV32BF_RV32_SFMT_C_FSDSP },
+  { RISCV_INSN_C_FSD, RISCV32BF_RV32_INSN_C_FSD, RISCV32BF_RV32_SFMT_C_FSD },
+  { RISCV_INSN_C_FLD, RISCV32BF_RV32_INSN_C_FLD, RISCV32BF_RV32_SFMT_C_FLD },
   { RISCV_INSN_LUI, RISCV32BF_RV32_INSN_LUI, RISCV32BF_RV32_SFMT_LUI },
   { RISCV_INSN_AUIPC, RISCV32BF_RV32_INSN_AUIPC, RISCV32BF_RV32_SFMT_AUIPC },
   { RISCV_INSN_JAL, RISCV32BF_RV32_INSN_JAL, RISCV32BF_RV32_SFMT_JAL },
@@ -244,58 +248,58 @@ static const struct insn_sem riscv32bf_rv32_insn_sem[] =
   { RISCV_INSN_FSL, RISCV32BF_RV32_INSN_FSL, RISCV32BF_RV32_SFMT_FSL },
   { RISCV_INSN_FSR, RISCV32BF_RV32_INSN_FSR, RISCV32BF_RV32_SFMT_FSL },
   { RISCV_INSN_FSRI, RISCV32BF_RV32_INSN_FSRI, RISCV32BF_RV32_SFMT_FSRI },
-  { RISCV_INSN_FLW, RISCV32BF_RV32_INSN_FLW, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSW, RISCV32BF_RV32_INSN_FSW, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMADD_S, RISCV32BF_RV32_INSN_FMADD_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMSUB_S, RISCV32BF_RV32_INSN_FMSUB_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FNMSUB_S, RISCV32BF_RV32_INSN_FNMSUB_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FNMADD_S, RISCV32BF_RV32_INSN_FNMADD_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FADD_S, RISCV32BF_RV32_INSN_FADD_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSUB_S, RISCV32BF_RV32_INSN_FSUB_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMUL_S, RISCV32BF_RV32_INSN_FMUL_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FDIV_S, RISCV32BF_RV32_INSN_FDIV_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJ_S, RISCV32BF_RV32_INSN_FSGNJ_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJN_S, RISCV32BF_RV32_INSN_FSGNJN_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJX_S, RISCV32BF_RV32_INSN_FSGNJX_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMIN_S, RISCV32BF_RV32_INSN_FMIN_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMAX_S, RISCV32BF_RV32_INSN_FMAX_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FEQ_S, RISCV32BF_RV32_INSN_FEQ_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FLT_S, RISCV32BF_RV32_INSN_FLT_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FLE_S, RISCV32BF_RV32_INSN_FLE_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSQRT_S, RISCV32BF_RV32_INSN_FSQRT_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_W_S, RISCV32BF_RV32_INSN_FCVT_W_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_WU_S, RISCV32BF_RV32_INSN_FCVT_WU_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMV_X_W, RISCV32BF_RV32_INSN_FMV_X_W, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_FLW, RISCV32BF_RV32_INSN_FLW, RISCV32BF_RV32_SFMT_FLW },
+  { RISCV_INSN_FSW, RISCV32BF_RV32_INSN_FSW, RISCV32BF_RV32_SFMT_FSW },
+  { RISCV_INSN_FMADD_S, RISCV32BF_RV32_INSN_FMADD_S, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FMSUB_S, RISCV32BF_RV32_INSN_FMSUB_S, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FNMSUB_S, RISCV32BF_RV32_INSN_FNMSUB_S, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FNMADD_S, RISCV32BF_RV32_INSN_FNMADD_S, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FADD_S, RISCV32BF_RV32_INSN_FADD_S, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FSUB_S, RISCV32BF_RV32_INSN_FSUB_S, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FMUL_S, RISCV32BF_RV32_INSN_FMUL_S, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FDIV_S, RISCV32BF_RV32_INSN_FDIV_S, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FSGNJ_S, RISCV32BF_RV32_INSN_FSGNJ_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJN_S, RISCV32BF_RV32_INSN_FSGNJN_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJX_S, RISCV32BF_RV32_INSN_FSGNJX_S, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FMIN_S, RISCV32BF_RV32_INSN_FMIN_S, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FMAX_S, RISCV32BF_RV32_INSN_FMAX_S, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FEQ_S, RISCV32BF_RV32_INSN_FEQ_S, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FLT_S, RISCV32BF_RV32_INSN_FLT_S, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FLE_S, RISCV32BF_RV32_INSN_FLE_S, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FSQRT_S, RISCV32BF_RV32_INSN_FSQRT_S, RISCV32BF_RV32_SFMT_FSQRT_S },
+  { RISCV_INSN_FCVT_W_S, RISCV32BF_RV32_INSN_FCVT_W_S, RISCV32BF_RV32_SFMT_FCVT_W_S },
+  { RISCV_INSN_FCVT_WU_S, RISCV32BF_RV32_INSN_FCVT_WU_S, RISCV32BF_RV32_SFMT_FCVT_W_S },
+  { RISCV_INSN_FMV_X_W, RISCV32BF_RV32_INSN_FMV_X_W, RISCV32BF_RV32_SFMT_FMV_X_W },
   { RISCV_INSN_FCLASS_S, RISCV32BF_RV32_INSN_FCLASS_S, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_S_W, RISCV32BF_RV32_INSN_FCVT_S_W, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_S_WU, RISCV32BF_RV32_INSN_FCVT_S_WU, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMV_W_X, RISCV32BF_RV32_INSN_FMV_W_X, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FLD, RISCV32BF_RV32_INSN_FLD, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSD, RISCV32BF_RV32_INSN_FSD, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMADD_D, RISCV32BF_RV32_INSN_FMADD_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMSUB_D, RISCV32BF_RV32_INSN_FMSUB_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FNMSUB_D, RISCV32BF_RV32_INSN_FNMSUB_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FNMADD_D, RISCV32BF_RV32_INSN_FNMADD_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FADD_D, RISCV32BF_RV32_INSN_FADD_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSUB_D, RISCV32BF_RV32_INSN_FSUB_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMUL_D, RISCV32BF_RV32_INSN_FMUL_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FDIV_D, RISCV32BF_RV32_INSN_FDIV_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJ_D, RISCV32BF_RV32_INSN_FSGNJ_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJN_D, RISCV32BF_RV32_INSN_FSGNJN_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSGNJX_D, RISCV32BF_RV32_INSN_FSGNJX_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMIN_D, RISCV32BF_RV32_INSN_FMIN_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FMAX_D, RISCV32BF_RV32_INSN_FMAX_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FEQ_D, RISCV32BF_RV32_INSN_FEQ_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FLT_D, RISCV32BF_RV32_INSN_FLT_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FLE_D, RISCV32BF_RV32_INSN_FLE_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FSQRT_D, RISCV32BF_RV32_INSN_FSQRT_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_W_D, RISCV32BF_RV32_INSN_FCVT_W_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_WU_D, RISCV32BF_RV32_INSN_FCVT_WU_D, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_FCVT_S_W, RISCV32BF_RV32_INSN_FCVT_S_W, RISCV32BF_RV32_SFMT_FCVT_S_W },
+  { RISCV_INSN_FCVT_S_WU, RISCV32BF_RV32_INSN_FCVT_S_WU, RISCV32BF_RV32_SFMT_FCVT_S_W },
+  { RISCV_INSN_FMV_W_X, RISCV32BF_RV32_INSN_FMV_W_X, RISCV32BF_RV32_SFMT_FMV_W_X },
+  { RISCV_INSN_FLD, RISCV32BF_RV32_INSN_FLD, RISCV32BF_RV32_SFMT_FLD },
+  { RISCV_INSN_FSD, RISCV32BF_RV32_INSN_FSD, RISCV32BF_RV32_SFMT_FSD },
+  { RISCV_INSN_FMADD_D, RISCV32BF_RV32_INSN_FMADD_D, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FMSUB_D, RISCV32BF_RV32_INSN_FMSUB_D, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FNMSUB_D, RISCV32BF_RV32_INSN_FNMSUB_D, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FNMADD_D, RISCV32BF_RV32_INSN_FNMADD_D, RISCV32BF_RV32_SFMT_FMADD_S },
+  { RISCV_INSN_FADD_D, RISCV32BF_RV32_INSN_FADD_D, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FSUB_D, RISCV32BF_RV32_INSN_FSUB_D, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FMUL_D, RISCV32BF_RV32_INSN_FMUL_D, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FDIV_D, RISCV32BF_RV32_INSN_FDIV_D, RISCV32BF_RV32_SFMT_FADD_S },
+  { RISCV_INSN_FSGNJ_D, RISCV32BF_RV32_INSN_FSGNJ_D, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJN_D, RISCV32BF_RV32_INSN_FSGNJN_D, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FSGNJX_D, RISCV32BF_RV32_INSN_FSGNJX_D, RISCV32BF_RV32_SFMT_FSGNJ_S },
+  { RISCV_INSN_FMIN_D, RISCV32BF_RV32_INSN_FMIN_D, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FMAX_D, RISCV32BF_RV32_INSN_FMAX_D, RISCV32BF_RV32_SFMT_FMIN_S },
+  { RISCV_INSN_FEQ_D, RISCV32BF_RV32_INSN_FEQ_D, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FLT_D, RISCV32BF_RV32_INSN_FLT_D, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FLE_D, RISCV32BF_RV32_INSN_FLE_D, RISCV32BF_RV32_SFMT_FEQ_S },
+  { RISCV_INSN_FSQRT_D, RISCV32BF_RV32_INSN_FSQRT_D, RISCV32BF_RV32_SFMT_FSQRT_S },
+  { RISCV_INSN_FCVT_W_D, RISCV32BF_RV32_INSN_FCVT_W_D, RISCV32BF_RV32_SFMT_FCVT_W_S },
+  { RISCV_INSN_FCVT_WU_D, RISCV32BF_RV32_INSN_FCVT_WU_D, RISCV32BF_RV32_SFMT_FCVT_W_S },
   { RISCV_INSN_FCLASS_D, RISCV32BF_RV32_INSN_FCLASS_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_W, RISCV32BF_RV32_INSN_FCVT_D_W, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_WU, RISCV32BF_RV32_INSN_FCVT_D_WU, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_S_D, RISCV32BF_RV32_INSN_FCVT_S_D, RISCV32BF_RV32_SFMT_C_NOP },
-  { RISCV_INSN_FCVT_D_S, RISCV32BF_RV32_INSN_FCVT_D_S, RISCV32BF_RV32_SFMT_C_NOP },
+  { RISCV_INSN_FCVT_D_W, RISCV32BF_RV32_INSN_FCVT_D_W, RISCV32BF_RV32_SFMT_FCVT_D_W },
+  { RISCV_INSN_FCVT_D_WU, RISCV32BF_RV32_INSN_FCVT_D_WU, RISCV32BF_RV32_SFMT_FCVT_D_W },
+  { RISCV_INSN_FCVT_S_D, RISCV32BF_RV32_INSN_FCVT_S_D, RISCV32BF_RV32_SFMT_FSQRT_S },
+  { RISCV_INSN_FCVT_D_S, RISCV32BF_RV32_INSN_FCVT_D_S, RISCV32BF_RV32_SFMT_FCVT_D_S },
   { RISCV_INSN_FLQ, RISCV32BF_RV32_INSN_FLQ, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FSQ, RISCV32BF_RV32_INSN_FSQ, RISCV32BF_RV32_SFMT_C_NOP },
   { RISCV_INSN_FMADD_Q, RISCV32BF_RV32_INSN_FMADD_Q, RISCV32BF_RV32_SFMT_C_NOP },
@@ -782,8 +786,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FMADD_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FMADD_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FMADD_S; goto extract_sfmt_fmadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FMADD_D; goto extract_sfmt_fmadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FMADD_Q; goto extract_sfmt_c_nop;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -803,8 +807,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FMSUB_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FMSUB_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FMSUB_S; goto extract_sfmt_fmadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FMSUB_D; goto extract_sfmt_fmadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FMSUB_Q; goto extract_sfmt_c_nop;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -824,8 +828,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FNMSUB_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FNMSUB_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FNMSUB_S; goto extract_sfmt_fmadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FNMSUB_D; goto extract_sfmt_fmadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FNMSUB_Q; goto extract_sfmt_c_nop;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -845,8 +849,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (3 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FNMADD_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FNMADD_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FNMADD_S; goto extract_sfmt_fmadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FNMADD_D; goto extract_sfmt_fmadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FNMADD_Q; goto extract_sfmt_c_nop;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -859,23 +863,23 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_fadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_fadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FADD_Q; goto extract_sfmt_c_nop;
-          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_c_nop;
-          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_c_nop;
+          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_fadd_s;
+          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_fadd_s;
           case 7 : itype = RISCV32BF_RV32_INSN_FSUB_Q; goto extract_sfmt_c_nop;
-          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_c_nop;
-          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_c_nop;
+          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_fadd_s;
+          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_fadd_s;
           case 11 : itype = RISCV32BF_RV32_INSN_FMUL_Q; goto extract_sfmt_c_nop;
-          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_c_nop;
-          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_c_nop;
+          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_fadd_s;
+          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJ_S; goto extract_sfmt_c_nop;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJ_D; goto extract_sfmt_c_nop;
+          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJ_S; goto extract_sfmt_fsgnj_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJ_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJ_Q; goto extract_sfmt_c_nop;
-          case 20 : itype = RISCV32BF_RV32_INSN_FMIN_S; goto extract_sfmt_c_nop;
-          case 21 : itype = RISCV32BF_RV32_INSN_FMIN_D; goto extract_sfmt_c_nop;
+          case 20 : itype = RISCV32BF_RV32_INSN_FMIN_S; goto extract_sfmt_fmin_s;
+          case 21 : itype = RISCV32BF_RV32_INSN_FMIN_D; goto extract_sfmt_fmin_s;
           case 23 : itype = RISCV32BF_RV32_INSN_FMIN_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -884,7 +888,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0x40100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_fsqrt_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0x40300053)
@@ -900,7 +904,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0707f) == 0x42000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_D_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_D_S; goto extract_sfmt_fcvt_d_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 3 :
                 if ((entire_insn & 0xfff0007f) == 0x42300053)
@@ -927,18 +931,18 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             }
           case 44 :
             if ((entire_insn & 0xfff0007f) == 0x58000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 45 :
             if ((entire_insn & 0xfff0007f) == 0x5a000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 47 :
             if ((entire_insn & 0xfff0007f) == 0x5e000053)
               { itype = RISCV32BF_RV32_INSN_FSQRT_Q; goto extract_sfmt_c_nop; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
-          case 80 : itype = RISCV32BF_RV32_INSN_FLE_S; goto extract_sfmt_c_nop;
-          case 81 : itype = RISCV32BF_RV32_INSN_FLE_D; goto extract_sfmt_c_nop;
+          case 80 : itype = RISCV32BF_RV32_INSN_FLE_S; goto extract_sfmt_feq_s;
+          case 81 : itype = RISCV32BF_RV32_INSN_FLE_D; goto extract_sfmt_feq_s;
           case 83 : itype = RISCV32BF_RV32_INSN_FLE_Q; goto extract_sfmt_c_nop;
           case 96 :
             {
@@ -947,11 +951,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -963,11 +967,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc2000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc2100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -995,11 +999,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xd0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xd0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1011,11 +1015,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0707f) == 0xd2000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_D_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_D_W; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0707f) == 0xd2100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_D_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_D_WU; goto extract_sfmt_fcvt_d_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1038,11 +1042,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             }
           case 112 :
             if ((entire_insn & 0xfff0707f) == 0xe0000053)
-              { itype = RISCV32BF_RV32_INSN_FMV_X_W; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FMV_X_W; goto extract_sfmt_fmv_x_w; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 120 :
             if ((entire_insn & 0xfff0707f) == 0xf0000053)
-              { itype = RISCV32BF_RV32_INSN_FMV_W_X; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FMV_W_X; goto extract_sfmt_fmv_w_x; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -1508,23 +1512,23 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_fadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_fadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FADD_Q; goto extract_sfmt_c_nop;
-          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_c_nop;
-          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_c_nop;
+          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_fadd_s;
+          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_fadd_s;
           case 7 : itype = RISCV32BF_RV32_INSN_FSUB_Q; goto extract_sfmt_c_nop;
-          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_c_nop;
-          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_c_nop;
+          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_fadd_s;
+          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_fadd_s;
           case 11 : itype = RISCV32BF_RV32_INSN_FMUL_Q; goto extract_sfmt_c_nop;
-          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_c_nop;
-          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_c_nop;
+          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_fadd_s;
+          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJN_S; goto extract_sfmt_c_nop;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJN_D; goto extract_sfmt_c_nop;
+          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJN_S; goto extract_sfmt_fsgnj_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJN_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJN_Q; goto extract_sfmt_c_nop;
-          case 20 : itype = RISCV32BF_RV32_INSN_FMAX_S; goto extract_sfmt_c_nop;
-          case 21 : itype = RISCV32BF_RV32_INSN_FMAX_D; goto extract_sfmt_c_nop;
+          case 20 : itype = RISCV32BF_RV32_INSN_FMAX_S; goto extract_sfmt_fmin_s;
+          case 21 : itype = RISCV32BF_RV32_INSN_FMAX_D; goto extract_sfmt_fmin_s;
           case 23 : itype = RISCV32BF_RV32_INSN_FMAX_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -1533,7 +1537,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0x40100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_fsqrt_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0x40300053)
@@ -1548,18 +1552,18 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 44 :
             if ((entire_insn & 0xfff0007f) == 0x58000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 45 :
             if ((entire_insn & 0xfff0007f) == 0x5a000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 47 :
             if ((entire_insn & 0xfff0007f) == 0x5e000053)
               { itype = RISCV32BF_RV32_INSN_FSQRT_Q; goto extract_sfmt_c_nop; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
-          case 80 : itype = RISCV32BF_RV32_INSN_FLT_S; goto extract_sfmt_c_nop;
-          case 81 : itype = RISCV32BF_RV32_INSN_FLT_D; goto extract_sfmt_c_nop;
+          case 80 : itype = RISCV32BF_RV32_INSN_FLT_S; goto extract_sfmt_feq_s;
+          case 81 : itype = RISCV32BF_RV32_INSN_FLT_D; goto extract_sfmt_feq_s;
           case 83 : itype = RISCV32BF_RV32_INSN_FLT_Q; goto extract_sfmt_c_nop;
           case 96 :
             {
@@ -1568,11 +1572,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1584,11 +1588,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc2000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc2100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1616,11 +1620,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xd0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xd0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1642,6 +1646,79 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
         }
       case 227 : itype = RISCV32BF_RV32_INSN_BNE; goto extract_sfmt_beq;
       case 243 : itype = RISCV32BF_RV32_INSN_CSRRW; goto extract_sfmt_c_nop;
+      case 256 : /* fall through */
+      case 260 : /* fall through */
+      case 264 : /* fall through */
+      case 268 : /* fall through */
+      case 272 : /* fall through */
+      case 276 : /* fall through */
+      case 280 : /* fall through */
+      case 284 : /* fall through */
+      case 288 : /* fall through */
+      case 292 : /* fall through */
+      case 296 : /* fall through */
+      case 300 : /* fall through */
+      case 304 : /* fall through */
+      case 308 : /* fall through */
+      case 312 : /* fall through */
+      case 316 : /* fall through */
+      case 320 : /* fall through */
+      case 324 : /* fall through */
+      case 328 : /* fall through */
+      case 332 : /* fall through */
+      case 336 : /* fall through */
+      case 340 : /* fall through */
+      case 344 : /* fall through */
+      case 348 : /* fall through */
+      case 352 : /* fall through */
+      case 356 : /* fall through */
+      case 360 : /* fall through */
+      case 364 : /* fall through */
+      case 368 : /* fall through */
+      case 372 : /* fall through */
+      case 376 : /* fall through */
+      case 380 : /* fall through */
+      case 384 : /* fall through */
+      case 388 : /* fall through */
+      case 392 : /* fall through */
+      case 396 : /* fall through */
+      case 400 : /* fall through */
+      case 404 : /* fall through */
+      case 408 : /* fall through */
+      case 412 : /* fall through */
+      case 416 : /* fall through */
+      case 420 : /* fall through */
+      case 424 : /* fall through */
+      case 428 : /* fall through */
+      case 432 : /* fall through */
+      case 436 : /* fall through */
+      case 440 : /* fall through */
+      case 444 : /* fall through */
+      case 448 : /* fall through */
+      case 452 : /* fall through */
+      case 456 : /* fall through */
+      case 460 : /* fall through */
+      case 464 : /* fall through */
+      case 468 : /* fall through */
+      case 472 : /* fall through */
+      case 476 : /* fall through */
+      case 480 : /* fall through */
+      case 484 : /* fall through */
+      case 488 : /* fall through */
+      case 492 : /* fall through */
+      case 496 : /* fall through */
+      case 500 : /* fall through */
+      case 504 : /* fall through */
+      case 508 :
+        {
+          unsigned int val = (((insn >> 15) & (1 << 0)));
+          switch (val)
+          {
+          case 0 : itype = RISCV32BF_RV32_INSN_C_FLD; goto extract_sfmt_c_fld;
+          case 1 : itype = RISCV32BF_RV32_INSN_C_FSD; goto extract_sfmt_c_fsd;
+          default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
       case 257 : /* fall through */
       case 261 : /* fall through */
       case 265 : /* fall through */
@@ -1715,11 +1792,84 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
+      case 258 : /* fall through */
+      case 262 : /* fall through */
+      case 266 : /* fall through */
+      case 270 : /* fall through */
+      case 274 : /* fall through */
+      case 278 : /* fall through */
+      case 282 : /* fall through */
+      case 286 : /* fall through */
+      case 290 : /* fall through */
+      case 294 : /* fall through */
+      case 298 : /* fall through */
+      case 302 : /* fall through */
+      case 306 : /* fall through */
+      case 310 : /* fall through */
+      case 314 : /* fall through */
+      case 318 : /* fall through */
+      case 322 : /* fall through */
+      case 326 : /* fall through */
+      case 330 : /* fall through */
+      case 334 : /* fall through */
+      case 338 : /* fall through */
+      case 342 : /* fall through */
+      case 346 : /* fall through */
+      case 350 : /* fall through */
+      case 354 : /* fall through */
+      case 358 : /* fall through */
+      case 362 : /* fall through */
+      case 366 : /* fall through */
+      case 370 : /* fall through */
+      case 374 : /* fall through */
+      case 378 : /* fall through */
+      case 382 : /* fall through */
+      case 386 : /* fall through */
+      case 390 : /* fall through */
+      case 394 : /* fall through */
+      case 398 : /* fall through */
+      case 402 : /* fall through */
+      case 406 : /* fall through */
+      case 410 : /* fall through */
+      case 414 : /* fall through */
+      case 418 : /* fall through */
+      case 422 : /* fall through */
+      case 426 : /* fall through */
+      case 430 : /* fall through */
+      case 434 : /* fall through */
+      case 438 : /* fall through */
+      case 442 : /* fall through */
+      case 446 : /* fall through */
+      case 450 : /* fall through */
+      case 454 : /* fall through */
+      case 458 : /* fall through */
+      case 462 : /* fall through */
+      case 466 : /* fall through */
+      case 470 : /* fall through */
+      case 474 : /* fall through */
+      case 478 : /* fall through */
+      case 482 : /* fall through */
+      case 486 : /* fall through */
+      case 490 : /* fall through */
+      case 494 : /* fall through */
+      case 498 : /* fall through */
+      case 502 : /* fall through */
+      case 506 : /* fall through */
+      case 510 :
+        {
+          unsigned int val = (((insn >> 15) & (1 << 0)));
+          switch (val)
+          {
+          case 0 : itype = RISCV32BF_RV32_INSN_C_FLDSP; goto extract_sfmt_c_fldsp;
+          case 1 : itype = RISCV32BF_RV32_INSN_C_FSDSP; goto extract_sfmt_c_fsdsp;
+          default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
+          }
+        }
       case 259 : itype = RISCV32BF_RV32_INSN_LW; goto extract_sfmt_lw;
-      case 263 : itype = RISCV32BF_RV32_INSN_FLW; goto extract_sfmt_c_nop;
+      case 263 : itype = RISCV32BF_RV32_INSN_FLW; goto extract_sfmt_flw;
       case 275 : itype = RISCV32BF_RV32_INSN_SLTI; goto extract_sfmt_addi;
       case 291 : itype = RISCV32BF_RV32_INSN_SW; goto extract_sfmt_sw;
-      case 295 : itype = RISCV32BF_RV32_INSN_FSW; goto extract_sfmt_c_nop;
+      case 295 : itype = RISCV32BF_RV32_INSN_FSW; goto extract_sfmt_fsw;
       case 303 :
         {
           unsigned int val;
@@ -1818,20 +1968,20 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           val = (((insn >> 25) & (127 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_fadd_s;
+          case 1 : itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_fadd_s;
           case 3 : itype = RISCV32BF_RV32_INSN_FADD_Q; goto extract_sfmt_c_nop;
-          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_c_nop;
-          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_c_nop;
+          case 4 : itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_fadd_s;
+          case 5 : itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_fadd_s;
           case 7 : itype = RISCV32BF_RV32_INSN_FSUB_Q; goto extract_sfmt_c_nop;
-          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_c_nop;
-          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_c_nop;
+          case 8 : itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_fadd_s;
+          case 9 : itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_fadd_s;
           case 11 : itype = RISCV32BF_RV32_INSN_FMUL_Q; goto extract_sfmt_c_nop;
-          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_c_nop;
-          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_c_nop;
+          case 12 : itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_fadd_s;
+          case 13 : itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s;
           case 15 : itype = RISCV32BF_RV32_INSN_FDIV_Q; goto extract_sfmt_c_nop;
-          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJX_S; goto extract_sfmt_c_nop;
-          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJX_D; goto extract_sfmt_c_nop;
+          case 16 : itype = RISCV32BF_RV32_INSN_FSGNJX_S; goto extract_sfmt_fsgnj_s;
+          case 17 : itype = RISCV32BF_RV32_INSN_FSGNJX_D; goto extract_sfmt_fsgnj_s;
           case 19 : itype = RISCV32BF_RV32_INSN_FSGNJX_Q; goto extract_sfmt_c_nop;
           case 32 :
             {
@@ -1840,7 +1990,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0x40100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_fsqrt_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0x40300053)
@@ -1855,18 +2005,18 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 44 :
             if ((entire_insn & 0xfff0007f) == 0x58000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 45 :
             if ((entire_insn & 0xfff0007f) == 0x5a000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 47 :
             if ((entire_insn & 0xfff0007f) == 0x5e000053)
               { itype = RISCV32BF_RV32_INSN_FSQRT_Q; goto extract_sfmt_c_nop; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
-          case 80 : itype = RISCV32BF_RV32_INSN_FEQ_S; goto extract_sfmt_c_nop;
-          case 81 : itype = RISCV32BF_RV32_INSN_FEQ_D; goto extract_sfmt_c_nop;
+          case 80 : itype = RISCV32BF_RV32_INSN_FEQ_S; goto extract_sfmt_feq_s;
+          case 81 : itype = RISCV32BF_RV32_INSN_FEQ_D; goto extract_sfmt_feq_s;
           case 83 : itype = RISCV32BF_RV32_INSN_FEQ_Q; goto extract_sfmt_c_nop;
           case 96 :
             {
@@ -1875,11 +2025,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1891,11 +2041,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xc2000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xc2100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_fcvt_w_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1923,11 +2073,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0xd0000053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0xd0100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_fcvt_s_w; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               }
@@ -1936,9 +2086,9 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           }
         }
       case 371 : itype = RISCV32BF_RV32_INSN_CSRRS; goto extract_sfmt_c_nop;
-      case 391 : itype = RISCV32BF_RV32_INSN_FLD; goto extract_sfmt_c_nop;
+      case 391 : itype = RISCV32BF_RV32_INSN_FLD; goto extract_sfmt_fld;
       case 403 : itype = RISCV32BF_RV32_INSN_SLTIU; goto extract_sfmt_addi;
-      case 423 : itype = RISCV32BF_RV32_INSN_FSD; goto extract_sfmt_c_nop;
+      case 423 : itype = RISCV32BF_RV32_INSN_FSD; goto extract_sfmt_fsd;
       case 435 :
         {
           unsigned int val;
@@ -1977,12 +2127,12 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 0 : /* fall through */
           case 1 :
             if ((entire_insn & 0xfe00007f) == 0x53)
-              { itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FADD_S; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 2 : /* fall through */
           case 3 :
             if ((entire_insn & 0xfe00007f) == 0x2000053)
-              { itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FADD_D; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 6 : /* fall through */
           case 7 :
@@ -1992,12 +2142,12 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 8 : /* fall through */
           case 9 :
             if ((entire_insn & 0xfe00007f) == 0x8000053)
-              { itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSUB_S; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 10 : /* fall through */
           case 11 :
             if ((entire_insn & 0xfe00007f) == 0xa000053)
-              { itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSUB_D; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 14 : /* fall through */
           case 15 :
@@ -2007,12 +2157,12 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 16 : /* fall through */
           case 17 :
             if ((entire_insn & 0xfe00007f) == 0x10000053)
-              { itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FMUL_S; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 18 : /* fall through */
           case 19 :
             if ((entire_insn & 0xfe00007f) == 0x12000053)
-              { itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FMUL_D; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 22 : /* fall through */
           case 23 :
@@ -2022,12 +2172,12 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           case 24 : /* fall through */
           case 25 :
             if ((entire_insn & 0xfe00007f) == 0x18000053)
-              { itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FDIV_S; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 26 : /* fall through */
           case 27 :
             if ((entire_insn & 0xfe00007f) == 0x1a000053)
-              { itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FDIV_D; goto extract_sfmt_fadd_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 30 : /* fall through */
           case 31 :
@@ -2041,7 +2191,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
               {
               case 0 :
                 if ((entire_insn & 0xfff0007f) == 0x40100053)
-                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_c_nop; }
+                  { itype = RISCV32BF_RV32_INSN_FCVT_S_D; goto extract_sfmt_fsqrt_s; }
                 itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
               case 1 :
                 if ((entire_insn & 0xfff0007f) == 0x40300053)
@@ -2056,11 +2206,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 56 :
             if ((entire_insn & 0xfff0007f) == 0x58000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_S; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 58 :
             if ((entire_insn & 0xfff0007f) == 0x5a000053)
-              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FSQRT_D; goto extract_sfmt_fsqrt_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 62 :
             if ((entire_insn & 0xfff0007f) == 0x5e000053)
@@ -2068,19 +2218,19 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 96 :
             if ((entire_insn & 0xfff0007f) == 0xc0000053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_W_S; goto extract_sfmt_fcvt_w_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 97 :
             if ((entire_insn & 0xfff0007f) == 0xc0100053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_WU_S; goto extract_sfmt_fcvt_w_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 98 :
             if ((entire_insn & 0xfff0007f) == 0xc2000053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_W_D; goto extract_sfmt_fcvt_w_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 99 :
             if ((entire_insn & 0xfff0007f) == 0xc2100053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_WU_D; goto extract_sfmt_fcvt_w_s; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 102 :
             if ((entire_insn & 0xfff0007f) == 0xc6000053)
@@ -2092,11 +2242,11 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 112 :
             if ((entire_insn & 0xfff0007f) == 0xd0000053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_S_W; goto extract_sfmt_fcvt_s_w; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           case 113 :
             if ((entire_insn & 0xfff0007f) == 0xd0100053)
-              { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_c_nop; }
+              { itype = RISCV32BF_RV32_INSN_FCVT_S_WU; goto extract_sfmt_fcvt_s_w; }
             itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -2575,8 +2725,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val = (((insn >> 15) & (1 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_C_FLW; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_C_FSW; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_C_FLW; goto extract_sfmt_c_flw;
+          case 1 : itype = RISCV32BF_RV32_INSN_C_FSW; goto extract_sfmt_c_fsw;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -2760,8 +2910,8 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val = (((insn >> 15) & (1 << 0)));
           switch (val)
           {
-          case 0 : itype = RISCV32BF_RV32_INSN_C_FLWSP; goto extract_sfmt_c_nop;
-          case 1 : itype = RISCV32BF_RV32_INSN_C_FSWSP; goto extract_sfmt_c_nop;
+          case 0 : itype = RISCV32BF_RV32_INSN_C_FLWSP; goto extract_sfmt_c_flwsp;
+          case 1 : itype = RISCV32BF_RV32_INSN_C_FSWSP; goto extract_sfmt_c_fswsp;
           default : itype = RISCV32BF_RV32_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -3026,7 +3176,7 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   {
     const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
     CGEN_INSN_WORD insn = entire_insn;
-#define FLD(f) abuf->fields.sfmt_c_lw.f
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
     UDI f_uimm3_93;
     UDI f_uimm3_43;
 
@@ -3419,6 +3569,244 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   /* Record the fields for the semantic handler.  */
   FLD (f_imm12_121_81_102_61_71_21_111_53_0) = f_imm12_121_81_102_61_71_21_111_53_0;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_jal", "f_imm12_121_81_102_61_71_21_111_53_0 0x%x", 'x', f_imm12_121_81_102_61_71_21_111_53_0, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_flwsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_flwsp.f
+    UDI f_uimm1_121;
+    UINT f_rd;
+    UDI f_uimm3_63;
+    UDI f_uimm2_32;
+    DI f_uimm8_32_121_63_00;
+
+    f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1);
+    f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5);
+    f_uimm3_63 = EXTRACT_LSB0_UINT (insn, 16, 6, 3);
+    f_uimm2_32 = EXTRACT_LSB0_UINT (insn, 16, 3, 2);
+{
+  f_uimm8_32_121_63_00 = ((((((f_uimm2_32) << (4))) | (((f_uimm1_121) << (3))))) | (f_uimm3_63));
+}
+  f_uimm8_32_121_63_00 = ((f_uimm8_32_121_63_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm8_32_121_63_00) = f_uimm8_32_121_63_00;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_flwsp", "f_uimm8_32_121_63_00 0x%x", 'x', f_uimm8_32_121_63_00, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fswsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fswsp.f
+    UDI f_uimm3_123;
+    UDI f_uimm1_61;
+    UDI f_uimm5_65;
+    UDI f_uimm1_51;
+    DI f_uimm7_51_123_61_00;
+
+    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
+    f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1);
+    f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5);
+    f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1);
+{
+  f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));
+}
+  f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm5_65) = f_uimm5_65;
+  FLD (f_uimm7_51_123_61_00) = f_uimm7_51_123_61_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fswsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm7_51_123_61_00 0x%x", 'x', f_uimm7_51_123_61_00, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fsw:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_lw.f
+    UDI f_uimm3_123;
+    UDI f_uimm3_93;
+    UDI f_uimm1_61;
+    UDI f_uimm1_51;
+    UDI f_uimm3_43;
+    DI f_uimm7_51_123_61_00;
+
+    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
+    f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3);
+    f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1);
+    f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));
+}
+  f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm3_93) = f_uimm3_93;
+  FLD (f_uimm3_43) = f_uimm3_43;
+  FLD (f_uimm7_51_123_61_00) = f_uimm7_51_123_61_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fsw", "f_uimm3_93 0x%x", 'x', f_uimm3_93, "f_uimm3_43 0x%x", 'x', f_uimm3_43, "f_uimm7_51_123_61_00 0x%x", 'x', f_uimm7_51_123_61_00, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_flw:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_lw.f
+    UDI f_uimm3_123;
+    UDI f_uimm3_93;
+    UDI f_uimm1_61;
+    UDI f_uimm1_51;
+    UDI f_uimm3_43;
+    DI f_uimm7_51_123_61_00;
+
+    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
+    f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3);
+    f_uimm1_61 = EXTRACT_LSB0_UINT (insn, 16, 6, 1);
+    f_uimm1_51 = EXTRACT_LSB0_UINT (insn, 16, 5, 1);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm7_51_123_61_00 = ((((((f_uimm1_51) << (4))) | (((f_uimm3_123) << (1))))) | (f_uimm1_61));
+}
+  f_uimm7_51_123_61_00 = ((f_uimm7_51_123_61_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm3_93) = f_uimm3_93;
+  FLD (f_uimm7_51_123_61_00) = f_uimm7_51_123_61_00;
+  FLD (f_uimm3_43) = f_uimm3_43;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_flw", "f_uimm3_93 0x%x", 'x', f_uimm3_93, "f_uimm7_51_123_61_00 0x%x", 'x', f_uimm7_51_123_61_00, "f_uimm3_43 0x%x", 'x', f_uimm3_43, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fldsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fldsp.f
+    UDI f_uimm1_121;
+    UINT f_rd;
+    UDI f_uimm2_62;
+    UDI f_uimm3_43;
+    DI f_uimm9_43_121_62_000;
+
+    f_uimm1_121 = EXTRACT_LSB0_UINT (insn, 16, 12, 1);
+    f_rd = EXTRACT_LSB0_UINT (insn, 16, 11, 5);
+    f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm9_43_121_62_000 = ((((((f_uimm3_43) << (3))) | (((f_uimm1_121) << (2))))) | (f_uimm2_62));
+}
+  f_uimm9_43_121_62_000 = ((f_uimm9_43_121_62_000) << (3));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm9_43_121_62_000) = f_uimm9_43_121_62_000;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fldsp", "f_uimm9_43_121_62_000 0x%x", 'x', f_uimm9_43_121_62_000, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fsdsp:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_swsp.f
+    UDI f_uimm4_124;
+    UDI f_uimm2_82;
+    UDI f_uimm5_65;
+    DI f_uimm8_82_124_00;
+
+    f_uimm4_124 = EXTRACT_LSB0_UINT (insn, 16, 12, 4);
+    f_uimm2_82 = EXTRACT_LSB0_UINT (insn, 16, 8, 2);
+    f_uimm5_65 = EXTRACT_LSB0_UINT (insn, 16, 6, 5);
+{
+  f_uimm8_82_124_00 = ((((f_uimm2_82) << (4))) | (f_uimm4_124));
+}
+  f_uimm8_82_124_00 = ((f_uimm8_82_124_00) << (2));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm5_65) = f_uimm5_65;
+  FLD (f_uimm8_82_124_00) = f_uimm8_82_124_00;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fsdsp", "f_uimm5_65 0x%x", 'x', f_uimm5_65, "f_uimm8_82_124_00 0x%x", 'x', f_uimm8_82_124_00, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fsd:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
+    UDI f_uimm3_123;
+    UDI f_uimm3_93;
+    UDI f_uimm2_62;
+    UDI f_uimm3_43;
+    DI f_uimm8_62_123_000;
+
+    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
+    f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3);
+    f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm8_62_123_000 = ((((f_uimm2_62) << (3))) | (f_uimm3_123));
+}
+  f_uimm8_62_123_000 = ((f_uimm8_62_123_000) << (3));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm3_93) = f_uimm3_93;
+  FLD (f_uimm3_43) = f_uimm3_43;
+  FLD (f_uimm8_62_123_000) = f_uimm8_62_123_000;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fsd", "f_uimm3_93 0x%x", 'x', f_uimm3_93, "f_uimm3_43 0x%x", 'x', f_uimm3_43, "f_uimm8_62_123_000 0x%x", 'x', f_uimm8_62_123_000, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_c_fld:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_c_fsd.f
+    UDI f_uimm3_123;
+    UDI f_uimm3_93;
+    UDI f_uimm2_62;
+    UDI f_uimm3_43;
+    DI f_uimm8_62_123_000;
+
+    f_uimm3_123 = EXTRACT_LSB0_UINT (insn, 16, 12, 3);
+    f_uimm3_93 = EXTRACT_LSB0_UINT (insn, 16, 9, 3);
+    f_uimm2_62 = EXTRACT_LSB0_UINT (insn, 16, 6, 2);
+    f_uimm3_43 = EXTRACT_LSB0_UINT (insn, 16, 4, 3);
+{
+  f_uimm8_62_123_000 = ((((f_uimm2_62) << (3))) | (f_uimm3_123));
+}
+  f_uimm8_62_123_000 = ((f_uimm8_62_123_000) << (3));
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_uimm3_93) = f_uimm3_93;
+  FLD (f_uimm8_62_123_000) = f_uimm8_62_123_000;
+  FLD (f_uimm3_43) = f_uimm3_43;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_c_fld", "f_uimm3_93 0x%x", 'x', f_uimm3_93, "f_uimm8_62_123_000 0x%x", 'x', f_uimm8_62_123_000, "f_uimm3_43 0x%x", 'x', f_uimm3_43, (char *) 0));
 
 #undef FLD
     return idesc;
@@ -4159,6 +4547,368 @@ riscv32bf_rv32_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_uimm6_256) = f_uimm6_256;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsri", "f_rs1 0x%x", 'x', f_rs1, "f_rs3 0x%x", 'x', f_rs3, "f_uimm6_256 0x%x", 'x', f_uimm6_256, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_flw:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_jalr.f
+    DI f_imm12_3112;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_imm12_3112 = EXTRACT_LSB0_SINT (insn, 32, 31, 12);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_imm12_3112) = f_imm12_3112;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_flw", "f_imm12_3112 0x%x", 'x', f_imm12_3112, "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fsw:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_sb.f
+    DI f_imm7_317;
+    UINT f_rs2;
+    UINT f_rs1;
+    UDI f_uimm5_115;
+    DI f_imm12_317_115;
+
+    f_imm7_317 = EXTRACT_LSB0_SINT (insn, 32, 31, 7);
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+{
+  f_imm12_317_115 = ((((f_imm7_317) << (5))) | (f_uimm5_115));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_imm12_317_115) = f_imm12_317_115;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsw", "f_rs2 0x%x", 'x', f_rs2, "f_rs1 0x%x", 'x', f_rs1, "f_imm12_317_115 0x%x", 'x', f_imm12_317_115, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fmadd_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_cmix.f
+    UINT f_rs3;
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs3 = EXTRACT_LSB0_UINT (insn, 32, 31, 5);
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rs3) = f_rs3;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmadd_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rs3 0x%x", 'x', f_rs3, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fadd_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_cmix.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fadd_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fsgnj_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_cmix.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsgnj_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fmin_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_cmix.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmin_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_feq_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_cmix.f
+    UINT f_rs2;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_feq_s", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fsqrt_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsqrt_s", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_w_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_w_s", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fmv_x_w:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmv_x_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_s_w:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_s_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fmv_w_x:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fmv_w_x", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fld:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_jalr.f
+    DI f_imm12_3112;
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_imm12_3112 = EXTRACT_LSB0_SINT (insn, 32, 31, 12);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_imm12_3112) = f_imm12_3112;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fld", "f_imm12_3112 0x%x", 'x', f_imm12_3112, "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fsd:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_sb.f
+    DI f_imm7_317;
+    UINT f_rs2;
+    UINT f_rs1;
+    UDI f_uimm5_115;
+    DI f_imm12_317_115;
+
+    f_imm7_317 = EXTRACT_LSB0_SINT (insn, 32, 31, 7);
+    f_rs2 = EXTRACT_LSB0_UINT (insn, 32, 24, 5);
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_uimm5_115 = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+{
+  f_imm12_317_115 = ((((f_imm7_317) << (5))) | (f_uimm5_115));
+}
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs2) = f_rs2;
+  FLD (f_rs1) = f_rs1;
+  FLD (f_imm12_317_115) = f_imm12_317_115;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fsd", "f_rs2 0x%x", 'x', f_rs2, "f_rs1 0x%x", 'x', f_rs1, "f_imm12_317_115 0x%x", 'x', f_imm12_317_115, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_d_w:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_d_w", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
+ extract_sfmt_fcvt_d_s:
+  {
+    const IDESC *idesc = &riscv32bf_rv32_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_slli_shift5.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_fcvt_d_s", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;
