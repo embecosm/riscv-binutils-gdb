@@ -4760,12 +4760,12 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* unimp */
   {
     -1, "p-unimp", "unimp", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* fence */
   {
     -1, "p-fence", "fence", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32IFENCEI)|(1<<RVEXT_RV64IFENCEI), 0 } } } }
   },
 /* fence.tso */
   {
@@ -4775,67 +4775,67 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* rdinstret ${rd} */
   {
     -1, "p-rdinstret", "rdinstret", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* rdcycle ${rd} */
   {
     -1, "p-rdcycle", "rdcycle", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* rdtime ${rd} */
   {
     -1, "p-rdtime", "rdtime", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrr ${rd},${csr} */
   {
     -1, "p-csrr", "csrr", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrw ${csr},${rs1} */
   {
     -1, "p-csrw-1", "csrw", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrs ${csr},${rs1} */
   {
     -1, "p-csrs-1", "csrs", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrc ${csr},${rs1} */
   {
     -1, "p-csrc-1", "csrc", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrw ${csr},${uimm5-abs} */
   {
     -1, "p-csrw-2", "csrw", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrs ${csr},${uimm5-abs} */
   {
     -1, "p-csrs-2", "csrs", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrc ${csr},${uimm5-abs} */
   {
     -1, "p-csrc-2", "csrc", 32,
-    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(NO_DIS)|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrwi ${csr},${uimm5} */
   {
     -1, "p-csrwi", "csrwi", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrsi ${csr},${uimm5} */
   {
     -1, "p-csrsi", "csrsi", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* csrci ${csr},${uimm5} */
   {
     -1, "p-csrci", "csrci", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32I)|(1<<RVEXT_RV64I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } }, { { (1<<RVEXT_RV32ICSR)|(1<<RVEXT_RV64ICSR), 0 } } } }
   },
 /* sfence.vm */
   {
@@ -4865,17 +4865,17 @@ static const CGEN_IBASE riscv_cgen_macro_insn_table[] =
 /* rdinstreth ${rd} */
   {
     -1, "p-rdinstreth", "rdinstreth", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32ICSR), 0 } } } }
   },
 /* rdcycleh ${rd} */
   {
     -1, "p-rdcycleh", "rdcycleh", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32ICSR), 0 } } } }
   },
 /* rdtimeh ${rd} */
   {
     -1, "p-rdtimeh", "rdtimeh", 32,
-    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32I), 0 } } } }
+    { 0|A(ALIAS), { { { (1<<MACH_BASE), 0 } }, { { 1, "\x80" } }, { { (1<<RVEXT_RV32ICSR), 0 } } } }
   },
 /* addw ${rd},${rs1},${imm-lo12-abs} */
   {
