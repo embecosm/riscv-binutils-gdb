@@ -1381,6 +1381,10 @@ const CGEN_OPERAND riscv_cgen_operand_table[] =
   { "uimm5", RISCV_OPERAND_UIMM5, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
     { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
+/* uimm5-dec: uimm5 [19..15] */
+  { "uimm5-dec", RISCV_OPERAND_UIMM5_DEC, HW_H_UINT, 19, 5,
+    { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },
+    { 0, { { { (1<<MACH_BASE), 0 } }, { { 1, "\xc0" } } } }  },
 /* uimm5-abs: uimm5 [19..15] (absolute) */
   { "uimm5-abs", RISCV_OPERAND_UIMM5_ABS, HW_H_UINT, 19, 5,
     { 0, { (const PTR) &riscv_cgen_ifld_table[RISCV_F_UIMM5_195] } },

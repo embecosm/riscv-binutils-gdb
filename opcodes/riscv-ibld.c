@@ -963,6 +963,9 @@ riscv_cgen_insert_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_UIMM5_ABS :
       errmsg = insert_normal (cd, fields->f_uimm5_195, 0, 0, 19, 5, 32, total_length, buffer);
       break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      errmsg = insert_normal (cd, fields->f_uimm5_195, 0, 0, 19, 5, 32, total_length, buffer);
+      break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       {
 {
@@ -1449,6 +1452,9 @@ riscv_cgen_extract_operand (CGEN_CPU_DESC cd,
     case RISCV_OPERAND_UIMM5_ABS :
       length = extract_normal (cd, ex_info, insn_value, 0, 0, 19, 5, 32, total_length, pc, & fields->f_uimm5_195);
       break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      length = extract_normal (cd, ex_info, insn_value, 0, 0, 19, 5, 32, total_length, pc, & fields->f_uimm5_195);
+      break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       {
         length = extract_normal (cd, ex_info, insn_value, 0, 0, 12, 1, 32, total_length, pc, & fields->f_uimm1_121);
@@ -1771,6 +1777,9 @@ riscv_cgen_get_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_UIMM5_ABS :
       value = fields->f_uimm5_195;
       break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      value = fields->f_uimm5_195;
+      break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       value = fields->f_uimm6_121_65;
       break;
@@ -2005,6 +2014,9 @@ riscv_cgen_get_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       value = fields->f_uimm5_245;
       break;
     case RISCV_OPERAND_UIMM5_ABS :
+      value = fields->f_uimm5_195;
+      break;
+    case RISCV_OPERAND_UIMM5_DEC :
       value = fields->f_uimm5_195;
       break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
@@ -2250,6 +2262,9 @@ riscv_cgen_set_int_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
     case RISCV_OPERAND_UIMM5_ABS :
       fields->f_uimm5_195 = value;
       break;
+    case RISCV_OPERAND_UIMM5_DEC :
+      fields->f_uimm5_195 = value;
+      break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
       fields->f_uimm6_121_65 = value;
       break;
@@ -2481,6 +2496,9 @@ riscv_cgen_set_vma_operand (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
       fields->f_uimm5_245 = value;
       break;
     case RISCV_OPERAND_UIMM5_ABS :
+      fields->f_uimm5_195 = value;
+      break;
+    case RISCV_OPERAND_UIMM5_DEC :
       fields->f_uimm5_195 = value;
       break;
     case RISCV_OPERAND_UIMM6_121_65_ABS :
