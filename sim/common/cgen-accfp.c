@@ -969,6 +969,7 @@ cgen_init_accurate_fpu (SIM_CPU* cpu, CGEN_FPU* fpu, CGEN_FPU_ERROR_FN* error,
   o->ufloatdidf = ufloatdidf;
   o->fixsfsi = fixsfsi;
   o->fixsfdi = fixsfdi;
+  o->fixdfdi = fixdfdi;
   o->fixdfsi = fixdfsi;
   o->ufixsfsi = ufixsfsi;
   o->ufixsfdi = ufixsfdi;
