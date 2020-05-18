@@ -60,12 +60,12 @@ Disassembly of section .text:
 [ 	]+c8:[ 	]+083150b3[ 	]+unshfl[ 	]+ra,sp,gp
 [ 	]+cc:[ 	]+08511093[ 	]+shfli[ 	]+ra,sp,0x5
 [ 	]+d0:[ 	]+08515093[ 	]+unshfli[ 	]+ra,sp,0x5
-[ 	]+d4:[ 	]+083120b3[ 	]+bdep[ 	]+ra,sp,gp
+[ 	]+d4:[ 	]+483160b3[ 	]+bdep[ 	]+ra,sp,gp
 [ 	]+d8:[ 	]+083160b3[ 	]+bext[ 	]+ra,sp,gp
 [ 	]+dc:[ 	]+083140b3[ 	]+pack[ 	]+ra,sp,gp
 [ 	]+e0:[ 	]+60311093[ 	]+bmatflip[ 	]+ra,sp
 [ 	]+e4:[ 	]+083130b3[ 	]+bmator[ 	]+ra,sp,gp
-[ 	]+e8:[ 	]+083170b3[ 	]+bmatxor[ 	]+ra,sp,gp
+[ 	]+e8:[ 	]+483130b3[ 	]+bmatxor[ 	]+ra,sp,gp
 [ 	]+ec:[ 	]+4d21409b[ 	]+addiwu[ 	]+ra,sp,1234
 [ 	]+f0:[ 	]+08c1109b[ 	]+slliu.w[ 	]+ra,sp,0xc
 [ 	]+f4:[ 	]+0a3100bb[ 	]+addwu[ 	]+ra,sp,gp

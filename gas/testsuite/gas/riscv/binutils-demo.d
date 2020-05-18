@@ -58,7 +58,7 @@ Disassembly of section .text:
 [ 	]+c0:[ 	]+083150b3[ 	]+unshfl[ 	]+ra,sp,gp
 [ 	]+c4:[ 	]+08511093[ 	]+shfli[ 	]+ra,sp,0x5
 [ 	]+c8:[ 	]+08515093[ 	]+unshfli[ 	]+ra,sp,0x5
-[ 	]+cc:[ 	]+083120b3[ 	]+bdep[ 	]+ra,sp,gp
+[ 	]+cc:[ 	]+483160b3[ 	]+bdep[ 	]+ra,sp,gp
 [ 	]+d0:[ 	]+083160b3[ 	]+bext[ 	]+ra,sp,gp
 [ 	]+d4:[ 	]+083140b3[ 	]+pack[ 	]+ra,sp,gp
 [ 	]+d8:[ 	]+00008067[ 	]+ret

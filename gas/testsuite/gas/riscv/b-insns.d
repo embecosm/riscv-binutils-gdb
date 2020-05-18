@@ -10,7 +10,7 @@ Disassembly of section .text:
 [ 	]+0:[ 	]+40f7f7b3[ 	]+andn[ 	]+a5,a5,a5
 [ 	]+4:[ 	]+40f7e7b3[ 	]+orn[ 	]+a5,a5,a5
 [ 	]+8:[ 	]+40f7c7b3[ 	]+xnor[ 	]+a5,a5,a5
-[ 	]+c:[ 	]+40f797b3[ 	]+grev[ 	]+a5,a5,a5
+[ 	]+c:[ 	]+68f7d7b3[ 	]+grev[ 	]+a5,a5,a5
 [ 	]+10:[ 	]+20f797b3[ 	]+slo[ 	]+a5,a5,a5
 [ 	]+14:[ 	]+20f7d7b3[ 	]+sro[ 	]+a5,a5,a5
 [ 	]+18:[ 	]+60f797b3[ 	]+rol[ 	]+a5,a5,a5
@@ -28,10 +28,10 @@ Disassembly of section .text:
 [ 	]+48:[ 	]+0af7f7b3[ 	]+maxu[ 	]+a5,a5,a5
 [ 	]+4c:[ 	]+08f797b3[ 	]+shfl[ 	]+a5,a5,a5
 [ 	]+50:[ 	]+08f7d7b3[ 	]+unshfl[ 	]+a5,a5,a5
-[ 	]+54:[ 	]+08f7a7b3[ 	]+bdep[ 	]+a5,a5,a5
+[ 	]+54:[ 	]+48f7e7b3[ 	]+bdep[ 	]+a5,a5,a5
 [ 	]+58:[ 	]+08f7e7b3[ 	]+bext[ 	]+a5,a5,a5
 [ 	]+5c:[ 	]+08f7c7b3[ 	]+pack[ 	]+a5,a5,a5
-[ 	]+60:[ 	]+40579793[ 	]+grevi[ 	]+a5,a5,0x5
+[ 	]+60:[ 	]+6857d793[ 	]+grevi[ 	]+a5,a5,0x5
 [ 	]+64:[ 	]+20579793[ 	]+sloi[ 	]+a5,a5,0x5
 [ 	]+68:[ 	]+2057d793[ 	]+sroi[ 	]+a5,a5,0x5
 [ 	]+6c:[ 	]+6057d793[ 	]+rori[ 	]+a5,a5,0x5
