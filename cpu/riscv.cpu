@@ -2081,20 +2081,11 @@
      (+ rs3 (f-funct2 funct2) uimm5-245 rs1 (f-funct3 funct3) rd (f-opcode opcode))
      sem ()))
 ; +-------+-------+-----+--------+----+--------+
-; |31   25|24   20|19 15|14    12|11 7|6      0|
-; |<func7>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
-; +-------+-------+-----+--------+----+--------+
-(define-pmacro (rv-format-shift mnemonic attr funct7 funct3 opcode sem)
-  (dni (.str mnemonic) mnemonic attr
-    (.str mnemonic " ${rd},${rs1},${uimm5-245}")
-    (+ (f-funct7 funct7) uimm5-245 rs1 (f-funct3 funct3) rd (f-opcode opcode))
-    sem ()))
-; +-------+-------+-----+--------+----+--------+
 ; |31   27|26   20|19 15|14    12|11 7|6      0|
 ; |<func5>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
 ; +-------+-------+-----+--------+----+--------+
 (define-pmacro (rv-format-shift7 mnemonic attr funct5 funct3 opcode sem)
-  (dni (.str mnemonic) mnemonic attr
+  (dni (.str mnemonic "-shift7") mnemonic attr
     (.str mnemonic " ${rd},${rs1},${uimm7-267}")
     (+ (f-funct5 funct5) uimm7-267 rs1 (f-funct3 funct3) rd (f-opcode opcode))
     sem ()))
@@ -3129,35 +3120,19 @@
   (set rd (and (srl rs1 rs2) 1))
 )
 
-(rv-format-shift5 "sbseti"  (all-isas zbs-ext b-machs) #b00101 #b001 #b0010011
-  (set rd (or rs1 (sll 1 uimm5-245)))
-)
-
-(rv-format-shift6 "sbseti"  ((ISA rv64) zbs-ext b-machs) #b001010 #b001 #b0010011
+(rv-format-shift6 "sbseti"  (all-isas zbs-ext b-machs) #b001010 #b001 #b0010011
   (set rd (or rs1 (sll 1 uimm6-256)))
 )
 
-(rv-format-shift5 "sbclri"  (all-isas zbs-ext b-machs) #b01001 #b001 #b0010011
-  (set rd (and rs1 (inv (sll 1 uimm5-245))))
-)
-
-(rv-format-shift6 "sbclri"  ((ISA rv64) zbs-ext b-machs) #b010010 #b001 #b0010011
+(rv-format-shift6 "sbclri"  (all-isas zbs-ext b-machs) #b010010 #b001 #b0010011
   (set rd (and rs1 (inv (sll 1 uimm6-256))))
 )
 
-(rv-format-shift5 "sbinvi"  (all-isas zbs-ext b-machs) #b01101 #b001 #b0010011
-  (set rd (xor rs1 (sll 1 uimm5-245)))
-)
-
-(rv-format-shift6 "sbinvi"  ((ISA rv64) zbs-ext b-machs) #b011010 #b001 #b0010011
+(rv-format-shift6 "sbinvi"  (all-isas zbs-ext b-machs) #b011010 #b001 #b0010011
   (set rd (xor rs1 (sll 1 uimm6-256)))
 )
 
-(rv-format-shift5 "sbexti"  (all-isas zbs-ext b-machs) #b01001 #b101 #b0010011
-  (set rd (and (srl rs1 uimm5-245) 1))
-)
-
-(rv-format-shift6 "sbexti"  ((ISA rv64) zbs-ext b-machs) #b010010 #b101 #b0010011
+(rv-format-shift6 "sbexti"  (all-isas zbs-ext b-machs) #b010010 #b101 #b0010011
   (set rd (and (srl rs1 uimm6-256) 1))
 )
 
@@ -3193,21 +3168,21 @@
   )
 )
 
-(rv-format-shift "sbsetiw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0011011
+(rv-format-shift5 "sbsetiw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (or rs1-t (sll 1 (and uimm6-256 #x1f)))))
   )
 )
 
-(rv-format-shift "sbclriw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0011011
+(rv-format-shift5 "sbclriw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (and rs1-t (inv (sll 1 (and uimm6-256 #x1f))))))
   )
 )
 
-(rv-format-shift "sbinviw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0011011
+(rv-format-shift5 "sbinviw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (xor rs1-t (sll 1 (and uimm6-256 #x1f)))))
@@ -3222,19 +3197,11 @@
   (set rd (inv (srl (inv rs1) rs2)))
 )
 
-(rv-format-shift5 "sloi"    (all-isas zbb-ext b-machs) #b00100 #b001 #b0010011
-  (set rd (inv (sll (inv rs1) (and uimm5-245 #x1f))))
-)
-
-(rv-format-shift6 "sloi"    ((ISA rv64) zbb-ext b-machs) #b001000 #b001 #b0010011
+(rv-format-shift6 "sloi"    (all-isas zbb-ext b-machs) #b001000 #b001 #b0010011
   (set rd (inv (sll (inv rs1) (and uimm6-256 #x3f))))
 )
 
-(rv-format-shift5 "sroi"    (all-isas zbb-ext b-machs) #b00100 #b101 #b0010011
-  (set rd (inv (srl (inv rs1) (and uimm5-245 #x1f))))
-)
-
-(rv-format-shift6 "sroi"    ((ISA rv64) zbb-ext b-machs) #b001000 #b101 #b0010011
+(rv-format-shift6 "sroi"    (all-isas zbb-ext b-machs) #b001000 #b101 #b0010011
   (set rd (inv (srl (inv rs1) (and uimm6-256 #x3f))))
 )
 
@@ -3252,14 +3219,14 @@
   )
 )
 
-(rv-format-shift "sloiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0011011
+(rv-format-shift5 "sloiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (inv (sll (inv rs1-t) (and uimm5-245 #x1f)))))
   )
 )
 
-(rv-format-shift "sroiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0011011
+(rv-format-shift5 "sroiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (inv (srl (inv rs1-t) (and uimm5-245 #x1f)))))
@@ -3274,12 +3241,8 @@
   (set rd (ror rs1 rs2))
 )
 
-(rv-format-shift5 "rori"    (all-isas zbb-ext b-machs) #b01100 #b101 #b0010011
-  (set rd (ror rs1 (and uimm5-245 #x1f)))
-)
-
-(rv-format-shift6 "rori"    ((ISA rv64) zbb-ext b-machs) #b011000 #b101 #b0010011
-  (set rd (ror rs1 (and uimm5-245 #x1f)))
+(rv-format-shift6 "rori"    (all-isas zbb-ext b-machs) #b011000 #b101 #b0010011
+  (set rd (ror rs1 (and uimm6-256 #x3f)))
 )
 
 (rv-format-r "rolw"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b001 #b0111011
@@ -3296,7 +3259,7 @@
   )
 )
 
-(rv-format-shift "roriw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0011011
+(rv-format-shift5 "roriw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0011011
   (sequence ((SI rs1-t))
     (set rs1-t (trunc SI rs1))
     (set rd (zext DI (ror rs1-t (and uimm5-245 #x1f))))
@@ -3361,34 +3324,33 @@
   )
 )
 
-(rv-format-shift5 "grevi"   (all-isas zbp-ext b-machs) #b01000 #b001 #b0010011
+(rv-format-shift6 "grevi"   (all-isas zbp-ext b-machs) #b011010 #b101 #b0010011
+  (if (eq (reg h-xlen) 32)
     (sequence ((DI result))
       (set result rs1)
 
-      (if (eq (and uimm5-245 1) 1)
+      (if (eq (and uimm6-256 1) 1)
         (set result (or (sll (and result #x55555555) 1)
                         (srl (and result #xaaaaaaaa) 1))))
 
-      (if (eq (and uimm5-245 2) 2)
+      (if (eq (and uimm6-256 2) 2)
         (set result (or (sll (and result #x33333333) 2)
                         (srl (and result #xcccccccc) 2))))
 
-      (if (eq (and uimm5-245 4) 4)
+      (if (eq (and uimm6-256 4) 4)
         (set result (or (sll (and result #x0f0f0f0f) 4)
                         (srl (and result #xf0f0f0f0) 4))))
 
-      (if (eq (and uimm5-245 8) 8)
+      (if (eq (and uimm6-256 8) 8)
         (set result (or (sll (and result #x00ff00ff) 8)
                         (srl (and result #xff00ff00) 8))))
 
-      (if (eq (and uimm5-245 16) 16)
+      (if (eq (and uimm6-256 16) 16)
         (set result (or (sll (and result #x0000ffff) 16)
                         (srl (and result #xffff0000) 16))))
       (set rd result)
     )
-)
-
-(rv-format-shift6 "grevi"   (all-isas zbp-ext b-machs) #b010000 #b001 #b0010011
+    ; ...else if h-xlen != 32...
     (sequence ((DI result))
       (set result rs1)
 
@@ -3417,6 +3379,7 @@
                         (srl (and result #xffffffff00000000) 32))))
       (set rd result)
     )
+  )
 )
 
 (rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0111011
@@ -3447,7 +3410,7 @@
     )
 )
 
-(rv-format-shift "greviw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0011011
+(rv-format-shift5 "greviw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0110100 #b101 #b0011011
     (sequence ((SI result))
       (set result rs1)
 
@@ -3596,34 +3559,6 @@
   )
 )
 
-(rv-format-shift5 "shfli"   (all-isas zbp-ext b-machs) #b00001 #b001 #b0010011
-    (sequence ((DI result))
-      (set result rs1)
-
-      (if (eq (and uimm5-245 8) 8)
-        (set result (or (or (srl (and result #x00ff0000) 8)
-                            (sll (and result #x0000ff00) 8))
-                            (and result #xff0000ff))))
-
-      (if (eq (and uimm5-245 4) 4)
-        (set result (or (or (srl (and result #x0f000f00) 4)
-                            (sll (and result #x00f000f0) 4))
-                            (and result #xf00ff00f))))
-
-      (if (eq (and uimm5-245 2) 2)
-        (set result (or (or (srl (and result #x30303030) 2)
-                            (sll (and result #x0c0c0c0c) 2))
-                            (and result #xc3c3c3c3))))
-
-      (if (eq (and uimm5-245 1) 1)
-        (set result (or (or (srl (and result #x44444444) 1)
-                            (sll (and result #x22222222) 1))
-                            (and result #x99999999))))
-
-      (set rd result)
-    )
-)
-
 (rv-format-shift6 "shfli"   ((ISA rv64) zbp-ext b-machs) #b000010 #b001 #b0010011
     (sequence ((DI result))
       (set result rs1)
@@ -3652,34 +3587,6 @@
         (set result (or (or (srl (and result #x4444444444444444) 1)
                             (sll (and result #x2222222222222222) 1))
                             (and result #x9999999999999999))))
-
-      (set rd result)
-    )
-)
-
-(rv-format-shift5 "unshfli" (all-isas zbp-ext b-machs) #b00001 #b101 #b0010011
-    (sequence ((DI result))
-      (set result rs1)
-
-      (if (eq (and uimm5-245 1) 1)
-        (set result (or (or (srl (and result #x44444444) 1)
-                            (sll (and result #x22222222) 1))
-                            (and result #x99999999))))
-
-      (if (eq (and uimm5-245 2) 2)
-        (set result (or (or (srl (and result #x30303030) 2)
-                            (sll (and result #x0c0c0c0c) 2))
-                            (and result #xc3c3c3c3))))
-
-      (if (eq (and uimm5-245 4) 4)
-        (set result (or (or (srl (and result #x0f000f00) 4)
-                            (sll (and result #x00f000f0) 4))
-                            (and result #xf00ff00f))))
-
-      (if (eq (and uimm5-245 8) 8)
-        (set result (or (or (srl (and result #x00ff0000) 8)
-                            (sll (and result #x0000ff00) 8))
-                            (and result #xff0000ff))))
 
       (set rd result)
     )
@@ -3844,73 +3751,73 @@
   )
 )
 
-(rv-format-shift5 "gorci"   (all-isas zbp-ext b-machs) #b00101 #b101 #b0010011
+(rv-format-shift6 "gorci"   (all-isas zbp-ext b-machs) #b001010 #b101 #b0010011
+  (if (eq (reg h-xlen) 32)
     (sequence ((DI result))
       (set result rs1)
 
-      (if (and uimm5-245 1)
+      (if (and uimm6-256 1)
         (set result (or (or (sll (and result #x55555555) 1)
                             (srl (and result #xaaaaaaaa) 1))
 			    result)))
 
-      (if (and uimm5-245 2)
+      (if (and uimm6-256 2)
         (set result (or (or (sll (and result #x33333333) 2)
                             (srl (and result #xcccccccc) 2))
                             result)))
 
-      (if (and uimm5-245 4)
+      (if (and uimm6-256 4)
         (set result (or (or (sll (and result #x0f0f0f0f) 4)
                             (srl (and result #xf0f0f0f0) 4))
 			    result)))
 
-      (if (and uimm5-245 8)
+      (if (and uimm6-256 8)
         (set result (or (or (sll (and result #x00ff00ff) 8)
                             (srl (and result #xff00ff00) 8))
 			    result)))
 
-      (if (and uimm5-245 16)
+      (if (and uimm6-256 16)
         (set result (or (or (sll (and result #x0000ffff) 16)
                             (srl (and result #xffff0000) 16))
 			    result)))
       (set rd result)
     )
-)
-
-(rv-format-shift6 "gorci"   (all-isas zbp-ext b-machs) #b001010 #b101 #b0010011
+    ; ...else if h-xlen != 32...
     (sequence ((DI result))
       (set result rs1)
 
-      (if (and rs2 1)
+      (if (and uimm6-256 1)
         (set result (or (or (sll (and result #x5555555555555555) 1)
                             (srl (and result #xaaaaaaaaaaaaaaaa) 1))
 			    result)))
 
-      (if (and rs2 2)
+      (if (and uimm6-256 2)
         (set result (or (or (sll (and result #x3333333333333333) 2)
                             (srl (and result #xcccccccccccccccc) 2))
 			    result)))
 
-      (if (and rs2 4)
+      (if (and uimm6-256 4)
         (set result (or (or (sll (and result #x0f0f0f0f0f0f0f0f) 4)
                             (srl (and result #xf0f0f0f0f0f0f0f0) 4))
 			    result)))
 
-      (if (and rs2 8)
+      (if (and uimm6-256 8)
         (set result (or (or (sll (and result #x00ff00ff00ff00ff) 8)
                             (srl (and result #xff00ff00ff00ff00) 8))
 			    result)))
 
-      (if (and rs2 16)
+      (if (and uimm6-256 16)
         (set result (or (or (sll (and result #x0000ffff0000ffff) 16)
                             (srl (and result #xffff0000ffff0000) 16))
 			    result)))
 
-      (if (and rs2 32)
+      (if (and uimm6-256 32)
         (set result (or (or (sll (and result #x00000000ffffffff) 32)
                             (srl (and result #xffffffff00000000) 32))
 			    result)))
       (set rd result)
     )
+  )
 )
 
 (rv-format-r "gorcw"   (all-isas zbp-ext b-machs)  #b0010100 #b101 #b0111011
@@ -3945,7 +3852,7 @@
     )
 )
 
-(rv-format-shift "gorciw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0010100 #b101 #b0011011
+(rv-format-shift5 "gorciw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0010100 #b101 #b0011011
     (sequence ((SI result))
       (set result (trunc SI rs1))
 
@@ -5024,27 +4931,16 @@
 
 
 ;===----------------- 'B' extension macro instructions ----------------------===
-(rv-macro p-slo-1        "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sloi-shift5 rd rs1 uimm5-245))
-(rv-macro p-slo-2        "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sloi-shift6 rd rs1 uimm6-256))
 
-(rv-macro p-sro-1        "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sroi-shift5 rd rs1 uimm5-245))
-(rv-macro p-sro-2        "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sroi-shift6 rd rs1 uimm6-256))
-
-(rv-macro p-ror-1        "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit rori-shift5 rd rs1 uimm5-245))
-(rv-macro p-ror-2        "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit rori-shift6 rd rs1 uimm6-256))
+(rv-macro p-slo          "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sloi-shift6 rd rs1 uimm6-256))
+(rv-macro p-sro          "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sroi-shift6 rd rs1 uimm6-256))
+(rv-macro p-ror          "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit rori-shift6 rd rs1 uimm6-256))
 
 ; These aren't technically shifts, but the encoding and 5/6 bit difference for rv32/rv64 is equivalent.
-(rv-macro p-sbset-1        "sbset"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbseti-shift5 rd rs1 uimm5-245))
-(rv-macro p-sbset-2        "sbset"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbseti-shift6 rd rs1 uimm6-256))
-
-(rv-macro p-sbclr-1        "sbclr"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbclri-shift5 rd rs1 uimm5-245))
-(rv-macro p-sbclr-2        "sbclr"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbclri-shift6 rd rs1 uimm6-256))
-
-(rv-macro p-sbinv-1        "sbinv"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbinvi-shift5 rd rs1 uimm5-245))
-(rv-macro p-sbinv-2        "sbinv"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbinvi-shift6 rd rs1 uimm6-256))
-
-(rv-macro p-sbext-1        "sbext"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit sbexti-shift5 rd rs1 uimm5-245))
-(rv-macro p-sbext-2        "sbext"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbexti-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbset        "sbset"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbseti-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbclr        "sbclr"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbclri-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbinv        "sbinv"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbinvi-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbext        "sbext"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbexti-shift6 rd rs1 uimm6-256))
 
 (rv-macro p-fsri "fsr"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${rs3},${uimm6-256}" (emit fsri rd rs1 rs3 uimm6-256))
 
@@ -5056,12 +4952,12 @@
 ;(rv-macro p-sbinvi "sbinv" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbinvi rd rs1 uimm7-267))
 ;(rv-macro p-sbexti "sbext" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbexti rd rs1 uimm7-267))
 
-(rv-macro p-sloiw "slow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sloiw rd rs1 uimm5-245))
-(rv-macro p-sroiw "srow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sroiw rd rs1 uimm5-245))
-(rv-macro p-roriw "rorw"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit roriw rd rs1 uimm5-245))
-(rv-macro p-sbsetiw "sbsetw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbsetiw rd rs1 uimm5-245))
-(rv-macro p-sbclriw "sbclrw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbclriw rd rs1 uimm5-245))
-(rv-macro p-sbinviw "sbinvw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbinviw rd rs1 uimm5-245))
+(rv-macro p-sloiw "slow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sloiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sroiw "srow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sroiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-roriw "rorw"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit roriw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbsetiw "sbsetw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbsetiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbclriw "sbclrw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbclriw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbinviw "sbinvw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbinviw-shift5 rd rs1 uimm5-245))
 (rv-macro p-fsriw "fsrw"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${rs3},${uimm5-245}" (emit fsriw rd rs1 rs3 uimm5-245))
 
 ;===----------------- 'F' extension macro instructions ----------------------===

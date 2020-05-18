@@ -6472,27 +6472,6 @@ SEM_FN_NAME (riscv64bf_rv64,sbext) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sbseti-shift5: sbseti ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbseti_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = ORDI (GET_H_GPR (FLD (f_rs1)), SLLSI (1, FLD (f_uimm5_245)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
 /* sbseti-shift6: sbseti ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
@@ -6506,27 +6485,6 @@ SEM_FN_NAME (riscv64bf_rv64,sbseti_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 
   {
     DI opval = ORDI (GET_H_GPR (FLD (f_rs1)), SLLSI (1, FLD (f_uimm6_256)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
-/* sbclri-shift5: sbclri ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbclri_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = ANDDI (GET_H_GPR (FLD (f_rs1)), INVSI (SLLSI (1, FLD (f_uimm5_245))));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -6556,27 +6514,6 @@ SEM_FN_NAME (riscv64bf_rv64,sbclri_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 #undef FLD
 }
 
-/* sbinvi-shift5: sbinvi ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbinvi_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = XORDI (GET_H_GPR (FLD (f_rs1)), SLLSI (1, FLD (f_uimm5_245)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
 /* sbinvi-shift6: sbinvi ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
@@ -6590,27 +6527,6 @@ SEM_FN_NAME (riscv64bf_rv64,sbinvi_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_ar
 
   {
     DI opval = XORDI (GET_H_GPR (FLD (f_rs1)), SLLSI (1, FLD (f_uimm6_256)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
-/* sbexti-shift5: sbexti ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbexti_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = ANDDI (SRLDI (GET_H_GPR (FLD (f_rs1)), FLD (f_uimm5_245)), 1);
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -6748,10 +6664,10 @@ SEM_FN_NAME (riscv64bf_rv64,sbextw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sbsetiw: sbsetiw ${rd},${rs1},${uimm5-245} */
+/* sbsetiw-shift5: sbsetiw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbsetiw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,sbsetiw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -6773,10 +6689,10 @@ SEM_FN_NAME (riscv64bf_rv64,sbsetiw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sbclriw: sbclriw ${rd},${rs1},${uimm5-245} */
+/* sbclriw-shift5: sbclriw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbclriw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,sbclriw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -6798,10 +6714,10 @@ SEM_FN_NAME (riscv64bf_rv64,sbclriw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sbinviw: sbinviw ${rd},${rs1},${uimm5-245} */
+/* sbinviw-shift5: sbinviw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sbinviw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,sbinviw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -6865,27 +6781,6 @@ SEM_FN_NAME (riscv64bf_rv64,sro) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sloi-shift5: sloi ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sloi_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = INVDI (SLLDI (INVDI (GET_H_GPR (FLD (f_rs1))), ANDDI (FLD (f_uimm5_245), 31)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
 /* sloi-shift6: sloi ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
@@ -6899,27 +6794,6 @@ SEM_FN_NAME (riscv64bf_rv64,sloi_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
   {
     DI opval = INVDI (SLLDI (INVDI (GET_H_GPR (FLD (f_rs1))), ANDDI (FLD (f_uimm6_256), 63)));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
-/* sroi-shift5: sroi ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sroi_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = INVDI (SRLDI (INVDI (GET_H_GPR (FLD (f_rs1))), ANDDI (FLD (f_uimm5_245), 31)));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -6999,10 +6873,10 @@ SEM_FN_NAME (riscv64bf_rv64,srow) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sloiw: sloiw ${rd},${rs1},${uimm5-245} */
+/* sloiw-shift5: sloiw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sloiw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,sloiw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -7024,10 +6898,10 @@ SEM_FN_NAME (riscv64bf_rv64,sloiw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* sroiw: sroiw ${rd},${rs1},${uimm5-245} */
+/* sroiw-shift5: sroiw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,sroiw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,sroiw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -7091,40 +6965,19 @@ SEM_FN_NAME (riscv64bf_rv64,ror) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* rori-shift5: rori ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,rori_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-  {
-    DI opval = RORDI (GET_H_GPR (FLD (f_rs1)), ANDDI (FLD (f_uimm5_245), 31));
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-
-  return vpc;
-#undef FLD
-}
-
 /* rori-shift6: rori ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
 SEM_FN_NAME (riscv64bf_rv64,rori_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
   {
-    DI opval = RORDI (GET_H_GPR (FLD (f_rs1)), ANDDI (FLD (f_uimm5_245), 31));
+    DI opval = RORDI (GET_H_GPR (FLD (f_rs1)), ANDDI (FLD (f_uimm6_256), 63));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -7183,10 +7036,10 @@ SEM_FN_NAME (riscv64bf_rv64,rorw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* roriw: roriw ${rd},${rs1},${uimm5-245} */
+/* roriw-shift5: roriw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,roriw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,roriw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -7281,46 +7134,6 @@ if (EQDI (ANDDI (GET_H_GPR (FLD (f_rs2)), 32), 32)) {
 #undef FLD
 }
 
-/* grevi-shift5: grevi ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,grevi_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-{
-  DI tmp_result;
-  tmp_result = GET_H_GPR (FLD (f_rs1));
-if (EQDI (ANDDI (FLD (f_uimm5_245), 1), 1)) {
-  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 1431655765), 1), SRLDI (ANDDI (tmp_result, 0xaaaaaaaa), 1));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 2), 2)) {
-  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 858993459), 2), SRLDI (ANDDI (tmp_result, 0xcccccccc), 2));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 4), 4)) {
-  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 252645135), 4), SRLDI (ANDDI (tmp_result, 0xf0f0f0f0), 4));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 8), 8)) {
-  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 16711935), 8), SRLDI (ANDDI (tmp_result, 0xff00ff00), 8));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 16), 16)) {
-  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 65535), 16), SRLDI (ANDDI (tmp_result, 0xffff0000), 16));
-}
-  {
-    DI opval = tmp_result;
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-}
-
-  return vpc;
-#undef FLD
-}
-
 /* grevi-shift6: grevi ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
@@ -7332,6 +7145,33 @@ SEM_FN_NAME (riscv64bf_rv64,grevi_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_arg
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
+if (EQDI (GET_H_XLEN (), 32)) {
+{
+  DI tmp_result;
+  tmp_result = GET_H_GPR (FLD (f_rs1));
+if (EQDI (ANDDI (FLD (f_uimm6_256), 1), 1)) {
+  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 1431655765), 1), SRLDI (ANDDI (tmp_result, 0xaaaaaaaa), 1));
+}
+if (EQDI (ANDDI (FLD (f_uimm6_256), 2), 2)) {
+  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 858993459), 2), SRLDI (ANDDI (tmp_result, 0xcccccccc), 2));
+}
+if (EQDI (ANDDI (FLD (f_uimm6_256), 4), 4)) {
+  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 252645135), 4), SRLDI (ANDDI (tmp_result, 0xf0f0f0f0), 4));
+}
+if (EQDI (ANDDI (FLD (f_uimm6_256), 8), 8)) {
+  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 16711935), 8), SRLDI (ANDDI (tmp_result, 0xff00ff00), 8));
+}
+if (EQDI (ANDDI (FLD (f_uimm6_256), 16), 16)) {
+  tmp_result = ORDI (SLLDI (ANDDI (tmp_result, 65535), 16), SRLDI (ANDDI (tmp_result, 0xffff0000), 16));
+}
+  {
+    DI opval = tmp_result;
+    SET_H_GPR (FLD (f_rd), opval);
+    written |= (1 << 3);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+}
+} else {
 {
   DI tmp_result;
   tmp_result = GET_H_GPR (FLD (f_rs1));
@@ -7356,10 +7196,13 @@ if (EQDI (ANDDI (FLD (f_uimm6_256), 32), 32)) {
   {
     DI opval = tmp_result;
     SET_H_GPR (FLD (f_rd), opval);
+    written |= (1 << 3);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
 }
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -7406,10 +7249,10 @@ if (EQSI (ANDSI (tmp_rs2_t, 16), 16)) {
 #undef FLD
 }
 
-/* greviw: greviw ${rd},${rs1},${uimm5-245} */
+/* greviw-shift5: greviw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,greviw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,greviw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -7580,43 +7423,6 @@ if (EQDI (ANDDI (GET_H_GPR (FLD (f_rs2)), 16), 16)) {
 #undef FLD
 }
 
-/* shfli-shift5: shfli ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,shfli_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-{
-  DI tmp_result;
-  tmp_result = GET_H_GPR (FLD (f_rs1));
-if (EQDI (ANDDI (FLD (f_uimm5_245), 8), 8)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 16711680), 8), SLLDI (ANDDI (tmp_result, 65280), 8)), ANDDI (tmp_result, 0xff0000ff));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 4), 4)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 251662080), 4), SLLDI (ANDDI (tmp_result, 15728880), 4)), ANDDI (tmp_result, 0xf00ff00f));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 2), 2)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 808464432), 2), SLLDI (ANDDI (tmp_result, 202116108), 2)), ANDDI (tmp_result, 0xc3c3c3c3));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 1), 1)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 1145324612), 1), SLLDI (ANDDI (tmp_result, 572662306), 1)), ANDDI (tmp_result, 0x99999999));
-}
-  {
-    DI opval = tmp_result;
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-}
-
-  return vpc;
-#undef FLD
-}
-
 /* shfli-shift6: shfli ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
@@ -7645,43 +7451,6 @@ if (EQDI (ANDDI (FLD (f_uimm6_256), 2), 2)) {
 }
 if (EQDI (ANDDI (FLD (f_uimm6_256), 1), 1)) {
   tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, MAKEDI (1145324612, 1145324612)), 1), SLLDI (ANDDI (tmp_result, MAKEDI (572662306, 572662306)), 1)), ANDDI (tmp_result, MAKEDI (0x99999999, 0x99999999)));
-}
-  {
-    DI opval = tmp_result;
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-}
-
-  return vpc;
-#undef FLD
-}
-
-/* unshfli-shift5: unshfli ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,unshfli_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-{
-  DI tmp_result;
-  tmp_result = GET_H_GPR (FLD (f_rs1));
-if (EQDI (ANDDI (FLD (f_uimm5_245), 1), 1)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 1145324612), 1), SLLDI (ANDDI (tmp_result, 572662306), 1)), ANDDI (tmp_result, 0x99999999));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 2), 2)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 808464432), 2), SLLDI (ANDDI (tmp_result, 202116108), 2)), ANDDI (tmp_result, 0xc3c3c3c3));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 4), 4)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 251662080), 4), SLLDI (ANDDI (tmp_result, 15728880), 4)), ANDDI (tmp_result, 0xf00ff00f));
-}
-if (EQDI (ANDDI (FLD (f_uimm5_245), 8), 8)) {
-  tmp_result = ORDI (ORDI (SRLDI (ANDDI (tmp_result, 16711680), 8), SLLDI (ANDDI (tmp_result, 65280), 8)), ANDDI (tmp_result, 0xff0000ff));
 }
   {
     DI opval = tmp_result;
@@ -7881,85 +7650,75 @@ if (ANDDI (GET_H_GPR (FLD (f_rs2)), 32)) {
 #undef FLD
 }
 
-/* gorci-shift5: gorci ${rd},${rs1},${uimm5-245} */
-
-static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,gorci_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
-  int UNUSED written = 0;
-  IADDR UNUSED pc = abuf->addr;
-  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
-
-{
-  DI tmp_result;
-  tmp_result = GET_H_GPR (FLD (f_rs1));
-if (ANDDI (FLD (f_uimm5_245), 1)) {
-  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 1431655765), 1), SRLDI (ANDDI (tmp_result, 0xaaaaaaaa), 1)), tmp_result);
-}
-if (ANDDI (FLD (f_uimm5_245), 2)) {
-  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 858993459), 2), SRLDI (ANDDI (tmp_result, 0xcccccccc), 2)), tmp_result);
-}
-if (ANDDI (FLD (f_uimm5_245), 4)) {
-  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 252645135), 4), SRLDI (ANDDI (tmp_result, 0xf0f0f0f0), 4)), tmp_result);
-}
-if (ANDDI (FLD (f_uimm5_245), 8)) {
-  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 16711935), 8), SRLDI (ANDDI (tmp_result, 0xff00ff00), 8)), tmp_result);
-}
-if (ANDDI (FLD (f_uimm5_245), 16)) {
-  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 65535), 16), SRLDI (ANDDI (tmp_result, 0xffff0000), 16)), tmp_result);
-}
-  {
-    DI opval = tmp_result;
-    SET_H_GPR (FLD (f_rd), opval);
-    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
-  }
-}
-
-  return vpc;
-#undef FLD
-}
-
 /* gorci-shift6: gorci ${rd},${rs1},${uimm6-256} */
 
 static SEM_PC
 SEM_FN_NAME (riscv64bf_rv64,gorci_shift6) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
   int UNUSED written = 0;
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
+if (EQDI (GET_H_XLEN (), 32)) {
 {
   DI tmp_result;
   tmp_result = GET_H_GPR (FLD (f_rs1));
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 1)) {
+if (ANDDI (FLD (f_uimm6_256), 1)) {
+  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 1431655765), 1), SRLDI (ANDDI (tmp_result, 0xaaaaaaaa), 1)), tmp_result);
+}
+if (ANDDI (FLD (f_uimm6_256), 2)) {
+  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 858993459), 2), SRLDI (ANDDI (tmp_result, 0xcccccccc), 2)), tmp_result);
+}
+if (ANDDI (FLD (f_uimm6_256), 4)) {
+  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 252645135), 4), SRLDI (ANDDI (tmp_result, 0xf0f0f0f0), 4)), tmp_result);
+}
+if (ANDDI (FLD (f_uimm6_256), 8)) {
+  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 16711935), 8), SRLDI (ANDDI (tmp_result, 0xff00ff00), 8)), tmp_result);
+}
+if (ANDDI (FLD (f_uimm6_256), 16)) {
+  tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 65535), 16), SRLDI (ANDDI (tmp_result, 0xffff0000), 16)), tmp_result);
+}
+  {
+    DI opval = tmp_result;
+    SET_H_GPR (FLD (f_rd), opval);
+    written |= (1 << 3);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+}
+} else {
+{
+  DI tmp_result;
+  tmp_result = GET_H_GPR (FLD (f_rs1));
+if (ANDDI (FLD (f_uimm6_256), 1)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, MAKEDI (1431655765, 1431655765)), 1), SRLDI (ANDDI (tmp_result, MAKEDI (0xaaaaaaaa, 0xaaaaaaaa)), 1)), tmp_result);
 }
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 2)) {
+if (ANDDI (FLD (f_uimm6_256), 2)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, MAKEDI (858993459, 858993459)), 2), SRLDI (ANDDI (tmp_result, MAKEDI (0xcccccccc, 0xcccccccc)), 2)), tmp_result);
 }
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 4)) {
+if (ANDDI (FLD (f_uimm6_256), 4)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, MAKEDI (252645135, 252645135)), 4), SRLDI (ANDDI (tmp_result, MAKEDI (0xf0f0f0f0, 0xf0f0f0f0)), 4)), tmp_result);
 }
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 8)) {
+if (ANDDI (FLD (f_uimm6_256), 8)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, MAKEDI (16711935, 16711935)), 8), SRLDI (ANDDI (tmp_result, MAKEDI (0xff00ff00, 0xff00ff00)), 8)), tmp_result);
 }
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 16)) {
+if (ANDDI (FLD (f_uimm6_256), 16)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, MAKEDI (65535, 65535)), 16), SRLDI (ANDDI (tmp_result, MAKEDI (0xffff0000, 0xffff0000)), 16)), tmp_result);
 }
-if (ANDDI (GET_H_GPR (FLD (f_rs2)), 32)) {
+if (ANDDI (FLD (f_uimm6_256), 32)) {
   tmp_result = ORDI (ORDI (SLLDI (ANDDI (tmp_result, 0xffffffff), 32), SRLDI (ANDDI (tmp_result, MAKEDI (0xffffffff, 0)), 32)), tmp_result);
 }
   {
     DI opval = tmp_result;
     SET_H_GPR (FLD (f_rd), opval);
+    written |= (1 << 3);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
 }
+}
 
+  abuf->written = written;
   return vpc;
 #undef FLD
 }
@@ -8004,10 +7763,10 @@ if (ANDDI (GET_H_GPR (FLD (f_rs2)), 16)) {
 #undef FLD
 }
 
-/* gorciw: gorciw ${rd},${rs1},${uimm5-245} */
+/* gorciw-shift5: gorciw ${rd},${rs1},${uimm5-245} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,gorciw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,gorciw_shift5) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -9322,10 +9081,10 @@ SEM_FN_NAME (riscv64bf_rv64,subu_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 #undef FLD
 }
 
-/* slliu.w: slliu.w ${rd},${rs1},${uimm7-267} */
+/* slliu.w-shift7: slliu.w ${rd},${rs1},${uimm7-267} */
 
 static SEM_PC
-SEM_FN_NAME (riscv64bf_rv64,slliu_w) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+SEM_FN_NAME (riscv64bf_rv64,slliu_w_shift7) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   ARGBUF *abuf = SEM_ARGBUF (sem_arg);
@@ -11842,56 +11601,45 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV64BF_RV64_INSN_SBCLR, SEM_FN_NAME (riscv64bf_rv64,sbclr) },
   { RISCV64BF_RV64_INSN_SBINV, SEM_FN_NAME (riscv64bf_rv64,sbinv) },
   { RISCV64BF_RV64_INSN_SBEXT, SEM_FN_NAME (riscv64bf_rv64,sbext) },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbseti_shift5) },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sbseti_shift6) },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbclri_shift5) },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sbclri_shift6) },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbinvi_shift5) },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sbinvi_shift6) },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbexti_shift5) },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sbexti_shift6) },
   { RISCV64BF_RV64_INSN_SBSETW, SEM_FN_NAME (riscv64bf_rv64,sbsetw) },
   { RISCV64BF_RV64_INSN_SBCLRW, SEM_FN_NAME (riscv64bf_rv64,sbclrw) },
   { RISCV64BF_RV64_INSN_SBINVW, SEM_FN_NAME (riscv64bf_rv64,sbinvw) },
   { RISCV64BF_RV64_INSN_SBEXTW, SEM_FN_NAME (riscv64bf_rv64,sbextw) },
-  { RISCV64BF_RV64_INSN_SBSETIW, SEM_FN_NAME (riscv64bf_rv64,sbsetiw) },
-  { RISCV64BF_RV64_INSN_SBCLRIW, SEM_FN_NAME (riscv64bf_rv64,sbclriw) },
-  { RISCV64BF_RV64_INSN_SBINVIW, SEM_FN_NAME (riscv64bf_rv64,sbinviw) },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbsetiw_shift5) },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbclriw_shift5) },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sbinviw_shift5) },
   { RISCV64BF_RV64_INSN_SLO, SEM_FN_NAME (riscv64bf_rv64,slo) },
   { RISCV64BF_RV64_INSN_SRO, SEM_FN_NAME (riscv64bf_rv64,sro) },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sloi_shift5) },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sloi_shift6) },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sroi_shift5) },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,sroi_shift6) },
   { RISCV64BF_RV64_INSN_SLOW, SEM_FN_NAME (riscv64bf_rv64,slow) },
   { RISCV64BF_RV64_INSN_SROW, SEM_FN_NAME (riscv64bf_rv64,srow) },
-  { RISCV64BF_RV64_INSN_SLOIW, SEM_FN_NAME (riscv64bf_rv64,sloiw) },
-  { RISCV64BF_RV64_INSN_SROIW, SEM_FN_NAME (riscv64bf_rv64,sroiw) },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sloiw_shift5) },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,sroiw_shift5) },
   { RISCV64BF_RV64_INSN_ROL, SEM_FN_NAME (riscv64bf_rv64,rol) },
   { RISCV64BF_RV64_INSN_ROR, SEM_FN_NAME (riscv64bf_rv64,ror) },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,rori_shift5) },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,rori_shift6) },
   { RISCV64BF_RV64_INSN_ROLW, SEM_FN_NAME (riscv64bf_rv64,rolw) },
   { RISCV64BF_RV64_INSN_RORW, SEM_FN_NAME (riscv64bf_rv64,rorw) },
-  { RISCV64BF_RV64_INSN_RORIW, SEM_FN_NAME (riscv64bf_rv64,roriw) },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,roriw_shift5) },
   { RISCV64BF_RV64_INSN_GREV, SEM_FN_NAME (riscv64bf_rv64,grev) },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,grevi_shift5) },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,grevi_shift6) },
   { RISCV64BF_RV64_INSN_GREVW, SEM_FN_NAME (riscv64bf_rv64,grevw) },
-  { RISCV64BF_RV64_INSN_GREVIW, SEM_FN_NAME (riscv64bf_rv64,greviw) },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,greviw_shift5) },
   { RISCV64BF_RV64_INSN_SHFL, SEM_FN_NAME (riscv64bf_rv64,shfl) },
   { RISCV64BF_RV64_INSN_UNSHFL, SEM_FN_NAME (riscv64bf_rv64,unshfl) },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,shfli_shift5) },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,shfli_shift6) },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,unshfli_shift5) },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,unshfli_shift6) },
   { RISCV64BF_RV64_INSN_SHFLW, SEM_FN_NAME (riscv64bf_rv64,shflw) },
   { RISCV64BF_RV64_INSN_UNSHFLW, SEM_FN_NAME (riscv64bf_rv64,unshflw) },
   { RISCV64BF_RV64_INSN_GORC, SEM_FN_NAME (riscv64bf_rv64,gorc) },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,gorci_shift5) },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, SEM_FN_NAME (riscv64bf_rv64,gorci_shift6) },
   { RISCV64BF_RV64_INSN_GORCW, SEM_FN_NAME (riscv64bf_rv64,gorcw) },
-  { RISCV64BF_RV64_INSN_GORCIW, SEM_FN_NAME (riscv64bf_rv64,gorciw) },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, SEM_FN_NAME (riscv64bf_rv64,gorciw_shift5) },
   { RISCV64BF_RV64_INSN_BFP, SEM_FN_NAME (riscv64bf_rv64,bfp) },
   { RISCV64BF_RV64_INSN_BFPW, SEM_FN_NAME (riscv64bf_rv64,bfpw) },
   { RISCV64BF_RV64_INSN_BEXT, SEM_FN_NAME (riscv64bf_rv64,bext) },
@@ -11928,7 +11676,7 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, SEM_FN_NAME (riscv64bf_rv64,addiwu) },
   { RISCV64BF_RV64_INSN_ADDU_W, SEM_FN_NAME (riscv64bf_rv64,addu_w) },
   { RISCV64BF_RV64_INSN_SUBU_W, SEM_FN_NAME (riscv64bf_rv64,subu_w) },
-  { RISCV64BF_RV64_INSN_SLLIU_W, SEM_FN_NAME (riscv64bf_rv64,slliu_w) },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, SEM_FN_NAME (riscv64bf_rv64,slliu_w_shift7) },
   { RISCV64BF_RV64_INSN_FLW, SEM_FN_NAME (riscv64bf_rv64,flw) },
   { RISCV64BF_RV64_INSN_FSW, SEM_FN_NAME (riscv64bf_rv64,fsw) },
   { RISCV64BF_RV64_INSN_FMADD_S, SEM_FN_NAME (riscv64bf_rv64,fmadd_s) },

@@ -3747,41 +3747,9 @@ model_rv64gc_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gc_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3811,41 +3779,9 @@ model_rv64gc_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gc_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -3939,7 +3875,7 @@ model_rv64gc_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -3955,7 +3891,7 @@ model_rv64gc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -3971,7 +3907,7 @@ model_rv64gc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -4019,41 +3955,9 @@ model_rv64gc_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gc_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4115,7 +4019,7 @@ model_rv64gc_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -4131,7 +4035,7 @@ model_rv64gc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -4179,25 +4083,9 @@ model_rv64gc_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4243,7 +4131,7 @@ model_rv64gc_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -4262,22 +4150,6 @@ static int
 model_rv64gc_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gc_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4323,7 +4195,7 @@ model_rv64gc_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -4371,41 +4243,9 @@ model_rv64gc_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gc_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4483,25 +4323,9 @@ model_rv64gc_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gc_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -4531,7 +4355,7 @@ model_rv64gc_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -5123,7 +4947,7 @@ model_rv64gc_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gc_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gc_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10355,41 +10179,9 @@ model_rv64i_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64i_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10419,41 +10211,9 @@ model_rv64i_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64i_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10547,7 +10307,7 @@ model_rv64i_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10563,7 +10323,7 @@ model_rv64i_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10579,7 +10339,7 @@ model_rv64i_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10627,41 +10387,9 @@ model_rv64i_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64i_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10723,7 +10451,7 @@ model_rv64i_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10739,7 +10467,7 @@ model_rv64i_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10787,25 +10515,9 @@ model_rv64i_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10851,7 +10563,7 @@ model_rv64i_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10870,22 +10582,6 @@ static int
 model_rv64i_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64i_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -10931,7 +10627,7 @@ model_rv64i_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -10979,41 +10675,9 @@ model_rv64i_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64i_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -11091,25 +10755,9 @@ model_rv64i_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64i_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64i_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -11139,7 +10787,7 @@ model_rv64i_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -11731,7 +11379,7 @@ model_rv64i_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64i_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64i_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -16963,41 +16611,9 @@ model_rv64ic_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64ic_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17027,41 +16643,9 @@ model_rv64ic_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64ic_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17155,7 +16739,7 @@ model_rv64ic_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17171,7 +16755,7 @@ model_rv64ic_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17187,7 +16771,7 @@ model_rv64ic_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17235,41 +16819,9 @@ model_rv64ic_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64ic_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17331,7 +16883,7 @@ model_rv64ic_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17347,7 +16899,7 @@ model_rv64ic_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17395,25 +16947,9 @@ model_rv64ic_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17459,7 +16995,7 @@ model_rv64ic_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17478,22 +17014,6 @@ static int
 model_rv64ic_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64ic_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17539,7 +17059,7 @@ model_rv64ic_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -17587,41 +17107,9 @@ model_rv64ic_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64ic_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17699,25 +17187,9 @@ model_rv64ic_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64ic_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64ic_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -17747,7 +17219,7 @@ model_rv64ic_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -18339,7 +17811,7 @@ model_rv64ic_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64ic_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64ic_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -23571,41 +23043,9 @@ model_rv64im_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64im_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23635,41 +23075,9 @@ model_rv64im_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64im_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23763,7 +23171,7 @@ model_rv64im_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -23779,7 +23187,7 @@ model_rv64im_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -23795,7 +23203,7 @@ model_rv64im_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -23843,41 +23251,9 @@ model_rv64im_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64im_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -23939,7 +23315,7 @@ model_rv64im_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -23955,7 +23331,7 @@ model_rv64im_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -24003,25 +23379,9 @@ model_rv64im_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -24067,7 +23427,7 @@ model_rv64im_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -24086,22 +23446,6 @@ static int
 model_rv64im_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64im_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -24147,7 +23491,7 @@ model_rv64im_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -24195,41 +23539,9 @@ model_rv64im_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64im_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -24307,25 +23619,9 @@ model_rv64im_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64im_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64im_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -24355,7 +23651,7 @@ model_rv64im_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -24947,7 +24243,7 @@ model_rv64im_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64im_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64im_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30179,41 +29475,9 @@ model_rv64imc_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64imc_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30243,41 +29507,9 @@ model_rv64imc_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64imc_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30371,7 +29603,7 @@ model_rv64imc_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30387,7 +29619,7 @@ model_rv64imc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30403,7 +29635,7 @@ model_rv64imc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30451,41 +29683,9 @@ model_rv64imc_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64imc_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30547,7 +29747,7 @@ model_rv64imc_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30563,7 +29763,7 @@ model_rv64imc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30611,25 +29811,9 @@ model_rv64imc_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30675,7 +29859,7 @@ model_rv64imc_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30694,22 +29878,6 @@ static int
 model_rv64imc_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64imc_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30755,7 +29923,7 @@ model_rv64imc_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -30803,41 +29971,9 @@ model_rv64imc_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64imc_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30915,25 +30051,9 @@ model_rv64imc_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64imc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64imc_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -30963,7 +30083,7 @@ model_rv64imc_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -31555,7 +30675,7 @@ model_rv64imc_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64imc_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64imc_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -36787,41 +35907,9 @@ model_rv64g_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64g_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -36851,41 +35939,9 @@ model_rv64g_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64g_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -36979,7 +36035,7 @@ model_rv64g_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -36995,7 +36051,7 @@ model_rv64g_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37011,7 +36067,7 @@ model_rv64g_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37059,41 +36115,9 @@ model_rv64g_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64g_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -37155,7 +36179,7 @@ model_rv64g_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37171,7 +36195,7 @@ model_rv64g_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37219,25 +36243,9 @@ model_rv64g_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -37283,7 +36291,7 @@ model_rv64g_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37302,22 +36310,6 @@ static int
 model_rv64g_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64g_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -37363,7 +36355,7 @@ model_rv64g_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -37411,41 +36403,9 @@ model_rv64g_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64g_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -37523,25 +36483,9 @@ model_rv64g_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64g_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64g_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -37571,7 +36515,7 @@ model_rv64g_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -38163,7 +37107,7 @@ model_rv64g_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64g_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64g_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43395,41 +42339,9 @@ model_rv64gqc_sbext (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sbseti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_sbseti_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gqc_sbclri_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -43459,41 +42371,9 @@ model_rv64gqc_sbclri_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sbinvi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_sbinvi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gqc_sbexti_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -43587,7 +42467,7 @@ model_rv64gqc_sbextw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_sbsetiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43603,7 +42483,7 @@ model_rv64gqc_sbsetiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_sbclriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43619,7 +42499,7 @@ model_rv64gqc_sbclriw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sbinviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_sbinviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43667,41 +42547,9 @@ model_rv64gqc_sro (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sloi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_sloi_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gqc_sroi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -43763,7 +42611,7 @@ model_rv64gqc_srow (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_sloiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43779,7 +42627,7 @@ model_rv64gqc_sloiw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_sroiw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_sroiw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43827,25 +42675,9 @@ model_rv64gqc_ror (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_rori_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_rori_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fsriw.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -43891,7 +42723,7 @@ model_rv64gqc_rorw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_roriw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_roriw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -43910,22 +42742,6 @@ static int
 model_rv64gqc_grev (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fmadd_s.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gqc_grevi_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -43971,7 +42787,7 @@ model_rv64gqc_grevw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_greviw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_greviw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -44019,41 +42835,9 @@ model_rv64gqc_unshfl (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_shfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_shfli_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsri.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
-model_rv64gqc_unshfli_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -44131,25 +42915,9 @@ model_rv64gqc_gorc (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_gorci_shift5 (SIM_CPU *current_cpu, void *sem_arg)
-{
-#define FLD(f) abuf->fields.sfmt_fsriw.f
-  const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
-  const IDESC * UNUSED idesc = abuf->idesc;
-  int cycles = 0;
-  {
-    int referenced = 0;
-    int UNUSED insn_referenced = abuf->written;
-    cycles += riscv64bf_model_rv64gqc_u_exec (current_cpu, idesc, 0, referenced);
-  }
-  return cycles;
-#undef FLD
-}
-
-static int
 model_rv64gqc_gorci_shift6 (SIM_CPU *current_cpu, void *sem_arg)
 {
-#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+#define FLD(f) abuf->fields.sfmt_fsri.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
   const IDESC * UNUSED idesc = abuf->idesc;
   int cycles = 0;
@@ -44179,7 +42947,7 @@ model_rv64gqc_gorcw (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_gorciw (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_gorciw_shift5 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_fsriw.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -44771,7 +43539,7 @@ model_rv64gqc_subu_w (SIM_CPU *current_cpu, void *sem_arg)
 }
 
 static int
-model_rv64gqc_slliu_w (SIM_CPU *current_cpu, void *sem_arg)
+model_rv64gqc_slliu_w_shift7 (SIM_CPU *current_cpu, void *sem_arg)
 {
 #define FLD(f) abuf->fields.sfmt_empty.f
   const ARGBUF * UNUSED abuf = SEM_ARGBUF ((SEM_ARG) sem_arg);
@@ -46534,56 +45302,45 @@ static const INSN_TIMING rv64gc_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64gc_sbclr, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64gc_sbinv, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64gc_sbext, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64gc_sbseti_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64gc_sbseti_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64gc_sbclri_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64gc_sbclri_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64gc_sbinvi_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64gc_sbinvi_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64gc_sbexti_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64gc_sbexti_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64gc_sbsetw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64gc_sbclrw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64gc_sbinvw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64gc_sbextw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64gc_sbsetiw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64gc_sbclriw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64gc_sbinviw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64gc_sbsetiw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64gc_sbclriw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64gc_sbinviw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64gc_slo, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64gc_sro, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64gc_sloi_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64gc_sloi_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64gc_sroi_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64gc_sroi_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64gc_slow, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64gc_srow, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64gc_sloiw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64gc_sroiw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64gc_sloiw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64gc_sroiw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64gc_rol, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64gc_ror, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64gc_rori_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64gc_rori_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64gc_rolw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64gc_rorw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64gc_roriw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64gc_roriw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64gc_grev, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64gc_grevi_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64gc_grevi_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64gc_grevw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64gc_greviw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64gc_greviw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64gc_shfl, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64gc_unshfl, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64gc_shfli_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64gc_shfli_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64gc_unshfli_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64gc_unshfli_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64gc_shflw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64gc_unshflw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64gc_gorc, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64gc_gorci_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64gc_gorci_shift6, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64gc_gorcw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64gc_gorciw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64gc_gorciw_shift5, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64gc_bfp, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64gc_bfpw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64gc_bext, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
@@ -46620,7 +45377,7 @@ static const INSN_TIMING rv64gc_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64gc_addiwu, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64gc_addu_w, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64gc_subu_w, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64gc_slliu_w, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64gc_slliu_w_shift7, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64gc_flw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64gc_fsw, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64gc_fmadd_s, { { (int) UNIT_RV64GC_U_EXEC, 1, 1 } } },
@@ -46958,56 +45715,45 @@ static const INSN_TIMING rv64i_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64i_sbclr, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64i_sbinv, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64i_sbext, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64i_sbseti_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64i_sbseti_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64i_sbclri_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64i_sbclri_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64i_sbinvi_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64i_sbinvi_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64i_sbexti_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64i_sbexti_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64i_sbsetw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64i_sbclrw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64i_sbinvw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64i_sbextw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64i_sbsetiw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64i_sbclriw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64i_sbinviw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64i_sbsetiw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64i_sbclriw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64i_sbinviw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64i_slo, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64i_sro, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64i_sloi_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64i_sloi_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64i_sroi_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64i_sroi_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64i_slow, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64i_srow, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64i_sloiw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64i_sroiw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64i_sloiw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64i_sroiw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64i_rol, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64i_ror, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64i_rori_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64i_rori_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64i_rolw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64i_rorw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64i_roriw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64i_roriw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64i_grev, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64i_grevi_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64i_grevi_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64i_grevw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64i_greviw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64i_greviw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64i_shfl, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64i_unshfl, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64i_shfli_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64i_shfli_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64i_unshfli_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64i_unshfli_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64i_shflw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64i_unshflw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64i_gorc, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64i_gorci_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64i_gorci_shift6, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64i_gorcw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64i_gorciw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64i_gorciw_shift5, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64i_bfp, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64i_bfpw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64i_bext, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
@@ -47044,7 +45790,7 @@ static const INSN_TIMING rv64i_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64i_addiwu, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64i_addu_w, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64i_subu_w, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64i_slliu_w, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64i_slliu_w_shift7, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64i_flw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64i_fsw, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64i_fmadd_s, { { (int) UNIT_RV64I_U_EXEC, 1, 1 } } },
@@ -47382,56 +46128,45 @@ static const INSN_TIMING rv64ic_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64ic_sbclr, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64ic_sbinv, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64ic_sbext, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64ic_sbseti_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64ic_sbseti_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64ic_sbclri_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64ic_sbclri_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64ic_sbinvi_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64ic_sbinvi_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64ic_sbexti_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64ic_sbexti_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64ic_sbsetw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64ic_sbclrw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64ic_sbinvw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64ic_sbextw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64ic_sbsetiw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64ic_sbclriw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64ic_sbinviw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64ic_sbsetiw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64ic_sbclriw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64ic_sbinviw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64ic_slo, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64ic_sro, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64ic_sloi_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64ic_sloi_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64ic_sroi_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64ic_sroi_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64ic_slow, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64ic_srow, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64ic_sloiw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64ic_sroiw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64ic_sloiw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64ic_sroiw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64ic_rol, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64ic_ror, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64ic_rori_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64ic_rori_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64ic_rolw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64ic_rorw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64ic_roriw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64ic_roriw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64ic_grev, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64ic_grevi_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64ic_grevi_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64ic_grevw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64ic_greviw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64ic_greviw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64ic_shfl, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64ic_unshfl, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64ic_shfli_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64ic_shfli_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64ic_unshfli_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64ic_unshfli_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64ic_shflw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64ic_unshflw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64ic_gorc, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64ic_gorci_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64ic_gorci_shift6, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64ic_gorcw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64ic_gorciw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64ic_gorciw_shift5, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64ic_bfp, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64ic_bfpw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64ic_bext, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
@@ -47468,7 +46203,7 @@ static const INSN_TIMING rv64ic_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64ic_addiwu, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64ic_addu_w, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64ic_subu_w, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64ic_slliu_w, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64ic_slliu_w_shift7, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64ic_flw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64ic_fsw, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64ic_fmadd_s, { { (int) UNIT_RV64IC_U_EXEC, 1, 1 } } },
@@ -47806,56 +46541,45 @@ static const INSN_TIMING rv64im_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64im_sbclr, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64im_sbinv, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64im_sbext, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64im_sbseti_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64im_sbseti_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64im_sbclri_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64im_sbclri_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64im_sbinvi_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64im_sbinvi_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64im_sbexti_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64im_sbexti_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64im_sbsetw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64im_sbclrw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64im_sbinvw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64im_sbextw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64im_sbsetiw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64im_sbclriw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64im_sbinviw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64im_sbsetiw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64im_sbclriw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64im_sbinviw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64im_slo, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64im_sro, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64im_sloi_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64im_sloi_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64im_sroi_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64im_sroi_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64im_slow, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64im_srow, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64im_sloiw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64im_sroiw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64im_sloiw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64im_sroiw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64im_rol, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64im_ror, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64im_rori_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64im_rori_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64im_rolw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64im_rorw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64im_roriw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64im_roriw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64im_grev, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64im_grevi_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64im_grevi_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64im_grevw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64im_greviw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64im_greviw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64im_shfl, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64im_unshfl, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64im_shfli_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64im_shfli_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64im_unshfli_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64im_unshfli_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64im_shflw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64im_unshflw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64im_gorc, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64im_gorci_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64im_gorci_shift6, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64im_gorcw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64im_gorciw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64im_gorciw_shift5, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64im_bfp, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64im_bfpw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64im_bext, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
@@ -47892,7 +46616,7 @@ static const INSN_TIMING rv64im_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64im_addiwu, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64im_addu_w, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64im_subu_w, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64im_slliu_w, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64im_slliu_w_shift7, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64im_flw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64im_fsw, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64im_fmadd_s, { { (int) UNIT_RV64IM_U_EXEC, 1, 1 } } },
@@ -48230,56 +46954,45 @@ static const INSN_TIMING rv64imc_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64imc_sbclr, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64imc_sbinv, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64imc_sbext, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64imc_sbseti_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64imc_sbseti_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64imc_sbclri_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64imc_sbclri_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64imc_sbinvi_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64imc_sbinvi_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64imc_sbexti_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64imc_sbexti_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64imc_sbsetw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64imc_sbclrw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64imc_sbinvw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64imc_sbextw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64imc_sbsetiw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64imc_sbclriw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64imc_sbinviw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64imc_sbsetiw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64imc_sbclriw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64imc_sbinviw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64imc_slo, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64imc_sro, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64imc_sloi_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64imc_sloi_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64imc_sroi_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64imc_sroi_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64imc_slow, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64imc_srow, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64imc_sloiw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64imc_sroiw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64imc_sloiw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64imc_sroiw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64imc_rol, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64imc_ror, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64imc_rori_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64imc_rori_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64imc_rolw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64imc_rorw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64imc_roriw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64imc_roriw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64imc_grev, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64imc_grevi_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64imc_grevi_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64imc_grevw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64imc_greviw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64imc_greviw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64imc_shfl, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64imc_unshfl, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64imc_shfli_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64imc_shfli_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64imc_unshfli_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64imc_unshfli_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64imc_shflw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64imc_unshflw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64imc_gorc, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64imc_gorci_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64imc_gorci_shift6, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64imc_gorcw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64imc_gorciw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64imc_gorciw_shift5, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64imc_bfp, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64imc_bfpw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64imc_bext, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
@@ -48316,7 +47029,7 @@ static const INSN_TIMING rv64imc_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64imc_addiwu, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64imc_addu_w, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64imc_subu_w, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64imc_slliu_w, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64imc_slliu_w_shift7, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64imc_flw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64imc_fsw, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64imc_fmadd_s, { { (int) UNIT_RV64IMC_U_EXEC, 1, 1 } } },
@@ -48654,56 +47367,45 @@ static const INSN_TIMING rv64g_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64g_sbclr, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64g_sbinv, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64g_sbext, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64g_sbseti_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64g_sbseti_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64g_sbclri_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64g_sbclri_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64g_sbinvi_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64g_sbinvi_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64g_sbexti_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64g_sbexti_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64g_sbsetw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64g_sbclrw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64g_sbinvw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64g_sbextw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64g_sbsetiw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64g_sbclriw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64g_sbinviw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64g_sbsetiw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64g_sbclriw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64g_sbinviw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64g_slo, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64g_sro, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64g_sloi_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64g_sloi_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64g_sroi_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64g_sroi_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64g_slow, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64g_srow, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64g_sloiw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64g_sroiw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64g_sloiw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64g_sroiw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64g_rol, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64g_ror, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64g_rori_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64g_rori_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64g_rolw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64g_rorw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64g_roriw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64g_roriw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64g_grev, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64g_grevi_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64g_grevi_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64g_grevw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64g_greviw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64g_greviw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64g_shfl, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64g_unshfl, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64g_shfli_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64g_shfli_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64g_unshfli_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64g_unshfli_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64g_shflw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64g_unshflw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64g_gorc, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64g_gorci_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64g_gorci_shift6, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64g_gorcw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64g_gorciw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64g_gorciw_shift5, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64g_bfp, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64g_bfpw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64g_bext, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
@@ -48740,7 +47442,7 @@ static const INSN_TIMING rv64g_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64g_addiwu, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64g_addu_w, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64g_subu_w, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64g_slliu_w, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64g_slliu_w_shift7, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64g_flw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64g_fsw, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64g_fmadd_s, { { (int) UNIT_RV64G_U_EXEC, 1, 1 } } },
@@ -49078,56 +47780,45 @@ static const INSN_TIMING rv64gqc_timing[] = {
   { RISCV64BF_RV64_INSN_SBCLR, model_rv64gqc_sbclr, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINV, model_rv64gqc_sbinv, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXT, model_rv64gqc_sbext, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETI_SHIFT5, model_rv64gqc_sbseti_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETI_SHIFT6, model_rv64gqc_sbseti_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRI_SHIFT5, model_rv64gqc_sbclri_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRI_SHIFT6, model_rv64gqc_sbclri_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVI_SHIFT5, model_rv64gqc_sbinvi_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVI_SHIFT6, model_rv64gqc_sbinvi_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBEXTI_SHIFT5, model_rv64gqc_sbexti_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTI_SHIFT6, model_rv64gqc_sbexti_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBSETW, model_rv64gqc_sbsetw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBCLRW, model_rv64gqc_sbclrw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBINVW, model_rv64gqc_sbinvw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SBEXTW, model_rv64gqc_sbextw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBSETIW, model_rv64gqc_sbsetiw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBCLRIW, model_rv64gqc_sbclriw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SBINVIW, model_rv64gqc_sbinviw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBSETIW_SHIFT5, model_rv64gqc_sbsetiw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBCLRIW_SHIFT5, model_rv64gqc_sbclriw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SBINVIW_SHIFT5, model_rv64gqc_sbinviw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLO, model_rv64gqc_slo, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SRO, model_rv64gqc_sro, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOI_SHIFT5, model_rv64gqc_sloi_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOI_SHIFT6, model_rv64gqc_sloi_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROI_SHIFT5, model_rv64gqc_sroi_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROI_SHIFT6, model_rv64gqc_sroi_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SLOW, model_rv64gqc_slow, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SROW, model_rv64gqc_srow, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLOIW, model_rv64gqc_sloiw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SROIW, model_rv64gqc_sroiw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLOIW_SHIFT5, model_rv64gqc_sloiw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SROIW_SHIFT5, model_rv64gqc_sroiw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROL, model_rv64gqc_rol, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROR, model_rv64gqc_ror, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORI_SHIFT5, model_rv64gqc_rori_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORI_SHIFT6, model_rv64gqc_rori_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ROLW, model_rv64gqc_rolw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_RORW, model_rv64gqc_rorw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_RORIW, model_rv64gqc_roriw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_RORIW_SHIFT5, model_rv64gqc_roriw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREV, model_rv64gqc_grev, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVI_SHIFT5, model_rv64gqc_grevi_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVI_SHIFT6, model_rv64gqc_grevi_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GREVW, model_rv64gqc_grevw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GREVIW, model_rv64gqc_greviw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GREVIW_SHIFT5, model_rv64gqc_greviw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFL, model_rv64gqc_shfl, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFL, model_rv64gqc_unshfl, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SHFLI_SHIFT5, model_rv64gqc_shfli_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLI_SHIFT6, model_rv64gqc_shfli_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT5, model_rv64gqc_unshfli_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLI_SHIFT6, model_rv64gqc_unshfli_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SHFLW, model_rv64gqc_shflw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_UNSHFLW, model_rv64gqc_unshflw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORC, model_rv64gqc_gorc, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCI_SHIFT5, model_rv64gqc_gorci_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCI_SHIFT6, model_rv64gqc_gorci_shift6, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_GORCW, model_rv64gqc_gorcw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_GORCIW, model_rv64gqc_gorciw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_GORCIW_SHIFT5, model_rv64gqc_gorciw_shift5, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFP, model_rv64gqc_bfp, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BFPW, model_rv64gqc_bfpw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_BEXT, model_rv64gqc_bext, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
@@ -49164,7 +47855,7 @@ static const INSN_TIMING rv64gqc_timing[] = {
   { RISCV64BF_RV64_INSN_ADDIWU, model_rv64gqc_addiwu, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_ADDU_W, model_rv64gqc_addu_w, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_SUBU_W, model_rv64gqc_subu_w, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
-  { RISCV64BF_RV64_INSN_SLLIU_W, model_rv64gqc_slliu_w, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
+  { RISCV64BF_RV64_INSN_SLLIU_W_SHIFT7, model_rv64gqc_slliu_w_shift7, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FLW, model_rv64gqc_flw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FSW, model_rv64gqc_fsw, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },
   { RISCV64BF_RV64_INSN_FMADD_S, model_rv64gqc_fmadd_s, { { (int) UNIT_RV64GQC_U_EXEC, 1, 1 } } },

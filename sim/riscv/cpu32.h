@@ -1113,7 +1113,7 @@ struct scache {
   f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5); \
   f_opcode = EXTRACT_LSB0_UINT (insn, 32, 6, 7); \
 
-#define EXTRACT_IFMT_GREVI_SHIFT6_VARS \
+#define EXTRACT_IFMT_SBSETI_SHIFT6_VARS \
   UINT f_funct6; \
   UDI f_uimm6_256; \
   UINT f_rs1; \
@@ -1121,7 +1121,7 @@ struct scache {
   UINT f_rd; \
   UINT f_opcode; \
   unsigned int length;
-#define EXTRACT_IFMT_GREVI_SHIFT6_CODE \
+#define EXTRACT_IFMT_SBSETI_SHIFT6_CODE \
   length = 4; \
   f_funct6 = EXTRACT_LSB0_UINT (insn, 32, 31, 6); \
   f_uimm6_256 = EXTRACT_LSB0_UINT (insn, 32, 25, 6); \
