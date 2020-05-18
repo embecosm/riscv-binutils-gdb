@@ -156,7 +156,7 @@ struct { unsigned int bool_; \
 
 /* Given a boolean attribute number, return its mask.  */
 
-#define CGEN_ATTR_MASK(attr) (1 << (attr))
+#define CGEN_ATTR_MASK(attr) (1ll << (attr))
 
 /* Return the value of boolean attribute ATTR in ATTRS.  */
 
