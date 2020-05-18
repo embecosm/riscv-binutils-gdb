@@ -134,6 +134,10 @@ riscv_ext_for_subset (const char *subset)
     {
       return RVEXT_RV32E;
     }
+  else if (!strcmp(subset, "ifencei"))
+    return (xlen == 64) ? RVEXT_RV64IFENCEI : RVEXT_RV32IFENCEI;
+  else if (!strcmp(subset, "icsr"))
+    return (xlen == 64) ? RVEXT_RV64ICSR : RVEXT_RV32ICSR;
   else if (!strcmp(subset, "m"))
     return (xlen == 64) ? RVEXT_RV64M : RVEXT_RV32M;
   else if (!strcmp(subset, "c"))
@@ -266,6 +270,10 @@ riscv_set_arch (const char *s)
       default:
 	as_fatal ("-march=%s: first ISA subset must be `e', `i' or `g'", s);
     }
+
+  // always add fence and csr extensions
+  riscv_add_subset ("ifencei");
+  riscv_add_subset ("icsr");
 
   while (*p)
     {
