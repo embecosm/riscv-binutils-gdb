@@ -51,12 +51,12 @@ riscv_cgen_insn_supported (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED,
   /* We *should* use CGEN_INSN_BITSET_ATTR_VALUE to access the value of
      CGEN_INSN_RVEXT as a bitset, however despite the fact that it is declared
      as `bitset' attribute it's actually stored as a mask.  */
-  int insn_exts = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_RVEXT);
-  if (insn_exts & (1 << riscv_cgen_rvc))
+  long long insn_exts = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_RVEXT);
+  if (insn_exts & (1ll << riscv_cgen_rvc))
     return TRUE;
-  for (int i = 0; insn_exts != 0;)
+  for (long long i = 0; insn_exts != 0;)
     {
-      if ((insn_exts & 1) && cgen_bitset_contains (riscv_cgen_extensions, i))
+      if ((insn_exts & 1ll) && cgen_bitset_contains (riscv_cgen_extensions, i))
 	return TRUE;
       insn_exts >>= 1;
       i++;
