@@ -1,0 +1,230 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+;===------------- Special instructions for the .insn directive --------------===
+
+(define-hardware
+  (name h-opcode7)
+  (comment "opcodes")
+  (attrs all-isas all-machs VIRTUAL)
+  (type register WI)
+  (indices keyword "" (
+    (LOAD #x03)  (LOAD_FP #x07) (CUSTOM_0 #x0b) (MISC_MEM #x0f) (OP_IMM #x13)
+    (AUIPC #x17) (OP_IMM_32 #x1b)
+    ; 48b #x1f
+
+    (STORE #x23) (STORE_FP #x27) (CUSTOM_1 #x2b) (AMO #x2f) (OP #x33) (LUI #x37)
+    (OP_32 #x3b)
+    ; 64b #x3f
+
+    (MADD #x43) (MSUB #x47) (NMADD #x4b) (NMSUB #x4f) (OP_FP #x53)
+    ; reserved #x57
+    (CUSTOM_2 #x5b)
+    ; 48b #x5f
+
+    (BRANCH #x63) (JALR #x67)
+    ; reserved #x5b
+    (JAL #x6f) (SYSTEM #x73)
+    ; reserved #x77
+    (CUSTOM_3 #x7b))
+  )
+  ; dummy getters and setters
+  (get () (const 0))
+  (set (newval) (nop))
+)
+(define-hardware
+  (name h-copcode2)
+  (comment "compressed opcodes")
+  (attrs all-isas all-machs VIRTUAL)
+  (type register WI)
+  (indices keyword "" ((C0 #x0) (C1 #x1) (C2 #x2)))
+  ; dummy getters and setters
+  (get () (const 0))
+  (set (newval) (nop))
+)
+
+(define-operand
+  (name opcode7)
+  (comment "opcode7")
+  (attrs all-isas)
+  (type h-opcode7)
+  (mode UDI)
+  (index f-opcode)
+  (handlers (parse "opcode7"))
+)
+(define-operand
+  (name copcode2)
+  (comment "copcode2")
+  (attrs all-isas)
+  (type h-copcode2)
+  (mode UDI)
+  (index f-c-opcode)
+  (handlers (parse "copcode2"))
+)
+(define-operand
+  (name funct7)
+  (comment "funct7")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct7)
+)
+(define-operand
+  (name funct3)
+  (comment "funct3")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct3)
+)
+(define-operand
+  (name funct2)
+  (comment "funct2")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-funct2)
+)
+(define-operand
+  (name cfunct2)
+  (comment "cfunct2")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct2)
+)
+(define-operand
+  (name cfunct3)
+  (comment "cfunct3")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct3)
+)
+(define-operand
+  (name cfunct4)
+  (comment "cfunct4")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct4)
+)
+(define-operand
+  (name cfunct6)
+  (comment "cfunct6")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-c-funct6)
+)
+
+;; For floating point values
+(dni insn-r-fff ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 fl-rs1 funct3 fl-rd opcode7)
+  #f ())
+(dni insn-r-fgg ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${rs2}"
+  (+ funct7 rs2 rs1 funct3 fl-rd opcode7)
+  #f ())
+(dni insn-r-gfg ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${rs2}"
+  (+ funct7 rs2 fl-rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-r-ggf ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-r-ffg ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${fl-rs1},${rs2}"
+  (+ funct7 rs2 fl-rs1 funct3 fl-rd opcode7)
+  #f ())
+(dni insn-r-fgf ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${fl-rd},${rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 rs1 funct3 fl-rd opcode7)
+  #f ())
+(dni insn-r-gff ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${fl-rs1},${fl-rs2}"
+  (+ funct7 fl-rs2 fl-rs1 funct3 rd opcode7)
+  #f ())
+
+(dni insn-r4  ".insn r"   (all-isas f-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct2},${rd},${rs1},${rs2},${rs3}"
+  (+ rs3 funct2 rs2 rs1 funct3 rd opcode7)
+  #f ())
+
+(dni insn-r    ".insn r"   (all-isas i-ext NO-DIS)
+  "_insn_r ${opcode7},${funct3},${funct7},${rd},${rs1},${rs2}"
+  (+ funct7 rs2 rs1 funct3 rd opcode7)
+  #f ())
+
+(dni insn-i-1  ".insn i"   (all-isas i-ext NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${rs1},${imm-lo12}"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-i-2  ".insn i"   (all-isas i-ext NO-DIS)
+  "_insn_i ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-s    ".insn s"   (all-isas i-ext NO-DIS)
+  "_insn_s ${opcode7},${funct3},${rd},${imm-lo12}(${rs1})"
+  (+ imm-lo12 rs1 funct3 rd opcode7)
+  #f ())
+(dni insn-sb-1 ".insn sb"  (all-isas i-ext NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs2},${store12}(${rs1})"
+  (+ store12 rs2 rs1 funct3 opcode7)
+  #f ())
+(dni insn-sb-2 ".insn sb"  (all-isas i-ext NO-DIS)
+  "_insn_sb ${opcode7},${funct3},${rs1},${rs2},${branch13}"
+  (+ branch13 rs2 rs1 funct3 opcode7)
+  #f ())
+(dni insn-u    ".insn u"   (all-isas i-ext NO-DIS)
+  "_insn_u ${opcode7},${rd},${uimm32-3120-000000000000}"
+  (+ uimm32-3120-000000000000 rd opcode7)
+  #f ())
+(dni insn-uj   ".insn uj"  (all-isas i-ext NO-DIS)
+  "_insn_uj ${opcode7},${rd},${jmp21}"
+  (+ jmp21 rd opcode7)
+  #f ())
+
+(dni insn-ci   ".insn ci"  (all-isas i-ext NO-DIS)
+  "_insn_ci ${copcode2},${cfunct3},${c-reg117},${imm6-121-65-abs}"
+  (+ cfunct3 imm6-121-65-abs c-reg117 copcode2)
+  #f ())
+(dni insn-cr   ".insn cr"  (all-isas i-ext NO-DIS)
+  "_insn_cr ${copcode2},${cfunct4},${c-reg117-ne0},${c-reg62-ne0}"
+  (+ cfunct4 c-reg117 c-reg62 copcode2)
+  #f ())
+(dni insn-ciw  ".insn ciw" (all-isas i-ext NO-DIS)
+  "_insn_ciw ${copcode2},${cfunct3},${c-reg42},${uimm8-128}"
+  (+ cfunct3 uimm8-128 c-reg42 copcode2)
+  #f ())
+(dni insn-ca   ".insn ca"  (all-isas i-ext NO-DIS)
+  "_insn_ca ${copcode2},${cfunct6},${cfunct2},${c-reg97},${c-reg42}"
+  (+ cfunct6 c-reg97 cfunct2 c-reg42 copcode2)
+  #f ())
+(dni insn-cb   ".insn cb"  (all-isas i-ext NO-DIS)
+  "_insn_cb ${copcode2},${cfunct3},${c-reg97},${cbranch9}"
+  (+ cfunct3 cbranch9 c-reg97 copcode2)
+  #f ())
+(dni insn-cj   ".insn cj"  (all-isas i-ext NO-DIS)
+  "_insn_cj ${copcode2},${cfunct3},${cjmp12}"
+  (+ cfunct3 cjmp12 copcode2)
+  #f ())

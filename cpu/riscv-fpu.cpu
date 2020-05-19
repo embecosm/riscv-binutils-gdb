@@ -1,0 +1,613 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+; Floating point instruction formats
+; +-----------+-----+-----+----+--------+
+; |31       20|19 15|14 12|11 7|6      0|
+; |<imm[11:0]>|<rs1>| <rm>|<rd>|<opcode>|
+; +-----------+-----+------+-----+------+
+(define-pmacro (rv-format-f-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${imm-lo12}(${rs1})")
+    (+ imm-lo12 rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
+    sem ()))
+; +-----------+-----+-----+-----+----------+--------+
+; |31       25|24 20|19 15|14 12|11       7|6      0|
+; |<imm[11:5]>|<rs2>|<rs1>| <rm>|<imm[4:0]>|<opcode>|
+; +-----------+-----+-----+-----+----------+--------+
+(define-pmacro (rv-format-f-2 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rs2},${store12}(${rs1})")
+    (+ store12 fl-rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
+    sem ()))
+; +-----+-----+-----+-----+-----+----+--------+
+; |31 27|26 25|24 20|19 15|14 12|11 7|6      0|
+; |<rs3>|<fp2>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +-----+-----+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-3-rm mnemonic attr fp2 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3},${fl-rm}")
+    (+ fl-rs3 (f-fp2 fp2) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode))
+    sem ()))
+; +--------+-----+-----+-----+----+--------+
+; |31    25|24 20|19 15|14 12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-4 mnemonic attr funct7 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2}")
+    (+ (f-funct7 funct7) fl-rs2 fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
+    sem ()))
+(define-pmacro (rv-format-f-4-rm mnemonic attr funct7 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rm}")
+    (+ (f-funct7 funct7) fl-rs2 fl-rs1 fl-rm fl-rd (f-opcode opcode))
+    sem ()))
+; +--------+-----+-----+-----+----+--------+
+; |31    25|24 20|19 15|14 12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-5 mnemonic attr funct7 reg funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${fl-rs1}")
+    (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
+    sem ()))
+(define-pmacro (rv-format-f-5-rm mnemonic attr funct7 reg opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${fl-rs1},${fl-rm}")
+    (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm fl-rd (f-opcode opcode))
+    sem ()))
+; +--------+-----+-----+-----+----+--------+
+; |31    25|24 20|19 15|14 12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-6 mnemonic attr funct7 reg funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${rs1}")
+    (+ (f-funct7 funct7) (f-rs2 reg) rs1 (f-funct3 funct3) fl-rd (f-opcode opcode))
+    sem ()))
+(define-pmacro (rv-format-f-6-rm mnemonic attr funct7 reg opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${rs1},${fl-rm}")
+    (+ (f-funct7 funct7) (f-rs2 reg) rs1 fl-rm fl-rd (f-opcode opcode))
+    sem ()))
+; +--------+-----+-----+-----+----+--------+
+; |31    25|24 20|19 15|14 12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-7 mnemonic attr funct7 reg funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${fl-rs1}")
+    (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+(define-pmacro (rv-format-f-7-rm mnemonic attr funct7 reg opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${fl-rs1},${fl-rm}")
+    (+ (f-funct7 funct7) (f-rs2 reg) fl-rs1 fl-rm rd (f-opcode opcode))
+    sem ()))
+; +--------+-----+-----+-----+----+--------+
+; |31    25|24 20|19 15|14 12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>| <rm>|<rd>|<opcode>|
+; +--------+-----+-----+-----+----+--------+
+(define-pmacro (rv-format-f-8 mnemonic attr funct7 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${fl-rs1},${fl-rs2}")
+    (+ (f-funct7 funct7) fl-rs2 fl-rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+
+;===-------------------- 'F' extension instructions -------------------------===
+
+; Loads and stores
+(define-pmacro flw-sem
+  (set fl-rd (subword DF (or (zext UDI (mem SI (add rs1 imm-lo12))) #xffffffff00000000) 0)))
+(define-pmacro fsw-sem
+  (set (mem SI (add rs1 store12)) (trunc SI (subword DI fl-rs2 0))))
+
+; Fused-multiplies
+(define-pmacro fmadd-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set SF res (muladd SF lhs rhs addend))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fmsub-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set SF res (muladd SF lhs rhs (neg addend)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fnmsub-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set SF res (muladd SF (neg lhs) rhs addend))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+(define-pmacro fnmadd-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF addend) (SF res))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (set SF addend (subword SF (trunc SI (subword DI fl-rs3 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set SF res (muladd SF (neg lhs) rhs (neg addend)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+
+; Simple binary ops
+(define-pmacro (fbinop-s-sem binop) (sequence ((UWI saved-rm) (SF lhs) (SF rhs) (SF res))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set SF res (binop SF lhs rhs))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+
+; Sign injection
+(define-pmacro fsgnj-s-sem (sequence ((DI lhs) (DI rhs) (DI res))
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and rhs #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
+(define-pmacro fsgnjn-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and (inv rhs) #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
+(define-pmacro fsgnjx-s-sem (sequence ((SI lhs) (SI rhs) (SI res))
+  (set DI lhs (subword DI fl-rs1 0))
+  (set DI rhs (subword DI fl-rs2 0))
+  (set DI res (or (and (xor lhs rhs) #x000000080000000) (and lhs #xffffffff7fffffff)))
+  (set fl-rd (subword DF (or DI res #xffffffff00000000) 0))))
+
+(define-pmacro (fmin-max-s-sem cnd) (sequence ((SF lhs) (SF rhs))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (if (cnd lhs rhs)
+      (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+      (set fl-rd (subword DF (or (zext UDI (subword SI rhs 0)) #xffffffff00000000) 0)))))
+
+; Conditionals
+(define-pmacro (fcond-s-sem cnd) (sequence ((SF lhs) (SF rhs))
+  (set SF lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  (set SF rhs (subword SF (trunc SI (subword DI fl-rs2 0)) 0))
+  (set rd (cnd lhs rhs))))
+
+; Integer <-> float conversions
+(define-pmacro fcvt-s-w-sem (sequence ((UWI saved-rm) (SF lhs)) ; SI -> SF
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set lhs (float SF 0 (trunc SI rs1)))
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-s-wu-sem (sequence ((UWI saved-rm) (SF lhs)) ; USI -> SF
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set lhs (ufloat SF 0 (trunc SI rs1)))
+  (set fl-rd (subword DF (or (zext UDI (subword SI lhs 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-w-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (ext (fix SI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-wu-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (zext (ufix USI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+
+; Moves
+(define-pmacro fmv-x-w-s-sem
+  (set rd (ext (trunc SI (subword DI fl-rs1 0)))))
+(define-pmacro fmv-w-x-s-sem
+  (set fl-rd (subword DF (or (zext UDI (trunc SI rs1)) #xffffffff00000000) 0)))
+
+(define-pmacro fsqrt-s-sem (sequence ((UWI saved-rm) (SF lhs) (SF res))
+  (set lhs (subword SF (trunc SI (subword DI fl-rs1 0)) 0))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set res (sqrt lhs))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)
+  (set fl-rd (subword DF (or (zext UDI (subword SI res 0)) #xffffffff00000000) 0))))
+
+(rv-format-f-1    "flw"       (all-isas f-ext f-machs) #b010 #b0000111 flw-sem)
+(rv-format-f-2    "fsw"       (all-isas f-ext f-machs) #b010 #b0100111 fsw-sem)
+(rv-format-f-3-rm "fmadd.s"   (all-isas f-ext f-machs) #b00 #b1000011 fmadd-s-sem)
+(rv-format-f-3-rm "fmsub.s"   (all-isas f-ext f-machs) #b00 #b1000111 fmsub-s-sem)
+(rv-format-f-3-rm "fnmsub.s"  (all-isas f-ext f-machs) #b00 #b1001011 fnmsub-s-sem)
+(rv-format-f-3-rm "fnmadd.s"  (all-isas f-ext f-machs) #b00 #b1001111 fnmadd-s-sem)
+(rv-format-f-4-rm "fadd.s"    (all-isas f-ext f-machs) #b0000000 #b1010011 (fbinop-s-sem add))
+(rv-format-f-4-rm "fsub.s"    (all-isas f-ext f-machs) #b0000100 #b1010011 (fbinop-s-sem sub))
+(rv-format-f-4-rm "fmul.s"    (all-isas f-ext f-machs) #b0001000 #b1010011 (fbinop-s-sem mul))
+(rv-format-f-4-rm "fdiv.s"    (all-isas f-ext f-machs) #b0001100 #b1010011 (fbinop-s-sem div))
+(rv-format-f-4    "fsgnj.s"   (all-isas f-ext f-machs) #b0010000 #b000 #b1010011 fsgnj-s-sem)
+(rv-format-f-4    "fsgnjn.s"  (all-isas f-ext f-machs) #b0010000 #b001 #b1010011 fsgnjn-s-sem)
+(rv-format-f-4    "fsgnjx.s"  (all-isas f-ext f-machs) #b0010000 #b010 #b1010011 fsgnjx-s-sem)
+(rv-format-f-4    "fmin.s"    (all-isas f-ext f-machs) #b0010100 #b000 #b1010011 (fmin-max-s-sem lt))
+(rv-format-f-4    "fmax.s"    (all-isas f-ext f-machs) #b0010100 #b001 #b1010011 (fmin-max-s-sem gt))
+(rv-format-f-8    "feq.s"     (all-isas f-ext f-machs) #b1010000 #b010 #b1010011 (fcond-s-sem eq))
+(rv-format-f-8    "flt.s"     (all-isas f-ext f-machs) #b1010000 #b001 #b1010011 (fcond-s-sem lt))
+(rv-format-f-8    "fle.s"     (all-isas f-ext f-machs) #b1010000 #b000 #b1010011 (fcond-s-sem le))
+(rv-format-f-5-rm "fsqrt.s"   (all-isas f-ext f-machs) #b0101100 #b00000 #b1010011 fsqrt-s-sem)
+(rv-format-f-7-rm "fcvt.w.s"  (all-isas f-ext f-machs) #b1100000 #b00000 #b1010011 fcvt-w-s-sem)
+(rv-format-f-7-rm "fcvt.wu.s" (all-isas f-ext f-machs) #b1100000 #b00001 #b1010011 fcvt-wu-s-sem)
+(rv-format-f-7    "fmv.x.w"   (all-isas f-ext f-machs) #b1110000 #b00000 #b000 #b1010011 fmv-x-w-s-sem)
+(rv-format-f-7    "fclass.s"  (all-isas f-ext f-machs) #b1110000 #b00000 #b001 #b1010011 (nop)) ;FIXME:sem
+(rv-format-f-6-rm "fcvt.s.w"  (all-isas f-ext f-machs) #b1101000 #b00000 #b1010011 fcvt-s-w-sem)
+(rv-format-f-6-rm "fcvt.s.wu" (all-isas f-ext f-machs) #b1101000 #b00001 #b1010011 fcvt-s-wu-sem)
+(rv-format-f-6    "fmv.w.x"   (all-isas f-ext f-machs) #b1111000 #b00000 #b000 #b1010011 fmv-w-x-s-sem)
+
+;RV64F
+(define-pmacro fcvt-s-l-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (float DF 0 rs1)) 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-s-lu-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set fl-rd (subword DF (or (zext UDI (subword SI (ftrunc SF 0 (ufloat DF 0 rs1)) 0)) #xffffffff00000000) 0))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-l-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (fix DI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+(define-pmacro fcvt-lu-s-sem (sequence ((UWI saved-rm))
+  ; Save the rounding mode in frm (0x2), overwrite frm with rounding from fl-rm
+  (set saved-rm (reg h-csr #x2))
+  (set (reg h-csr #x2) fl-rm)
+  ; Perform the operation
+  (set rd (ufix UDI 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0)))
+  ; Restore the rounding mode
+  (set (reg h-csr #x2) saved-rm)))
+
+(rv-format-f-6-rm "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00010 #b1010011 fcvt-s-l-sem)
+(rv-format-f-6-rm "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1101000 #b00011 #b1010011 fcvt-s-lu-sem)
+(rv-format-f-7-rm "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00010 #b1010011 fcvt-l-s-sem)
+(rv-format-f-7-rm "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F) rv64f-machs) #b1100000 #b00011 #b1010011 fcvt-lu-s-sem)
+
+
+;===-------------------- 'D' extension instructions -------------------------===
+
+; Loads and stores
+(define-pmacro fld-sem
+  (set fl-rd (mem DF (add rs1 imm-lo12))))
+(define-pmacro fsd-sem
+  (set (mem DF (add rs1 store12)) fl-rs2))
+
+; Fused-multiplies
+(define-pmacro (fmbinop-d-sem binop)
+  (set fl-rd (binop DF (mul DF fl-rs1 fl-rs2) fl-rs3)))
+(define-pmacro (fnmsub-d-sem binop)
+  (set fl-rd (binop DF (mul DF (neg fl-rs1) fl-rs2) fl-rs3)))
+
+; Simple binary ops
+(define-pmacro (fbinop-d-sem binop) 
+  (set fl-rd  (binop DF fl-rs1 fl-rs2)))
+
+; Sign injection
+(define-pmacro fsgnj-d-sem (sequence ((DI lhs) (DI rhs) (DI res))
+  (set lhs (subword DI fl-rs1 0))
+  (set rhs (subword DI fl-rs2 0))
+  (set res (or (and rhs #x8000000000000000) (and lhs #x7fffffffffffffff)))
+  (set fl-rd (subword DF res 0))))
+(define-pmacro fsgnjn-d-sem (sequence ((DI lhs) (DI rhs) (DI res))
+  (set lhs (subword DI fl-rs1 0))
+  (set rhs (subword DI fl-rs2 0))
+  (set res (or (and (inv rhs) #x8000000000000000) (and lhs #x7fffffffffffffff)))
+  (set fl-rd (subword DF res 0))))
+(define-pmacro fsgnjx-d-sem (sequence ((DI lhs) (DI rhs) (DI res))
+  (set lhs (subword DI fl-rs1 0))
+  (set rhs (subword DI fl-rs2 0))
+  (set res (or (and (xor lhs rhs) #x8000000000000000) (and lhs #x7fffffffffffffff)))
+  (set fl-rd (subword DF res 0))))
+
+(define-pmacro (fmin-max-d-sem cnd)
+  (if (cnd fl-rs1 fl-rs2)
+      (set fl-rd fl-rs1)
+      (set fl-rd fl-rs2)))
+
+; Conditionals
+(define-pmacro (fcond-d-sem cnd) 
+  (set DI rd (cnd fl-rs1 fl-rs2)))
+
+; Integer <-> float conversions
+(define-pmacro fcvt-d-w-sem
+  (set fl-rd (float DF 0 (trunc SI rs1)))) ; SI -> DF
+(define-pmacro fcvt-d-wu-sem
+  (set fl-rd (ufloat DF 0 (trunc USI rs1)))) ; USI -> DF
+
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-w-d-sem
+  (set rd (ext (fix SI 0 fl-rs1)))) ; DF -> SI
+(define-pmacro fcvt-wu-d-sem
+  (set rd (ext (ufix USI 0 fl-rs1)))) ; DF -> USI
+
+; Float <-> float conversions
+(define-pmacro fcvt-s-d-sem  ;DF -> SF
+  (set fl-rd (ftrunc SF 0 fl-rs1)))
+(define-pmacro fcvt-d-s-sem  ;SF -> DF
+  (set fl-rd (fext DF 0 (subword SF (trunc SI (subword DI fl-rs1 0)) 0))))
+
+(define-pmacro fsqrt-d-sem
+  (set DF fl-rd (sqrt fl-rs1)))
+
+(rv-format-f-1    "fld"       (all-isas d-ext d-machs) #b011 #b0000111 fld-sem)
+(rv-format-f-2    "fsd"       (all-isas d-ext d-machs) #b011 #b0100111 fsd-sem)
+(rv-format-f-3-rm "fmadd.d"   (all-isas d-ext d-machs) #b01 #b1000011 (fmbinop-d-sem add))
+(rv-format-f-3-rm "fmsub.d"   (all-isas d-ext d-machs) #b01 #b1000111 (fmbinop-d-sem sub))
+(rv-format-f-3-rm "fnmsub.d"  (all-isas d-ext d-machs) #b01 #b1001011 (fnmsub-d-sem add))
+(rv-format-f-3-rm "fnmadd.d"  (all-isas d-ext d-machs) #b01 #b1001111 (fnmsub-d-sem sub))
+(rv-format-f-4-rm "fadd.d"    (all-isas d-ext d-machs) #b0000001 #b1010011 (fbinop-d-sem add))
+(rv-format-f-4-rm "fsub.d"    (all-isas d-ext d-machs) #b0000101 #b1010011 (fbinop-d-sem sub))
+(rv-format-f-4-rm "fmul.d"    (all-isas d-ext d-machs) #b0001001 #b1010011 (fbinop-d-sem mul))
+(rv-format-f-4-rm "fdiv.d"    (all-isas d-ext d-machs) #b0001101 #b1010011 (fbinop-d-sem div))
+(rv-format-f-4    "fsgnj.d"   (all-isas d-ext d-machs) #b0010001 #b000 #b1010011 fsgnj-d-sem)
+(rv-format-f-4    "fsgnjn.d"  (all-isas d-ext d-machs) #b0010001 #b001 #b1010011 fsgnjn-d-sem)
+(rv-format-f-4    "fsgnjx.d"  (all-isas d-ext d-machs) #b0010001 #b010 #b1010011 fsgnjx-d-sem)
+(rv-format-f-4    "fmin.d"    (all-isas d-ext d-machs) #b0010101 #b000 #b1010011 (fmin-max-d-sem lt))
+(rv-format-f-4    "fmax.d"    (all-isas d-ext d-machs) #b0010101 #b001 #b1010011 (fmin-max-d-sem gt))
+(rv-format-f-8    "feq.d"     (all-isas d-ext d-machs) #b1010001 #b010 #b1010011 (fcond-d-sem eq))
+(rv-format-f-8    "flt.d"     (all-isas d-ext d-machs) #b1010001 #b001 #b1010011 (fcond-d-sem lt))
+(rv-format-f-8    "fle.d"     (all-isas d-ext d-machs) #b1010001 #b000 #b1010011 (fcond-d-sem le))
+(rv-format-f-5-rm "fsqrt.d"   (all-isas d-ext d-machs) #b0101101 #b00000 #b1010011 fsqrt-d-sem)
+(rv-format-f-7-rm "fcvt.w.d"  (all-isas d-ext d-machs) #b1100001 #b00000 #b1010011 fcvt-w-d-sem)
+(rv-format-f-7-rm "fcvt.wu.d" (all-isas d-ext d-machs) #b1100001 #b00001 #b1010011 fcvt-wu-d-sem)
+; FIXME: Implement fclass
+(rv-format-f-7    "fclass.d"  (all-isas d-ext d-machs) #b1110001 #b00000 #b001 #b1010011 (nop))
+(rv-format-f-6    "fcvt.d.w"  (all-isas d-ext d-machs) #b1101001 #b00000 #b000 #b1010011 fcvt-d-w-sem)
+(rv-format-f-6    "fcvt.d.wu" (all-isas d-ext d-machs) #b1101001 #b00001 #b000 #b1010011 fcvt-d-wu-sem)
+(rv-format-f-5-rm "fcvt.s.d"  (all-isas d-ext d-machs) #b0100000 #b00001 #b1010011 fcvt-s-d-sem)
+(rv-format-f-5    "fcvt.d.s"  (all-isas d-ext d-machs) #b0100001 #b00000 #b000 #b1010011 fcvt-d-s-sem)
+
+;RV64D
+; Moves
+(define-pmacro fmv-d-x-sem
+  (set fl-rd (subword DF rs1 0)))
+(define-pmacro fmv-x-d-sem
+  (set rd (subword DI fl-rs1 0)))
+
+; Integer <-> float conversions
+(define-pmacro fcvt-d-l-sem
+  (set fl-rd (float DF 0 rs1)))
+(define-pmacro fcvt-d-lu-sem
+  (set fl-rd (ufloat DF 0 rs1)))
+
+; FIXME: Handle clipping correctly
+(define-pmacro fcvt-l-d-sem ;DF->DI
+  (set rd (fix DI 0 fl-rs1)))
+(define-pmacro fcvt-lu-d-sem ;DF->DI
+  (set rd (ufix UDI 0 fl-rs1)))
+
+(rv-format-f-7-rm "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00010 #b1010011 fcvt-l-d-sem)
+(rv-format-f-7-rm "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1100001 #b00011 #b1010011 fcvt-lu-d-sem)
+(rv-format-f-7    "fmv.x.d"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1110001 #b00000 #b000 #b1010011 fmv-x-d-sem)
+(rv-format-f-6-rm "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00010 #b1010011 fcvt-d-l-sem)
+(rv-format-f-6-rm "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1101001 #b00011 #b1010011 fcvt-d-lu-sem)
+(rv-format-f-6    "fmv.d.x"   ((ISA rv64) (RVEXT RV64D) rv64d-machs) #b1111001 #b00000 #b000 #b1010011 fmv-d-x-sem)
+
+
+;===-------------------- 'Q' extension instructions -------------------------===
+
+(rv-format-f-1    "flq"       (all-isas q-ext q-machs) #b100 #b0000111 (nop))
+(rv-format-f-2    "fsq"       (all-isas q-ext q-machs) #b100 #b0100111 (nop))
+(rv-format-f-3-rm "fmadd.q"   (all-isas q-ext q-machs) #b11 #b1000011 (nop))
+(rv-format-f-3-rm "fmsub.q"   (all-isas q-ext q-machs) #b11 #b1000111 (nop))
+(rv-format-f-3-rm "fnmsub.q"  (all-isas q-ext q-machs) #b11 #b1001011 (nop))
+(rv-format-f-3-rm "fnmadd.q"  (all-isas q-ext q-machs) #b11 #b1001111 (nop))
+(rv-format-f-4-rm "fadd.q"    (all-isas q-ext q-machs) #b0000011 #b1010011 (nop))
+(rv-format-f-4-rm "fsub.q"    (all-isas q-ext q-machs) #b0000111 #b1010011 (nop))
+(rv-format-f-4-rm "fmul.q"    (all-isas q-ext q-machs) #b0001011 #b1010011 (nop))
+(rv-format-f-4-rm "fdiv.q"    (all-isas q-ext q-machs) #b0001111 #b1010011 (nop))
+(rv-format-f-4    "fsgnj.q"   (all-isas q-ext q-machs) #b0010011 #b000 #b1010011 (nop))
+(rv-format-f-4    "fsgnjn.q"  (all-isas q-ext q-machs) #b0010011 #b001 #b1010011 (nop))
+(rv-format-f-4    "fsgnjx.q"  (all-isas q-ext q-machs) #b0010011 #b010 #b1010011 (nop))
+(rv-format-f-4    "fmin.q"    (all-isas q-ext q-machs) #b0010111 #b000 #b1010011 (nop))
+(rv-format-f-4    "fmax.q"    (all-isas q-ext q-machs) #b0010111 #b001 #b1010011 (nop))
+(rv-format-f-8    "feq.q"     (all-isas q-ext q-machs) #b1010011 #b010 #b1010011 (nop))
+(rv-format-f-8    "flt.q"     (all-isas q-ext q-machs) #b1010011 #b001 #b1010011 (nop))
+(rv-format-f-8    "fle.q"     (all-isas q-ext q-machs) #b1010011 #b000 #b1010011 (nop))
+(rv-format-f-5-rm "fsqrt.q"   (all-isas q-ext q-machs) #b0101111 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.w.q"  (all-isas q-ext q-machs) #b1100011 #b00000 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.wu.q" (all-isas q-ext q-machs) #b1100011 #b00001 #b1010011 (nop))
+(rv-format-f-7    "fclass.q"  (all-isas q-ext q-machs) #b1110011 #b00000 #b001 #b1010011 (nop))
+(rv-format-f-6    "fcvt.q.w"  (all-isas q-ext q-machs) #b1101011 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-6    "fcvt.q.wu" (all-isas q-ext q-machs) #b1101011 #b00001 #b000 #b1010011 (nop))
+(rv-format-f-5-rm "fcvt.s.q"  (all-isas q-ext q-machs) #b0100000 #b00011 #b1010011 (nop))
+(rv-format-f-5-rm "fcvt.d.q"  (all-isas q-ext q-machs) #b0100001 #b00011 #b1010011 (nop))
+(rv-format-f-5    "fcvt.q.s"  (all-isas q-ext q-machs) #b0100011 #b00000 #b000 #b1010011 (nop))
+(rv-format-f-5    "fcvt.q.d"  (all-isas q-ext q-machs) #b0100011 #b00001 #b000 #b1010011 (nop))
+
+;RV64Q
+(rv-format-f-7-rm "fcvt.l.q"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00010 #b1010011 (nop))
+(rv-format-f-7-rm "fcvt.lu.q" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1100011 #b00011 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.q.l"  ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00010 #b1010011 (nop))
+(rv-format-f-6-rm "fcvt.q.lu" ((ISA rv64) (RVEXT RV64Q) rv64q-machs) #b1101011 #b00011 #b1010011 (nop))
+
+; TODO: RV128Q not supported yet
+;(rv-format-f-7    "fmv.x.q"  ((ISA rv128) (RVEXT RV128Q) rv128q-machs) #b1110011 #b00000 #b000 #b1010011)
+;(rv-format-f-6    "fmv.q.x"  ((ISA rv128) (RVEXT RV128Q) rv128q-machs) #b1111011 #b00000 #b000 #b1010011)
+
+
+;===----------------- 'F' extension macro instructions ----------------------===
+
+(rv-macro p-flw        "flw"       (all-isas f-ext NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flw fl-rd imm-lo12 rs1))
+(rv-macro p-fsw        "fsw"       (all-isas f-ext NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsw fl-rs2 store12 rs1))
+(rv-macro p-frsr       "frsr"      (all-isas f-ext) " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-macro p-fssr-1     "fssr"      (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-macro p-fssr-2     "fssr"      (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-macro p-frcsr      "frcsr"     (all-isas f-ext) " ${rd}"          (emit csrrs rd     (csr #x03) (rs1 0)))
+(rv-macro p-fscsr-1    "fscsr"     (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x03) rs1))
+(rv-macro p-fscsr-2    "fscsr"     (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x03) rs1))
+(rv-macro p-frrm       "frrm"      (all-isas f-ext) " ${rd}"          (emit csrrs rd     (csr #x02) (rs1 0)))
+(rv-macro p-fsrm-1     "fsrm"      (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x02) rs1))
+(rv-macro p-fsrm-2     "fsrm"      (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x02) rs1))
+(rv-macro p-fsrmi-1    "fsrmi"     (all-isas f-ext) " ${rd},${uimm5-dec}" (emit csrrwi rd    (csr #x02) (uimm5 uimm5-dec)))
+(rv-macro p-fsrmi-2    "fsrmi"     (all-isas f-ext NO-DIS) " ${uimm5}"      (emit csrrwi (rd 0)(csr #x02) uimm5))
+(rv-macro p-frflags    "frflags"   (all-isas f-ext) " ${rd}"          (emit csrrs rd     (csr #x01) (rs1 0)))
+(rv-macro p-fsflags-1  "fsflags"   (all-isas f-ext) " ${rd},${rs1}"   (emit csrrw rd     (csr #x01) rs1))
+(rv-macro p-fsflags-2  "fsflags"   (all-isas f-ext) " ${rs1}"         (emit csrrw (rd 0) (csr #x01) rs1))
+(rv-macro p-fsflagsi-1 "fsflagsi"  (all-isas f-ext) " ${rd},${uimm5-dec}" (emit csrrwi rd    (csr #x01) (uimm5 uimm5-dec)))
+(rv-macro p-fsflagsi-2 "fsflagsi"  (all-isas f-ext NO-DIS) " ${uimm5}"       (emit csrrwi (rd 0)(csr #x01) uimm5))
+(rv-macro p-fmv.x.s    "fmv.x.s"   (all-isas f-ext NO-DIS) " ${rd},${fl-rs1}" (emit fmv.x.w rd fl-rs1))
+(rv-macro p-fmv.s.x-1  "fmv.s"     (all-isas f-ext NO-DIS) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
+(rv-macro p-fmv.s.x-2  "fmv.s.x"   (all-isas f-ext NO-DIS) " ${fl-rd},${rs1}" (emit fmv.w.x fl-rd rs1))
+(rv-macro p-fmadd.s    "fmadd.s"   (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.s    "fmsub.s"   (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.s  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.s   "fnmsub.s"  (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.s   "fnmadd.s"  (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.s fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fadd.s     "fadd.s"    (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.s     "fsub.s"    (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.s     "fmul.s"    (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.s     "fdiv.s"    (all-isas f-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.s fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsqrt.s    "fsqrt.s"   (all-isas f-ext) " ${fl-rd},${fl-rs1}" (emit fsqrt.s fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.w.s   "fcvt.w.s"  (all-isas f-ext) " ${rd},${fl-rs1}" (emit fcvt.w.s  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.s  "fcvt.wu.s" (all-isas f-ext) " ${rd},${fl-rs1}" (emit fcvt.wu.s rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.w   "fcvt.s.w"  (all-isas f-ext) " ${fl-rd},${rs1}" (emit fcvt.s.w  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.wu  "fcvt.s.wu" (all-isas f-ext) " ${fl-rd},${rs1}" (emit fcvt.s.wu fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fgt.s      "fgt.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.s rd fl-rs2 fl-rs1))
+(rv-macro p-fge.s      "fge.s"     (all-isas f-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.s rd fl-rs2 fl-rs1))
+
+;RV64F
+(rv-macro p-fcvt.l.s   "fcvt.l.s"  ((ISA rv64) (RVEXT RV64F)) " ${rd},${fl-rs1}" (emit fcvt.l.s  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.s  "fcvt.lu.s" ((ISA rv64) (RVEXT RV64F)) " ${rd},${fl-rs1}" (emit fcvt.lu.s rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.l   "fcvt.s.l"  ((ISA rv64) (RVEXT RV64F)) " ${fl-rd},${rs1}" (emit fcvt.s.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.lu  "fcvt.s.lu" ((ISA rv64) (RVEXT RV64F)) " ${fl-rd},${rs1}" (emit fcvt.s.lu fl-rd rs1 (fl-rm #b111)))
+
+;RV32FC
+;(rvc-macro p-c-flwsp   "flw"       ((ISA rv32) (RVEXT RV32FC)) " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})"   (emit c.flwsp fl-rd uimm8-32-121-63-00-abs))
+;(rvc-macro p-c-fswsp   "fsw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})"     (emit c.fswsp fc-rs3 uimm8-82-124-00-abs))
+;(rvc-macro p-c-fsw     "fsw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.fsw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+;(rvc-macro p-c-flw     "flw"       ((ISA rv32) (RVEXT RV32FC)) " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})" (emit c.flw fc-rs2 uimm7-51-123-61-00-abs c-reg97))
+
+;RV64FD
+;(rvc-macro p-c-fldsp   "fld"       (all-isas dc-ext) " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})"  (emit c.fldsp fl-rd uimm9-43-121-62-000-abs))
+;(rvc-macro p-c-fsdsp   "fsd"       (all-isas dc-ext) " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})"    (emit c.fsdsp fc-rs3 uimm9-93-123-000-abs))
+;(rvc-macro p-c-fsd     "fsd"       (all-isas dc-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fsd fc-rs2 uimm8-62-123-000-abs c-reg97))
+;(rvc-macro p-c-fld     "fld"       (all-isas dc-ext) " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})"   (emit c.fld fc-rs2 uimm8-62-123-000-abs c-reg97))
+
+
+;===----------------- 'D' extension macro instructions ----------------------===
+
+(rv-macro p-fld        "fld"       (all-isas d-ext NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit fld fl-rd imm-lo12 rs1))
+(rv-macro p-fsd        "fsd"       (all-isas d-ext NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsd fl-rs2 store12 rs1))
+(rv-macro p-fmadd.d    "fmadd.d"   (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.d    "fmsub.d"   (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.d  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.d   "fnmsub.d"  (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.d   "fnmadd.d"  (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.d fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fadd.d     "fadd.d"    (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.d     "fsub.d"    (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.d     "fmul.d"    (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.d     "fdiv.d"    (all-isas d-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.d fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsqrt.d    "fsqrt.d"   (all-isas d-ext) " ${fl-rd},${fl-rs1}" (emit fsqrt.d fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.w.d   "fcvt.w.d"  (all-isas d-ext) " ${rd},${fl-rs1}" (emit fcvt.w.d  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.d  "fcvt.wu.d" (all-isas d-ext) " ${rd},${fl-rs1}" (emit fcvt.wu.d rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.d   "fcvt.s.d"  (all-isas d-ext) " ${fl-rd},${fl-rs1}" (emit fcvt.s.d fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fgt.d      "fgt.d"     (all-isas d-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.d rd fl-rs2 fl-rs1))
+(rv-macro p-fge.d      "fge.d"     (all-isas d-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.d rd fl-rs2 fl-rs1))
+(rv-macro p-fmv.d      "fmv.d"     (all-isas d-ext NO-DIS) " ${fl-rd},${rs1}" (emit fmv.d.x fl-rd rs1))
+
+;RV64D
+(rv-macro p-fcvt.l.d   "fcvt.l.d"  ((ISA rv64) (RVEXT RV64D)) " ${rd},${fl-rs1}" (emit fcvt.l.d  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.d  "fcvt.lu.d" ((ISA rv64) (RVEXT RV64D)) " ${rd},${fl-rs1}" (emit fcvt.lu.d rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.l   "fcvt.d.l"  ((ISA rv64) (RVEXT RV64D)) " ${fl-rd},${rs1}" (emit fcvt.d.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.lu  "fcvt.d.lu" ((ISA rv64) (RVEXT RV64D)) " ${fl-rd},${rs1}" (emit fcvt.d.lu fl-rd rs1 (fl-rm #b111)))
+
+
+;===----------------- 'Q' extension macro instructions ----------------------===
+
+(rv-macro p-flq        "flq"       (all-isas q-ext NO-DIS) " ${fl-rd},${imm-lo12},${rs1}" (emit flq fl-rd imm-lo12 rs1))
+(rv-macro p-fsq        "fsq"       (all-isas q-ext NO-DIS) " ${fl-rs2},${store12},${rs1}" (emit fsq fl-rs2 store12 rs1))
+(rv-macro p-fmadd.q    "fmadd.q"   (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmadd.q  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fmsub.q    "fmsub.q"   (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fmsub.q  fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmsub.q   "fnmsub.q"  (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmsub.q fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fnmadd.q   "fnmadd.q"  (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2},${fl-rs3}" (emit fnmadd.q fl-rd fl-rs1 fl-rs2 fl-rs3 (fl-rm #b111)))
+(rv-macro p-fadd.q     "fadd.q"    (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fadd.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsub.q     "fsub.q"    (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fsub.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fmul.q     "fmul.q"    (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fmul.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fdiv.q     "fdiv.q"    (all-isas q-ext) " ${fl-rd},${fl-rs1},${fl-rs2}" (emit fdiv.q fl-rd fl-rs1 fl-rs2 (fl-rm #b111)))
+(rv-macro p-fsqrt.q    "fsqrt.q"   (all-isas q-ext) " ${fl-rd},${fl-rs1}" (emit fsqrt.q fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.w.q   "fcvt.w.q"  (all-isas q-ext) " ${rd},${fl-rs1}" (emit fcvt.w.q  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.wu.q  "fcvt.wu.q" (all-isas q-ext) " ${rd},${fl-rs1}" (emit fcvt.wu.q rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.s.q   "fcvt.s.q"  (all-isas q-ext) " ${fl-rd},${fl-rs1}" (emit fcvt.s.q fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.d.q   "fcvt.d.q"  (all-isas q-ext) " ${fl-rd},${fl-rs1}" (emit fcvt.d.q fl-rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fgt.q      "fgt.q"     (all-isas q-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit flt.q rd fl-rs2 fl-rs1))
+(rv-macro p-fge.q      "fge.q"     (all-isas q-ext NO-DIS) " ${rd},${fl-rs2},${fl-rs1}" (emit fle.q rd fl-rs2 fl-rs1))
+
+;RV64Q
+(rv-macro p-fcvt.l.q   "fcvt.l.q"  ((ISA rv64) (RVEXT RV64q)) " ${rd},${fl-rs1}" (emit fcvt.l.q  rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.lu.q  "fcvt.lu.q" ((ISA rv64) (RVEXT RV64q)) " ${rd},${fl-rs1}" (emit fcvt.lu.q rd fl-rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.q.l   "fcvt.q.l"  ((ISA rv64) (RVEXT RV64q)) " ${fl-rd},${rs1}" (emit fcvt.q.l  fl-rd rs1 (fl-rm #b111)))
+(rv-macro p-fcvt.q.lu  "fcvt.q.lu" ((ISA rv64) (RVEXT RV64q)) " ${fl-rd},${rs1}" (emit fcvt.q.lu fl-rd rs1 (fl-rm #b111)))
+

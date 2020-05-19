@@ -1,0 +1,1434 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+; Bitmanip instruction formats
+; +--------+-----+-----+--------+----+--------+
+; |31    25|24 20|19 15|14    12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-1 mnemonic attr funct7 uimm funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${rs1}")
+    (+ (f-funct7 funct7) (f-uimm5-245 uimm) rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+; +-----+---+-----+-----+--------+----+--------+
+; |31 27|26 |25 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<1>|<imm>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+---+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-2 mnemonic attr funct1 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs1},${rs3},${uimm6-256}")
+     (+ rs3 (f-funct1 funct1) uimm6-256 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
+; +-----+--------+-----+-----+--------+----+--------+
+; |31 27|26    25|24 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<funct2>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-3 mnemonic attr funct2 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs2},${rs1},${rs3}")
+     (+ rs3 (f-funct2 funct2) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
+; +-----+--------+-----+-----+--------+----+--------+
+; |31 27|26    25|24 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<funct2>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-4 mnemonic attr funct2 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs1},${rs3},${rs2}")
+     (+ rs3 (f-funct2 funct2) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
+; +-----+--------+-----+-----+--------+----+--------+
+; |31 27|26    25|24 20|19 15|14    12|11 7|6      0|
+; |<rs3>|<funct2>|<imm>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r-5 mnemonic attr funct2 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+     (.str mnemonic " ${rd},${rs1},${rs3},${uimm5-245}")
+     (+ rs3 (f-funct2 funct2) uimm5-245 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+     sem ()))
+; +-------+-------+-----+--------+----+--------+
+; |31   27|26   20|19 15|14    12|11 7|6      0|
+; |<func5>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-------+-------+-----+--------+----+--------+
+(define-pmacro (rv-format-shift7 mnemonic attr funct5 funct3 opcode sem)
+  (dni (.str mnemonic "-shift7") mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${uimm7-267}")
+    (+ (f-funct5 funct5) uimm7-267 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+;===-------------------- 'B' extension instructions -------------------------===
+
+(rv-format-r-1 "clz"      (all-isas zbb-ext b-machs) #b0110000 #b00000 #b001 #b0010011
+  (sequence ((DI count) (DI found))
+    (set count 0)
+    (set found 0)
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1 (sub (sub (reg h-xlen) 1) i)) 1)
+        (set found 1)
+	(if (not found)
+	  (set count (add count 1)))))
+    (set rd count)
+  )
+)
+
+(rv-format-r-1 "ctz"      (all-isas zbb-ext b-machs) #b0110000 #b00001 #b001 #b0010011
+  (sequence ((DI count) (DI found))
+    (set count 0)
+    (set found 0)
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1 i) 1)
+        (set found 1)
+	(if (not found)
+	  (set count (add count 1)))))
+    (set rd count)
+  )
+)
+
+(rv-format-r-1 "clzw"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00000 #b001 #b0011011
+  (sequence ((DI count) (DI found) (SI rs1-narrow))
+    (set count 0)
+    (set found 0)
+    (set rs1-narrow (trunc SI rs1))
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1-narrow (sub (sub (reg h-xlen) 1) i)) 1)
+        (set found 1)
+	(if (not found)
+	  (set count (add count 1)))))
+    (set rd count)
+  )
+)
+
+(rv-format-r-1 "ctzw"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00001 #b001 #b0011011
+  (sequence ((DI count) (DI found) (SI rs1-narrow))
+    (set count 0)
+    (set found 0)
+    (set rs1-narrow (trunc SI rs1))
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1-narrow i) 1)
+        (set found 1)
+	(if (not found)
+	  (set count (add count 1)))))
+    (set rd count)
+  )
+)
+
+(rv-format-r-1 "pcnt"     (all-isas zbb-ext b-machs) #b0110000 #b00010 #b001 #b0010011
+  (sequence ((DI high))
+    (set high 0)
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1 i) 1)
+        (set high (add high 1)))
+    )
+    (set rd high)
+  )
+)
+
+(rv-format-r-1 "pcntw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b00010 #b001 #b0011011
+  (sequence ((DI high) (DI rs1-narrow))
+    (set high 0)
+    (set rs1-narrow (trunc SI rs1))
+    (do-count i (reg h-xlen)
+      (if (and (srl rs1-narrow i) 1)
+        (set high (add high 1)))
+    )
+    (set rd high)
+  )
+)
+
+(rv-format-r "andn"   (all-isas zbb-ext b-machs)  #b0100000 #b111 #b0110011  (set rd (and rs1 (inv rs2))))
+(rv-format-r "orn"    (all-isas zbb-ext b-machs)  #b0100000 #b110 #b0110011  (set rd (or  rs1 (inv rs2))))
+(rv-format-r "xnor"   (all-isas zbb-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 (inv rs2))))
+
+(rv-format-r "pack"   (all-isas zbb-ext b-machs)  #b0000100 #b100 #b0110011
+  (set rd (or (and rs1 (if (eq (reg h-xlen) 32) #xffff #xffffffff)) (sll rs2 (div (reg h-xlen) 2))))
+)
+
+(rv-format-r "packw"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b100 #b0111011
+  (sequence ((SI rs1-n) (SI rs2-n))
+    (set rs1-n (and (trunc SI rs1) #xffff))
+    (set rs2-n (sll (and (trunc SI rs2) #xffff) 16))
+    (set rd (zext DI (or rs1-n rs2-n)))
+  )
+)
+
+(rv-format-r "min"    (all-isas zbb-ext b-machs)  #b0000101 #b100 #b0110011
+  (set rd (if (lt rs1 rs2) rs1 rs2))
+)
+
+(rv-format-r "max"    (all-isas zbb-ext b-machs)  #b0000101 #b101 #b0110011
+  (set rd (if (gt rs1 rs2) rs1 rs2))
+)
+
+(rv-format-r "minu"   (all-isas zbb-ext b-machs)  #b0000101 #b110 #b0110011
+  (set rd (if (ltu rs1 rs2) rs1 rs2))
+)
+
+(rv-format-r "maxu"   (all-isas zbb-ext b-machs)  #b0000101 #b111 #b0110011
+  (set rd (if (gtu rs1 rs2) rs1 rs2))
+)
+
+(rv-format-r "sbset"  (all-isas zbs-ext b-machs)  #b0010100 #b001 #b0110011
+  (set rd (or rs1 (sll 1 rs2)))
+)
+
+(rv-format-r "sbclr"  (all-isas zbs-ext b-machs)  #b0100100 #b001 #b0110011
+  (set rd (and rs1 (inv (sll 1 rs2))))
+)
+
+(rv-format-r "sbinv"  (all-isas zbs-ext b-machs)  #b0110100 #b001 #b0110011
+  (set rd (xor rs1 (sll 1 rs2)))
+)
+
+(rv-format-r "sbext"  (all-isas zbs-ext b-machs)  #b0100100 #b101 #b0110011
+  (set rd (and (srl rs1 rs2) 1))
+)
+
+(rv-format-shift6 "sbseti"  (all-isas zbs-ext b-machs) #b001010 #b001 #b0010011
+  (set rd (or rs1 (sll 1 uimm6-256)))
+)
+
+(rv-format-shift6 "sbclri"  (all-isas zbs-ext b-machs) #b010010 #b001 #b0010011
+  (set rd (and rs1 (inv (sll 1 uimm6-256))))
+)
+
+(rv-format-shift6 "sbinvi"  (all-isas zbs-ext b-machs) #b011010 #b001 #b0010011
+  (set rd (xor rs1 (sll 1 uimm6-256)))
+)
+
+(rv-format-shift6 "sbexti"  (all-isas zbs-ext b-machs) #b010010 #b101 #b0010011
+  (set rd (and (srl rs1 uimm6-256) 1))
+)
+
+(rv-format-r "sbsetw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0111011
+  (sequence ((SI rs1-t) (SI rs2-t))
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (set rd (zext DI (or rs1-t (sll 1 (and rs2-t #x1f)))))
+  )
+)
+
+(rv-format-r "sbclrw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0111011
+  (sequence ((SI rs1-t) (SI rs2-t))
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (set rd (zext DI (and rs1-t (inv (sll 1 (and rs2-t #x1f))))))
+  )
+)
+
+(rv-format-r "sbinvw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0111011
+  (sequence ((SI rs1-t) (SI rs2-t))
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (set rd (zext DI (xor rs1-t (sll 1 (and rs2-t #x1f)))))
+  )
+)
+
+(rv-format-r "sbextw"    ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b101 #b0111011
+  (sequence ((SI rs1-t) (SI rs2-t))
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (set rd (zext DI (and (srl rs1-t (and rs2-t #x1f)) 1)))
+  )
+)
+
+(rv-format-shift5 "sbsetiw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0010100 #b001 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (or rs1-t (sll 1 (and uimm6-256 #x1f)))))
+  )
+)
+
+(rv-format-shift5 "sbclriw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0100100 #b001 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (and rs1-t (inv (sll 1 (and uimm6-256 #x1f))))))
+  )
+)
+
+(rv-format-shift5 "sbinviw" ((ISA rv64) (RVEXT RV64ZBS) rv64b-machs) #b0110100 #b001 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (xor rs1-t (sll 1 (and uimm6-256 #x1f)))))
+  )
+)
+
+(rv-format-r "slo"    (all-isas zbb-ext b-machs)  #b0010000 #b001 #b0110011
+  (set rd (inv (sll (inv rs1) rs2)))
+)
+
+(rv-format-r "sro"    (all-isas zbb-ext b-machs)  #b0010000 #b101 #b0110011
+  (set rd (inv (srl (inv rs1) rs2)))
+)
+
+(rv-format-shift6 "sloi"    (all-isas zbb-ext b-machs) #b001000 #b001 #b0010011
+  (set rd (inv (sll (inv rs1) (and uimm6-256 #x3f))))
+)
+
+(rv-format-shift6 "sroi"    (all-isas zbb-ext b-machs) #b001000 #b101 #b0010011
+  (set rd (inv (srl (inv rs1) (and uimm6-256 #x3f))))
+)
+
+(rv-format-r "slow"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0111011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (inv (sll (inv rs1-t) (and rs2 #x1f)))))
+  )
+)
+
+(rv-format-r "srow"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0111011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (inv (srl (inv rs1-t) (and rs2 #x1f)))))
+  )
+)
+
+(rv-format-shift5 "sloiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b001 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (inv (sll (inv rs1-t) (and uimm5-245 #x1f)))))
+  )
+)
+
+(rv-format-shift5 "sroiw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0010000 #b101 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (inv (srl (inv rs1-t) (and uimm5-245 #x1f)))))
+  )
+)
+
+(rv-format-r "rol"    (all-isas zbb-ext b-machs)  #b0110000 #b001 #b0110011
+  (set rd (rol rs1 rs2))
+)
+
+(rv-format-r "ror"    (all-isas zbb-ext b-machs)  #b0110000 #b101 #b0110011
+  (set rd (ror rs1 rs2))
+)
+
+(rv-format-shift6 "rori"    (all-isas zbb-ext b-machs) #b011000 #b101 #b0010011
+  (set rd (ror rs1 (and uimm6-256 #x3f)))
+)
+
+(rv-format-r "rolw"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b001 #b0111011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (rol rs1-t (and rs2 #x1f))))
+  )
+)
+
+(rv-format-r "rorw"      ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0111011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (ror rs1-t (and rs2 #x1f))))
+  )
+)
+
+(rv-format-shift5 "roriw"   ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0110000 #b101 #b0011011
+  (sequence ((SI rs1-t))
+    (set rs1-t (trunc SI rs1))
+    (set rd (zext DI (ror rs1-t (and uimm5-245 #x1f))))
+  )
+)
+
+(rv-format-r "grev"   (all-isas zbp-ext b-machs)  #b0110100 #b101 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (sll (and result #x55555555) 1)
+                        (srl (and result #xaaaaaaaa) 1))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (sll (and result #x33333333) 2)
+                        (srl (and result #xcccccccc) 2))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0) 4))))
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (sll (and result #x00ff00ff) 8)
+                        (srl (and result #xff00ff00) 8))))
+
+      (if (eq (and rs2 16) 16)
+        (set result (or (sll (and result #x0000ffff) 16)
+                        (srl (and result #xffff0000) 16))))
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (sll (and result #x5555555555555555) 1)
+                        (srl (and result #xaaaaaaaaaaaaaaaa) 1))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (sll (and result #x3333333333333333) 2)
+                        (srl (and result #xcccccccccccccccc) 2))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0f0f0f0f0) 4))))
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (sll (and result #x00ff00ff00ff00ff) 8)
+                        (srl (and result #xff00ff00ff00ff00) 8))))
+
+      (if (eq (and rs2 16) 16)
+        (set result (or (sll (and result #x0000ffff0000ffff) 16)
+                        (srl (and result #xffff0000ffff0000) 16))))
+
+      (if (eq (and rs2 32) 32)
+        (set result (or (sll (and result #x00000000ffffffff) 32)
+                        (srl (and result #xffffffff00000000) 32))))
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-shift6 "grevi"   (all-isas zbp-ext b-machs) #b011010 #b101 #b0010011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and uimm6-256 1) 1)
+        (set result (or (sll (and result #x55555555) 1)
+                        (srl (and result #xaaaaaaaa) 1))))
+
+      (if (eq (and uimm6-256 2) 2)
+        (set result (or (sll (and result #x33333333) 2)
+                        (srl (and result #xcccccccc) 2))))
+
+      (if (eq (and uimm6-256 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0) 4))))
+
+      (if (eq (and uimm6-256 8) 8)
+        (set result (or (sll (and result #x00ff00ff) 8)
+                        (srl (and result #xff00ff00) 8))))
+
+      (if (eq (and uimm6-256 16) 16)
+        (set result (or (sll (and result #x0000ffff) 16)
+                        (srl (and result #xffff0000) 16))))
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and uimm6-256 1) 1)
+        (set result (or (sll (and result #x5555555555555555) 1)
+                        (srl (and result #xaaaaaaaaaaaaaaaa) 1))))
+
+      (if (eq (and uimm6-256 2) 2)
+        (set result (or (sll (and result #x3333333333333333) 2)
+                        (srl (and result #xcccccccccccccccc) 2))))
+
+      (if (eq (and uimm6-256 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0f0f0f0f0) 4))))
+
+      (if (eq (and uimm6-256 8) 8)
+        (set result (or (sll (and result #x00ff00ff00ff00ff) 8)
+                        (srl (and result #xff00ff00ff00ff00) 8))))
+
+      (if (eq (and uimm6-256 16) 16)
+        (set result (or (sll (and result #x0000ffff0000ffff) 16)
+                        (srl (and result #xffff0000ffff0000) 16))))
+
+      (if (eq (and uimm6-256 32) 32)
+        (set result (or (sll (and result #x00000000ffffffff) 32)
+                        (srl (and result #xffffffff00000000) 32))))
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0111011
+    (sequence ((SI result) (SI rs2-t))
+      (set result rs1)
+      (set rs2-t (trunc SI rs2))
+
+      (if (eq (and rs2-t 1) 1)
+        (set result (or (sll (and result #x55555555) 1)
+                        (srl (and result #xaaaaaaaa) 1))))
+
+      (if (eq (and rs2-t 2) 2)
+        (set result (or (sll (and result #x33333333) 2)
+                        (srl (and result #xcccccccc) 2))))
+
+      (if (eq (and rs2-t 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0) 4))))
+
+      (if (eq (and rs2-t 8) 8)
+        (set result (or (sll (and result #x00ff00ff) 8)
+                        (srl (and result #xff00ff00) 8))))
+
+      (if (eq (and rs2-t 16) 16)
+        (set result (or (sll (and result #x0000ffff) 16)
+                        (srl (and result #xffff0000) 16))))
+      (set rd (zext DI result))
+    )
+)
+
+(rv-format-shift5 "greviw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0110100 #b101 #b0011011
+    (sequence ((SI result))
+      (set result rs1)
+
+      (if (eq (and uimm5-245 1) 1)
+        (set result (or (sll (and result #x55555555) 1)
+                        (srl (and result #xaaaaaaaa) 1))))
+
+      (if (eq (and uimm5-245 2) 2)
+        (set result (or (sll (and result #x33333333) 2)
+                        (srl (and result #xcccccccc) 2))))
+
+      (if (eq (and uimm5-245 4) 4)
+        (set result (or (sll (and result #x0f0f0f0f) 4)
+                        (srl (and result #xf0f0f0f0) 4))))
+
+      (if (eq (and uimm5-245 8) 8)
+        (set result (or (sll (and result #x00ff00ff) 8)
+                        (srl (and result #xff00ff00) 8))))
+
+      (if (eq (and uimm5-245 16) 16)
+        (set result (or (sll (and result #x0000ffff) 16)
+                        (srl (and result #xffff0000) 16))))
+      (set rd (zext DI result))
+    )
+)
+
+(rv-format-r "shfl"   (all-isas zbp-ext b-machs)  #b0000100 #b001 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (or (srl (and result #x00ff0000) 8)
+                            (sll (and result #x0000ff00) 8))
+                            (and result #xff0000ff))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (or (srl (and result #x0f000f00) 4)
+                            (sll (and result #x00f000f0) 4))
+                            (and result #xf00ff00f))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (or (srl (and result #x30303030) 2)
+                            (sll (and result #x0c0c0c0c) 2))
+                            (and result #xc3c3c3c3))))
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (or (srl (and result #x44444444) 1)
+                            (sll (and result #x22222222) 1))
+                            (and result #x99999999))))
+
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 16) 16)
+        (set result (or (or (srl (and result #x0000ffff00000000) 16)
+                            (sll (and result #x00000000ffff0000) 16))
+                            (and result #xffff00000000ffff))))
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (or (srl (and result #x00ff000000ff0000) 8)
+                            (sll (and result #x0000ff000000ff00) 8))
+                            (and result #xff000000000000ff))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (or (srl (and result #x0f000f000f000f00) 4)
+                            (sll (and result #x00f000f000f000f0) 4))
+                            (and result #xf00ff00ff00ff00f))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (or (srl (and result #x3030303030303030) 2)
+                            (sll (and result #x0c0c0c0c0c0c0c0c) 2))
+                            (and result #xc3c3c3c3c3c3c3c3))))
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (or (srl (and result #x4444444444444444) 1)
+                            (sll (and result #x2222222222222222) 1))
+                            (and result #x9999999999999999))))
+
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-r "unshfl" (all-isas zbp-ext b-machs)  #b0000100 #b101 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (or (srl (and result #x44444444) 1)
+                            (sll (and result #x22222222) 1))
+                            (and result #x99999999))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (or (srl (and result #x30303030) 2)
+                            (sll (and result #x0c0c0c0c) 2))
+                            (and result #xc3c3c3c3))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (or (srl (and result #x0f000f00) 4)
+                            (sll (and result #x00f000f0) 4))
+                            (and result #xf00ff00f))))
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (or (srl (and result #x00ff0000) 8)
+                            (sll (and result #x0000ff00) 8))
+                            (and result #xff0000ff))))
+
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and rs2 1) 1)
+        (set result (or (or (srl (and result #x4444444444444444) 1)
+                            (sll (and result #x2222222222222222) 1))
+                            (and result #x9999999999999999))))
+
+      (if (eq (and rs2 2) 2)
+        (set result (or (or (srl (and result #x3030303030303030) 2)
+                            (sll (and result #x0c0c0c0c0c0c0c0c) 2))
+                            (and result #xc3c3c3c3c3c3c3c3))))
+
+      (if (eq (and rs2 4) 4)
+        (set result (or (or (srl (and result #x0f000f000f000f00) 4)
+                            (sll (and result #x00f000f000f000f0) 4))
+                            (and result #xf00ff00ff00ff00f))))
+
+      (if (eq (and rs2 8) 8)
+        (set result (or (or (srl (and result #x00ff000000ff0000) 8)
+                            (sll (and result #x0000ff000000ff00) 8))
+                            (and result #xff000000000000ff))))
+
+      (if (eq (and rs2 16) 16)
+        (set result (or (or (srl (and result #x0000ffff00000000) 16)
+                            (sll (and result #x00000000ffff0000) 16))
+                            (and result #xffff00000000ffff))))
+
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-shift6 "shfli"   ((ISA rv64) zbp-ext b-machs) #b000010 #b001 #b0010011
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and uimm6-256 16) 16)
+        (set result (or (or (srl (and result #x0000ffff00000000) 16)
+                            (sll (and result #x00000000ffff0000) 16))
+                            (and result #xffff00000000ffff))))
+
+      (if (eq (and uimm6-256 8) 8)
+        (set result (or (or (srl (and result #x00ff000000ff0000) 8)
+                            (sll (and result #x0000ff000000ff00) 8))
+                            (and result #xff000000000000ff))))
+
+      (if (eq (and uimm6-256 4) 4)
+        (set result (or (or (srl (and result #x0f000f000f000f00) 4)
+                            (sll (and result #x00f000f000f000f0) 4))
+                            (and result #xf00ff00ff00ff00f))))
+
+      (if (eq (and uimm6-256 2) 2)
+        (set result (or (or (srl (and result #x3030303030303030) 2)
+                            (sll (and result #x0c0c0c0c0c0c0c0c) 2))
+                            (and result #xc3c3c3c3c3c3c3c3))))
+
+      (if (eq (and uimm6-256 1) 1)
+        (set result (or (or (srl (and result #x4444444444444444) 1)
+                            (sll (and result #x2222222222222222) 1))
+                            (and result #x9999999999999999))))
+
+      (set rd result)
+    )
+)
+
+(rv-format-shift6 "unshfli" ((ISA rv64) zbp-ext b-machs) #b000010 #b101 #b0010011
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (eq (and uimm6-256 1) 1)
+        (set result (or (or (srl (and result #x4444444444444444) 1)
+                            (sll (and result #x2222222222222222) 1))
+                            (and result #x9999999999999999))))
+
+      (if (eq (and uimm6-256 2) 2)
+        (set result (or (or (srl (and result #x3030303030303030) 2)
+                            (sll (and result #x0c0c0c0c0c0c0c0c) 2))
+                            (and result #xc3c3c3c3c3c3c3c3))))
+
+      (if (eq (and uimm6-256 4) 4)
+        (set result (or (or (srl (and result #x0f000f000f000f00) 4)
+                            (sll (and result #x00f000f000f000f0) 4))
+                            (and result #xf00ff00ff00ff00f))))
+
+      (if (eq (and uimm6-256 8) 8)
+        (set result (or (or (srl (and result #x00ff000000ff0000) 8)
+                            (sll (and result #x0000ff000000ff00) 8))
+                            (and result #xff000000000000ff))))
+
+      (if (eq (and uimm6-256 16) 16)
+        (set result (or (or (srl (and result #x0000ffff00000000) 16)
+                            (sll (and result #x00000000ffff0000) 16))
+                            (and result #xffff00000000ffff))))
+
+      (set rd result)
+    )
+)
+
+(rv-format-r "shflw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0000100 #b001 #b0111011
+    (sequence ((SI result))
+      (set result (trunc SI rs1))
+
+      (if (eq (and (and rs2 #x1f) 8) 8)
+        (set result (or (or (srl (and result #x00ff0000) 8)
+                            (sll (and result #x0000ff00) 8))
+                            (and result #xff0000ff))))
+
+      (if (eq (and (and rs2 #x1f) 4) 4)
+        (set result (or (or (srl (and result #x0f000f00) 4)
+                            (sll (and result #x00f000f0) 4))
+                            (and result #xf00ff00f))))
+
+      (if (eq (and (and rs2 #x1f) 2) 2)
+        (set result (or (or (srl (and result #x30303030) 2)
+                            (sll (and result #x0c0c0c0c) 2))
+                            (and result #xc3c3c3c3))))
+
+      (if (eq (and (and rs2 #x1f) 1) 1)
+        (set result (or (or (srl (and result #x44444444) 1)
+                            (sll (and result #x22222222) 1))
+                            (and result #x99999999))))
+
+      (set rd (zext DI result))
+    )
+)
+
+(rv-format-r "unshflw"   ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0000100 #b101 #b0111011
+    (sequence ((SI result))
+      (set result (trunc SI rs1))
+
+      (if (eq (and (and rs2 #x1f) 1) 1)
+        (set result (or (or (srl (and result #x44444444) 1)
+                            (sll (and result #x22222222) 1))
+                            (and result #x99999999))))
+
+      (if (eq (and (and rs2 #x1f) 2) 2)
+        (set result (or (or (srl (and result #x30303030) 2)
+                            (sll (and result #x0c0c0c0c) 2))
+                            (and result #xc3c3c3c3))))
+
+      (if (eq (and (and rs2 #x1f) 4) 4)
+        (set result (or (or (srl (and result #x0f000f00) 4)
+                            (sll (and result #x00f000f0) 4))
+                            (and result #xf00ff00f))))
+
+      (if (eq (and (and rs2 #x1f) 8) 8)
+        (set result (or (or (srl (and result #x00ff0000) 8)
+                            (sll (and result #x0000ff00) 8))
+                            (and result #xff0000ff))))
+
+      (set rd (zext DI result))
+    )
+)
+
+
+(rv-format-r "gorc"   (all-isas zbp-ext b-machs)  #b0010100 #b101 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (and rs2 1)
+        (set result (or (or (sll (and result #x55555555) 1)
+                            (srl (and result #xaaaaaaaa) 1))
+			    result)))
+
+      (if (and rs2 2)
+        (set result (or (or (sll (and result #x33333333) 2)
+                            (srl (and result #xcccccccc) 2))
+                            result)))
+
+      (if (and rs2 4)
+        (set result (or (or (sll (and result #x0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0) 4))
+			    result)))
+
+      (if (and rs2 8)
+        (set result (or (or (sll (and result #x00ff00ff) 8)
+                            (srl (and result #xff00ff00) 8))
+			    result)))
+
+      (if (and rs2 16)
+        (set result (or (or (sll (and result #x0000ffff) 16)
+                            (srl (and result #xffff0000) 16))
+			    result)))
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (and rs2 1)
+        (set result (or (or (sll (and result #x5555555555555555) 1)
+                            (srl (and result #xaaaaaaaaaaaaaaaa) 1))
+			    result)))
+
+      (if (and rs2 2)
+        (set result (or (or (sll (and result #x3333333333333333) 2)
+                            (srl (and result #xcccccccccccccccc) 2))
+			    result)))
+
+      (if (and rs2 4)
+        (set result (or (or (sll (and result #x0f0f0f0f0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0f0f0f0f0) 4))
+			    result)))
+
+      (if (and rs2 8)
+        (set result (or (or (sll (and result #x00ff00ff00ff00ff) 8)
+                            (srl (and result #xff00ff00ff00ff00) 8))
+			    result)))
+
+      (if (and rs2 16)
+        (set result (or (or (sll (and result #x0000ffff0000ffff) 16)
+                            (srl (and result #xffff0000ffff0000) 16))
+			    result)))
+
+      (if (and rs2 32)
+        (set result (or (or (sll (and result #x00000000ffffffff) 32)
+                            (srl (and result #xffffffff00000000) 32))
+			    result)))
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-shift6 "gorci"   (all-isas zbp-ext b-machs) #b001010 #b101 #b0010011
+  (if (eq (reg h-xlen) 32)
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (and uimm6-256 1)
+        (set result (or (or (sll (and result #x55555555) 1)
+                            (srl (and result #xaaaaaaaa) 1))
+			    result)))
+
+      (if (and uimm6-256 2)
+        (set result (or (or (sll (and result #x33333333) 2)
+                            (srl (and result #xcccccccc) 2))
+                            result)))
+
+      (if (and uimm6-256 4)
+        (set result (or (or (sll (and result #x0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0) 4))
+			    result)))
+
+      (if (and uimm6-256 8)
+        (set result (or (or (sll (and result #x00ff00ff) 8)
+                            (srl (and result #xff00ff00) 8))
+			    result)))
+
+      (if (and uimm6-256 16)
+        (set result (or (or (sll (and result #x0000ffff) 16)
+                            (srl (and result #xffff0000) 16))
+			    result)))
+      (set rd result)
+    )
+    ; ...else if h-xlen != 32...
+    (sequence ((DI result))
+      (set result rs1)
+
+      (if (and uimm6-256 1)
+        (set result (or (or (sll (and result #x5555555555555555) 1)
+                            (srl (and result #xaaaaaaaaaaaaaaaa) 1))
+			    result)))
+
+      (if (and uimm6-256 2)
+        (set result (or (or (sll (and result #x3333333333333333) 2)
+                            (srl (and result #xcccccccccccccccc) 2))
+			    result)))
+
+      (if (and uimm6-256 4)
+        (set result (or (or (sll (and result #x0f0f0f0f0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0f0f0f0f0) 4))
+			    result)))
+
+      (if (and uimm6-256 8)
+        (set result (or (or (sll (and result #x00ff00ff00ff00ff) 8)
+                            (srl (and result #xff00ff00ff00ff00) 8))
+			    result)))
+
+      (if (and uimm6-256 16)
+        (set result (or (or (sll (and result #x0000ffff0000ffff) 16)
+                            (srl (and result #xffff0000ffff0000) 16))
+			    result)))
+
+      (if (and uimm6-256 32)
+        (set result (or (or (sll (and result #x00000000ffffffff) 32)
+                            (srl (and result #xffffffff00000000) 32))
+			    result)))
+      (set rd result)
+    )
+  )
+)
+
+(rv-format-r "gorcw"   (all-isas zbp-ext b-machs)  #b0010100 #b101 #b0111011
+    (sequence ((SI result))
+      (set result (trunc SI rs1))
+
+      (if (and rs2 1)
+        (set result (or (or (sll (and result #x55555555) 1)
+                            (srl (and result #xaaaaaaaa) 1))
+			    result)))
+
+      (if (and rs2 2)
+        (set result (or (or (sll (and result #x33333333) 2)
+                            (srl (and result #xcccccccc) 2))
+                            result)))
+
+      (if (and rs2 4)
+        (set result (or (or (sll (and result #x0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0) 4))
+			    result)))
+
+      (if (and rs2 8)
+        (set result (or (or (sll (and result #x00ff00ff) 8)
+                            (srl (and result #xff00ff00) 8))
+			    result)))
+
+      (if (and rs2 16)
+        (set result (or (or (sll (and result #x0000ffff) 16)
+                            (srl (and result #xffff0000) 16))
+			    result)))
+      (set rd (zext DI result))
+    )
+)
+
+(rv-format-shift5 "gorciw"  ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0010100 #b101 #b0011011
+    (sequence ((SI result))
+      (set result (trunc SI rs1))
+
+      (if (and uimm5-245 1)
+        (set result (or (or (sll (and result #x55555555) 1)
+                            (srl (and result #xaaaaaaaa) 1))
+			    result)))
+
+      (if (and uimm5-245 2)
+        (set result (or (or (sll (and result #x33333333) 2)
+                            (srl (and result #xcccccccc) 2))
+                            result)))
+
+      (if (and uimm5-245 4)
+        (set result (or (or (sll (and result #x0f0f0f0f) 4)
+                            (srl (and result #xf0f0f0f0) 4))
+			    result)))
+
+      (if (and uimm5-245 8)
+        (set result (or (or (sll (and result #x00ff00ff) 8)
+                            (srl (and result #xff00ff00) 8))
+			    result)))
+
+      (if (and uimm5-245 16)
+        (set result (or (or (sll (and result #x0000ffff) 16)
+                            (srl (and result #xffff0000) 16))
+			    result)))
+      (set rd (zext DI result))
+    )
+)
+
+
+(rv-format-r "bfp"   (all-isas zbp-ext b-machs)  #b0100100 #b111 #b0110011
+  (sequence ((DI len) (DI off) (DI mask) (DI data))
+    (set len (and (srl rs2 24) #x1f))
+    (set off (and (srl rs2 24) (sub (reg h-xlen) 1)))
+    (set mask 0)
+
+    (set len (if len len 16))
+
+    (do-count i len
+      (set mask (or mask (sll 1 i))))
+    (set mask (rol mask off))
+
+    (set data (rol rs2 off))
+
+    (set rd (or (and data mask) (and rs1 (inv mask))))
+  )
+)
+
+(rv-format-r "bfpw"   (all-isas zbp-ext b-machs)  #b0100100 #b111 #b0111011
+  (sequence ((SI rs1-t) (SI rs2-t) (SI len) (SI off) (SI mask) (SI data))
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+
+    (set len (and (srl rs2-t 24) #x1f))
+    (set off (and (srl rs2-t 24) (sub 32 1)))
+    (set mask 0)
+
+    (set len (if len len 16))
+
+    (do-count i len
+      (set mask (or mask (sll 1 i))))
+    (set mask (rol mask off))
+
+    (set data (rol rs2-t off))
+
+    (set rd (zext DI (or (and data mask) (and rs1-t (inv mask)))))
+  )
+)
+
+(rv-format-r "bext"   (all-isas zbe-ext b-machs)  #b0000100 #b110 #b0110011
+  (sequence ((DI res) (INT j))
+    (set res 0)
+
+    (do-count i (reg h-xlen)
+      (if (and rs2 (sll 1 i))
+        (sequence ()
+          (if (and rs1 (sll 1 i))
+            (set res (or res (sll 1 j)))
+          )
+	  (set j (add j 1))
+	)
+      )
+    )
+
+    (set rd res)
+  )
+)
+
+(rv-format-r "bdep"   (all-isas zbe-ext b-machs)  #b0100100 #b110 #b0110011
+  (sequence ((DI res) (INT j))
+    (set res 0)
+
+    (do-count i (reg h-xlen)
+      (if (and rs2 (sll 1 i))
+        (sequence ()
+          (if (and rs1 (sll 1 j))
+            (set res (or res (sll 1 i)))
+          )
+	  (set j (add j 1))
+	)
+      )
+    )
+
+    (set rd res)
+  )
+)
+
+(rv-format-r "bextw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0000100 #b110 #b0111011
+  (sequence ((SI res) (INT j))
+    (set res 0)
+
+    (do-count i 32
+      (if (and rs2 (sll 1 i))
+        (sequence ()
+          (if (and rs1 (sll 1 j))
+            (set res (or res (sll 1 i)))
+          )
+	  (set j (add j 1))
+	)
+      )
+    )
+
+    (set rd (zext DI res))
+  )
+)
+
+(rv-format-r "bdepw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0000100 #b010 #b0111011
+  (sequence ((SI res) (INT j))
+    (set res 0)
+
+    (do-count i 32
+      (if (and rs2 (sll 1 i))
+        (sequence ()
+          (if (and rs1 (sll 1 j))
+            (set res (or res (sll 1 i)))
+          )
+	  (set j (add j 1))
+	)
+      )
+    )
+
+    (set rd (zext DI res))
+  )
+)
+
+(rv-format-r "clmul"  (all-isas b-ext b-machs)  #b0000101 #b001 #b0110011
+  (sequence ((DI res))
+    (set res 0)
+    (do-count i (reg h-xlen)
+      (if (and (srl rs2 i) 1)
+        (set res (xor res (sll rs1 i)))
+      )
+    )
+    (set rd res)
+  )
+)
+
+(rv-format-r "clmulh" (all-isas b-ext b-machs)  #b0000101 #b011 #b0110011
+  (sequence ((DI res) (DI j))
+    (set res 0)
+    (set j 1)
+    (do-count i (sub (reg h-xlen) 1)
+      (if (and (srl rs2 j) 1)
+        (set res (xor res (srl rs1 (sub (reg h-xlen) j))))
+      )
+      (set j (add j 1))
+    )
+    (set rd res)
+  )
+)
+
+(rv-format-r "clmulr" (all-isas b-ext b-machs)  #b0000101 #b010 #b0110011
+  (sequence ((DI res))
+    (set res 0)
+    (do-count i (sub (reg h-xlen) 1)
+      (if (and (srl rs2 i) 1)
+        (set res (xor res (srl rs1 (sub (sub (reg h-xlen) i) 1))))
+      )
+    )
+    (set rd res)
+  )
+)
+
+(rv-format-r "clmulw"    ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b001 #b0111011
+  (sequence ((SI res) (SI rs1-t) (SI rs2-t))
+    (set res 0)
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (do-count i 32
+      (if (and (srl (and rs2-t #x1f) i) 1)
+        (set res (xor res (sll rs1-t i)))
+      )
+    )
+    (set rd (zext DI res))
+  )
+)
+
+(rv-format-r "clmulhw"   ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b011 #b0111011
+  (sequence ((SI res) (SI j) (SI rs1-t) (SI rs2-t))
+    (set res 0)
+    (set j 1)
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (do-count i (sub 32 1)
+      (if (and (srl (and rs2-t #x1f) j) 1)
+        (set res (xor res (srl rs1-t (sub 32 j))))
+      )
+      (set j (add j 1))
+    )
+    (set rd (zext DI res))
+  )
+)
+
+(rv-format-r "clmulrw"   ((ISA rv64) (RVEXT RV64ZBC) rv64b-machs) #b0000101 #b010 #b0111011
+  (sequence ((SI res) (SI rs1-t) (SI rs2-t))
+    (set res 0)
+    (set rs1-t (trunc SI rs1))
+    (set rs2-t (trunc SI rs2))
+    (do-count i (sub (reg h-xlen) 1)
+      (if (and (srl (and rs2-t #x1f) i) 1)
+        (set res (xor res (srl rs1-t (sub (sub 32 i) 1))))
+      )
+    )
+    (set rd (zext DI res))
+  )
+)
+
+(rv-format-r-1 "crc32.b"  (all-isas b-ext b-machs) #b0110000 #b10000 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 8
+      (set x (xor (srl x 1) (and #xedb88320 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32.h"  (all-isas b-ext b-machs) #b0110000 #b10001 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 16
+      (set x (xor (srl x 1) (and #xedb88320 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32.w"  (all-isas b-ext b-machs) #b0110000 #b10010 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 32
+      (set x (xor (srl x 1) (and #xedb88320 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32c.b" (all-isas b-ext b-machs) #b0110000 #b11000 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 8
+      (set x (xor (srl x 1) (and #x82f63b78 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32c.h" (all-isas b-ext b-machs) #b0110000 #b11001 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 16
+      (set x (xor (srl x 1) (and #x82f63b78 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32c.w" (all-isas b-ext b-machs) #b0110000 #b11010 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 32
+      (set x (xor (srl x 1) (and #x82f63b78 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32.d"  ((ISA rv64) (RVEXT RV64ZBR) rv64b-machs) #b0110000 #b10011 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 64
+      (set x (xor (srl x 1) (and #xedb88320 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r-1 "crc32c.d" ((ISA rv64) (RVEXT RV64ZBR) rv64b-machs) #b0110000 #b11011 #b001 #b0010011
+  (sequence ((DI x))
+    (set x rs1)
+    (do-count i 64
+      (set x (xor (srl x 1) (and #x82f63b78 (inv (sub (and x 1) 1)))))
+    )
+    (set rd x)
+  )
+)
+
+(rv-format-r "bmator"    ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0000100 #b011 #b0110011
+  (set rd (c-call DI "riscv64_bmator" rs1 rs2))
+)
+
+(rv-format-r "bmatxor"   ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0100100 #b011 #b0110011
+  (set rd (c-call DI "riscv64_bmatxor" rs1 rs2))
+)
+
+(rv-format-r-1 "bmatflip" ((ISA rv64) (RVEXT RV64ZBM) rv64b-machs) #b0110000 #b00011 #b001 #b0010011
+  (set rd (c-call DI "riscv64_bmatflip" rs1))
+)
+
+(rv-format-r-3 "cmix" (all-isas zbt-ext b-machs) #b11 #b001 #b0110011
+  (set rd (or (and rs1 rs2) (and rs3 (inv rs2))))
+)
+
+(rv-format-r-3 "cmov" (all-isas zbt-ext b-machs) #b11 #b101 #b0110011
+  (set rd (if rs2 rs1 rs3))
+)
+
+(rv-format-r-4 "fsl"  (all-isas zbt-ext b-machs) #b10 #b001 #b0110011
+  (sequence ((DI shamt) (DI a) (DI b))
+    (set shamt rs2)
+    (set a rs1)
+    (set b rs3)
+    (if (gt shamt (reg h-xlen))
+      (sequence ()
+        (set shamt (sub shamt (reg h-xlen)))
+        (set a rs3)
+	(set b rs1)
+      )
+    )
+    (if shamt
+      (set rd (or (sll a shamt) (srl b (sub (reg h-xlen) shamt))))
+      (set rd a)
+    )
+  )
+)
+
+(rv-format-r-4 "fsr"  (all-isas zbt-ext b-machs) #b10 #b101 #b0110011
+  (sequence ((DI shamt) (DI a) (DI b))
+    (set shamt rs2)
+    (set a rs1)
+    (set b rs3)
+    (if (gt shamt (reg h-xlen))
+      (sequence ()
+        (set shamt (sub shamt (reg h-xlen)))
+        (set a rs3)
+	(set b rs1)
+      )
+    )
+    (if shamt
+      (set rd (or (srl a shamt) (sll b (sub (reg h-xlen) shamt))))
+      (set rd a)
+    )
+  )
+)
+
+(rv-format-r-2 "fsri" (all-isas zbt-ext b-machs) #b1  #b101 #b0010011
+  (sequence ((DI shamt) (DI a) (DI b))
+    (set shamt uimm6-256)
+    (set a rs1)
+    (set b rs3)
+    (if (gt shamt (reg h-xlen))
+      (sequence ()
+        (set shamt (sub shamt (reg h-xlen)))
+        (set a rs3)
+	(set b rs1)
+      )
+    )
+    (if shamt
+      (set rd (or (srl a shamt) (sll b (sub (reg h-xlen) shamt))))
+      (set rd a)
+    )
+  )
+)
+
+(rv-format-r-4 "fslw"    ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b001 #b0111011
+  (sequence ((SI shamt) (SI a) (SI b))
+    (set shamt (and rs2 #x1f))
+    (set a (trunc SI rs1))
+    (set b (trunc SI rs3))
+    (if (gt shamt 32)
+      (sequence ()
+        (set shamt (sub shamt 32))
+        (set a (trunc SI rs3))
+	(set b (trunc SI rs1))
+      )
+    )
+    (if shamt
+      (set rd (zext DI (or (sll a shamt) (srl b (sub 32 shamt)))))
+      (set rd (zext DI a))
+    )
+  )
+)
+
+(rv-format-r-4 "fsrw"    ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b101 #b0111011
+  (sequence ((SI shamt) (SI a) (SI b))
+    (set shamt (and rs2 #x1f))
+    (set a (trunc SI rs1))
+    (set b (trunc SI rs3))
+    (if (gt shamt 32)
+      (sequence ()
+        (set shamt (sub shamt 32))
+        (set a (trunc SI rs3))
+	(set b (trunc SI rs1))
+      )
+    )
+    (if shamt
+      (set rd (zext DI (or (srl a shamt) (sll b (sub 32 shamt)))))
+      (set rd (zext DI a))
+    )
+  )
+)
+
+(rv-format-r-5 "fsriw"   ((ISA rv64) (RVEXT RV64ZBT) rv64b-machs) #b10 #b101 #b0011011
+  (sequence ((SI shamt) (SI a) (SI b))
+    (set shamt (and uimm5-245 #x1f))
+    (set a (trunc SI rs1))
+    (set b (trunc SI rs3))
+    (if (gt shamt 32)
+      (sequence ()
+        (set shamt (sub shamt 32))
+        (set a (trunc SI rs3))
+	(set b (trunc SI rs1))
+      )
+    )
+    (if shamt
+      (set rd (zext DI (or (srl a shamt) (sll b (sub 32 shamt)))))
+      (set rd (zext DI a))
+    )
+  )
+)
+
+(rv-format-r "addwu"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000101 #b000 #b0111011
+  (set rd (zext DI (add USI (trunc USI rs1) (trunc USI rs2))))
+)
+
+(rv-format-r "subwu"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0100101 #b000 #b0111011
+  (nop)
+)
+
+(rv-format-i-1 "addiwu"  ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs)         #b100 #b0011011
+  (nop)
+)
+
+(rv-format-r "addu.w"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b000 #b0111011
+  (nop)
+)
+
+(rv-format-r "subu.w"    ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0100100 #b000 #b0111011
+  (nop)
+)
+
+(rv-format-shift7 "slliu.w" ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b00001 #b001 #b0011011
+  (nop)
+)
+
+
+;===----------------- 'B' extension macro instructions ----------------------===
+
+(rv-macro p-slo          "slo"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sloi-shift6 rd rs1 uimm6-256))
+(rv-macro p-sro          "sro"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sroi-shift6 rd rs1 uimm6-256))
+(rv-macro p-ror          "ror"        (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit rori-shift6 rd rs1 uimm6-256))
+
+; These aren't technically shifts, but the encoding and 5/6 bit difference for rv32/rv64 is equivalent.
+(rv-macro p-sbset        "sbset"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbseti-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbclr        "sbclr"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbclri-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbinv        "sbinv"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbinvi-shift6 rd rs1 uimm6-256))
+(rv-macro p-sbext        "sbext"      (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit sbexti-shift6 rd rs1 uimm6-256))
+
+(rv-macro p-fsri "fsr"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${rs3},${uimm6-256}" (emit fsri rd rs1 rs3 uimm6-256))
+
+;(rv-macro p-sloi "slo"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sloi rd rs1 uimm7-267))
+;(rv-macro p-sroi "sro"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sroi rd rs1 uimm7-267))
+;(rv-macro p-rori "ror"     (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit rori rd rs1 uimm7-267))
+;(rv-macro p-sbseti "sbset" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbseti rd rs1 uimm7-267))
+;(rv-macro p-sbclri "sbclr" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbclri rd rs1 uimm7-267))
+;(rv-macro p-sbinvi "sbinv" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbinvi rd rs1 uimm7-267))
+;(rv-macro p-sbexti "sbext" (all-isas b-ext NO-DIS) " ${rd},${rs1},${uimm7-267}" (emit sbexti rd rs1 uimm7-267))
+
+(rv-macro p-sloiw "slow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sloiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sroiw "srow"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sroiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-roriw "rorw"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit roriw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbsetiw "sbsetw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbsetiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbclriw "sbclrw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbclriw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sbinviw "sbinvw" ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${uimm5-245}" (emit sbinviw-shift5 rd rs1 uimm5-245))
+(rv-macro p-fsriw "fsrw"   ((ISA rv64) (RVEXT RV64B) NO-DIS) " ${rd},${rs1},${rs3},${uimm5-245}" (emit fsriw rd rs1 rs3 uimm5-245))
+

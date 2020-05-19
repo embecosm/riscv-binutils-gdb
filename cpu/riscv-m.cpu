@@ -1,0 +1,165 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+; Multiplication instruction
+; +--------+------+-----+--------+----+--------+
+; |31    25|24  20|19 15|14    12|11 7|6      0|
+; |<funct7>|<rsc2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +--------+------+-----+--------+----+--------+
+(define-pmacro (rv-format-multi mnemonic attr funct7 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${rs2}")
+    (+ (f-funct7 funct7) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+;===-------------------- 'M' extension instructions -------------------------===
+
+; Multiplication instructions
+(rv-format-multi "mul"    (all-isas m-ext m-machs) #b0000001 #b000 #b0110011 (set rd (mul rs1 rs2)))
+(rv-format-multi "mulh"   (all-isas m-ext m-machs) #b0000001 #b001 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (set rd (srl (mul DI rs1 rs2) 32))
+    (sequence ((DI rs1-lo) (DI rs1-hi) (DI rs2-lo) (DI rs2-hi)
+               (DI lo) (DI mid1) (DI mid2) (DI hi)
+               (DI res-lo) (DI res-hi) (DI tmp))
+      (set rs1-lo (and DI rs1 #xffffffff))
+      (set rs1-hi (srl DI rs1 32))
+      (set rs2-lo (and DI rs2 #xffffffff))
+      (set rs2-hi (srl DI rs2 32))
+
+      ; calculate all of the parts of the result to be added together
+      (set lo   (mul rs1-lo rs2-lo))
+      (set mid1 (mul rs1-lo rs2-hi))
+      (set mid2 (mul rs1-hi rs2-lo))
+      (set hi   (mul rs1-hi rs2-hi))
+
+      ; accumulate each 32-bits of the result in turn, first into res-lo,
+      ; then into res-hi
+      (set res-lo (and lo #xffffffff))
+      (set tmp    (add (add (srl lo 32) (and mid1 #xffffffff)) (and mid2 #xffffffff)))
+      (set res-lo (add res-lo (sll tmp 32)))
+      (set tmp    (add (add (srl tmp 32) (srl mid1 32)) (add (srl mid2 32) (and hi #xffffffff))))
+      (set res-hi (and tmp #xffffffff))
+      (set tmp    (add (srl tmp 32) (srl hi 32)))
+      (set res-hi (add res-hi (sll tmp 32)))
+
+      ; calculate the remainder of the high part of the result
+      (set res-hi (add res-hi (mul (sra DI rs1 63) rs2)))
+      (set res-hi (add res-hi (mul rs1 (sra DI rs2 63))))
+
+      (set rd res-hi)
+    )
+  )
+)
+(rv-format-multi "mulhsu" (all-isas m-ext m-machs) #b0000001 #b010 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (set rd (srl (mul DI (ext DI (trunc SI rs1)) (zext DI (trunc SI rs2))) 32))
+	  (sequence ((DI rs1-lo) (DI rs1-hi) (DI rs2-lo) (DI rs2-hi)
+               (DI lo) (DI mid1) (DI mid2) (DI hi)
+               (DI res-lo) (DI res-hi) (DI tmp))
+      (set rs1-lo (and DI rs1 #xffffffff))
+      (set rs1-hi (srl DI rs1 32))
+      (set rs2-lo (and DI rs2 #xffffffff))
+      (set rs2-hi (srl DI rs2 32))
+
+      ; calculate all of the parts of the result to be added together
+      (set lo     (mul rs1-lo rs2-lo))
+      (set mid1   (mul rs1-lo rs2-hi))
+      (set mid2   (mul rs1-hi rs2-lo))
+      (set hi     (mul rs1-hi rs2-hi))
+
+      ; accumulate each 32-bits of the result in turn, first into res-lo,
+      ; then into res-hi
+      (set res-lo (and lo #xffffffff))
+      (set tmp    (add (add (srl lo 32) (and mid1 #xffffffff)) (and mid2 #xffffffff)))
+      (set res-lo (add res-lo (sll tmp 32)))
+      (set tmp    (add (add (srl tmp 32) (srl mid1 32)) (add (srl mid2 32) (and hi #xffffffff))))
+      (set res-hi (and tmp #xffffffff))
+      (set tmp    (add (srl tmp 32) (srl hi 32)))
+      (set res-hi (add res-hi (sll tmp 32)))
+
+      ; calculate the remainder of the high part of the result
+      (set res-hi (add res-hi (mul (sra DI rs1 63) rs2)))
+
+      (set rd res-hi)
+    )
+  )
+)
+(rv-format-multi "mulhu"  (all-isas m-ext m-machs) #b0000001 #b011 #b0110011
+  (if (eq (reg h-xlen) 32)
+    (set rd (srl (mul DI (zext (trunc SI rs1)) (zext (trunc SI rs2))) 32))
+    (sequence ((DI rs1-lo) (DI rs1-hi) (DI rs2-lo) (DI rs2-hi)
+               (DI lo) (DI mid1) (DI mid2) (DI hi)
+               (DI res-lo) (DI res-hi) (DI tmp))
+      (set rs1-lo (and DI rs1 #xffffffff))
+      (set rs1-hi (srl DI rs1 32))
+      (set rs2-lo (and DI rs2 #xffffffff))
+      (set rs2-hi (srl DI rs2 32))
+
+      ; calculate all of the parts of the result to be added together
+      (set lo     (mul rs1-lo rs2-lo))
+      (set mid1   (mul rs1-lo rs2-hi))
+      (set mid2   (mul rs1-hi rs2-lo))
+      (set hi     (mul rs1-hi rs2-hi))
+
+      ; accumulate each 32-bits of the result in turn, first into res-lo,
+      ; then into res-hi
+      (set res-lo (and lo #xffffffff))
+      (set tmp    (add (add (srl lo 32) (and mid1 #xffffffff)) (and mid2 #xffffffff)))
+      (set res-lo (add res-lo (sll tmp 32)))
+      (set tmp    (add (add (srl tmp 32) (srl mid1 32)) (add (srl mid2 32) (and hi #xffffffff))))
+      (set res-hi (and tmp #xffffffff))
+      (set tmp    (add (srl tmp 32) (srl hi 32)))
+      (set res-hi (add res-hi (sll tmp 32)))
+
+      (set rd res-hi)
+    )
+  )
+)
+(rv-format-multi "div"    (all-isas m-ext m-machs)
+		 #b0000001 #b100 #b0110011
+		 (set rd (div  rs1 rs2)))
+(rv-format-multi "divu"   (all-isas m-ext m-machs)
+		 #b0000001 #b101 #b0110011
+		 (set rd (udiv rs1 rs2)))
+(rv-format-multi "rem"    (all-isas m-ext m-machs)
+		 #b0000001 #b110 #b0110011
+		 (set rd (mod  rs1 rs2)))
+(rv-format-multi "remu"   (all-isas m-ext m-machs)
+		 #b0000001 #b111 #b0110011
+		 (set rd (umod rs1 rs2)))
+
+;RV64M
+(rv-format-multi "mulw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
+		 #b0000001 #b000 #b0111011
+		 (set rd (ext DI (mul  SI rs1 rs2))))
+(rv-format-multi "divw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
+		 #b0000001 #b100 #b0111011
+		 (set rd (ext DI (div  SI rs1 rs2))))
+(rv-format-multi "divuw"  ((ISA rv64) (RVEXT RV64M) rv64m-machs)
+		 #b0000001 #b101 #b0111011
+		 (set rd (ext DI (udiv SI rs1 rs2))))
+(rv-format-multi "remw"   ((ISA rv64) (RVEXT RV64M) rv64m-machs)
+		 #b0000001 #b110 #b0111011
+		 (set rd (ext DI (mod  SI rs1 rs2))))
+(rv-format-multi "remuw"  ((ISA rv64) (RVEXT RV64M) rv64m-machs)
+		 #b0000001 #b111 #b0111011
+		 (set rd (ext DI (umod SI rs1 rs2))))
+

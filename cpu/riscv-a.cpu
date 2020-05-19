@@ -1,0 +1,264 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+; Atomic instructions
+; When rl = 1, release access
+; When aq = 1, aquire access
+; When aq = 1 && rl = 1, sequentially consistent
+; +--------+----+----+-----+-----+--------+----+--------+
+; |31    27| 26 | 25 |24 20|19 15|14    12|11 7|6      0|
+; |<funct5>|<aq>|<rl>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +--------+----+----+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-a-1 mnemonic attr funct5 funct3 aq rl sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${imm-zero}(${rs1})")
+    (+ (f-funct5 funct5) (f-aq aq) (f-rl rl) (f-rs2 0) rs1 (f-funct3 funct3) rd (f-opcode #b0101111))
+    sem ()))
+(define-pmacro (rv-format-a-2 mnemonic attr funct5 funct3 aq rl sem)
+  (dni mnemonic menmonic attr
+    (.str mnemonic " ${rd},${rs2},${imm-zero}(${rs1})")
+    (+ (f-funct5 funct5) (f-aq aq) (f-rl rl) rs2 rs1 (f-funct3 funct3) rd (f-opcode #b0101111))
+    sem ()))
+
+;===-------------------- 'A' extension instructions -------------------------===
+
+; The semantics for these instructions are really simple. At the moment there
+; is only one hart running one thread, so there is no shared memory and
+; there are no context switches. The atomic instructions just perform the
+; basic underlying operations.
+;
+; TODO: Currently lr.w doesn't make a reservation of any memory and sc.w will
+; never fail (even if there was never a corresponding lr.w to the sc.w
+; respectively.
+(define-pmacro lr.w-sem (set rd (mem SI rs1)))
+(rv-format-a-1 "lr.w"           (all-isas a-ext a-machs) #b00010 #b010 #b0 #b0 lr.w-sem)
+(rv-format-a-1 "lr.w.aq"        (all-isas a-ext a-machs) #b00010 #b010 #b1 #b0 lr.w-sem)
+(rv-format-a-1 "lr.w.rl"        (all-isas a-ext a-machs) #b00010 #b010 #b0 #b1 lr.w-sem)
+(rv-format-a-1 "lr.w.aqrl"      (all-isas a-ext a-machs) #b00010 #b010 #b1 #b1 lr.w-sem)
+
+(define-pmacro sc.w-sem (sequence ()
+  (set (mem USI rs1) rs2)
+  (set rd 0)))
+(rv-format-a-2 "sc.w"           (all-isas a-ext a-machs) #b00011 #b010 #b0 #b0 sc.w-sem)
+(rv-format-a-2 "sc.w.aq"        (all-isas a-ext a-machs) #b00011 #b010 #b1 #b0 sc.w-sem)
+(rv-format-a-2 "sc.w.rl"        (all-isas a-ext a-machs) #b00011 #b010 #b0 #b1 sc.w-sem)
+(rv-format-a-2 "sc.w.aqrl"      (all-isas a-ext a-machs) #b00011 #b010 #b1 #b1 sc.w-sem)
+
+(define-pmacro amoswap.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (set (mem USI rs1) rs2)
+  (set rd tmp))
+)
+(rv-format-a-2 "amoswap.w"      (all-isas a-ext a-machs) #b00001 #b010 #b0 #b0 amoswap.w-sem)
+(rv-format-a-2 "amoswap.w.aq"   (all-isas a-ext a-machs) #b00001 #b010 #b1 #b0 amoswap.w-sem)
+(rv-format-a-2 "amoswap.w.rl"   (all-isas a-ext a-machs) #b00001 #b010 #b0 #b1 amoswap.w-sem)
+(rv-format-a-2 "amoswap.w.aqrl" (all-isas a-ext a-machs) #b00001 #b010 #b1 #b1 amoswap.w-sem)
+
+(define-pmacro amoadd.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (set (mem USI rs1) (add tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoadd.w"       (all-isas a-ext a-machs) #b00000 #b010 #b0 #b0 amoadd.w-sem)
+(rv-format-a-2 "amoadd.w.aq"    (all-isas a-ext a-machs) #b00000 #b010 #b1 #b0 amoadd.w-sem)
+(rv-format-a-2 "amoadd.w.rl"    (all-isas a-ext a-machs) #b00000 #b010 #b0 #b1 amoadd.w-sem)
+(rv-format-a-2 "amoadd.w.aqrl"  (all-isas a-ext a-machs) #b00000 #b010 #b1 #b1 amoadd.w-sem)
+
+(define-pmacro amoxor.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (set (mem USI rs1) (xor tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoxor.w"       (all-isas a-ext a-machs) #b00100 #b010 #b0 #b0 amoxor.w-sem)
+(rv-format-a-2 "amoxor.w.aq"    (all-isas a-ext a-machs) #b00100 #b010 #b1 #b0 amoxor.w-sem)
+(rv-format-a-2 "amoxor.w.rl"    (all-isas a-ext a-machs) #b00100 #b010 #b0 #b1 amoxor.w-sem)
+(rv-format-a-2 "amoxor.w.aqrl"  (all-isas a-ext a-machs) #b00100 #b010 #b1 #b1 amoxor.w-sem)
+
+(define-pmacro amoand.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (set (mem USI rs1) (and tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoand.w"       (all-isas a-ext a-machs) #b01100 #b010 #b0 #b0 amoand.w-sem)
+(rv-format-a-2 "amoand.w.aq"    (all-isas a-ext a-machs) #b01100 #b010 #b1 #b0 amoand.w-sem)
+(rv-format-a-2 "amoand.w.rl"    (all-isas a-ext a-machs) #b01100 #b010 #b0 #b1 amoand.w-sem)
+(rv-format-a-2 "amoand.w.aqrl"  (all-isas a-ext a-machs) #b01100 #b010 #b1 #b1 amoand.w-sem)
+
+(define-pmacro amoor.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (set (mem USI rs1) (or tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoor.w"        (all-isas a-ext a-machs) #b01000 #b010 #b0 #b0 amoor.w-sem)
+(rv-format-a-2 "amoor.w.aq"     (all-isas a-ext a-machs) #b01000 #b010 #b1 #b0 amoor.w-sem)
+(rv-format-a-2 "amoor.w.rl"     (all-isas a-ext a-machs) #b01000 #b010 #b0 #b1 amoor.w-sem)
+(rv-format-a-2 "amoor.w.aqrl"   (all-isas a-ext a-machs) #b01000 #b010 #b1 #b1 amoor.w-sem)
+
+(define-pmacro amomin.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (if (lt tmp rs2) (set (mem USI rs1) tmp) (set (mem USI rs1) rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomin.w"       (all-isas a-ext a-machs) #b10000 #b010 #b0 #b0 amomin.w-sem)
+(rv-format-a-2 "amomin.w.aq"    (all-isas a-ext a-machs) #b10000 #b010 #b1 #b0 amomin.w-sem)
+(rv-format-a-2 "amomin.w.rl"    (all-isas a-ext a-machs) #b10000 #b010 #b0 #b1 amomin.w-sem)
+(rv-format-a-2 "amomin.w.aqrl"  (all-isas a-ext a-machs) #b10000 #b010 #b1 #b1 amomin.w-sem)
+
+(define-pmacro amomax.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (if (lt tmp rs2) (set (mem USI rs1) rs2) (set (mem USI rs1) tmp))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomax.w"       (all-isas a-ext a-machs) #b10100 #b010 #b0 #b0 amomax.w-sem)
+(rv-format-a-2 "amomax.w.aq"    (all-isas a-ext a-machs) #b10100 #b010 #b1 #b0 amomax.w-sem)
+(rv-format-a-2 "amomax.w.rl"    (all-isas a-ext a-machs) #b10100 #b010 #b0 #b1 amomax.w-sem)
+(rv-format-a-2 "amomax.w.aqrl"  (all-isas a-ext a-machs) #b10100 #b010 #b1 #b1 amomax.w-sem)
+
+(define-pmacro amominu.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (if (ltu tmp rs2) (set (mem USI rs1) tmp) (set (mem USI rs1) rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amominu.w"      (all-isas a-ext a-machs) #b11000 #b010 #b0 #b0 amominu.w-sem)
+(rv-format-a-2 "amominu.w.aq"   (all-isas a-ext a-machs) #b11000 #b010 #b1 #b0 amominu.w-sem)
+(rv-format-a-2 "amominu.w.rl"   (all-isas a-ext a-machs) #b11000 #b010 #b0 #b1 amominu.w-sem)
+(rv-format-a-2 "amominu.w.aqrl" (all-isas a-ext a-machs) #b11000 #b010 #b1 #b1 amominu.w-sem)
+
+(define-pmacro amomaxu.w-sem (sequence ((SI tmp))
+  (set tmp (mem SI rs1))
+  (if (ltu tmp rs2) (set (mem USI rs1) rs2) (set (mem USI rs1) tmp))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomaxu.w"      (all-isas a-ext a-machs) #b11100 #b010 #b0 #b0 amomaxu.w-sem)
+(rv-format-a-2 "amomaxu.w.aq"   (all-isas a-ext a-machs) #b11100 #b010 #b1 #b0 amomaxu.w-sem)
+(rv-format-a-2 "amomaxu.w.rl"   (all-isas a-ext a-machs) #b11100 #b010 #b0 #b1 amomaxu.w-sem)
+(rv-format-a-2 "amomaxu.w.aqrl" (all-isas a-ext a-machs) #b11100 #b010 #b1 #b1 amomaxu.w-sem)
+
+;RV64A
+
+; TODO: Currently lr.d doesn't make a reservation of any memory and sc.d will
+; never fail (even if there was never a corresponding lr.d to the sc.d
+; address). As a consequence lr.d and sc.d just behave like ld and sd
+; respectively.
+(define-pmacro lr.d-sem (set rd (mem DI rs1)))
+(rv-format-a-1 "lr.d"           ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b0 #b0 lr.d-sem)
+(rv-format-a-1 "lr.d.aq"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b1 #b0 lr.d-sem)
+(rv-format-a-1 "lr.d.rl"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b0 #b1 lr.d-sem)
+(rv-format-a-1 "lr.d.aqrl"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00010 #b011 #b1 #b1 lr.d-sem)
+
+(define-pmacro sc.d-sem (sequence ()
+  (set (mem UDI rs1) rs2)
+  (set rd 0)))
+(rv-format-a-2 "sc.d"           ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b0 #b0 sc.d-sem)
+(rv-format-a-2 "sc.d.aq"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b1 #b0 sc.d-sem)
+(rv-format-a-2 "sc.d.rl"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b0 #b1 sc.d-sem)
+(rv-format-a-2 "sc.d.aqrl"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00011 #b011 #b1 #b1 sc.d-sem)
+
+(define-pmacro amoswap.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (set (mem UDI rs1) rs2)
+  (set rd tmp))
+)
+(rv-format-a-2 "amoswap.d"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00001 #b011 #b0 #b0 amoswap.d-sem)
+(rv-format-a-2 "amoswap.d.aq"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00001 #b011 #b1 #b0 amoswap.d-sem)
+(rv-format-a-2 "amoswap.d.rl"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00001 #b011 #b0 #b1 amoswap.d-sem)
+(rv-format-a-2 "amoswap.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00001 #b011 #b1 #b1 amoswap.d-sem)
+
+(define-pmacro amoadd.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (set (mem UDI rs1) (add tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoadd.d"       ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00000 #b011 #b0 #b0 amoadd.d-sem)
+(rv-format-a-2 "amoadd.d.aq"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00000 #b011 #b1 #b0 amoadd.d-sem)
+(rv-format-a-2 "amoadd.d.rl"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00000 #b011 #b0 #b1 amoadd.d-sem)
+(rv-format-a-2 "amoadd.d.aqrl"  ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00000 #b011 #b1 #b1 amoadd.d-sem)
+
+(define-pmacro amoxor.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (set (mem UDI rs1) (xor tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoxor.d"       ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00100 #b011 #b0 #b0 amoxor.d-sem)
+(rv-format-a-2 "amoxor.d.aq"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00100 #b011 #b1 #b0 amoxor.d-sem)
+(rv-format-a-2 "amoxor.d.rl"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00100 #b011 #b0 #b1 amoxor.d-sem)
+(rv-format-a-2 "amoxor.d.aqrl"  ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b00100 #b011 #b1 #b1 amoxor.d-sem)
+
+(define-pmacro amoand.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (set (mem UDI rs1) (and tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoand.d"       ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01100 #b011 #b0 #b0 amoand.d-sem)
+(rv-format-a-2 "amoand.d.aq"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01100 #b011 #b1 #b0 amoand.d-sem)
+(rv-format-a-2 "amoand.d.rl"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01100 #b011 #b0 #b1 amoand.d-sem)
+(rv-format-a-2 "amoand.d.aqrl"  ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01100 #b011 #b1 #b1 amoand.d-sem)
+
+(define-pmacro amoor.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (set (mem UDI rs1) (or tmp rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amoor.d"        ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01000 #b011 #b0 #b0 amoor.d-sem)
+(rv-format-a-2 "amoor.d.aq"     ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01000 #b011 #b1 #b0 amoor.d-sem)
+(rv-format-a-2 "amoor.d.rl"     ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01000 #b011 #b0 #b1 amoor.d-sem)
+(rv-format-a-2 "amoor.d.aqrl"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b01000 #b011 #b1 #b1 amoor.d-sem)
+
+(define-pmacro amomin.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (if (lt tmp rs2) (set (mem UDI rs1) tmp) (set (mem UDI rs1) rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomin.d"       ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10000 #b011 #b0 #b0 amomin.d-sem)
+(rv-format-a-2 "amomin.d.aq"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10000 #b011 #b1 #b0 amomin.d-sem)
+(rv-format-a-2 "amomin.d.rl"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10000 #b011 #b0 #b1 amomin.d-sem)
+(rv-format-a-2 "amomin.d.aqrl"  ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10000 #b011 #b1 #b1 amomin.d-sem)
+
+(define-pmacro amomax.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (if (lt tmp rs2) (set (mem UDI rs1) rs2) (set (mem UDI rs1) tmp))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomax.d"       ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10100 #b011 #b0 #b0 amomax.d-sem)
+(rv-format-a-2 "amomax.d.aq"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10100 #b011 #b1 #b0 amomax.d-sem)
+(rv-format-a-2 "amomax.d.rl"    ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10100 #b011 #b0 #b1 amomax.d-sem)
+(rv-format-a-2 "amomax.d.aqrl"  ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b10100 #b011 #b1 #b1 amomax.d-sem)
+
+(define-pmacro amominu.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (if (ltu tmp rs2) (set (mem UDI rs1) tmp) (set (mem UDI rs1) rs2))
+  (set rd tmp))
+)
+(rv-format-a-2 "amominu.d"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11000 #b011 #b0 #b0 amominu.d-sem)
+(rv-format-a-2 "amominu.d.aq"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11000 #b011 #b1 #b0 amominu.d-sem)
+(rv-format-a-2 "amominu.d.rl"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11000 #b011 #b0 #b1 amominu.d-sem)
+(rv-format-a-2 "amominu.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11000 #b011 #b1 #b1 amominu.d-sem)
+
+(define-pmacro amomaxu.d-sem (sequence ((DI tmp))
+  (set tmp (mem DI rs1))
+  (if (ltu tmp rs2) (set (mem UDI rs1) rs2) (set (mem UDI rs1) tmp))
+  (set rd tmp))
+)
+(rv-format-a-2 "amomaxu.d"      ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b0 #b0 amomaxu.d-sem)
+(rv-format-a-2 "amomaxu.d.aq"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b1 #b0 amomaxu.d-sem)
+(rv-format-a-2 "amomaxu.d.rl"   ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b0 #b1 amomaxu.d-sem)
+(rv-format-a-2 "amomaxu.d.aqrl" ((ISA rv64) (RVEXT RV64A) rv64a-machs) #b11100 #b011 #b1 #b1 amomaxu.d-sem)
+
+

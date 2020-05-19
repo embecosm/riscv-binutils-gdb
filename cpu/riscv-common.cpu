@@ -1,0 +1,2368 @@
+; Copyright (C) 2020 Free Software Foundation, Inc.
+;
+; This file is part of the GNU Binutils.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+
+(define-normal-enum
+  except-numbers
+  "Exception numbers"
+  ()
+  EXCEPT-
+  (("NONE"   #x00)
+   ("EBREAK" #x01)
+   ("ECALL"  #x02))
+)
+(define-pmacro (raise-exception exnum)
+  (c-call VOID "@cpu@_exception" pc exnum))
+
+(define-hardware
+  (name h-pc)
+  (comment "program counter")
+  (attrs PC all-isas all-machs)
+  (type pc UWI)
+  (get () (raw-reg h-pc))
+  (set (newval) (set (raw-reg h-pc) newval))
+)
+
+(define-hardware
+  (name h-xlen)
+  (comment "xlen")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI)
+  (get () (c-call WI "@cpu@_h_xlen_get_handler"))
+  (set (newval) (nop))
+)
+
+(define-pmacro gpr-names (
+  ; ABI names
+  ; These are first as that causes them to be prioritized
+  ; over the generic names when printed
+  (zero 0) (ra   1) (sp   2) (gp   3) (tp   4) (t0   5) (t1   6)
+  (t2   7) (s0   8) (s1   9) (a0  10) (a1  11) (a2  12) (a3  13)
+  (a4  14) (a5  15) (a6  16) (a7  17) (s2  18) (s3  19) (s4  20)
+  (s5  21) (s6  22) (s7  23) (s8  24) (s9  25) (s10 26) (s11 27)
+  (t3  28) (t4  29) (t5  30) (t6  31)
+
+  ; Basic register names
+  (x0   0) (x1   1) (x2   2) (x3   3) (x4   4) (x5   5) (x6   6)
+  (x7   7) (x8   8) (x9   9) (x10 10) (x11 11) (x12 12) (x13 13)
+  (x14 14) (x15 15) (x16 16) (x17 17) (x18 18) (x19 19) (x20 20)
+  (x21 21) (x22 22) (x23 23) (x24 24) (x25 25) (x26 26) (x27 27)
+  (x28 28) (x29 29) (x30 30) (x31 31))
+)
+
+(define-hardware
+  (name h-gpr)
+  (comment "General Purpose Registers")
+  (attrs all-isas all-machs)
+  (type register WI (32))
+  (indices keyword "" gpr-names)
+  ; x0/zero are tied to 0, so the setter ignores any writes to it. As a
+  ; consequence the getter will always return 0 on read too.
+  (get (index) (raw-reg h-gpr index))
+  (set (index newval)
+    (if (ne index 0)
+      (set (raw-reg h-gpr index) newval)))
+)
+(define-hardware
+  (name h-gpr-not-zero)
+  (comment "General Purpose Registers (except x0)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  ; filter x0/zero out of the h-gpr indices
+  (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 0)) gpr-names))
+  ; Defer to h-gpr getter and setter
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-gpr-not-sp)
+  (comment "General Purpose Registers (except x2)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  ; filter x2/sp out of the h-gpr indices
+  (indices keyword "" (.find (.pmacro (n) (.ne (.ref n 1) 2)) gpr-names))
+  ; This defers to the h-gpr getters/setters. Writes to x0/zero are ignored,
+  ; and therefore reads will also always return 0.
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-gpr-not-zero-or-sp)
+  (comment "General Purpose Registers (except x0/x2)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  ; filter x0/zero and x2/sp out of the h-gpr indices
+  (indices keyword "" (.find (.pmacro (n) (.andif (.ne (.ref n 1) 0) (.ne (.ref n 1) 2))) gpr-names))
+  ; Defer to h-gpr getter and setter
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-zero)
+  (comment "zero (x0/ zero)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  ; filter everything but x0/zero out of the h-gpr indices
+  (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 0)) gpr-names))
+  ; This defers to the h-gpr getters/setters. Writes to x0/zero are ignored,
+  ; and therefore reads will also always return 0.
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-sp)
+  (comment "stack pointer (x2/sp)")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  ; filter everything but x2/sp out of the h-gpr indices
+  (indices keyword "" (.find (.pmacro (n) (.eq (.ref n 1) 2)) gpr-names))
+  ; Defer to h-gpr getter and setter
+  (get (index) (reg h-gpr index))
+  (set (index newval) (set (reg h-gpr index) newval))
+)
+(define-hardware
+  (name h-c-gpr)
+  (comment "RVC Registers")
+  (attrs VIRTUAL all-isas all-machs)
+  (type register WI (32))
+  (indices keyword ""
+    ; Filter out registers with a value <8 or >15. Remap register values in the
+    ; range [8, 15] to [0, 7]
+    (.map
+      (.pmacro (n) ((.ref n 0) (.add (.ref n 1) -8)))
+      (.find (.pmacro (n) (.andif (.ge (.ref n 1) 8) (.le (.ref n 1) 15))) gpr-names)
+    )
+  )
+  ; Remap register numbers from [0,7] range back to the original range [8,15]
+  ; Defer to h-gpr getter and setter
+  (get (index) (reg h-gpr (add index 8)))
+  (set (index newval) (set (reg h-gpr (add index 8)) newval))
+)
+
+(define-hardware
+  (name h-csr)
+  (comment "CSRs")
+  (attrs all-isas all-machs)
+  (type register UWI (4096))
+  (indices keyword ""(
+    (ustatus #x0) (uie #x4) (utvec #x5)
+    (uscratch #x40) (uepc #x41) (ucause #x42) (utval #x43) (uip #x44)
+    (fflags #x1) (frm #x2) (fcsr #x3)
+    (cycle        #xc00) (time         #xc01) (instret      #xc02)
+    (hpmcounter3  #xc03) (hpmcounter4  #xc04) (hpmcounter5  #xc05)
+    (hpmcounter6  #xc06) (hpmcounter7  #xc07) (hpmcounter8  #xc08)
+    (hpmcounter9  #xc09) (hpmcounter10 #xc0a) (hpmcounter11 #xc0b)
+    (hpmcounter12 #xc0c) (hpmcounter13 #xc0d) (hpmcounter14 #xc0e)
+    (hpmcounter15 #xc0f) (hpmcounter16 #xc10) (hpmcounter17 #xc11)
+    (hpmcounter18 #xc12) (hpmcounter19 #xc13) (hpmcounter20 #xc14)
+    (hpmcounter21 #xc15) (hpmcounter22 #xc16) (hpmcounter23 #xc17)
+    (hpmcounter24 #xc18) (hpmcounter25 #xc19) (hpmcounter26 #xc1a)
+    (hpmcounter27 #xc1b) (hpmcounter28 #xc1c) (hpmcounter29 #xc1d)
+    (hpmcounter30 #xc1e) (hpmcounter31 #xc1f)
+    (sstatus  #x100) (sedeleg #x102) (sideleg #x103) (sie  #x104)
+    (stvec  #x105) (scounteren #x106)
+    (sscratch #x140) (sepc #x141) (scause #x142) (stval  #x143) (sip #x144)
+    (satp #x180)
+    (mstatus #x300) (misa  #x301) (medeleg    #x302) (mideleg #x303)
+    (mie     #x304) (mtvec #x305) (mcounteren #x306)
+    (mscratch #x340) (mepc #x341) (mcause #x342) (mtval #x343) (mip #x344)
+    (pmpcfg0   #x3a0) (pmpcfg1   #x3a1) (pmpcfg2   #x3a2) (pmpcfg3   #x3a3)
+    (pmpaddr0  #x3b0) (pmpaddr1  #x3b1) (pmpaddr2  #x3b2) (pmpaddr3  #x3b3)
+    (pmpaddr4  #x3b4) (pmpaddr5  #x3b5) (pmpaddr6  #x3b6) (pmpaddr7  #x3b7)
+    (pmpaddr8  #x3b8) (pmpaddr9  #x3b9) (pmpaddr10 #x3ba) (pmpaddr11 #x3bb)
+    (pmpaddr12 #x3bc) (pmpaddr13 #x3bd) (pmpaddr14 #x3be) (pmpaddr15 #x3bf)
+    (tselect #x7a0) (tdata1 #x7a1) (tdata2 #x7a2) (tdata3 #x7a3)
+    (dcsr #x7b0) (dpc #x7b1) (dscratch #x7b2)
+    (mcycle        #xb00) (minstret      #xb02) (mhpmcounter3  #xb03)
+    (mhpmcounter4  #xb04) (mhpmcounter5  #xb05) (mhpmcounter6  #xb06)
+    (mhpmcounter7  #xb07) (mhpmcounter8  #xb08) (mhpmcounter9  #xb09)
+    (mhpmcounter10 #xb0a) (mhpmcounter11 #xb0b) (mhpmcounter12 #xb0c)
+    (mhpmcounter13 #xb0d) (mhpmcounter14 #xb0e) (mhpmcounter15 #xb0f)
+    (mhpmcounter16 #xb10) (mhpmcounter17 #xb11) (mhpmcounter18 #xb12)
+    (mhpmcounter19 #xb13) (mhpmcounter20 #xb14) (mhpmcounter21 #xb15)
+    (mhpmcounter22 #xb16) (mhpmcounter23 #xb17) (mhpmcounter24 #xb18)
+    (mhpmcounter25 #xb19) (mhpmcounter26 #xb1a) (mhpmcounter27 #xb1b)
+    (mhpmcounter28 #xb1c) (mhpmcounter29 #xb1d) (mhpmcounter30 #xb1e)
+    (mhpmcounter31 #xb1f)
+    (mucounteren #x320) (mscounteren #x321) (mhpmevent3  #x323)
+    (mhpmevent4  #x324) (mhpmevent5  #x325) (mhpmevent6  #x326)
+    (mhpmevent7  #x327) (mhpmevent8  #x328) (mhpmevent9  #x329)
+    (mhpmevent10 #x32a) (mhpmevent11 #x32b) (mhpmevent12 #x32c)
+    (mhpmevent13 #x32d) (mhpmevent14 #x32e) (mhpmevent15 #x32f)
+    (mhpmevent16 #x330) (mhpmevent17 #x331) (mhpmevent18 #x332)
+    (mhpmevent19 #x333) (mhpmevent20 #x334) (mhpmevent21 #x335)
+    (mhpmevent22 #x336) (mhpmevent23 #x337) (mhpmevent24 #x338)
+    (mhpmevent25 #x339) (mhpmevent26 #x33a) (mhpmevent27 #x33b)
+    (mhpmevent28 #x33c) (mhpmevent29 #x33d) (mhpmevent30 #x33e)
+    (mhpmevent31 #x33f)
+    (mvendorid #xf11) (marchid #xf12) (mimpid #xf13) (mhartid #xf14)
+    (cycleh        #xc80) (timeh         #xc81) (instreth      #xc82)
+    (hpmcounter3h  #xc83) (hpmcounter4h  #xc84) (hpmcounter5h  #xc85)
+    (hpmcounter6h  #xc86) (hpmcounter7h  #xc87) (hpmcounter8h  #xc88)
+    (hpmcounter9h  #xc89) (hpmcounter10h #xc8a) (hpmcounter11h #xc8b)
+    (hpmcounter12h #xc8c) (hpmcounter13h #xc8d) (hpmcounter14h #xc8e)
+    (hpmcounter15h #xc8f) (hpmcounter16h #xc90) (hpmcounter17h #xc91)
+    (hpmcounter18h #xc92) (hpmcounter19h #xc93) (hpmcounter20h #xc94)
+    (hpmcounter21h #xc95) (hpmcounter22h #xc96) (hpmcounter23h #xc97)
+    (hpmcounter24h #xc98) (hpmcounter25h #xc99) (hpmcounter26h #xc9a)
+    (hpmcounter27h #xc9b) (hpmcounter28h #xc9c) (hpmcounter29h #xc9d)
+    (hpmcounter30h #xc9e) (hpmcounter31h #xc9f)
+    (mcycleh        #xb80) (minstreth      #xb82) (mhpmcounter3h  #xb83)
+    (mhpmcounter4h  #xb84) (mhpmcounter5h  #xb85) (mhpmcounter6h  #xb86)
+    (mhpmcounter7h  #xb87) (mhpmcounter8h  #xb88) (mhpmcounter9h  #xb89)
+    (mhpmcounter10h #xb8a) (mhpmcounter11h #xb8b) (mhpmcounter12h #xb8c)
+    (mhpmcounter13h #xb8d) (mhpmcounter14h #xb8e) (mhpmcounter15h #xb8f)
+    (mhpmcounter16h #xb90) (mhpmcounter17h #xb91) (mhpmcounter18h #xb92)
+    (mhpmcounter19h #xb93) (mhpmcounter20h #xb94) (mhpmcounter21h #xb95)
+    (mhpmcounter22h #xb96) (mhpmcounter23h #xb97) (mhpmcounter24h #xb98)
+    (mhpmcounter25h #xb99) (mhpmcounter26h #xb9a) (mhpmcounter27h #xb9b)
+    (mhpmcounter28h #xb9c) (mhpmcounter29h #xb9d) (mhpmcounter30h #xb9e)
+    (mhpmcounter31h #xb9f)
+    (mtimecmp #x7c0)
+
+    ; These registers appear in priv spec 1.9.1 but were renamed in 1.10
+    (ubadaddr #x43)   ; renamed to utval
+    (sbadaddr #x143)  ; renamed to stval
+    (sptbr    #x180)  ; renamed to satp
+    (mbadaddr #x343)  ; renamed to mtval
+
+    ; These registers appear in priv spec 1.9.1 but were dropped in 1.10
+    (hstatus  #x200) (hedeleg #x202) (hideleg #x203) (hie #x204) (htvec #x205)
+    (hscratch #x240) (hepc    #x241) (hcause  #x242) (hbadaddr #x243)
+    (hip      #x244)
+    (mbase   #x380) (mbound  #x381) (mibase      #x382) (mibound #x383)
+    (mdbase  #x384) (mdbound #x385) (mhcounteren #x322))
+
+  )
+  ; The exact value returned when reading a CSR depends on the CSR, so
+  ; this is handled on a case-by-case basis.
+  (get (index) (c-call UWI "@cpu@_h_csr_get_handler" index))
+  ; Whether a write is allowed to a CSR depends on the CSR, and some CSRs
+  ; only allow writes to some bits. We defer to C code to handle CSR writes
+  ; on a case-by-case basis.
+  (set (index newval) (c-call VOID "@cpu@_h_csr_set_handler" index newval))
+)
+
+(define-pmacro fpr-names () (
+    (ft0  0) (ft1  1) (ft2   2) (ft3   3) (ft4  4) (ft5   5) (ft6   6)
+    (ft7  7) (fs0  8) (fs1   9) (fa0  10) (fa1 11) (fa2  12) (fa3  13)
+    (fa4 14) (fa5 15) (fa6  16) (fa7  17) (fs2 18) (fs3  19) (fs4  20)
+    (fs5 21) (fs6 22) (fs7  23) (fs8  24) (fs9 25) (fs10 26) (fs11 27)
+    (ft8 28) (ft9 29) (ft10 30) (ft11 31)
+    ; Basic register names
+    (f0   0) (f1   1) (f2   2) (f3   3) (f4   4) (f5   5) (f6   6)
+    (f7   7) (f8   8) (f9   9) (f10 10) (f11 11) (f12 12) (f13 13)
+    (f14 14) (f15 15) (f16 16) (f17 17) (f18 18) (f19 19) (f20 20)
+    (f21 21) (f22 22) (f23 23) (f24 24) (f25 25) (f26 26) (f27 27)
+    (f28 28) (f29 29) (f30 30) (f31 31))
+)
+
+; There is one register file of floating point registers, which is
+; shared by the 'F' (single precision) and 'D' (double precision)
+; extensions. The registers are defined as being 64 bits wide, with only
+; the lower 32 bits used by the 'F' instructions. When operating on
+; a float value in one of these registers the value is NaN-boxed by
+; padding the upper 32 bits with 0xffff - this is performed by the
+; semantics of the 'F' extension instructions.
+(define-hardware
+  (name h-fpr)
+  (comment "Floating Point Registers")
+  (attrs all-isas f-machs)
+  (type register DF (32))
+  (indices keyword "" fpr-names)
+)
+
+(define-hardware
+  (name h-c-fpr)
+  (comment "Floating Point RVC Registers")
+  (attrs VIRTUAL all-isas f-machs)
+  (type register DF (32))
+  (indices keyword ""
+    ; Filter out registers with a value <8 or >15. Remap register values in the
+    ; range [8, 15] to [0, 7]
+    (.map
+      (.pmacro (n) ((.ref n 0) (.add (.ref n 1) -8)))
+      (.find (.pmacro (n) (.andif (.ge (.ref n 1) 8) (.le (.ref n 1) 15))) fpr-names)
+    )
+  )
+  ; Remap register numbers from [0,7] range back to the original range [8,15]
+  (get (index) (reg h-fpr (add index 8)))
+  (set (index newval) (set (reg h-fpr (add index 8)) newval))
+)
+
+;; Instruction fields
+
+(dnf f-dummy    "dummy"    (all-isas)  0  0)
+(dnf f-opcode   "opcode"   (all-isas)  6  7)
+(dnf f-c-opcode "c.opcode" (all-isas)  1  2)
+(dnf f-rd       "rd"       (all-isas) 11  5)
+(dnf f-rs1      "rs1"      (all-isas) 19  5)
+(dnf f-rs2      "rs2"      (all-isas) 24  5)
+(dnf f-rs3      "rs3"      (all-isas) 31  5)
+(dnf f-csr      "csr"      (all-isas) 31 12)
+(dnf f-succ     "succ"     (all-isas) 27  4)
+(dnf f-pred     "pred"     (all-isas) 23  4)
+(dnf f-funct1   "funct1"   (all-isas) 26  1)
+(dnf f-funct2   "funct2"   (all-isas) 26  2)
+(dnf f-funct5   "funct5"   (all-isas) 31  5)
+(dnf f-funct6   "funct6"   (all-isas) 31  6)
+(dnf f-funct7   "funct7"   (all-isas) 31  7)
+(dnf f-funct3   "funct3"   (all-isas) 14  3)
+(dnf f-c-funct2 "c.funct2" (all-isas)  6  2)
+(dnf f-c-funct3 "c.funct3" (all-isas) 15  3)
+(dnf f-c-funct4 "c.funct4" (all-isas) 15  4)
+(dnf f-c-funct6 "c.funct6" (all-isas) 15  6)
+(dnf f-aq       "aq"       (all-isas) 26  1)
+(dnf f-rl       "rl"       (all-isas) 25  1)
+(dnf f-fp2      "fp2"      (all-isas) 26  2)
+
+(df f-uimm1-21    "uimm1  [2]"      (all-isas)  2  1 UDI #f #f)
+(df f-uimm2-32    "uimm2  [3..2]"   (all-isas)  3  2 UDI #f #f)
+(df f-uimm2-42    "uimm2  [4..3]"   (all-isas)  4  2 UDI #f #f)
+(df f-uimm3-43    "uimm3  [4..2]"   (all-isas)  4  3 UDI #f #f)
+(df f-uimm1-51    "uimm1  [5]"      (all-isas)  5  1 UDI #f #f)
+(df f-uimm3-53    "uimm3  [5..3]"   (all-isas)  5  3 UDI #f #f)
+(df f-uimm1-61    "uimm1  [6]"      (all-isas)  6  1 UDI #f #f)
+(df f-uimm2-62    "uimm2  [6..5]"   (all-isas)  6  2 UDI #f #f)
+(df f-uimm3-63    "uimm3  [6..4]"   (all-isas)  6  3 UDI #f #f)
+(df f-uimm5-65    "uimm5  [6..2]"   (all-isas)  6  5 UDI #f #f)
+(df f-uimm1-71    "uimm1  [7]"      (all-isas)  7  1 UDI #f #f)
+(df f-uimm1-81    "uimm1  [8]"      (all-isas)  8  1 UDI #f #f)
+(df f-uimm2-82    "uimm2  [8..7]"   (all-isas)  8  2 UDI #f #f)
+(df f-uimm3-93    "uimm3  [9..7]"   (all-isas)  9  3 UDI #f #f)
+(df f-uimm2-102   "uimm2  [10..9]"  (all-isas) 10  2 UDI #f #f)
+(df f-uimm4-104   "uimm4  [10..7]"  (all-isas) 10  4 UDI #f #f)
+(df f-uimm1-111   "uimm1  [11]"     (all-isas) 11  1 UDI #f #f)
+(df f-uimm2-112   "uimm2  [11..10]" (all-isas) 11  2 UDI #f #f)
+(df f-uimm4-114   "uimm4  [11..8]"  (all-isas) 11  4 UDI #f #f)
+(df f-uimm5-115   "uimm5  [11..7]"  (all-isas) 11  5 UDI #f #f)
+(df f-uimm1-121   "uimm1  [12]"     (all-isas) 12  1 UDI #f #f)
+(df f-uimm2-122   "uimm2  [12..11]" (all-isas) 12  2 UDI #f #f)
+(df f-uimm3-123   "uimm3  [12..10]" (all-isas) 12  3 UDI #f #f)
+(df f-uimm4-124   "uimm4  [12..9]"  (all-isas) 12  4 UDI #f #f)
+(df f-uimm8-128   "uimm8  [12..5]"  (all-isas) 12  8 UDI #f #f)
+(df f-uimm15-1415 "uimm15 [14..0]"  (all-isas) 14 15 UDI #f #f)
+(df f-uimm16-1516 "uimm16 [15..0]"  (all-isas) 15 16 UDI #f #f)
+(df f-uimm5-195   "uimm5  [19..15]" (all-isas) 19  5 UDI #f #f)
+(df f-uimm8-198   "uimm8  [19..12]" (all-isas) 19  8 UDI #f #f)
+(df f-uimm20-1920 "uimm20 [19..0]"  (all-isas) 19 20 UDI #f #f)
+(df f-uimm1-201   "uimm1  [20]"     (all-isas) 20  1 UDI #f #f)
+(df f-uimm5-245   "uimm5  [24..20]" (all-isas) 24  5 UDI #f #f)
+(df f-uimm6-256   "uimm6  [25..20]" (all-isas) 25  6 UDI #f #f)
+(df f-uimm7-267   "uimm7  [26..20]" (all-isas) 26  7 UDI #f #f)
+(df f-uimm6-306   "uimm6  [30..25]" (all-isas) 30  6 UDI #f #f)
+(df f-uimm10-3010 "uimm10 [30..21]" (all-isas) 30 10 UDI #f #f)
+(df f-uimm4-314   "uimm4  [31..28]" (all-isas) 31  4 UDI #f #f)
+(df f-uimm7-317   "uimm7  [31..25]" (all-isas) 31  7 UDI #f #f)
+(df f-uimm12-3112 "uimm12 [31..20]" (all-isas) 31 12 UDI #f #f)
+(df f-uimm32-3132 "uimm32 [31..0]"  (all-isas) 31 32 UDI #f #f)
+
+(define-ifield
+  (name f-uimm32-3120-000000000000)
+  (comment "uimm12 [31..12]000000000000")
+  (attrs all-isas)
+  (start 31)
+  (length 20)
+  (mode UDI)
+  (encode (value pc) (srl DI value 12))
+  (decode (value pc) (sll DI value 12))
+)
+
+(df f-imm1-121   "imm1  [12]"     (all-isas) 12  1 DI #f #f)
+(df f-imm1-311   "imm1  [31]"     (all-isas) 31  1 DI #f #f)
+(df f-imm7-317   "imm7  [31..25]" (all-isas) 31  7 DI #f #f)
+(df f-imm12-3112 "imm12 [31..20]" (all-isas) 31 12 DI #f #f)
+
+(define-multi-ifield
+  (name f-imm12-317-115)
+  (comment "imm12 [31..25][11..7]")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm7-317 f-uimm5-115)
+  (insert (sequence ()
+    (set (ifield f-imm7-317)  (sra (ifield f-imm12-317-115) 5))
+    (set (ifield f-uimm5-115) (and (ifield f-imm12-317-115) #x1f)))
+  )
+  (extract (sequence ()
+    (set (ifield f-imm12-317-115)
+      (or (sll (ifield f-imm7-317) 5) (ifield f-uimm5-115))))
+  )
+)
+
+(define-multi-ifield
+  (name f-imm13-311-71-306-114-0)
+  (comment "imm13 [31][7][30..25][11..8]0")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-311 f-uimm1-71 f-uimm6-306 f-uimm4-114)
+  (insert (sequence ()
+    (set (ifield f-imm1-311)   (sra      (ifield f-imm13-311-71-306-114-0) 11))
+    (set (ifield f-uimm1-71)   (and (sra (ifield f-imm13-311-71-306-114-0) 10) #x1))
+    (set (ifield f-uimm6-306)  (and (sra (ifield f-imm13-311-71-306-114-0) 4)  #x3f))
+    (set (ifield f-uimm4-114)  (and      (ifield f-imm13-311-71-306-114-0)     #xf)))
+  )
+  (extract (set (ifield f-imm13-311-71-306-114-0)
+    (or (or (sll (ifield f-imm1-311) 11) (sll (ifield f-uimm1-71) 10))
+        (or (sll (ifield f-uimm6-306) 4)      (ifield f-uimm4-114))))
+  )
+  (encode (value pc) (sra DI value 1))
+  (decode (value pc) (sll DI value 1))
+)
+
+(define-multi-ifield
+  (name f-imm21-311-198-201-3010-0)
+  (comment "imm21 [31][19..12][20][30..21]0")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-311 f-uimm8-198 f-uimm1-201 f-uimm10-3010)
+  (insert (sequence ()
+    (set (ifield f-imm1-311)
+         (sra      (ifield f-imm21-311-198-201-3010-0) 19))
+    (set (ifield f-uimm8-198)
+         (and (sra (ifield f-imm21-311-198-201-3010-0) 11) #xff))
+    (set (ifield f-uimm1-201)
+         (and (sra (ifield f-imm21-311-198-201-3010-0) 10) #x1))
+    (set (ifield f-uimm10-3010)
+         (and      (ifield f-imm21-311-198-201-3010-0)     #x3ff)))
+  )
+  (extract (set (ifield f-imm21-311-198-201-3010-0)
+    (or (or (sll (ifield f-imm1-311) 19)  (sll (ifield f-uimm8-198) 11))
+        (or (sll (ifield f-uimm1-201) 10)      (ifield f-uimm10-3010))))
+  )
+  (encode (value pc) (sra DI value 1))
+  (decode (value pc) (sll DI value 1))
+)
+
+(define-multi-ifield
+  (name f-imm6-121-65)
+  (comment "imm6 [12][6..2]")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-121 f-uimm5-65)
+  (insert (sequence ()
+    (set (ifield f-imm1-121) (sra (ifield f-imm6-121-65) 5))
+    (set (ifield f-uimm5-65) (and (ifield f-imm6-121-65) #x1f)))
+  )
+  (extract (sequence ()
+    (set (ifield f-imm6-121-65) (or (sll (ifield f-imm1-121) 5) (ifield f-uimm5-65))))
+  )
+)
+
+(define-multi-ifield
+  (name f-uimm6-121-65)
+  (comment "uimm6 [12][6..2]")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm1-121 f-uimm5-65)
+  (insert (sequence ()
+    (set (ifield f-uimm1-121) (and (srl (ifield f-uimm6-121-65) 5) #x1))
+    (set (ifield f-uimm5-65)  (and      (ifield f-uimm6-121-65)    #x1f)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm6-121-65) (or (sll (ifield f-uimm1-121) 5) (ifield f-uimm5-65))))
+  )
+)
+
+(define-multi-ifield
+  (name f-uimm18-121-65-000000000000)
+  (comment "uimm18 [12][6..2]000000000000")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm1-121 f-uimm5-65)
+  (insert (sequence ()
+    (set (ifield f-uimm1-121) (srl (ifield f-uimm18-121-65-000000000000) 5))
+    (set (ifield f-uimm5-65)  (and (ifield f-uimm18-121-65-000000000000) #x1f)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm18-121-65-000000000000) (or (sll (ifield f-uimm1-121) 5) (ifield f-uimm5-65))))
+  )
+  (encode (value pc) (srl DI value 12))
+  (decode (value pc) (sll DI value 12))
+)
+
+(define-multi-ifield
+  (name f-imm9-121-62-21-112-42-0)
+  (comment "imm9 [12][6..5][2][11..10][4..3]0")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-121 f-uimm2-62 f-uimm1-21 f-uimm2-112 f-uimm2-42)
+  (insert (sequence ()
+    (set (ifield f-imm1-121)  (sra      (ifield f-imm9-121-62-21-112-42-0) 7))
+    (set (ifield f-uimm2-62)  (and (srl (ifield f-imm9-121-62-21-112-42-0) 5) #x3))
+    (set (ifield f-uimm1-21)  (and (srl (ifield f-imm9-121-62-21-112-42-0) 4) #x1))
+    (set (ifield f-uimm2-112) (and (srl (ifield f-imm9-121-62-21-112-42-0) 2) #x3))
+    (set (ifield f-uimm2-42)  (and      (ifield f-imm9-121-62-21-112-42-0)    #x3)))
+  )
+  (extract (sequence ()
+    (set (ifield f-imm9-121-62-21-112-42-0)
+      (or (or (or (sll (ifield f-imm1-121) 7) (sll (ifield f-uimm2-62)  5))
+              (or (sll (ifield f-uimm1-21) 4) (sll (ifield f-uimm2-112) 2)))
+          (ifield f-uimm2-42))))
+  )
+  (encode (value pc) (sra DI value 1))
+  (decode (value pc) (sll DI value 1))
+)
+
+(define-multi-ifield
+  (name f-uimm7-51-123-61-00)
+  (comment "uimm7 [5][12..10][6]00")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm1-51 f-uimm3-123 f-uimm1-61)
+  (insert (sequence ()
+    (set (ifield f-uimm1-51)  (and (srl (ifield f-uimm7-51-123-61-00) 4) #x1))
+    (set (ifield f-uimm3-123) (and (srl (ifield f-uimm7-51-123-61-00) 1) #x7))
+    (set (ifield f-uimm1-61)  (and      (ifield f-uimm7-51-123-61-00)    #x1)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm7-51-123-61-00)
+      (or (or (sll (ifield f-uimm1-51) 4) (sll (ifield f-uimm3-123) 1))
+          (ifield f-uimm1-61))))
+  )
+  (encode (value pc) (srl DI value 2))
+  (decode (value pc) (sll DI value 2))
+)
+
+(define-multi-ifield
+  (name f-uimm8-62-123-000)
+  (comment "uimm8 [6..5][12..10]000")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm2-62 f-uimm3-123)
+  (insert (sequence ()
+    (set (ifield f-uimm2-62)  (and (srl (ifield f-uimm8-62-123-000) 3) #x3))
+    (set (ifield f-uimm3-123) (and      (ifield f-uimm8-62-123-000)    #x7)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm8-62-123-000)
+      (or (sll (ifield f-uimm2-62) 3) (ifield f-uimm3-123))))
+  )
+  (encode (value pc) (srl DI value 3))
+  (decode (value pc) (sll DI value 3))
+)
+
+(define-multi-ifield
+  (name f-uimm10-104-122-51-61-00)
+  (comment "uimm10 [10..7][12..11][5][6]00")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm4-104 f-uimm2-122 f-uimm1-51 f-uimm1-61)
+  (insert (sequence ()
+    (set (ifield f-uimm4-104) (and (srl (ifield f-uimm10-104-122-51-61-00) 4) #xf))
+    (set (ifield f-uimm2-122) (and (srl (ifield f-uimm10-104-122-51-61-00) 2) #x3))
+    (set (ifield f-uimm1-51)  (and (srl (ifield f-uimm10-104-122-51-61-00) 1) #x1))
+    (set (ifield f-uimm1-61)  (and      (ifield f-uimm10-104-122-51-61-00)    #x1)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm10-104-122-51-61-00)
+      (or (or (sll (ifield f-uimm4-104) 4)
+              (sll (ifield f-uimm2-122) 2))
+          (or (sll (ifield f-uimm1-51)  1)
+                   (ifield f-uimm1-61)))))
+  )
+  (encode (value pc) (srl DI value 2))
+  (decode (value pc) (sll DI value 2))
+)
+
+(define-multi-ifield
+  (name f-imm10-121-42-51-21-61-0000)
+  (comment "imm10 [12][4..3][5][2][6]0000")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-121 f-uimm2-42 f-uimm1-51 f-uimm1-21 f-uimm1-61)
+  (insert (sequence ()
+    (set (ifield f-imm1-121) (sra      (ifield f-imm10-121-42-51-21-61-0000) 5))
+    (set (ifield f-uimm2-42) (and (srl (ifield f-imm10-121-42-51-21-61-0000) 3) #x3))
+    (set (ifield f-uimm1-51) (and (srl (ifield f-imm10-121-42-51-21-61-0000) 2) #x1))
+    (set (ifield f-uimm1-21) (and (srl (ifield f-imm10-121-42-51-21-61-0000) 1) #x1))
+    (set (ifield f-uimm1-61) (and      (ifield f-imm10-121-42-51-21-61-0000)    #x1)))
+  )
+  (extract (sequence ()
+    (set (ifield f-imm10-121-42-51-21-61-0000)
+      (or (or (or (sll (ifield f-imm1-121) 5)
+                  (sll (ifield f-uimm2-42) 3))
+              (or (sll (ifield f-uimm1-51) 2)
+                  (sll (ifield f-uimm1-21) 1)))
+          (ifield f-uimm1-61))))
+  )
+  (encode (value pc) (sra DI value 4))
+  (decode (value pc) (sll DI value 4))
+)
+
+(define-multi-ifield
+  (name f-uimm9-93-123-000)
+  (comment "uimm9 [9..7][12..10]000")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm3-93 f-uimm3-123)
+  (insert (sequence ()
+    (set (ifield f-uimm3-93)  (and (srl (ifield f-uimm9-93-123-000) 3) #x7))
+    (set (ifield f-uimm3-123) (and      (ifield f-uimm9-93-123-000)    #x7)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm9-93-123-000)
+      (or (sll (ifield f-uimm3-93) 3) (ifield f-uimm3-123))))
+  )
+  (encode (value pc) (srl DI value 3))
+  (decode (value pc) (sll DI value 3))
+)
+
+(define-multi-ifield
+  (name f-uimm8-82-124-00)
+  (comment "uimm8 [8..7][12..9]00")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm2-82 f-uimm4-124)
+  (insert (sequence ()
+    (set (ifield f-uimm2-82)
+         (and (srl (ifield f-uimm8-82-124-00) 4) #x3))
+    (set (ifield f-uimm4-124)
+         (and (ifield f-uimm8-82-124-00) #xf)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm8-82-124-00)
+      (or (sll (ifield f-uimm2-82) 4) (ifield f-uimm4-124))))
+  )
+  (encode (value pc) (srl DI value 2))
+  (decode (value pc) (sll DI value 2))
+)
+
+(define-multi-ifield
+  (name f-imm12-121-81-102-61-71-21-111-53-0)
+  (comment "imm12 [12][8][10..9][6][7][2][11][5..3]0")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm1-121 f-uimm1-81 f-uimm2-102 f-uimm1-61 f-uimm1-71 f-uimm1-21 f-uimm1-111 f-uimm3-53)
+  (insert (sequence ()
+    (set (ifield f-imm1-121)
+         (and (sra (ifield f-imm12-121-81-102-61-71-21-111-53-0) 10) #x1))
+    (set (ifield f-uimm1-81)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 9)  #x1))
+    (set (ifield f-uimm2-102)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 7)  #x3))
+    (set (ifield f-uimm1-61)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 6)  #x1))
+    (set (ifield f-uimm1-71)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 5)  #x1))
+    (set (ifield f-uimm1-21)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 4)  #x1))
+    (set (ifield f-uimm1-111)
+         (and (srl (ifield f-imm12-121-81-102-61-71-21-111-53-0) 3)  #x1))
+    (set (ifield f-uimm3-53)
+         (and      (ifield f-imm12-121-81-102-61-71-21-111-53-0)     #x7)))
+  )
+  (extract (sequence ()
+    (set (ifield f-imm12-121-81-102-61-71-21-111-53-0)
+      (or (or (or (sll (ifield f-imm1-121) 10)
+                  (sll (ifield f-uimm1-81)  9))
+              (or (sll (ifield f-uimm2-102) 7)
+                  (sll (ifield f-uimm1-61)  6)))
+          (or (or (sll (ifield f-uimm1-71)  5)
+                  (sll (ifield f-uimm1-21)  4))
+              (or (sll (ifield f-uimm1-111) 3)
+                       (ifield f-uimm3-53))))))
+  )
+  (encode (value pc) (sra DI value 1))
+  (decode (value pc) (sll DI value 1))
+)
+
+(define-multi-ifield
+  (name f-uimm8-32-121-63-00)
+  (comment "uimm8 [3..2][12][6..4]00")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm2-32 f-uimm1-121 f-uimm3-63)
+  (insert (sequence ()
+    (set (ifield f-uimm2-32)  (and (srl (ifield f-uimm8-32-121-63-00) 4) #x3))
+    (set (ifield f-uimm1-121) (and (srl (ifield f-uimm8-32-121-63-00) 3) #x1))
+    (set (ifield f-uimm3-63)  (and      (ifield f-uimm8-32-121-63-00)    #x7)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm8-32-121-63-00)
+      (or (or (sll (ifield f-uimm2-32) 4) (sll (ifield f-uimm1-121) 3))
+          (ifield f-uimm3-63))))
+  )
+  (encode (value pc) (srl DI value 2))
+  (decode (value pc) (sll DI value 2))
+)
+
+(define-multi-ifield
+  (name f-uimm9-43-121-62-000)
+  (comment "uimm9 [4..2][12][6..5]000")
+  (attrs all-isas)
+  (mode UDI)
+  (subfields f-uimm3-43 f-uimm1-121 f-uimm2-62)
+  (insert (sequence ()
+    (set (ifield f-uimm3-43)  (and (srl (ifield f-uimm9-43-121-62-000) 3) #x7))
+    (set (ifield f-uimm1-121) (and (srl (ifield f-uimm9-43-121-62-000) 2) #x1))
+    (set (ifield f-uimm2-62)  (and      (ifield f-uimm9-43-121-62-000)    #x3)))
+  )
+  (extract (sequence ()
+    (set (ifield f-uimm9-43-121-62-000)
+      (or (or (sll (ifield f-uimm3-43) 3) (sll (ifield f-uimm1-121) 2))
+          (ifield f-uimm2-62))))
+  )
+  (encode (value pc) (srl DI value 3))
+  (decode (value pc) (sll DI value 3))
+)
+
+;; Register operands
+
+(define-operand
+  (name rd)
+  (comment "rd")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-rd)
+  (handlers (parse "gpr"))
+)
+(define-operand
+  (name sp-reg)
+  (comment "register tied to the stack pointer")
+  (attrs all-isas)
+  (type h-sp)
+  (index f-dummy)
+  (handlers (print "sp"))
+)
+(define-operand
+  (name rs1)
+  (comment "rs1")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-rs1)
+  (handlers (parse "gpr"))
+)
+(define-operand
+  (name rs2)
+  (comment "rs2")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-rs2)
+  (handlers (parse "gpr"))
+)
+(define-operand
+  (name rs3)
+  (comment "rs3")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-rs3)
+  (handlers (parse "gpr"))
+)
+
+;; Register fields for compressed instructions
+
+(define-operand
+  (name c-reg117)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg117-0)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-zero)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg117-ne0)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-gpr-not-zero)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg117-ne2)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-gpr-not-sp)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg117-ne0-ne2)
+  (comment "register field for compressed (11:7)")
+  (attrs all-isas)
+  (type h-gpr-not-zero-or-sp)
+  (index f-uimm5-115)
+)
+(define-operand
+  (name c-reg62)
+  (comment "register field for compressed (6:2)")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-uimm5-65)
+)
+(define-operand
+  (name c-reg62-ne0)
+  (comment "register field for compressed (6:2)")
+  (attrs all-isas)
+  (type h-gpr-not-zero)
+  (index f-uimm5-65)
+)
+(define-operand
+  (name c-reg97)
+  (comment "register field for compressed (9:7)")
+  (attrs all-isas)
+  (type h-c-gpr)
+  (index f-uimm3-93)
+)
+(define-operand
+  (name c-reg42)
+  (comment "register field for compressed (4:2)")
+  (attrs all-isas)
+  (type h-c-gpr)
+  (index f-uimm3-43)
+)
+(define-operand
+  (name c-tied-regs97)
+  (comment "tied register pair, encoded in [9:7]")
+  (attrs all-isas)
+  (type h-c-gpr)
+  (index f-uimm3-93)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs97-commutative)
+  (comment "tied register pair, encoded in [9:7]")
+  (attrs all-isas)
+  (type h-c-gpr)
+  (index f-uimm3-93)
+  (handlers (parse "tied_reg_pair_commutative") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-gpr)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117-ne0)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-gpr-not-zero)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117-0-commutative)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-zero)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair_commutative") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117-ne0-commutative)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-gpr-not-zero)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair_commutative") (print "tied_reg_pair"))
+)
+(define-operand
+  (name c-tied-regs117-ne0-ne2)
+  (comment "tied register pair, encoded in [11:7]")
+  (attrs all-isas)
+  (type h-gpr-not-zero-or-sp)
+  (index f-uimm5-115)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+
+(define-operand
+  (name fl-rd)
+  (comment "fl-rd")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-rd)
+)
+(define-operand
+  (name fl-rs1)
+  (comment "fl-rs1")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-rs1)
+)
+(define-operand
+  (name fl-rs2)
+  (comment "fl-rs2")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-rs2)
+)
+(define-operand
+  (name fl-rs3)
+  (comment "fl-rs3")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-rs3)
+)
+(define-operand
+  (name fc-rs2)
+  (comment "fp register field for compressed (4:2)")
+  (attrs all-isas)
+  (type h-c-fpr)
+  (index f-uimm3-43)
+)
+(define-operand
+  (name fc-rs3)
+  (comment "fp register field for compressed (6:2)")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-uimm5-65)
+)
+(define-operand
+  (name fl-tied-regs1915)
+  (comment "tied register pair, encoded in [19:15]")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-uimm5-195)
+  (handlers (parse "tied_reg_pair") (print "tied_reg_pair"))
+)
+(define-operand
+  (name fl-dummy)
+  (comment "fl-dummy")
+  (attrs all-isas)
+  (type h-fpr)
+  (index f-dummy)
+)
+
+;; Special operands
+
+(define-operand
+  (name csr)
+  (comment "csr")
+  (attrs all-isas)
+  (type h-csr)
+  (mode UWI)
+  (index f-csr)
+  (handlers (parse "csr") (print "csr"))
+)
+(define-operand
+  (name pred)
+  (comment "pred")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-pred)
+  (handlers (parse "fence_succ_pred") (print "fence_succ_pred"))
+)
+(define-operand
+  (name succ)
+  (comment "succ")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-succ)
+  (handlers (parse "fence_succ_pred") (print "fence_succ_pred"))
+)
+(define-operand
+  (name fl-rm)
+  (comment "fl-rm")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UWI)
+  (index f-funct3)
+  (handlers (parse "float_rounding_mode") (print "float_rounding_mode"))
+)
+(define-operand
+  (name tprel_add)
+  (comment "Special field to attach a %tprel_add reloc to an add instruction")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-dummy)
+  (handlers (parse "tprel_add"))
+)
+
+;; Immediate operands
+
+; Some immediates have descriptive names, others follow the convention for
+; field names, but without the "f-" prefix.
+
+(define-operand
+  (name imm-zero)
+  (comment "imm operand which is always zero")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-dummy)
+)
+(define-operand
+  (name uimm5)
+  (comment "uimm5 [19..15]")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm5-195)
+  )
+(define-operand
+  (name uimm5-dec)
+  (comment "uimm5 [19..15]")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm5-195)
+  (handlers (print "dec"))
+)
+(define-operand
+  (name uimm5-abs)
+  (comment "uimm5 [19..15] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm5-195)
+  (handlers (parse "uimm5_abs"))
+  )
+(define-operand
+  (name uimm8-128)
+  (comment "uimm8 [12..5]")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm8-128)
+)
+(define-operand
+  (name imm-lo12)
+  (comment "Low 12-bits of a 32-bit uimmediate")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm12-3112)
+  (handlers (parse "imm_lo12_i"))
+  )
+(define-operand
+  (name imm-lo12-hex)
+  (comment "Low 12-bits of a 32-bit uimmediate")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm12-3112)
+  (handlers (parse "imm_lo12_i")(print "hexi"))
+)
+(define-operand
+  (name imm-lo12-abs)
+  (comment "Low 12-bits of a 32-bit uimmediate (absolute)")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm12-3112)
+  (handlers (parse "imm_lo12_abs"))
+)
+(define-operand
+  (name uimm32-3120-000000000000)
+  (comment "uimm12 [31..12]000000000000")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm32-3120-000000000000)
+  (handlers (parse "uimm32_hi20") (print "uimm32_hi20"))
+)
+(define-operand
+  (name store12)
+  (comment "12-bit store offset")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm12-317-115)
+  (handlers (parse "imm_lo12_s"))
+)
+(define-operand
+  (name branch13)
+  (comment "13-bit PC-relative branch")
+  (attrs RELAX all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm13-311-71-306-114-0)
+  (handlers (parse "branch13"))
+)
+(define-operand
+  (name jmp21)
+  (comment "21-bit PC-relative jump")
+  (attrs all-isas)
+  (type h-sint)
+  (mode DI)
+  (index f-imm21-311-198-201-3010-0)
+  (handlers (parse "jmp21"))
+)
+(define-operand
+  (name imm6-121-65-abs)
+  (comment "imm6 [12][6..2] (absolute)")
+  (attrs all-isas)
+  (type h-sint)
+  (index f-imm6-121-65)
+  (handlers (parse "imm6_abs"))
+)
+(define-operand
+  (name nzuimm18-121-65-000000000000-abs)
+  (comment "nzuimm18 [12][6..2]000000000000 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm18-121-65-000000000000)
+  (handlers (parse "nzuimm18_hi6_abs") (print "nzuimm18_hi6"))
+)
+(define-operand
+  (name nzimm6-121-65-abs)
+  (comment "nzimm6 [12][6..2] (absolute)")
+  (attrs all-isas)
+  (type h-sint)
+  (index f-imm6-121-65)
+  (handlers (parse "nzimm6_abs"))
+)
+(define-operand
+  (name nzimm10-121-42-51-21-61-0000-abs)
+  (comment "nzimm10 [12][4..3][5][2][6]0000 (absolute)")
+  (attrs all-isas)
+  (type h-sint)
+  (index f-imm10-121-42-51-21-61-0000)
+  (handlers (parse "nzimm10_mask4_abs"))
+)
+(define-operand
+  (name cbranch9)
+  (comment "13-bit PC-relative branch (C extension)")
+  (attrs RELAX all-isas)
+  (type h-sint)
+  (index f-imm9-121-62-21-112-42-0)
+  (handlers (parse "cbranch9"))
+)
+(define-operand
+  (name cjmp12)
+  (comment "12-bit PC-relative jump (C extension)")
+  (comment "imm12 [12][8][10..9][6][7][2][11][5..3]0")
+  (attrs RELAX all-isas)
+  (type h-sint)
+  (index f-imm12-121-81-102-61-71-21-111-53-0)
+  (handlers (parse "cjmp12"))
+)
+
+(define-operand
+  (name uimm5-245)
+  (comment "uimm5 [24..20] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm5-245)
+  (handlers (parse "uimm5_abs"))
+)
+(define-operand
+  (name uimm6-256)
+  (comment "uimm6 [25..20] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm6-256)
+  (handlers (parse "uimm6_abs"))
+  )
+(define-operand
+  (name uimm7-267)
+  (comment "uimm7 [26..20] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (mode UDI)
+  (index f-uimm7-267)
+  (handlers (parse "uimm7_abs"))
+)
+(define-operand
+  (name uimm9-93-123-000-abs)
+  (comment "uimm9 [9..7][12..10]000 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm9-93-123-000)
+  (handlers (parse "uimm9_mask3_abs") (print "ldst_uimm"))
+)
+(define-operand
+  (name uimm8-82-124-00-abs)
+  (comment "uimm8 [8..7][12..9]00 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm8-82-124-00)
+  (handlers (parse "uimm8_mask2_abs") (print "ldst_uimm"))
+)
+(define-operand
+  (name nzuimm10-104-122-51-61-00-abs)
+  (comment "nzuimm10 [10..7][12..11][5][6]00" (absolute))
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm10-104-122-51-61-00)
+  (handlers (parse "nzuimm10_mask2_abs")(print "dec"))
+)
+(define-operand
+  (name nzuimm6-121-65-abs)
+  (comment "nzuimm6 [12][6..2] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm6-121-65)
+  (handlers (parse "nzuimm6_abs"))
+)
+(define-operand
+  (name uimm6-121-65-abs)
+  (comment "uimm6 [12][6..2] (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm6-121-65)
+  (handlers (parse "uimm6_abs"))
+)
+(define-operand
+  (name uimm9-43-121-62-000-abs)
+  (comment "uimm9 [4..2][12][6..5]000 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm9-43-121-62-000)
+  (handlers (parse "uimm9_mask3_abs") (print "ldst_uimm"))
+)
+(define-operand
+  (name uimm8-32-121-63-00-abs)
+  (comment "uimm8 [3..2][12][6..4]00 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm8-32-121-63-00)
+  (handlers (parse "uimm8_mask2_abs") (print "ldst_uimm"))
+)
+(define-operand
+  (name uimm7-51-123-61-00-abs)
+  (comment "uimm7 [5][12..10][6]00 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm7-51-123-61-00)
+  (handlers (parse "uimm7_mask2_abs") (print "ldst_uimm"))
+)
+(define-operand
+  (name uimm8-62-123-000-abs)
+  (comment "uimm8 [6..5][12..10]000 (absolute)")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-uimm8-62-123-000)
+  (handlers (parse "uimm8_mask3_abs") (print "ldst_uimm"))
+)
+
+;; Instruction formats
+
+;===------------------ Compressed instructions formats ----------------------===
+
+; Raw instruction
+; +---------------+
+; |15            0|
+; | <instruction> |
+; +---------------+
+(define-pmacro (rv-format-craw mnemonic attr instr sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic "")
+    (+ (f-uimm16-1516 instr))
+    sem ()))
+; +--------+-----+------------+--------+
+; |15    12|11  7|6          2|1      0|
+; |<funct4>|<rs1>|<instr[6:2]>|<opcode>|
+; +--------+-----+------------+--------+
+(define-pmacro (rv-format-cr-1 mnemonic attr funct4 instr62 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0}")
+    (+ (f-c-funct4 funct4) c-reg117-ne0 (f-uimm5-65 instr62) (f-c-opcode opcode))
+    sem ()))
+; +--------+----+-----+--------+
+; |15    12|11 7|6   2|1      0|
+; |<funct4>|<rd>|<rs2>|<opcode>|
+; +--------+----+-----+--------+
+(define-pmacro (rv-format-cr-2 mnemonic attr funct4 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${c-reg62-ne0}")
+    (+ (f-c-funct4 funct4) c-reg117-ne0 c-reg62-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+--------+-----+--------+
+; |15    12|11     7|6   2|1      0|
+; |<funct4>|<rs1/rd>|<rs2>|<opcode>|
+; +--------+--------+-----+--------+
+(define-pmacro (rv-format-cr-3 mnemonic attr funct4 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${c-reg62-ne0}")
+    (+ (f-c-funct4 funct4) c-reg117-ne0 c-reg62-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+--------+-----+--------+
+; |15    10|11     7|6   2|1      0|
+; |<funct6>|<rs1/rd>|<rs2>|<opcode>|
+; +--------+--------+-----+--------+
+(define-pmacro (rv-format-cr-4 mnemonic attr funct6 instr65 sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg97},${c-reg42}")
+    (+ (f-c-funct6 funct6) c-reg97 (f-uimm2-62 instr65) c-reg42 (f-c-opcode #b01))
+    sem ()))
+; +--------+--------+----+----------+--------+
+; |15    13|   12   |11 7|6        2|1      0|
+; |<funct3>|<imm[5]>|<rd>|<imm[4:0]>|<opcode>|
+; +--------+--------+----+----------+--------+
+(define-pmacro (rv-format-ci-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) imm6-121-65-abs c-reg117-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+--------+--------+----------+--------+
+; |15    13|   12   |11     7|6        2|1      0|
+; |<funct3>|<imm[5]>|<rd/rs1>|<imm[4:0]>|<opcode>|
+; +--------+--------+--------+----------+--------+
+(define-pmacro (rv-format-ci-2 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) imm6-121-65-abs c-reg117 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+--------+------------+--------+
+; |15    13|   12    |11     7|6          2|1      0|
+; |<funct3>|<imm[17]>|<rd/rs1>|<imm[16:12]>|<opcode>|
+; +--------+---------+--------+------------+--------+
+(define-pmacro (rv-format-ci-3 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs}")
+    (+ (f-c-funct3 funct3) nzuimm18-121-65-000000000000-abs c-reg117-ne0-ne2 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+--------+-----------+--------+
+; |15    13|   12    |11     7|6         2|1      0|
+; |<funct3>|<uimm[5]>|<rd/rs1>|<uimm[4:0]>|<opcode>|
+; +--------+---------+--------+-----------+--------+
+(define-pmacro (rv-format-ci-4 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${nzuimm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) nzuimm6-121-65-abs c-reg117-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+----+----------------+--------+
+; |15    13|   12    |11 7|6              2|1      0|
+; |<funct3>|<uimm[5]>|<rd>|<uimm[4:2][7:6]>|<opcode>|
+; +--------+---------+----+----------------+--------+
+(define-pmacro (rv-format-ci-5 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${uimm8-32-121-63-00-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm8-32-121-63-00-abs c-reg117-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+----+----------------+--------+
+; |15    13|   12    |11 7|6              2|1      0|
+; |<funct3>|<uimm[5]>|<rd>|<uimm[4:3][8:6]>|<opcode>|
+; +--------+---------+----+----------------+--------+
+(define-pmacro (rv-format-ci-6 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117-ne0},${uimm9-43-121-62-000-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm9-43-121-62-000-abs c-reg117-ne0 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+----+----------------+--------+
+; |15    13|   12    |11 7|6              2|1      0|
+; |<funct3>|<uimm[5]>|<rd>|<uimm[4:2][7:6]>|<opcode>|
+; +--------+---------+----+----------------+--------+
+(define-pmacro (rv-format-ci-7 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${uimm8-32-121-63-00-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm8-32-121-63-00-abs fl-rd (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+----+----------------+--------+
+; |15    13|   12    |11 7|6              2|1      0|
+; |<funct3>|<uimm[5]>|<rd>|<uimm[4:3][8:6]>|<opcode>|
+; +--------+---------+----+----------------+--------+
+(define-pmacro (rv-format-ci-8 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fl-rd},${uimm9-43-121-62-000-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm9-43-121-62-000-abs fl-rd (f-c-opcode opcode))
+    sem ()))
+; +--------+--------+----+----------+--------+
+; |15    13|   12   |11 7|6        2|1      0|
+; |<funct3>|<imm[5]>|<rd>|<imm[4:0]>|<opcode>|
+; +--------+--------+----+----------+--------+
+(define-pmacro (rv-format-ci-9 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) imm6-121-65-abs c-reg117 (f-c-opcode opcode))
+    sem ()))
+; +--------+---------+--------+-----------+--------+
+; |15    13|   12    |11     7|6         2|1      0|
+; |<funct3>|<uimm[5]>|<rd/rs1>|<uimm[4:0]>|<opcode>|
+; +--------+---------+--------+-----------+--------+
+(define-pmacro (rv-format-ci-10 mnemonic attr funct3 uimm1 uimm5 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg117}")
+    (+ (f-c-funct3 funct3) (f-uimm1-121 uimm1) (f-uimm5-65 uimm5) c-reg117 (f-c-opcode opcode))
+   sem ()))
+; +--------+----------------+-----+--------+
+; |15    13|12             7|6   2|1      0|
+; |<funct3>|<uimm[5:2][7:6]>|<rs2>|<opcode>|
+; +--------+----------------+-----+--------+
+(define-pmacro (rv-format-css-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg62},${uimm8-82-124-00-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm8-82-124-00-abs c-reg62 (f-c-opcode opcode))
+    sem ()))
+; +--------+----------------+-----+--------+
+; |15    13|12             7|6   2|1      0|
+; |<funct3>|<uimm[5:3][8:6]>|<rs2>|<opcode>|
+; +--------+----------------+-----+--------+
+(define-pmacro (rv-format-css-2 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg62},${uimm9-93-123-000-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm9-93-123-000-abs c-reg62 (f-c-opcode opcode))
+    sem ()))
+; +--------+----------------+-----+--------+
+; |15    13|12             7|6   2|1      0|
+; |<funct3>|<uimm[5:2][7:6]>|<rs2>|<opcode>|
+; +--------+----------------+-----+--------+
+(define-pmacro (rv-format-css-3 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs3},${uimm8-82-124-00-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm8-82-124-00-abs fc-rs3 (f-c-opcode opcode))
+    sem ()))
+; +--------+----------------+-----+--------+
+; |15    13|12             7|6   2|1      0|
+; |<funct3>|<uimm[5:3][8:6]>|<rs2>|<opcode>|
+; +--------+----------------+-----+--------+
+(define-pmacro (rv-format-css-4 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs3},${uimm9-93-123-000-abs}(${sp-reg})")
+    (+ (f-c-funct3 funct3) uimm9-93-123-000-abs fc-rs3 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+----+--------+
+; |15    13|12       10|9   7|6         5|4  2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[2|6]>|<rd>|<opcode>|
+; +--------+-----------+-----+-----------+----+--------+
+(define-pmacro (rv-format-cl-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm7-51-123-61-00-abs c-reg97 c-reg42 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+----+--------+
+; |15    13|12       10|9   7|6         5|4  2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[7:6]>|<rd>|<opcode>|
+; +--------+-----------+-----+-----------+----+--------+
+(define-pmacro (rv-format-cl-2 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm8-62-123-000-abs c-reg97 c-reg42 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+----+--------+
+; |15    13|12       10|9   7|6         5|4  2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[2|6]>|<rd>|<opcode>|
+; +--------+-----------+-----+-----------+----+--------+
+(define-pmacro (rv-format-cl-3 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm7-51-123-61-00-abs fc-rs2 c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+----+--------+
+; |15    13|12       10|9   7|6         5|4  2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[7:6]>|<rd>|<opcode>|
+; +--------+-----------+-----+-----------+----+--------+
+(define-pmacro (rv-format-cl-4 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm8-62-123-000-abs fc-rs2 c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+--- -+--------+
+; |15    13|12       10|9   7|6         5|4   2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[2|6]>|<rs2>|<opcode>|
+; +--------+-----------+-----+-----------+-----+--------+
+(define-pmacro (rv-format-cs-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm7-51-123-61-00-abs c-reg97 c-reg42 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+-----+--------+
+; |15    13|12       10|9   7|6         5|4   2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[7:6]>|<rs2>|<opcode>|
+; +--------+-----------+-----+-----------+-----+--------+
+(define-pmacro (rv-format-cs-2 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm8-62-123-000-abs c-reg97 c-reg42 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+--- -+--------+
+; |15    13|12       10|9   7|6         5|4   2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[2|6]>|<rs2>|<opcode>|
+; +--------+-----------+-----+-----------+-----+--------+
+(define-pmacro (rv-format-cs-3 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs2},${uimm7-51-123-61-00-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm7-51-123-61-00-abs fc-rs2 c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+-----------+-----+-----------+-----+--------+
+; |15    13|12       10|9   7|6         5|4   2|1      0|
+; |<funct3>|<uimm[5:3]>|<rs1>|<uimm[7:6]>|<rs2>|<opcode>|
+; +--------+-----------+-----+-----------+-----+--------+
+(define-pmacro (rv-format-cs-4 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${fc-rs2},${uimm8-62-123-000-abs}(${c-reg97})")
+    (+ (f-c-funct3 funct3) uimm8-62-123-000-abs fc-rs2 c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+--------------+-----+-------------------+--------+
+; |15    13|12          10|9   7|6                 2|1      0|
+; |<funct3>|<simm[8][4:3]>|<rs1>|<simm[7:6][2:1][5]>|<opcode>|
+; +--------+--------------+-----+-------------------+--------+
+(define-pmacro (rv-format-cb-1 mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic
+    (.splice (.unsplice attr) RELAXABLE)
+    (.str mnemonic " ${c-reg97},${cbranch9}")
+    (+ (f-c-funct3 funct3) cbranch9 c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+----------+-------+--------+-------------+--------+
+; |15    13|    12    |11   10|9      7|6           2|1      0|
+; |<funct3>|<nzuimm[5]|<instr>|<rs1/rd>|<nzuimm[4:0]>|<opcode>|
+; +--------+----------+-------+--------+-------------+--------+
+(define-pmacro (rv-format-cb-2 mnemonic attr funct3 instr112 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg97},${nzuimm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) (f-uimm2-112 instr112) nzuimm6-121-65-abs c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+--------+-------+--------+----------+--------+
+; |15    13|   12   |11   10|9      7|6        2|1      0|
+; |<funct3>|<imm[5]>|<instr>|<rs1/rd>|<imm[4:0]>|<opcode>|
+; +--------+--------+-------+--------+----------+--------+
+(define-pmacro (rv-format-cb-3 mnemonic attr funct3 instr112 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg97},${imm6-121-65-abs}")
+    (+ (f-c-funct3 funct3) (f-uimm2-112 instr112) imm6-121-65-abs c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+----------+-------+--------+-------------+--------+
+; |15    13|    12    |11   10|9      7|6           2|1      0|
+; |<funct3>|<uimm[5]|<instr>|<rs1/rd>|<uimm[4:0]>|<opcode>|
+; +--------+----------+-------+--------+-------------+--------+
+(define-pmacro (rv-format-cb-4 mnemonic attr funct3 uimm1 instr112 uimm5 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${c-reg97}")
+    (+ (f-c-funct3 funct3) (f-uimm1-121 uimm1) (f-uimm2-112 instr112) (f-uimm5-65 uimm5) c-reg97 (f-c-opcode opcode))
+    sem ()))
+; +--------+-------------+--------+
+; |15    13|12          2|1      0|
+; |<funct3>|<jump-target>|<opcode>|
+; +--------+-------------+--------+
+(define-pmacro (rv-format-cj mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic
+    (.splice (.unsplice attr) RELAXABLE)
+    (.str mnemonic " ${cjmp12}")
+    (+ (f-c-funct3 funct3) cjmp12 (f-c-opcode opcode))
+    sem ()))
+
+;===----------------- Uncompressed instructions formats ---------------------===
+
+; Raw instruction
+; +---------------+
+; |31            0|
+; | <instruction> |
+; +---------------+
+(define-pmacro (rv-format-raw mnemonic attr instr sem)
+  (dni mnemonic mnemonic attr
+    mnemonic
+    (+ (f-uimm32-3132 instr))
+    sem ()))
+
+; Base Instruction Format R-type
+; +--------+-----+-----+--------+----+--------+
+; |31    25|24 20|19 15|14    12|11 7|6      0|
+; |<funct7>|<rs2>|<rs1>|<funct3>|<rd>|<opcode>|
+; +--------+-----+-----+--------+----+--------+
+(define-pmacro (rv-format-r mnemonic attr funct7 funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${rs2}")
+    (+ (f-funct7 funct7) rs2 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+; Base Instruction Format I-type
+; +-----------+-----+--------+----+--------+
+; |31       20|19 15|14    12|11 7|6      0|
+; |<imm[11:0]>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----------+-----+--------+----+--------+
+(define-pmacro (rv-format-i mnemonic attr asm funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic asm)
+    (+ imm-lo12 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+; Assembly variant 1 - "mnemonic rd,rs1,imm[11:0]"
+(define-pmacro (rv-format-i-1 mnemonic attr funct3 opcode sem)
+  (rv-format-i mnemonic attr " ${rd},${rs1},${imm-lo12}"  funct3 opcode sem))
+; Assembly variant 2 - "mnemonic rd,imm[11:0](rs1)"
+(define-pmacro (rv-format-i-2 mnemonic attr funct3 opcode sem)
+  (rv-format-i mnemonic attr " ${rd},${imm-lo12}(${rs1})" funct3 opcode sem))
+
+; Shift5/Shift6 - Shifts by a 5 or 6-bit immediate value
+; +-------+-------+-----+--------+----+--------+
+; |31   25|24   20|19 15|14    12|11 7|6      0|
+; |<func7>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-------+-------+-----+--------+----+--------+
+(define-pmacro (rv-format-shift5 mnemonic attr funct7 funct3 opcode sem)
+  (dni (.str mnemonic "-shift5") mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${uimm5-245}")
+    (+ (f-funct7 funct7) uimm5-245 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+; +-------+-------+-----+--------+----+--------+
+; |31   26|25   20|19 15|14    12|11 7|6      0|
+; |<func6>|<shamt>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-------+-------+-----+--------+----+--------+
+(define-pmacro (rv-format-shift6 mnemonic attr funct6 funct3 opcode sem)
+  (dni (.str mnemonic "-shift6") mnemonic attr
+    (.str mnemonic " ${rd},${rs1},${uimm6-256}")
+    (+ (f-funct6 funct6) uimm6-256 rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+; Base Instruction Format S-type
+; +-----------+-----+-----+--------+----------+--------+
+; |31       25|24 20|19 15|14    12|11       7|6      0|
+; |<imm[11:5]>|<rs2>|<rs1>|<funct3>|<imm[4:0]>|<opcode>|
+; +-----------+-----+-----+--------+----------+--------+
+(define-pmacro (rv-format-s mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rs2},${store12}(${rs1})")
+    (+ store12 rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
+    sem ()))
+
+; Base Instruction Format B-type
+; +---------+-----------+-----+-----+--------+----------+---------+--------+
+; |    31   |30       25|24 20|19 15|14    12|11       8|    7    |6      0|
+; |<imm[12]>|<imm[10:5]>|<rs2>|<rs1>|<funct3>|<imm[4:1]>|<imm[11]>|<opcode>|
+; +---------+-----------+-----+-----+--------+----------+---------+--------+
+(define-pmacro (rv-format-b mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic (.splice (.unsplice attr) RELAXABLE)
+    (.str mnemonic " ${rs1},${rs2},${branch13}")
+    (+ branch13 rs2 rs1 (f-funct3 funct3) (f-opcode opcode))
+    sem ()))
+
+; Base Instruction Format U-type
+; +------------+----+--------+
+; |31        12|11 7|6      0|
+; |<imm[31:12]>|<rd>|<opcode>|
+; +------------+----+--------+
+(define-pmacro (rv-format-u mnemonic attr opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${uimm32-3120-000000000000}")
+    (+ uimm32-3120-000000000000 rd (f-opcode opcode))
+    sem ()))
+
+; Base Instruction Format J-type
+; +---------+-----------+---------+------------+----+--------+
+; |    31   |30       21|    20   |19        12|11 7|6      0|
+; |<imm[20]>|<imm[10:1]>|<imm[11]>|<imm[19:12]>|<rd>|<opcode>|
+; +---------+-----------+---------+------------+----+--------+
+(define-pmacro (rv-format-j mnemonic attr opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${jmp21}")
+    (+ jmp21 rd (f-opcode opcode))
+    sem ()))
+
+; CSR reading/writing instructions using a register
+; +-----+-----+--------+----+--------+
+; |31 20|19 15|14    12|11 7|6      0|
+; |<csr>|<rs1>|<funct3>|<rd>|<opcode>|
+; +-----+-----+--------+----+--------+
+(define-pmacro (rv-format-csr-reg mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${csr},${rs1}")
+    (+ csr rs1 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+; CSR reading/writing instructions using an unsigned 5-bit immediate
+; +-----+-----------+--------+----+--------+
+; |31 20|19       15|14    12|11 7|6      0|
+; |<csr>|<uimm[4:0]>|<funct3>|<rd>|<opcode>|
+; +-----+-----------+--------+----+--------+
+(define-pmacro (rv-format-csr-imm mnemonic attr funct3 opcode sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rd},${csr},${uimm5}")
+    (+ csr uimm5 (f-funct3 funct3) rd (f-opcode opcode))
+    sem ()))
+
+; Fence/SFence instruction
+; +--------------+------+------+-------------+
+; |31          28|27  24|23  20|19          0|
+; |<instr[31:28]>|<pred>|<succ>|<instr[19:0]>|
+; +--------------+------+------+-------------+
+(define-pmacro (rv-format-fence mnemonic attr instr3128 instr190 sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${succ},${pred}")
+    (+ (f-uimm4-314 instr3128) pred succ (f-uimm20-1920 instr190))
+    sem ()))
+(define-pmacro (rv-format-sfence-vm mnemonic attr instr3120 instr140 sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rs1}")
+    (+ (f-uimm12-3112 instr3120) rs1 (f-uimm15-1415 instr140))
+    sem ()))
+(define-pmacro (rv-format-sfence-vma mnemonic attr instr3125 instr140 sem)
+  (dni mnemonic mnemonic attr
+    (.str mnemonic " ${rs1},${rs2}")
+    (+ (f-uimm7-317 instr3125) rs1 rs2 (f-uimm15-1415 instr140))
+    sem ()))
+
+;; Instructions
+;;
+;; We have defined a set of macros above which will be invoked to
+;; specify each of the instructions in the ISA.
+;; The macros above are really just utilities to save us from
+;; the verbosity of writing a `dni` specification for each instructions,
+;; there's nothing else fancy going on.
+;;
+;; For most of the instructions below we have chosen to write them as:
+;; (macro-name mnemonic-str attribute-list
+;;   binary-fields ...
+;;   semantics)
+;;
+;; TODO: It may be a good idea to split this out into multiple files
+
+;===-------------------- 'C' extension instructions -------------------------===
+
+(dni c.addi16sp "c.addi16sp" (all-isas c-ext c-machs)
+  "c.addi16sp ${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}"
+  (+ (f-c-funct3 #b011) nzimm10-121-42-51-21-61-0000-abs (f-uimm5-115 #b00010) (f-c-opcode #b01))
+  (set (reg h-gpr 2) (add (reg h-gpr 2) nzimm10-121-42-51-21-61-0000-abs))
+  ())
+(dni c.addi4spn "c.addi4spn" (all-isas c-ext c-machs)
+  "c.addi4spn ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"
+  (+ (f-c-funct3 #b000) nzuimm10-104-122-51-61-00-abs c-reg42 (f-c-opcode #b00))
+  (set c-reg42 (add (reg h-gpr 2) nzuimm10-104-122-51-61-00-abs))
+  ())
+(rv-format-craw  "c.nop" (all-isas c-ext c-machs)
+  #b0000000000000001
+  (nop))
+(rv-format-craw  "c.ebreak" (all-isas c-ext c-machs)
+  #b1001000000000010
+  ; Do exception entry handling in C function
+  (sequence ()
+    ; When an exception occurs, the pc is first stored to mepc (0x341)
+    ; Exception handling itself is done in a C function
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-EBREAK)))
+(rv-format-craw  "c.unimp"  (all-isas c-ext c-machs)
+  #b0000000000000000
+  (nop))
+(rv-format-cr-1  "c.jr"     (all-isas c-ext c-machs)
+  #b1000 #b00000 #b10
+  (set pc c-reg117-ne0))
+(rv-format-cr-1  "c.jalr"   (all-isas c-ext c-machs)
+  #b1001 #b00000 #b10
+  (sequence ((WI dst-reg))
+    (set dst-reg rd)
+    (set (reg h-gpr 1) (add pc 2))
+    (set pc dst-reg)))
+(rv-format-cr-2  "c.mv"   (all-isas c-ext c-machs)
+  #b1000 #b10
+  (set c-reg117-ne0 c-reg62-ne0))
+(rv-format-cr-3  "c.add"  (all-isas c-ext c-machs)
+  #b1001 #b10
+  (set c-reg117-ne0 (add c-reg117-ne0 c-reg62-ne0)))
+(rv-format-cr-4  "c.and"  (all-isas c-ext c-machs)
+  #b100011 #b11
+  (set c-reg97 (and c-reg97 c-reg42)))
+(rv-format-cr-4  "c.or"   (all-isas c-ext c-machs)
+  #b100011 #b10
+  (set c-reg97 (or  c-reg97 c-reg42)))
+(rv-format-cr-4  "c.xor"  (all-isas c-ext c-machs)
+  #b100011 #b01
+  (set c-reg97 (xor c-reg97 c-reg42)))
+(rv-format-cr-4  "c.sub"  (all-isas c-ext c-machs)
+  #b100011 #b00
+  (set c-reg97 (sub c-reg97 c-reg42)))
+(rv-format-ci-9  "c.li"   (all-isas c-ext c-machs NO-DIS)
+  #b010 #b01
+  (set c-reg117-ne0 imm6-121-65-abs))
+(rv-format-ci-3  "c.lui"  (all-isas c-ext c-machs)
+  #b011 #b01
+  (set c-reg117-ne0-ne2 (sra (sll SI nzuimm18-121-65-000000000000-abs 14) 14)))
+(rv-format-ci-2  "c.addi" (all-isas c-ext c-machs)
+  #b000 #b01
+  (set c-reg117 (add c-reg117 imm6-121-65-abs)))
+(rv-format-ci-4  "c.slli" (all-isas c-ext c-machs)
+  #b000 #b10
+  (set c-reg117-ne0 (sll c-reg117-ne0 nzuimm6-121-65-abs)))
+(rv-format-ci-5  "c.lwsp" (all-isas c-ext c-machs)
+  #b010 #b10
+  (set c-reg117-ne0 (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))))
+(rv-format-css-1 "c.swsp" (all-isas c-ext c-machs)
+  #b110 #b10
+  (set (mem USI (add (reg h-gpr 2) uimm8-82-124-00-abs)) c-reg62))
+(rv-format-cl-1  "c.lw"   (all-isas c-ext c-machs)
+  #b010 #b00
+  (set c-reg42 (mem SI (add c-reg97 uimm7-51-123-61-00-abs))))
+(rv-format-cs-1  "c.sw"   (all-isas c-ext c-machs)
+  #b110 #b00
+  (set (mem USI (add c-reg97 uimm7-51-123-61-00-abs)) c-reg42))
+(rv-format-cb-2  "c.srli" (all-isas c-ext c-machs)
+  #b100 #b00 #b01
+  (set c-reg97 (srl c-reg97 nzuimm6-121-65-abs)))
+(rv-format-cb-2  "c.srai" (all-isas c-ext c-machs)
+  #b100 #b01 #b01
+  (set c-reg97 (sra c-reg97 nzuimm6-121-65-abs)))
+(rv-format-cb-3  "c.andi" (all-isas c-ext c-machs)
+  #b100 #b10 #b01
+  (set c-reg97 (and c-reg97 imm6-121-65-abs)))
+(rv-format-cb-1  "c.beqz" (all-isas c-ext c-machs)
+  #b110 #b01
+  (if (eq c-reg97 0) (set pc (add pc cbranch9))))
+(rv-format-cb-1  "c.bnez" (all-isas c-ext c-machs)
+  #b111 #b01
+  (if (ne c-reg97 0) (set pc (add pc cbranch9))))
+(rv-format-cj    "c.j"    (all-isas c-ext c-machs)
+  #b101 #b01
+  (set pc (add pc cjmp12)))
+
+; RV32/64C hints
+; TODO: These are instructions in RV128C - not supported yet
+(rv-format-ci-10 "c.slli64" (all-isas c-ext)
+  #b000      #b0 #b00000 #b10 (nop))
+(rv-format-cb-4  "c.srli64" (all-isas c-ext)
+  #b100 #b0 #b00 #b00000 #b01 (nop))
+(rv-format-cb-4  "c.srai64" (all-isas c-ext)
+  #b100 #b0 #b01 #b00000 #b01 (nop))
+
+;RV32C
+(rv-format-cj "c.jal" ((ISA rv32) (RVEXT RV32C) rv32c-machs) 
+  #b001 #b01
+  (sequence ()
+    (set (reg h-gpr 1) (add pc 2))
+    (set pc (add pc cjmp12))))
+
+;RV64C
+(rv-format-cr-4  "c.addw"  ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b100111 #b01
+  (set c-reg97 (add SI c-reg97 c-reg42)))
+(rv-format-cr-4  "c.subw"  ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b100111 #b00
+  (set c-reg97 (sub SI c-reg97 c-reg42)))
+(rv-format-ci-1  "c.addiw" ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b001 #b01
+  (set c-reg117-ne0 (add SI c-reg117-ne0 imm6-121-65-abs)))
+(rv-format-ci-6  "c.ldsp"  ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b011 #b10
+  (set c-reg117-ne0 (mem DI (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
+(rv-format-css-2 "c.sdsp"  ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b111 #b10
+  (set (mem UDI (add (reg h-gpr 2) uimm9-93-123-000-abs)) c-reg62))
+(rv-format-cl-2  "c.ld"    ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b011 #b00
+  (set c-reg42 (mem DI (add c-reg97 uimm8-62-123-000-abs))))
+(rv-format-cs-2  "c.sd"    ((ISA rv64) (RVEXT RV64C) rv64c-machs)
+  #b111 #b00
+  (set (mem UDI (add c-reg97 uimm8-62-123-000-abs)) c-reg42))
+
+;RV32FC
+(rv-format-ci-7   "c.flwsp" ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
+  #b011 #b10
+  (set fl-rd (subword DF (or (zext UDI (mem SI (add (reg h-gpr 2) uimm8-32-121-63-00-abs))) #xffffffff00000000) 0)))
+(rv-format-css-3  "c.fswsp" ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
+  #b111 #b10
+  (set (mem SI (add (reg h-gpr 2) uimm8-82-124-00-abs)) (trunc SI (subword DI fc-rs3 0))))
+(rv-format-cs-3   "c.fsw"   ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
+  #b111 #b00
+  (set (mem SI (add c-reg97 uimm7-51-123-61-00-abs)) (trunc SI (subword DI fc-rs2 0))))
+(rv-format-cl-3   "c.flw"   ((ISA rv32) (RVEXT RV32FC) rv32fc-machs)
+  #b011 #b00
+  (set fc-rs2 (subword DF (or (zext UDI (mem SI (add c-reg97 uimm7-51-123-61-00-abs))) #xffffffff00000000) 0)))
+
+;RV32DC/RV64DC
+(rv-format-ci-8   "c.fldsp" (all-isas dc-ext dc-machs) ;Good
+  #b001 #b10
+  (set fl-rd (mem DF (add (reg h-gpr 2) uimm9-43-121-62-000-abs))))
+(rv-format-css-4  "c.fsdsp" (all-isas dc-ext dc-machs) ;Good
+  #b101 #b10
+  (set (mem DF (add (reg h-gpr 2) uimm9-93-123-000-abs)) fc-rs3))
+(rv-format-cs-4   "c.fsd"   (all-isas dc-ext dc-machs)
+  #b101 #b00
+  (set (mem DF (add c-reg97 uimm8-62-123-000-abs)) fc-rs2))
+(rv-format-cl-4   "c.fld"   (all-isas dc-ext dc-machs)
+  #b001 #b00
+  (set fc-rs2 (mem DF (add c-reg97 uimm8-62-123-000-abs))))
+
+;===------------------------- 'I' Base instructions -------------------------===
+
+(rv-format-u       "lui"     (all-isas i-ext all-machs)
+  #b0110111
+  (set rd (ext (trunc SI uimm32-3120-000000000000))))
+(rv-format-u       "auipc"   (all-isas i-ext all-machs)
+  #b0010111
+  (set rd (add pc (ext (trunc SI uimm32-3120-000000000000)))))
+(rv-format-j       "jal"     (all-isas i-ext all-machs)
+  #b1101111
+  (sequence ()
+    (set rd (add pc 4))
+    (set pc (add pc (sra (sll DI jmp21 43) 43)))))
+(rv-format-i-1     "jalr"    (all-isas i-ext all-machs)
+  #b000 #b1100111
+  (sequence ((WI src-reg))
+    (set src-reg rs1)
+    (set rd (add pc 4))
+    (set pc (add src-reg imm-lo12))))
+
+; Branches
+;; Another macro just so we don't have to keep rewriting the semantic part
+(define-pmacro (rv-branch mnemonic attr funct3 opcode cc)
+  (rv-format-b mnemonic attr funct3 opcode
+    (if (cc rs1 rs2) (set pc (add pc (sra (sll DI branch13 51) 51))))))
+
+(rv-branch "beq"  (all-isas i-ext all-machs) #b000 #b1100011 eq)
+(rv-branch "bne"  (all-isas i-ext all-machs) #b001 #b1100011 ne)
+(rv-branch "blt"  (all-isas i-ext all-machs) #b100 #b1100011 lt)
+(rv-branch "bge"  (all-isas i-ext all-machs) #b101 #b1100011 ge)
+(rv-branch "bltu" (all-isas i-ext all-machs) #b110 #b1100011 ltu)
+(rv-branch "bgeu" (all-isas i-ext all-machs) #b111 #b1100011 geu)
+
+; Loads/Stores
+(rv-format-i-2 "lb"  (all-isas i-ext all-machs)
+  #b000 #b0000011
+  (set rd (mem QI (add rs1 imm-lo12))))
+(rv-format-i-2 "lh"  (all-isas i-ext all-machs)
+  #b001 #b0000011
+  (set rd (mem HI (add rs1 imm-lo12))))
+(rv-format-i-2 "lw"  (all-isas i-ext all-machs)
+  #b010 #b0000011
+  (set rd (mem SI (add rs1 imm-lo12))))
+(rv-format-i-2 "lbu" (all-isas i-ext all-machs)
+  #b100 #b0000011
+  (set rd (mem UQI (add rs1 imm-lo12))))
+(rv-format-i-2 "lhu" (all-isas i-ext all-machs)
+  #b101 #b0000011
+  (set rd (mem UHI (add rs1 imm-lo12))))
+(rv-format-s   "sb"  (all-isas i-ext all-machs)
+  #b000 #b0100011
+  (set (mem UQI (add rs1 store12)) rs2))
+(rv-format-s   "sh"  (all-isas i-ext all-machs)
+  #b001 #b0100011
+  (set (mem UHI (add rs1 store12)) rs2))
+(rv-format-s   "sw"  (all-isas i-ext all-machs)
+  #b010 #b0100011
+  (set (mem USI (add rs1 store12)) rs2))
+
+; Arithmetic
+(rv-format-i-1 "addi"  (all-isas i-ext all-machs)
+  #b000 #b0010011
+  (set rd (add rs1 imm-lo12)))
+(rv-format-i-1 "slti"  (all-isas i-ext all-machs)
+  #b010 #b0010011
+  (set rd (lt  rs1 imm-lo12)))
+(rv-format-i-1 "sltiu" (all-isas i-ext all-machs)
+  #b011 #b0010011
+  (set rd (ltu rs1 imm-lo12)))
+(rv-format-i-1 "xori"  (all-isas i-ext all-machs)
+  #b100 #b0010011
+  (set rd (xor rs1 imm-lo12)))
+(rv-format-i-1 "ori"   (all-isas i-ext all-machs)
+  #b110 #b0010011
+  (set rd (or  rs1 imm-lo12)))
+(rv-format-i-1 "andi"  (all-isas i-ext all-machs)
+  #b111 #b0010011
+  (set rd (and rs1 imm-lo12)))
+(rv-format-shift5 "slli" (all-isas i-ext all-machs)
+  #b0000000 #b001 #b0010011
+  (set rd (sll rs1 uimm5-245)))
+(rv-format-shift5 "srli" (all-isas i-ext all-machs)
+  #b0000000 #b101 #b0010011
+  (set rd (srl rs1 uimm5-245)))
+(rv-format-shift5 "srai" (all-isas i-ext all-machs)
+  #b0100000 #b101 #b0010011
+  (set rd (sra rs1 uimm5-245)))
+
+(dni add "add" (all-isas i-ext all-machs)
+  "add ${rd},${rs1},${rs2},${tprel_add}"
+  (+ (f-funct7 #b0000000) rs2 rs1 (f-funct3 #b000) rd (f-opcode #b0110011))
+  (set rd (add rs1 rs2))
+  ())
+(rv-format-r "sub"  (all-isas i-ext all-machs)
+  #b0100000 #b000 #b0110011
+  (set rd (sub rs1 rs2)))
+(rv-format-r "sll"  (all-isas i-ext all-machs)
+  #b0000000 #b001 #b0110011
+  (set rd (sll rs1 rs2)))
+(rv-format-r "slt"  (all-isas i-ext all-machs)
+  #b0000000 #b010 #b0110011
+  (set rd (lt  rs1 rs2)))
+(rv-format-r "sltu" (all-isas i-ext all-machs)
+  #b0000000 #b011 #b0110011
+  (set rd (ltu rs1 rs2)))
+(rv-format-r "xor"  (all-isas i-ext all-machs)
+  #b0000000 #b100 #b0110011
+  (set rd (xor rs1 rs2)))
+(rv-format-r "srl"  (all-isas i-ext all-machs)
+  #b0000000 #b101 #b0110011
+  (set rd (srl rs1 rs2)))
+(rv-format-r "sra"  (all-isas i-ext all-machs)
+  #b0100000 #b101 #b0110011
+  (set rd (sra rs1 rs2)))
+(rv-format-r "or"   (all-isas i-ext all-machs)
+  #b0000000 #b110 #b0110011
+  (set rd (or rs1 rs2)))
+(rv-format-r "and"  (all-isas i-ext all-machs)
+  #b0000000 #b111 #b0110011
+  (set rd (and rs1 rs2)))
+
+; Misc
+(dni fence "fence" (all-isas i-ext all-machs)
+  "fence ${succ},${pred}"
+  (+ (f-uimm4-314 #b0000) pred succ (f-uimm20-1920 #b00000000000000001111))
+  (nop) ())
+(dni sfence.vm "sfence.vm"   (all-isas i-ext all-machs)
+  "s.fence.vm ${rs1}"
+  (+ (f-uimm12-3112 #b000100000100) rs1 (f-uimm15-1415 #b000000001110011))
+  (nop) ())
+(dni sfence.vma "sfence.vma" (all-isas i-ext all-machs)
+  "sfence.vma ${rs1},${rs2}"
+  (+ (f-uimm7-317 #b0001001) rs1 rs2 (f-uimm15-1415 #b000000001110011))
+  (nop) ())
+(dni fence.tso "fence.tso" (all-isas i-ext all-machs)
+  "fence.tso ${succ},${pred}"
+  (+ (f-uimm4-314 #b1000) pred succ (f-uimm20-1920 #b00000000000000001111))
+  (nop) ())
+
+(rv-format-raw     "fence.i" (all-isas ifencei-ext all-machs)
+  #b00000000000000000001000000001111
+  (nop))
+
+(rv-format-raw     "ecall"   (all-isas i-ext all-machs)
+  #b00000000000000000000000001110011
+  ; When an exception occurs, the pc is first stored to mepc (0x341)
+  ; Exception handling itself is done in a C function
+  (sequence ()
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-ECALL)))
+(rv-format-raw     "ebreak"  (all-isas i-ext all-machs)
+  #b00000000000100000000000001110011
+  ; When an exception occurs, the pc is first stored to mepc (0x341)
+  ; Exception handling itself is done in a C function
+  (sequence ()
+    (set (reg h-csr #x341) (reg h-pc))
+    (raise-exception EXCEPT-EBREAK)))
+
+(rv-format-csr-reg "csrrw"   (all-isas icsr-ext all-machs)
+  #b001 #b1110011
+  ; riscv spec v2.2, section 2.8:
+  ;   If rd=x0, then the instruction shall not read the CSR and shall not cause
+  ;   any of the side-effects that might occur on a CSR read.
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (if (ne (regno rd) 0)
+      (set rd csr))
+    (set csr tmp)))
+(rv-format-csr-reg "csrrs"   (all-isas icsr-ext all-machs)
+  #b010 #b1110011
+  ; riscv spec v2.2, section 2.8:
+  ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
+  ;   to the CSR at all, and so shall not cause any of the side effects that
+  ;   might otherwise occur on a CSR write
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (set rd csr)
+    (if (ne (regno rs1) 0)
+      (set csr (or tmp csr)))))
+(rv-format-csr-reg "csrrc"   (all-isas icsr-ext all-machs)
+  #b011 #b1110011
+  ; riscv spec v2.2, section 2.8:
+  ;   For both CSRRS and CSRRC, if rs1=x0, then the instruction will not write
+  ;   to the CSR at all, and so shall not cause any of the side effects that
+  ;   might otherwise occur on a CSR write
+  (sequence ((WI tmp))
+    (set tmp rs1)
+    (set rd csr)
+    (if (ne (regno rs1) 0)
+      (set csr (and (inv tmp) csr)))))
+(rv-format-csr-imm "csrrwi"  (all-isas icsr-ext all-machs)
+  #b101 #b1110011
+  (sequence ()
+    (set rd csr)
+    (set csr uimm5)))
+(rv-format-csr-imm "csrrsi"  (all-isas icsr-ext all-machs)
+  #b110 #b1110011
+  (sequence ()
+    (set rd csr)
+    (set csr (or uimm5 csr))))
+(rv-format-csr-imm "csrrci"  (all-isas icsr-ext all-machs)
+  #b111 #b1110011
+  (sequence ((WI tmp))
+    (set rd csr)
+    (set csr (and (inv uimm5) csr))))
+
+(rv-format-raw     "uret"    (all-isas i-ext all-machs)
+  #b00000000001000000000000001110011
+  (nop))
+(rv-format-raw     "sret"    (all-isas i-ext all-machs)
+  #b00010000001000000000000001110011
+  (nop))
+(rv-format-raw     "hret"    (all-isas i-ext all-machs)
+  #b00100000001000000000000001110011
+  (nop))
+(rv-format-raw     "mret"    (all-isas i-ext all-machs)
+  #b00110000001000000000000001110011
+  (nop))
+(rv-format-raw     "dret"    (all-isas i-ext all-machs)
+  #b01111011001000000000000001110011
+  (nop))
+(rv-format-raw     "wfi"     (all-isas i-ext all-machs)
+  #b00010000010100000000000001110011
+  (nop))
+
+; RV64I
+; Loads and stores
+(rv-format-i-2     "lwu"   ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b110 #b0000011
+		   (set rd (mem USI (add rs1 imm-lo12))))
+(rv-format-i-2     "ld"    ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b011 #b0000011
+		   (set rd (mem UDI (add rs1 imm-lo12))))
+(rv-format-s       "sd"    ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b011 #b0100011
+		   (set (mem UDI (add rs1 store12)) rs2))
+(rv-format-shift6  "slli"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b000000 #b001 #b0010011
+		   (set rd (sll rs1 uimm6-256)))
+(rv-format-shift6  "srli"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b000000 #b101 #b0010011
+		   (set rd (srl rs1 uimm6-256)))
+(rv-format-shift6  "srai"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b010000 #b101 #b0010011
+		   (set rd (sra rs1 uimm6-256)))
+(rv-format-i-1     "addiw" ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b000 #b0011011
+		   (set rd (ext (add SI rs1 imm-lo12))))
+(rv-format-shift5  "slliw" ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0000000 #b001 #b0011011
+		   (set rd (ext (sll SI rs1 uimm5-245))))
+(rv-format-shift5  "srliw" ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0000000 #b101 #b0011011
+		   (set rd (ext (srl SI rs1 uimm5-245))))
+(rv-format-shift5  "sraiw" ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0100000 #b101 #b0011011
+		   (set rd (ext (sra SI rs1 uimm5-245))))
+(rv-format-r       "addw"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0000000 #b000 #b0111011
+		   (set rd (ext (add SI rs1 rs2))))
+(rv-format-r       "subw"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0100000 #b000 #b0111011
+		   (set rd (ext (sub SI rs1 rs2))))
+(rv-format-r       "sllw"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0000000 #b001 #b0111011
+		   (set rd (ext (sll SI rs1 rs2))))
+(rv-format-r       "srlw"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0000000 #b101 #b0111011
+		   (set rd (ext (srl SI rs1 rs2))))
+(rv-format-r       "sraw"  ((ISA rv64) (RVEXT RV64I) rv64-machs)
+		   #b0100000 #b101 #b0111011
+		   (set rd (ext (sra SI rs1 rs2))))
+
+
+;===------------------ 'C' extension macro instructions ---------------------===
+;
+; It is important that the compressed macro instructions are defined *before*
+; the normal macro instructions. This is because the priority of
+; assembly/disassembly is dependent on the order they are defined, and we want
+; to try shorter compressed instructions first.
+;
+; Also where there are multiple ways to assemble or disassemble an
+; instruction, the order in this list determines the priority.
+; FIXME: It would be nice to not rely on this.
+;
+; Aside from jumps and branches, compressed instructions reject anything
+; which isn't an absolute value. This avoids two problems; First, we cannot
+; generate relocations for symbols in most compressed instructions; and second,
+; a number of instructions share the same mnemonic and differ only in the
+; type of an operand (immediate vs register operand). If this is the case, we
+; don't want to accidentally parse the register name as a symbol in an immediate
+; field.
+
+(define-pmacro (rvc-macro macro-name mnemonic attr-list asm expansion)
+  (dnmi macro-name mnemonic attr-list (.str mnemonic asm) expansion)
+)
+
+; RVC hints
+;
+; These are defined first to prevent RVC hints being disassembled to normal
+; RVI instructions
+
+(rvc-macro p-c-nop-hint "c.nop"  (all-isas c-ext) " ${nzuimm6-121-65-abs}"                             (emit c.nop))
+(rvc-macro p-c-li-hint  "c.li"   (all-isas c-ext) " ${c-reg117},${imm6-121-65-abs}"                    (emit c.li   c-reg117 imm6-121-65-abs))
+(rvc-macro p-c-lui-hint "c.lui"  (all-isas c-ext) " ${c-reg117-0},${nzuimm18-121-65-000000000000-abs}" (emit c.lui  (c-reg117-ne0-ne2 c-reg117-0) nzuimm18-121-65-000000000000-abs))
+(rvc-macro p-c-mv-hint  "c.mv"   (all-isas c-ext) " ${c-reg117},${c-reg62-ne0}"                        (emit c.mv   (c-reg117-ne0 c-reg117) c-reg62-ne0))
+(rvc-macro p-c-add-hint "c.add"  (all-isas c-ext) " ${c-reg117-0},${c-reg62-ne0}"                      (emit c.add  (c-reg117-ne0 c-reg117-0) c-reg62-ne0))
+(rvc-macro p-c-slli-hint "c.slli" (all-isas c-ext) " ${c-reg117-0},${nzuimm6-121-65-abs}"              (emit c.slli (c-reg117-ne0 c-reg117-0) nzuimm6-121-65-abs))
+(rvc-macro p-c-addi-hint "c.addi" (all-isas c-ext NO-DIS) " ${c-tied-regs117},${imm-zero}"             (emit c.addi (c-reg117 c-tied-regs117) (imm6-121-65-abs imm-zero)))
+
+; RVC instructions
+(rvc-macro p-c-nop     "nop"    (all-isas c-ext) "" (emit c.nop))
+(rvc-macro p-c-ebreak  "ebreak" (all-isas c-ext) "" (emit c.ebreak))
+(rvc-macro p-c-unimp   "unimp"  (all-isas c-ext) "" (emit c.unimp))
+(rvc-macro p-c-sbreak  "sbreak" (all-isas c-ext) "" (emit c.ebreak))
+(rvc-macro p-c-ret     "ret"    (all-isas c-ext) "" (emit c.jr (c-reg117-ne0 1)))
+(rvc-macro p-c-jr      "jr"     (all-isas c-ext) " ${c-reg117-ne0}" (emit c.jr   c-reg117-ne0))
+(rvc-macro p-c-jalr    "jalr"   (all-isas c-ext) " ${c-reg117-ne0}" (emit c.jalr c-reg117-ne0))
+(rvc-macro p-c-j       "j"      (all-isas c-ext RELAXABLE) " ${cjmp12}" (emit c.j    cjmp12))
+(rvc-macro p-c-jal     "jal"    ((ISA rv32) (RVEXT RV32C) RELAXABLE) " ${cjmp12}" (emit c.jal  cjmp12))
+(rvc-macro p-c-beqz    "beqz"   (all-isas c-ext RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.beqz c-reg97 cbranch9))
+(rvc-macro p-c-bnez    "bnez"   (all-isas c-ext RELAXABLE) " ${c-reg97},${cbranch9}" (emit c.bnez c-reg97 cbranch9))
+(rvc-macro p-c-lui     "lui"    (all-isas c-ext) " ${c-reg117-ne0-ne2},${nzuimm18-121-65-000000000000-abs}" (emit c.lui c-reg117-ne0-ne2 nzuimm18-121-65-000000000000-abs))
+(rvc-macro p-c-li      "li"     (all-isas c-ext) " ${c-reg117-ne0},${imm6-121-65-abs}"                      (emit c.li  c-reg117-ne0     imm6-121-65-abs))
+(rvc-macro p-c-mv      "mv"     (all-isas c-ext) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
+(rvc-macro p-c-move    "move"   (all-isas c-ext) " ${c-reg117-ne0},${c-reg62-ne0}"                          (emit c.mv  c-reg117-ne0     c-reg62-ne0))
+(rvc-macro p-c-andi    "andi"   (all-isas c-ext) " ${c-tied-regs97},${imm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) (nzimm6-121-65-abs imm6-12-65-abs)))
+(rvc-macro p-c-and-1   "and"    (all-isas c-ext) " ${c-tied-regs97},${nzimm6-121-65-abs}"                   (emit c.andi (c-reg97 c-tied-regs97) nzimm6-121-65-abs))
+(rvc-macro p-c-and-2   "and"    (all-isas c-ext) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.and  (c-reg97 c-tied-regs97-commutative) c-reg42))
+(rvc-macro p-c-addi-1  "addi"   (all-isas c-ext) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
+(rvc-macro p-c-addi-2  "addi"   (all-isas c-ext) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
+(rvc-macro p-c-addi-3  "addi"   (all-isas c-ext) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
+(rvc-macro p-c-add-1   "add"    (all-isas c-ext) " ${sp-reg},${sp-reg},${nzimm10-121-42-51-21-61-0000-abs}" (emit c.addi16sp nzimm10-121-42-51-21-61-0000-abs))
+(rvc-macro p-c-add-2   "add"    (all-isas c-ext) " ${c-tied-regs117-ne0-commutative},${c-reg62-ne0}"        (emit c.add  (c-reg117-ne0 c-tied-regs117-ne0-commutative) c-reg62-ne0))
+(rvc-macro p-c-add-3   "add"    (all-isas c-ext) " ${c-tied-regs117},${nzimm6-121-65-abs}"                  (emit c.addi (c-reg117 c-tied-regs117) nzimm6-121-65-abs))
+(rvc-macro p-c-add-4   "add"    (all-isas c-ext) " ${c-reg42},${sp-reg},${nzuimm10-104-122-51-61-00-abs}"   (emit c.addi4spn c-reg42 nzuimm10-104-122-51-61-00-abs))
+(rvc-macro p-c-slli    "slli"   (all-isas c-ext) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
+(rvc-macro p-c-sll     "sll"    (all-isas c-ext) " ${c-tied-regs117-ne0},${nzuimm6-121-65-abs}"             (emit c.slli (c-reg117-ne0 c-tied-regs117-ne0) nzuimm6-121-65-abs))
+(rvc-macro p-c-srli    "srli"   (all-isas c-ext) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-srl     "srl"    (all-isas c-ext) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srli (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-srai    "srai"   (all-isas c-ext) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-sra     "sra"    (all-isas c-ext) " ${c-tied-regs97},${nzuimm6-121-65-abs}"                  (emit c.srai (c-reg97 c-tied-regs97) nzuimm6-121-65-abs))
+(rvc-macro p-c-sub     "sub"    (all-isas c-ext) " ${c-tied-regs97},${c-reg42}"                             (emit c.sub  (c-reg97 c-tied-regs97) c-reg42))
+(rvc-macro p-c-lw-1    "lw"     (all-isas c-ext) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.lw c-reg42 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-lw-2    "lw"     (all-isas c-ext) " ${c-reg117-ne0},${uimm8-32-121-63-00-abs}(${sp-reg})"    (emit c.lwsp c-reg117-ne0 uimm8-32-121-63-00-abs))
+(rvc-macro p-c-lw-3    "lw"     (all-isas c-ext NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.lw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
+(rvc-macro p-c-lw-4    "lw"     (all-isas c-ext NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.lwsp c-reg117-ne0 (uimm8-32-121-63-00-abs 0)))
+(rvc-macro p-c-or      "or"     (all-isas c-ext) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.or   (c-reg97 c-tied-regs97-commutative) c-reg42))
+(rvc-macro p-c-sw-1    "sw"     (all-isas c-ext) " ${c-reg42},${uimm7-51-123-61-00-abs}(${c-reg97})"        (emit c.sw c-reg42 uimm7-51-123-61-00-abs c-reg97))
+(rvc-macro p-c-sw-2    "sw"     (all-isas c-ext) " ${c-reg62},${uimm8-82-124-00-abs}(${sp-reg})"            (emit c.swsp c-reg62 uimm8-82-124-00-abs))
+(rvc-macro p-c-sw-3    "sw"     (all-isas c-ext NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sw c-reg42 (uimm7-51-123-61-00-abs 0) c-reg97))
+(rvc-macro p-c-sw-4    "sw"     (all-isas c-ext NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.swsp c-reg62 (uimm8-82-124-00-abs 0)))
+(rvc-macro p-c-xor     "xor"    (all-isas c-ext) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.xor (c-reg97 c-tied-regs97-commutative) c-reg42))
+
+; RV64C
+(rvc-macro p-c-ld-1    "ld"     ((ISA rv64) (RVEXT RV64C)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.ld   c-reg42 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-ld-2    "ld"     ((ISA rv64) (RVEXT RV64C)) " ${c-reg117-ne0},${uimm9-43-121-62-000-abs}(${sp-reg})"   (emit c.ldsp c-reg117-ne0 uimm9-43-121-62-000-abs))
+(rvc-macro p-c-ld-3    "ld"     ((ISA rv64) (RVEXT RV64C) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.ld   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
+(rvc-macro p-c-ld-4    "ld"     ((ISA rv64) (RVEXT RV64C) NO-DIS) " ${c-reg117-ne0},(${sp-reg})"                      (emit c.ldsp c-reg117-ne0 (uimm9-43-121-62-000-abs 0)))
+(rvc-macro p-c-sd-1    "sd"     ((ISA rv64) (RVEXT RV64C)) " ${c-reg42},${uimm8-62-123-000-abs}(${c-reg97})"          (emit c.sd   c-reg42 uimm8-62-123-000-abs c-reg97))
+(rvc-macro p-c-sd-2    "sd"     ((ISA rv64) (RVEXT RV64C)) " ${c-reg62},${uimm9-93-123-000-abs}(${sp-reg})"           (emit c.sdsp c-reg62 uimm9-93-123-000-abs))
+(rvc-macro p-c-sd-3    "sd"     ((ISA rv64) (RVEXT RV64C) NO-DIS) " ${c-reg42},(${c-reg97})"                          (emit c.sd   c-reg42 (uimm8-62-123-000-abs 0) c-reg97))
+(rvc-macro p-c-sd-4    "sd"     ((ISA rv64) (RVEXT RV64C) NO-DIS) " ${c-reg62},(${sp-reg})"                           (emit c.sdsp c-reg62 (uimm9-93-123-000-abs 0)))
+(rvc-macro p-c-sext-w  "sext.w" ((ISA rv64) (RVEXT RV64C)) " ${c-tied-regs117-ne0}"                            (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) (imm6-121-65-abs 0)))
+(rvc-macro p-c-addiw   "addiw"  ((ISA rv64) (RVEXT RV64C)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
+(rvc-macro p-c-addw-1  "addw"   ((ISA rv64) (RVEXT RV64C)) " ${c-tied-regs97-commutative},${c-reg42}"                 (emit c.addw  (c-reg97 c-tied-regs97-commutative) c-reg42))
+(rvc-macro p-c-addw-2  "addw"   ((ISA rv64) (RVEXT RV64C)) " ${c-tied-regs117-ne0},${imm6-121-65-abs}"                (emit c.addiw (c-reg117-ne0 c-tied-regs117-ne0) imm6-121-65-abs))
+(rvc-macro p-c-subw    "subw"   ((ISA rv64) (RVEXT RV64C)) " ${c-tied-regs97},${c-reg42}"                             (emit c.subw  (c-reg97 c-tied-regs97) c-reg42))
+
+
+;===------------------------- 'I' Macro instructions ------------------------===
+
+(define-pmacro (rv-macro macro-name mnemonic attr-list asm expansion)
+  (dnmi macro-name mnemonic attr-list (.str mnemonic asm) expansion)
+)
+
+; Instruction mnemonic aliases
+;
+; These instructions have the same mnemonic as register only instructions,
+; however these instructions all have an immediate field in place of one of
+; the register fields. There is a risk that the assembler will pick one of
+; these aliases and then attempt to assemble a register name in an immediate
+; field by treating the register as a symbol name. To avoid this case the
+; immediate operands for these instructions will reject anything which is
+; not an absolute value.
+
+(rv-macro p-jalr-1       "jalr"       (all-isas i-ext)        " ${rd},${imm-lo12}(${rs1})"      (emit jalr rd rs1 imm-lo12))
+(rv-macro p-add-1        "add"        (all-isas i-ext)        " ${rd},${rs1},${rs2}"            (emit add  rd rs1 rs2))
+(rv-macro p-add-2        "add"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit addi rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-and          "and"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit andi rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sll-1        "sll"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit slli-shift5 rd rs1 uimm5-245))
+(rv-macro p-srl-1        "srl"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srli-shift5 rd rs1 uimm5-245))
+(rv-macro p-sra-1        "sra"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm5-245}"      (emit srai-shift5 rd rs1 uimm5-245))
+(rv-macro p-sll-2        "sll"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit slli-shift6 rd rs1 uimm6-256))
+(rv-macro p-srl-2        "srl"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srli-shift6 rd rs1 uimm6-256))
+(rv-macro p-sra-2        "sra"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${uimm6-256}"      (emit srai-shift6 rd rs1 uimm6-256))
+(rv-macro p-slt          "slt"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit slti  rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sltu         "sltu"       (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit sltiu rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sgt          "sgt"        (all-isas i-ext NO-DIS) " ${rd},${rs2},${rs1}"            (emit slt   rd rs1 rs2))
+(rv-macro p-sgtu         "sgtu"       (all-isas i-ext NO-DIS) " ${rd},${rs2},${rs1}"            (emit sltu  rd rs1 rs2))
+(rv-macro p-or           "or"         (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit ori   rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-xor          "xor"        (all-isas i-ext NO-DIS) " ${rd},${rs1},${imm-lo12-abs}"   (emit xori  rd rs1 (imm-lo12 imm-lo12-abs)))
+; Syntax for loads and stores where the offset is omitted
+(rv-macro p-lb           "lb"         (all-isas i-ext NO-DIS) " ${rd},($rs1)"  (emit lb  rd rs1 (imm-lo12 0)))
+(rv-macro p-lh           "lh"         (all-isas i-ext NO-DIS) " ${rd},($rs1)"  (emit lh  rd rs1 (imm-lo12 0)))
+(rv-macro p-lw-1         "lw"         (all-isas i-ext) " ${rd},${imm-lo12}($rs1) # ${imm-lo12} .*"  (emit lw  rd rs1 imm-lo12))
+(rv-macro p-lw-2         "lw"         (all-isas i-ext NO-DIS) " ${rd},($rs1)"  (emit lw  rd rs1 (imm-lo12 0)))
+(rv-macro p-lbu          "lbu"        (all-isas i-ext NO-DIS) " ${rd},($rs1)"  (emit lbu rd rs1 (imm-lo12 0)))
+(rv-macro p-lhu          "lhu"        (all-isas i-ext NO-DIS) " ${rd},($rs1)"  (emit lhu rd rs1 (imm-lo12 0)))
+(rv-macro p-sb           "sb"         (all-isas i-ext NO-DIS) " ${rs2},($rs1)" (emit sb rs2 rs1 (store12 0)))
+(rv-macro p-sh           "sh"         (all-isas i-ext NO-DIS) " ${rs2},($rs1)" (emit sh rs2 rs1 (store12 0)))
+(rv-macro p-sw           "sw"         (all-isas i-ext NO-DIS) " ${rs2},($rs1)" (emit sw rs2 rs1 (store12 0)))
+; Macro instructions specified in the ISA doc
+(rv-macro p-nop-1        "addi"       (all-isas i-ext NO-DIS) " x0,x0,0"       (emit c.nop))
+(rv-macro p-nop-2        "nop"        (all-isas i-ext)   ""                    (emit addi  (rd 0) (rs1 0) (imm-lo12 0)))
+(rv-macro p-li-1         "li"         (all-isas i-ext)   " ${rd},${imm-lo12}"  (emit addi  rd (rs1 0) imm-lo12))
+(rv-macro p-mv           "mv"         (all-isas i-ext)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
+(rv-macro p-li-2         "li"         (all-isas i-ext)   " ${rd},${imm-lo12}"  (emit addi  rd (rs1 0) (imm-lo12 0)))
+(rv-macro p-move         "move"       (all-isas i-ext NO-DIS)   " ${rd},${rs1}"       (emit addi  rd rs1 (imm-lo12 0)))
+(rv-macro p-addi         "addi"       (all-isas i-ext)   " ${rd},${rs1},${imm-lo12} # ${imm-lo12-hex}"    (emit addi rd rs1 (imm-lo12 imm-lo12-hex)))
+(rv-macro p-not          "not"        (all-isas i-ext)   " ${rd},${rs1}"       (emit xori  rd rs1 (imm-lo12 #xfff)))
+(rv-macro p-neg          "neg"        (all-isas i-ext)   " ${rd},${rs2}"       (emit sub   rd (rs1 0) rs2))
+(rv-macro p-negw         "negw"       (all-isas i-ext)   " ${rd},${rs2}"       (emit subw  rd (rs1 0) rs2))
+(rv-macro p-seqz         "seqz"       (all-isas i-ext)   " ${rd},${rs1}"       (emit sltiu rd rs1 (imm-lo12 1)))
+(rv-macro p-snez         "snez"       (all-isas i-ext)   " ${rd},${rs2}"       (emit sltu  rd (rs1 0) rs2))
+(rv-macro p-sltz         "sltz"       (all-isas i-ext)   " ${rd},${rs1}"       (emit slt   rd rs1 (rs2 0)))
+(rv-macro p-sgtz         "sgtz"       (all-isas i-ext)   " ${rd},${rs2}"       (emit slt   rd (rs1 0) rs2))
+(rv-macro p-bge          "bge"        (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},0 <${branch13}>" (emit bge   rs1 rs2 branch13))
+(rv-macro p-beqz         "beqz"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit beq rs1 (rs2 0) branch13))
+(rv-macro p-bnez         "bnez"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit bne rs1 (rs2 0) branch13))
+(rv-macro p-blez         "blez"       (all-isas i-ext RELAXABLE) " ${rs2},${branch13}" (emit bge (rs1 0) rs2 branch13))
+(rv-macro p-bgez         "bgez"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit bge rs1 (rs2 0) branch13))
+(rv-macro p-bltz         "bltz"       (all-isas i-ext RELAXABLE) " ${rs1},${branch13}" (emit blt rs1 (rs2 0) branch13))
+(rv-macro p-bgtz         "bgtz"       (all-isas i-ext RELAXABLE) " ${rs2},${branch13}" (emit blt (rs1 0) rs2 branch13))
+(rv-macro p-bgt          "bgt"        (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit blt   rs1 rs2 branch13))
+(rv-macro p-ble          "ble"        (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bge   rs1 rs2 branch13))
+(rv-macro p-bgtu         "bgtu"       (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bltu  rs1 rs2 branch13))
+(rv-macro p-bleu         "bleu"       (all-isas i-ext RELAXABLE NO-DIS) " ${rs2},${rs1},${branch13}" (emit bgeu  rs1 rs2 branch13))
+
+(rv-macro p-j            "j"          (all-isas i-ext)        " ${jmp21}"            (emit jal  (rd 0) jmp21))
+(rv-macro p-jal          "jal"        (all-isas i-ext NO-DIS) " ${jmp21}"            (emit jal  (rd 1) jmp21))
+(rv-macro p-jr-1         "jr"         (all-isas i-ext)        " ${rs1}"              (emit jalr (rd 0) rs1 (imm-lo12 0)))
+(rv-macro p-jr-2         "jr"         (all-isas i-ext)        " ${imm-lo12}(${rs1})" (emit jalr (rd 0) rs1 imm-lo12))
+(rv-macro p-jr-3         "jr"         (all-isas i-ext NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 0) rs1 imm-lo12))
+(rv-macro p-jalr-2       "jalr"       (all-isas i-ext)        " ${rs1}"              (emit jalr (rd 1) rs1 (imm-lo12 0)))
+(rv-macro p-jalr-3       "jalr"       (all-isas i-ext)        " ${imm-lo12}(${rs1})" (emit jalr (rd 1) rs1 imm-lo12))
+(rv-macro p-jalr-4       "jalr"       (all-isas i-ext NO-DIS) " ${rs1},${imm-lo12}"  (emit jalr (rd 1) rs1 imm-lo12))
+(rv-macro p-jalr-5       "jalr"       (all-isas i-ext)        " ${rd},${rs1}"        (emit jalr rd rs1 (imm-lo12 0)))
+(rv-macro p-ret          "ret"        (all-isas i-ext)        ""                     (emit jalr (rd 0) (rs1 1) (imm-lo12 0)))
+
+; Misc
+(rv-macro p-unimp        "unimp"      (all-isas icsr-ext) "" (emit csrrw (rd 0) (csr #xc00) (rs1 0)))
+(rv-macro p-fence        "fence"      (all-isas ifencei-ext) "" (emit fence (succ 15) (pred 15)))
+(rv-macro p-fence-tso    "fence.tso"  (all-isas i-ext) "" (emit fence.tso (succ 3) (pred 3)))
+(rv-macro p-rdinstret    "rdinstret"  (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc02) (rs1 0)))
+(rv-macro p-rdcycle      "rdcycle"    (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc00) (rs1 0)))
+(rv-macro p-rdtime       "rdtime"     (all-isas icsr-ext) " ${rd}" (emit csrrs rd (csr #xc01) (rs1 0)))
+(rv-macro p-csrr         "csrr"       (all-isas icsr-ext)        " ${rd},${csr}"       (emit csrrs  rd csr (rs1 0)))
+(rv-macro p-csrw-1       "csrw"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrw  (rd 0) csr rs1))
+(rv-macro p-csrs-1       "csrs"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrs  (rd 0) csr rs1))
+(rv-macro p-csrc-1       "csrc"       (all-isas icsr-ext)        " ${csr},${rs1}"      (emit csrrc  (rd 0) csr rs1))
+(rv-macro p-csrw-2       "csrw"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrs-2       "csrs"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrc-2       "csrc"       (all-isas icsr-ext NO-DIS) " ${csr},${uimm5-abs}" (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-csrwi        "csrwi"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrwi (rd 0) csr uimm5))
+(rv-macro p-csrsi        "csrsi"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrsi (rd 0) csr uimm5))
+(rv-macro p-csrci        "csrci"      (all-isas icsr-ext)        " ${csr},${uimm5}"     (emit csrrci (rd 0) csr uimm5))
+(rv-macro p-sfence-vm    "sfence.vm"  (all-isas i-ext) ""        (emit sfence.vm  (rs1 0)))
+(rv-macro p-sfence-vma-1 "sfence.vma" (all-isas i-ext) ""        (emit sfence.vma (rs1 0) (rs2 0)))
+(rv-macro p-sfence-vma-2 "sfence.vma" (all-isas i-ext) " ${rs1}" (emit sfence.vma rs1     (rs2 0)))
+; Deprecated aliases for ebreak/sbreak
+(rv-macro p-scall        "scall"      (all-isas i-ext NO-DIS) "" (emit ecall))
+(rv-macro p-sbreak       "sbreak"     (all-isas i-ext NO-DIS) "" (emit ebreak))
+
+; RV32I
+(rv-macro p-rdinstreth   "rdinstreth" ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc82) (rs1 0)))
+(rv-macro p-rdcycleh     "rdcycleh"   ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc80) (rs1 0)))
+(rv-macro p-rdtimeh      "rdtimeh"    ((ISA rv32) (RVEXT RV32ICSR)) " ${rd}" (emit csrrs rd (csr #xc81) (rs1 0)))
+
+;; RV64I
+; Already defined above...
+;; (rv-macro p-sll-2 "sll"    ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm6-256}"    (emit slli-shift6 rd rs1 uimm6-256))
+;; (rv-macro p-srl-2 "srl"    ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm6-256}"    (emit srli-shift6 rd rs1 uimm6-256))
+;; (rv-macro p-sra-2 "sra"    ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm6-256}"    (emit srai-shift6 rd rs1 uimm6-256))
+(rv-macro p-addw  "addw"   ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${imm-lo12-abs}" (emit addiw rd rs1 (imm-lo12 imm-lo12-abs)))
+(rv-macro p-sllw  "sllw"   ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit slliw-shift5 rd rs1 uimm5-245))
+(rv-macro p-srlw  "srlw"   ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit srliw-shift5 rd rs1 uimm5-245))
+(rv-macro p-sraw  "sraw"   ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},${rs1},${uimm5-245}"    (emit sraiw-shift5 rd rs1 uimm5-245))
+(rv-macro p-lwu   "lwu"    ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},($rs1)"  (emit lwu rd rs1 (imm-lo12 0)))
+(rv-macro p-ld    "ld"     ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rd},($rs1)"  (emit ld  rd rs1 (imm-lo12 0)))
+(rv-macro p-sd    "sd"     ((ISA rv64) (RVEXT RV64I) NO-DIS) " ${rs2},($rs1)" (emit sd rs2 rs1 (store12 0)))
+(rv-macro p-sextw "sext.w" ((ISA rv64) (RVEXT RV64I))        " ${rd},${rs1}"  (emit addiw rd rs1 (imm-lo12 0)))
