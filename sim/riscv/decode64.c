@@ -269,11 +269,16 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_ORN, RISCV64BF_RV64_INSN_ORN, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_XNOR, RISCV64BF_RV64_INSN_XNOR, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_PACK, RISCV64BF_RV64_INSN_PACK, RISCV64BF_RV64_SFMT_PACK },
+  { RISCV_INSN_PACKU, RISCV64BF_RV64_INSN_PACKU, RISCV64BF_RV64_SFMT_PACK },
+  { RISCV_INSN_PACKH, RISCV64BF_RV64_INSN_PACKH, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_PACKW, RISCV64BF_RV64_INSN_PACKW, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_PACKUW, RISCV64BF_RV64_INSN_PACKUW, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_MIN, RISCV64BF_RV64_INSN_MIN, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_MAX, RISCV64BF_RV64_INSN_MAX, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_MINU, RISCV64BF_RV64_INSN_MINU, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_MAXU, RISCV64BF_RV64_INSN_MAXU, RISCV64BF_RV64_SFMT_ADD },
+  { RISCV_INSN_SEXT_B, RISCV64BF_RV64_INSN_SEXT_B, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_SEXT_H, RISCV64BF_RV64_INSN_SEXT_H, RISCV64BF_RV64_SFMT_SEXT_B },
   { RISCV_INSN_SBSET, RISCV64BF_RV64_INSN_SBSET, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_SBCLR, RISCV64BF_RV64_INSN_SBCLR, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_SBINV, RISCV64BF_RV64_INSN_SBINV, RISCV64BF_RV64_SFMT_ADD },
@@ -329,17 +334,17 @@ static const struct insn_sem riscv64bf_rv64_insn_sem[] =
   { RISCV_INSN_CLMULW, RISCV64BF_RV64_INSN_CLMULW, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_CLMULHW, RISCV64BF_RV64_INSN_CLMULHW, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_CLMULRW, RISCV64BF_RV64_INSN_CLMULRW, RISCV64BF_RV64_SFMT_PACK },
-  { RISCV_INSN_CRC32_B, RISCV64BF_RV64_INSN_CRC32_B, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32_H, RISCV64BF_RV64_INSN_CRC32_H, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32_W, RISCV64BF_RV64_INSN_CRC32_W, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32C_B, RISCV64BF_RV64_INSN_CRC32C_B, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32C_H, RISCV64BF_RV64_INSN_CRC32C_H, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32C_W, RISCV64BF_RV64_INSN_CRC32C_W, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32_D, RISCV64BF_RV64_INSN_CRC32_D, RISCV64BF_RV64_SFMT_CRC32_B },
-  { RISCV_INSN_CRC32C_D, RISCV64BF_RV64_INSN_CRC32C_D, RISCV64BF_RV64_SFMT_CRC32_B },
+  { RISCV_INSN_CRC32_B, RISCV64BF_RV64_INSN_CRC32_B, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32_H, RISCV64BF_RV64_INSN_CRC32_H, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32_W, RISCV64BF_RV64_INSN_CRC32_W, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32C_B, RISCV64BF_RV64_INSN_CRC32C_B, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32C_H, RISCV64BF_RV64_INSN_CRC32C_H, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32C_W, RISCV64BF_RV64_INSN_CRC32C_W, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32_D, RISCV64BF_RV64_INSN_CRC32_D, RISCV64BF_RV64_SFMT_SEXT_B },
+  { RISCV_INSN_CRC32C_D, RISCV64BF_RV64_INSN_CRC32C_D, RISCV64BF_RV64_SFMT_SEXT_B },
   { RISCV_INSN_BMATOR, RISCV64BF_RV64_INSN_BMATOR, RISCV64BF_RV64_SFMT_ADD },
   { RISCV_INSN_BMATXOR, RISCV64BF_RV64_INSN_BMATXOR, RISCV64BF_RV64_SFMT_ADD },
-  { RISCV_INSN_BMATFLIP, RISCV64BF_RV64_INSN_BMATFLIP, RISCV64BF_RV64_SFMT_CRC32_B },
+  { RISCV_INSN_BMATFLIP, RISCV64BF_RV64_INSN_BMATFLIP, RISCV64BF_RV64_SFMT_SEXT_B },
   { RISCV_INSN_CMIX, RISCV64BF_RV64_INSN_CMIX, RISCV64BF_RV64_SFMT_CMIX },
   { RISCV_INSN_CMOV, RISCV64BF_RV64_INSN_CMOV, RISCV64BF_RV64_SFMT_CMOV },
   { RISCV_INSN_FSL, RISCV64BF_RV64_INSN_FSL, RISCV64BF_RV64_SFMT_FSL },
@@ -1618,52 +1623,76 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
               { itype = RISCV64BF_RV64_INSN_SBCLRI_SHIFT6; goto extract_sfmt_slli_shift6; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 96 :
-            if ((entire_insn & 0xfff0707f) == 0x60001013)
-              { itype = RISCV64BF_RV64_INSN_CLZ; goto extract_sfmt_clz; }
-            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+            {
+              unsigned int val = (((insn >> 22) & (1 << 0)));
+              switch (val)
+              {
+              case 0 :
+                if ((entire_insn & 0xfff0707f) == 0x60001013)
+                  { itype = RISCV64BF_RV64_INSN_CLZ; goto extract_sfmt_clz; }
+                itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              case 1 :
+                if ((entire_insn & 0xfff0707f) == 0x60401013)
+                  { itype = RISCV64BF_RV64_INSN_SEXT_B; goto extract_sfmt_sext_b; }
+                itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              }
+            }
           case 97 :
-            if ((entire_insn & 0xfff0707f) == 0x60101013)
-              { itype = RISCV64BF_RV64_INSN_CTZ; goto extract_sfmt_clz; }
-            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+            {
+              unsigned int val = (((insn >> 22) & (1 << 0)));
+              switch (val)
+              {
+              case 0 :
+                if ((entire_insn & 0xfff0707f) == 0x60101013)
+                  { itype = RISCV64BF_RV64_INSN_CTZ; goto extract_sfmt_clz; }
+                itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              case 1 :
+                if ((entire_insn & 0xfff0707f) == 0x60501013)
+                  { itype = RISCV64BF_RV64_INSN_SEXT_H; goto extract_sfmt_sext_b; }
+                itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+              }
+            }
           case 98 :
             if ((entire_insn & 0xfff0707f) == 0x60201013)
               { itype = RISCV64BF_RV64_INSN_PCNT; goto extract_sfmt_clz; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 99 :
             if ((entire_insn & 0xfff0707f) == 0x60301013)
-              { itype = RISCV64BF_RV64_INSN_BMATFLIP; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_BMATFLIP; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 104 :
             if ((entire_insn & 0xfff0707f) == 0x61001013)
-              { itype = RISCV64BF_RV64_INSN_CRC32_B; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32_B; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 105 :
             if ((entire_insn & 0xfff0707f) == 0x61101013)
-              { itype = RISCV64BF_RV64_INSN_CRC32_H; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32_H; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 106 :
             if ((entire_insn & 0xfff0707f) == 0x61201013)
-              { itype = RISCV64BF_RV64_INSN_CRC32_W; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32_W; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 107 :
             if ((entire_insn & 0xfff0707f) == 0x61301013)
-              { itype = RISCV64BF_RV64_INSN_CRC32_D; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32_D; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 108 :
             if ((entire_insn & 0xfff0707f) == 0x61801013)
-              { itype = RISCV64BF_RV64_INSN_CRC32C_B; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32C_B; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 109 :
             if ((entire_insn & 0xfff0707f) == 0x61901013)
-              { itype = RISCV64BF_RV64_INSN_CRC32C_H; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32C_H; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 110 :
             if ((entire_insn & 0xfff0707f) == 0x61a01013)
-              { itype = RISCV64BF_RV64_INSN_CRC32C_W; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32C_W; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 111 :
             if ((entire_insn & 0xfff0707f) == 0x61b01013)
-              { itype = RISCV64BF_RV64_INSN_CRC32C_D; goto extract_sfmt_crc32_b; }
+              { itype = RISCV64BF_RV64_INSN_CRC32C_D; goto extract_sfmt_sext_b; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 112 : /* fall through */
           case 113 : /* fall through */
@@ -3264,6 +3293,10 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
             if ((entire_insn & 0xfe00707f) == 0x40004033)
               { itype = RISCV64BF_RV64_INSN_XNOR; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 :
+            if ((entire_insn & 0xfe00707f) == 0x48004033)
+              { itype = RISCV64BF_RV64_INSN_PACKU; goto extract_sfmt_pack; }
+            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
         }
@@ -3272,7 +3305,7 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           unsigned int val;
           /* Must fetch more bits.  */
           insn |= GETIMEMUHI (current_cpu, pc + 2) << 16;
-          val = (((insn >> 26) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
+          val = (((insn >> 28) & (1 << 2)) | ((insn >> 26) & (1 << 1)) | ((insn >> 25) & (1 << 0)));
           switch (val)
           {
           case 1 :
@@ -3282,6 +3315,10 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 2 :
             if ((entire_insn & 0xfe00707f) == 0x800403b)
               { itype = RISCV64BF_RV64_INSN_PACKW; goto extract_sfmt_add; }
+            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 6 :
+            if ((entire_insn & 0xfe00707f) == 0x4800403b)
+              { itype = RISCV64BF_RV64_INSN_PACKUW; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           default : itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           }
@@ -3861,6 +3898,10 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
           case 1 :
             if ((entire_insn & 0xfe00707f) == 0x2007033)
               { itype = RISCV64BF_RV64_INSN_REMU; goto extract_sfmt_add; }
+            itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
+          case 2 :
+            if ((entire_insn & 0xfe00707f) == 0x8007033)
+              { itype = RISCV64BF_RV64_INSN_PACKH; goto extract_sfmt_add; }
             itype = RISCV64BF_RV64_INSN_X_INVALID; goto extract_sfmt_empty;
           case 3 :
             if ((entire_insn & 0xfe00707f) == 0xa007033)
@@ -5509,6 +5550,26 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
     return idesc;
   }
 
+ extract_sfmt_sext_b:
+  {
+    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
+    CGEN_INSN_WORD insn = entire_insn;
+#define FLD(f) abuf->fields.sfmt_csrrw.f
+    UINT f_rs1;
+    UINT f_rd;
+
+    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
+    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
+
+  /* Record the fields for the semantic handler.  */
+  FLD (f_rs1) = f_rs1;
+  FLD (f_rd) = f_rd;
+  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_sext_b", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
+
+#undef FLD
+    return idesc;
+  }
+
  extract_sfmt_sbsetiw_shift5:
   {
     const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
@@ -5596,26 +5657,6 @@ riscv64bf_rv64_decode (SIM_CPU *current_cpu, IADDR pc,
   FLD (f_rs2) = f_rs2;
   FLD (f_rd) = f_rd;
   TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_bextw", "f_rs1 0x%x", 'x', f_rs1, "f_rs2 0x%x", 'x', f_rs2, "f_rd 0x%x", 'x', f_rd, (char *) 0));
-
-#undef FLD
-    return idesc;
-  }
-
- extract_sfmt_crc32_b:
-  {
-    const IDESC *idesc = &riscv64bf_rv64_insn_data[itype];
-    CGEN_INSN_WORD insn = entire_insn;
-#define FLD(f) abuf->fields.sfmt_csrrw.f
-    UINT f_rs1;
-    UINT f_rd;
-
-    f_rs1 = EXTRACT_LSB0_UINT (insn, 32, 19, 5);
-    f_rd = EXTRACT_LSB0_UINT (insn, 32, 11, 5);
-
-  /* Record the fields for the semantic handler.  */
-  FLD (f_rs1) = f_rs1;
-  FLD (f_rd) = f_rd;
-  TRACE_EXTRACT (current_cpu, abuf, (current_cpu, pc, "sfmt_crc32_b", "f_rs1 0x%x", 'x', f_rs1, "f_rd 0x%x", 'x', f_rd, (char *) 0));
 
 #undef FLD
     return idesc;

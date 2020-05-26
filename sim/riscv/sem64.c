@@ -6267,11 +6267,75 @@ SEM_FN_NAME (riscv64bf_rv64,pack) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   IADDR UNUSED pc = abuf->addr;
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
+{
+  DI tmp_xlen_div2;
+  DI tmp_lower;
+  DI tmp_upper;
+  tmp_xlen_div2 = DIVDI (GET_H_XLEN (), 2);
+  tmp_lower = SRLDI (SLLDI (GET_H_GPR (FLD (f_rs1)), tmp_xlen_div2), tmp_xlen_div2);
+  tmp_upper = SLLDI (GET_H_GPR (FLD (f_rs2)), tmp_xlen_div2);
   {
-    DI opval = ORDI (ANDDI (GET_H_GPR (FLD (f_rs1)), ((EQDI (GET_H_XLEN (), 32)) ? (65535) : (0xffffffff))), SLLDI (GET_H_GPR (FLD (f_rs2)), DIVDI (GET_H_XLEN (), 2)));
+    DI opval = ORDI (tmp_lower, tmp_upper);
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
+}
+
+  return vpc;
+#undef FLD
+}
+
+/* packu: packu ${rd},${rs1},${rs2} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,packu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  DI tmp_xlen_div2;
+  DI tmp_lower;
+  DI tmp_upper;
+  tmp_xlen_div2 = DIVDI (GET_H_XLEN (), 2);
+  tmp_lower = SRLDI (GET_H_GPR (FLD (f_rs1)), tmp_xlen_div2);
+  tmp_upper = SLLDI (SRLDI (GET_H_GPR (FLD (f_rs2)), tmp_xlen_div2), tmp_xlen_div2);
+  {
+    DI opval = ORDI (tmp_lower, tmp_upper);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+}
+
+  return vpc;
+#undef FLD
+}
+
+/* packh: packh ${rd},${rs1},${rs2} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,packh) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  DI tmp_lower;
+  DI tmp_upper;
+  tmp_lower = ZEXTQIDI (TRUNCDIQI (GET_H_GPR (FLD (f_rs1))));
+  tmp_upper = SLLDI (ZEXTQIDI (TRUNCDIQI (GET_H_GPR (FLD (f_rs2)))), 8);
+  {
+    DI opval = ORDI (tmp_lower, tmp_upper);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+}
 
   return vpc;
 #undef FLD
@@ -6289,12 +6353,39 @@ SEM_FN_NAME (riscv64bf_rv64,packw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
   SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
 
 {
-  SI tmp_rs1_n;
-  SI tmp_rs2_n;
-  tmp_rs1_n = ANDSI (TRUNCDISI (GET_H_GPR (FLD (f_rs1))), 65535);
-  tmp_rs2_n = SLLSI (ANDSI (TRUNCDISI (GET_H_GPR (FLD (f_rs2))), 65535), 16);
+  DI tmp_lower;
+  DI tmp_upper;
+  tmp_lower = ZEXTHIDI (TRUNCDIHI (GET_H_GPR (FLD (f_rs1))));
+  tmp_upper = SLLDI (ZEXTHIDI (TRUNCDIHI (GET_H_GPR (FLD (f_rs2)))), 16);
   {
-    DI opval = ZEXTSIDI (ORSI (tmp_rs1_n, tmp_rs2_n));
+    DI opval = ORDI (tmp_lower, tmp_upper);
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+}
+
+  return vpc;
+#undef FLD
+}
+
+/* packuw: packuw ${rd},${rs1},${rs2} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,packuw) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_fmadd_s.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+{
+  DI tmp_lower;
+  DI tmp_upper;
+  tmp_lower = ZEXTHIDI (TRUNCDIHI (SRLDI (GET_H_GPR (FLD (f_rs1)), 16)));
+  tmp_upper = SLLDI (ZEXTHIDI (TRUNCDIHI (SRLDI (GET_H_GPR (FLD (f_rs2)), 16))), 16);
+  {
+    DI opval = ORDI (tmp_lower, tmp_upper);
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -6380,6 +6471,48 @@ SEM_FN_NAME (riscv64bf_rv64,maxu) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
 
   {
     DI opval = ((GTUDI (GET_H_GPR (FLD (f_rs1)), GET_H_GPR (FLD (f_rs2)))) ? (GET_H_GPR (FLD (f_rs1))) : (GET_H_GPR (FLD (f_rs2))));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+
+  return vpc;
+#undef FLD
+}
+
+/* sext.b: sext.b ${rd},${rs1} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,sext_b) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_csrrw.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+  {
+    DI opval = EXTQIDI (TRUNCDIQI (GET_H_GPR (FLD (f_rs1))));
+    SET_H_GPR (FLD (f_rd), opval);
+    CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
+  }
+
+  return vpc;
+#undef FLD
+}
+
+/* sext.h: sext.h ${rd},${rs1} */
+
+static SEM_PC
+SEM_FN_NAME (riscv64bf_rv64,sext_h) (SIM_CPU *current_cpu, SEM_ARG sem_arg)
+{
+#define FLD(f) abuf->fields.sfmt_csrrw.f
+  ARGBUF *abuf = SEM_ARGBUF (sem_arg);
+  int UNUSED written = 0;
+  IADDR UNUSED pc = abuf->addr;
+  SEM_PC vpc = SEM_NEXT_VPC (sem_arg, pc, 4);
+
+  {
+    DI opval = EXTHIDI (TRUNCDIHI (GET_H_GPR (FLD (f_rs1))));
     SET_H_GPR (FLD (f_rd), opval);
     CGEN_TRACE_RESULT (current_cpu, abuf, "gpr", 'D', opval);
   }
@@ -11592,11 +11725,16 @@ static const struct sem_fn_desc sem_fns[] = {
   { RISCV64BF_RV64_INSN_ORN, SEM_FN_NAME (riscv64bf_rv64,orn) },
   { RISCV64BF_RV64_INSN_XNOR, SEM_FN_NAME (riscv64bf_rv64,xnor) },
   { RISCV64BF_RV64_INSN_PACK, SEM_FN_NAME (riscv64bf_rv64,pack) },
+  { RISCV64BF_RV64_INSN_PACKU, SEM_FN_NAME (riscv64bf_rv64,packu) },
+  { RISCV64BF_RV64_INSN_PACKH, SEM_FN_NAME (riscv64bf_rv64,packh) },
   { RISCV64BF_RV64_INSN_PACKW, SEM_FN_NAME (riscv64bf_rv64,packw) },
+  { RISCV64BF_RV64_INSN_PACKUW, SEM_FN_NAME (riscv64bf_rv64,packuw) },
   { RISCV64BF_RV64_INSN_MIN, SEM_FN_NAME (riscv64bf_rv64,min) },
   { RISCV64BF_RV64_INSN_MAX, SEM_FN_NAME (riscv64bf_rv64,max) },
   { RISCV64BF_RV64_INSN_MINU, SEM_FN_NAME (riscv64bf_rv64,minu) },
   { RISCV64BF_RV64_INSN_MAXU, SEM_FN_NAME (riscv64bf_rv64,maxu) },
+  { RISCV64BF_RV64_INSN_SEXT_B, SEM_FN_NAME (riscv64bf_rv64,sext_b) },
+  { RISCV64BF_RV64_INSN_SEXT_H, SEM_FN_NAME (riscv64bf_rv64,sext_h) },
   { RISCV64BF_RV64_INSN_SBSET, SEM_FN_NAME (riscv64bf_rv64,sbset) },
   { RISCV64BF_RV64_INSN_SBCLR, SEM_FN_NAME (riscv64bf_rv64,sbclr) },
   { RISCV64BF_RV64_INSN_SBINV, SEM_FN_NAME (riscv64bf_rv64,sbinv) },

@@ -1820,11 +1820,29 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_add, { 0x8004033 }
   },
+/* packu ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x48004033 }
+  },
+/* packh ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x8007033 }
+  },
 /* packw ${rd},${rs1},${rs2} */
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_add, { 0x800403b }
+  },
+/* packuw ${rd},${rs1},${rs2} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
+    & ifmt_add, { 0x4800403b }
   },
 /* min ${rd},${rs1},${rs2} */
   {
@@ -1849,6 +1867,18 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
     & ifmt_add, { 0xa007033 }
+  },
+/* sext.b ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60401013 }
+  },
+/* sext.h ${rd},${rs1} */
+  {
+    { 0, 0, 0, 0 },
+    { { MNEM, ' ', OP (RD), ',', OP (RS1), 0 } },
+    & ifmt_clz, { 0x60501013 }
   },
 /* sbset ${rd},${rs1},${rs2} */
   {

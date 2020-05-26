@@ -2697,9 +2697,24 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
     RISCV_INSN_PACK, "pack", "pack", 32,
     { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
   },
+/* packu ${rd},${rs1},${rs2} */
+  {
+    RISCV_INSN_PACKU, "packu", "packu", 32,
+    { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
+  },
+/* packh ${rd},${rs1},${rs2} */
+  {
+    RISCV_INSN_PACKH, "packh", "packh", 32,
+    { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
+  },
 /* packw ${rd},${rs1},${rs2} */
   {
     RISCV_INSN_PACKW, "packw", "packw", 32,
+    { 0, { { { (1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\x40" } }, { { (1LL<<RVEXT_RV64ZBB), 0 } } } }
+  },
+/* packuw ${rd},${rs1},${rs2} */
+  {
+    RISCV_INSN_PACKUW, "packuw", "packuw", 32,
     { 0, { { { (1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\x40" } }, { { (1LL<<RVEXT_RV64ZBB), 0 } } } }
   },
 /* min ${rd},${rs1},${rs2} */
@@ -2720,6 +2735,16 @@ static const CGEN_IBASE riscv_cgen_insn_table[MAX_INSNS] =
 /* maxu ${rd},${rs1},${rs2} */
   {
     RISCV_INSN_MAXU, "maxu", "maxu", 32,
+    { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
+  },
+/* sext.b ${rd},${rs1} */
+  {
+    RISCV_INSN_SEXT_B, "sext.b", "sext.b", 32,
+    { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
+  },
+/* sext.h ${rd},${rs1} */
+  {
+    RISCV_INSN_SEXT_H, "sext.h", "sext.h", 32,
     { 0, { { { (1LL<<MACH_RV32G)|(1LL<<MACH_RV32GC)|(1LL<<MACH_RV32GQC)|(1LL<<MACH_RV64G)|(1LL<<MACH_RV64GC)|(1LL<<MACH_RV64GQC), 0 } }, { { 1, "\xc0" } }, { { (1LL<<RVEXT_RV32ZBB)|(1LL<<RVEXT_RV64ZBB), 0 } } } }
   },
 /* sbset ${rd},${rs1},${rs2} */

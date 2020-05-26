@@ -158,14 +158,44 @@
 (rv-format-r "xnor"   (all-isas zbb-ext b-machs)  #b0100000 #b100 #b0110011  (set rd (xor rs1 (inv rs2))))
 
 (rv-format-r "pack"   (all-isas zbb-ext b-machs)  #b0000100 #b100 #b0110011
-  (set rd (or (and rs1 (if (eq (reg h-xlen) 32) #xffff #xffffffff)) (sll rs2 (div (reg h-xlen) 2))))
+  (sequence ((WI xlen-div2) (WI lower) (WI upper))
+    (set xlen-div2 (div (reg h-xlen) 2))
+    (set lower (srl (sll rs1 xlen-div2) xlen-div2))
+    (set upper (sll rs2 xlen-div2))
+    (set rd (or lower upper))
+  )
 )
 
-(rv-format-r "packw"     ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b100 #b0111011
-  (sequence ((SI rs1-n) (SI rs2-n))
-    (set rs1-n (and (trunc SI rs1) #xffff))
-    (set rs2-n (sll (and (trunc SI rs2) #xffff) 16))
-    (set rd (zext DI (or rs1-n rs2-n)))
+(rv-format-r "packu"  (all-isas zbb-ext b-machs)  #b0100100 #b100 #b0110011
+  (sequence ((WI xlen-div2) (WI lower) (WI upper))
+    (set xlen-div2 (div (reg h-xlen) 2))
+    (set lower (srl rs1 xlen-div2))
+    (set upper (sll (srl rs2 xlen-div2) xlen-div2))
+    (set rd (or lower upper))
+  )
+)
+
+(rv-format-r "packh"  (all-isas zbb-ext b-machs)  #b0000100 #b111 #b0110011
+  (sequence ((WI lower) (WI upper))
+    (set lower (zext WI (trunc QI rs1)))
+    (set upper (sll (zext WI (trunc QI rs2)) 8))
+    (set rd (or lower upper))
+  )
+)
+
+(rv-format-r "packw"  ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0000100 #b100 #b0111011
+  (sequence ((WI lower) (WI upper))
+    (set lower (zext WI (trunc HI rs1)))
+    (set upper (sll (zext WI (trunc HI rs2)) 16))
+    (set rd (or lower upper))
+  )
+)
+
+(rv-format-r "packuw"  ((ISA rv64) (RVEXT RV64ZBB) rv64b-machs) #b0100100 #b100 #b0111011
+  (sequence ((WI lower) (WI upper))
+    (set lower (zext WI (trunc HI (srl rs1 16))))
+    (set upper (sll (zext WI (trunc HI (srl rs2 16))) 16))
+    (set rd (or lower upper))
   )
 )
 
@@ -183,6 +213,14 @@
 
 (rv-format-r "maxu"   (all-isas zbb-ext b-machs)  #b0000101 #b111 #b0110011
   (set rd (if (gtu rs1 rs2) rs1 rs2))
+)
+
+(rv-format-r-1 "sext.b" (all-isas zbb-ext b-machs) #b0110000 #b00100 #b001 #b0010011
+  (set rd (ext WI (trunc QI rs1)))
+)
+
+(rv-format-r-1 "sext.h" (all-isas zbb-ext b-machs) #b0110000 #b00101 #b001 #b0010011
+  (set rd (ext WI (trunc HI rs1)))
 )
 
 (rv-format-r "sbset"  (all-isas zbs-ext b-machs)  #b0010100 #b001 #b0110011
