@@ -2070,7 +2070,7 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
-    & ifmt_add, { 0x4000103b }
+    & ifmt_add, { 0x6800503b }
   },
 /* greviw ${rd},${rs1},${uimm5-245} */
   {
@@ -2172,7 +2172,7 @@ static const CGEN_OPCODE riscv_cgen_insn_opcode_table[MAX_INSNS] =
   {
     { 0, 0, 0, 0 },
     { { MNEM, ' ', OP (RD), ',', OP (RS1), ',', OP (RS2), 0 } },
-    & ifmt_add, { 0x800203b }
+    & ifmt_add, { 0x4800603b }
   },
 /* clmul ${rd},${rs1},${rs2} */
   {

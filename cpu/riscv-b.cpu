@@ -501,7 +501,7 @@
   )
 )
 
-(rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0100000 #b001 #b0111011
+(rv-format-r "grevw"     ((ISA rv64) (RVEXT RV64ZBP) rv64b-machs) #b0110100 #b101 #b0111011
     (sequence ((SI result) (SI rs2-t))
       (set result rs1)
       (set rs2-t (trunc SI rs2))
@@ -1100,7 +1100,7 @@
   )
 )
 
-(rv-format-r "bdepw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0000100 #b010 #b0111011
+(rv-format-r "bdepw"     ((ISA rv64) (RVEXT RV64ZBE) rv64b-machs) #b0100100 #b110 #b0111011
   (sequence ((SI res) (INT j))
     (set res 0)
 
