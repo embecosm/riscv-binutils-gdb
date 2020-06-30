@@ -2960,86 +2960,6 @@ riscv_merge_multi_letter_ext (bfd *ibfd,
   return TRUE;
 }
 
-/* Compare prefixed extension names canonically.  */
-
-static int
-riscv_prefix_cmp (const char *a, const char *b)
-{
-  riscv_isa_ext_class_t ca = riscv_get_prefix_class (a);
-  riscv_isa_ext_class_t cb = riscv_get_prefix_class (b);
-
-  /* Extension name without prefix  */
-  const char *anp = riscv_skip_prefix (a, ca);
-  const char *bnp = riscv_skip_prefix (b, cb);
-
-  if (ca == cb)
-    return strcmp (anp, bnp);
-
-  return (int)ca - (int)cb;
-}
-
-static bfd_boolean
-riscv_merge_multi_letter_ext (bfd *ibfd,
-			      riscv_subset_t **pin,
-			      riscv_subset_t **pout)
-{
-  riscv_subset_t *in = *pin;
-  riscv_subset_t *out = *pout;
-  riscv_subset_t *tail;
-
-  int cmp;
-
-  while (in && out)
-    {
-      cmp = riscv_prefix_cmp (in->name, out->name);
-
-      if (cmp < 0)
-	{
-	  /* `in' comes before `out', append `in' and increment.  */
-	  riscv_add_subset (&merged_subsets, in->name, in->major_version,
-			    in->minor_version);
-	  in = in->next;
-	}
-      else if (cmp > 0)
-	{
-	  /* `out' comes before `in', append `out' and increment.  */
-	  riscv_add_subset (&merged_subsets, out->name, out->major_version,
-			    out->minor_version);
-	  out = out->next;
-	}
-      else
-	{
-	  /* Both present, check version and increment both.  */
-	  if ((in->major_version != out->major_version)
-	      || (in->minor_version != out->minor_version))
-	    {
-	      riscv_version_mismatch (ibfd, in, out);
-	      return FALSE;
-	    }
-
-	  riscv_add_subset (&merged_subsets, out->name, out->major_version,
-			    out->minor_version);
-	  out = out->next;
-	  in = in->next;
-	}
-    }
-
-  if (in || out) {
-    /* If we're here, either `in' or `out' is running longer than
-       the other. So, we need to append the corresponding tail.  */
-    tail = in ? in : out;
-
-    while (tail)
-      {
-	riscv_add_subset (&merged_subsets, tail->name, tail->major_version,
-			  tail->minor_version);
-	tail = tail->next;
-      }
-  }
-
-  return TRUE;
-}
-
 /* Merge Tag_RISCV_arch attribute.  */
 
 static char *
@@ -3098,9 +3018,6 @@ riscv_merge_arch_attr_info (bfd *ibfd, char *in_arch, char *out_arch)
 
   /* Merge all non-single letter extensions with single call.  */
   if (!riscv_merge_multi_letter_ext (ibfd, &in, &out))
-    return NULL;
-  /* Merge standard Z extensions. */
-  if (!riscv_merge_std_z_ext (ibfd, &in, &out, riscv_std_z_ext_p))
     return NULL;
 
   if (xlen_in != xlen_out)
