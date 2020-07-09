@@ -77,6 +77,7 @@ struct sim_state
 };
 
 /* Misc.  */
+extern int riscv_is_rve;
 
 /* Default memory size and addresses.  */
 #define RISCV_DEFAULT_MEM_SIZE    0x2000000	/* 32MB */

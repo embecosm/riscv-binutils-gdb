@@ -30,6 +30,7 @@
 #include "sim-syscall.h"
 #include "sim-fpu.h"
 
+int riscv_is_rve = 0;
 
 // Syscall numbers defined in newlib libgloss
 #define TARGET_SYS_close   57
@@ -123,7 +124,7 @@ void CPU_FUNC (_exception) (sim_cpu * current_cpu, USI pc, USI exnum)
 
       if (STATE_ENVIRONMENT (sd) != OPERATING_ENVIRONMENT)
 	{
-	  long syscall_id = GET_H_GPR (17);
+	  long syscall_id = GET_H_GPR (riscv_is_rve ? 5 : 17);
 
 	  long result;
 	  if (syscall_id == TARGET_SYS_brk)

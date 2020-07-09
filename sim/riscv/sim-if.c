@@ -40,6 +40,36 @@ disassemble_insn_stub (SIM_CPU *cpu, const CGEN_INSN *insn,
   /* TODO: Implement disassembly.  */
 }
 
+/* RISC-V specific options */
+typedef enum {
+  OPTION_RISCV_RVE = OPTION_START,
+} RISCV_OPTIONS;
+
+static SIM_RC riscv_option_handler (SIM_DESC, sim_cpu *, int, char *, int);
+static const OPTION riscv_options[] =
+{
+  { {"riscv-rve", no_argument, NULL, OPTION_RISCV_RVE},
+      '\0', NULL, "Run in rve mode", riscv_option_handler, NULL },
+  { {NULL, no_argument, NULL, 0}, '\0', NULL, NULL, NULL, NULL }
+};
+
+static SIM_RC
+riscv_option_handler (SIM_DESC sd, sim_cpu *cpu ATTRIBUTE_UNUSED, int opt,
+		     char *arg, int is_command ATTRIBUTE_UNUSED)
+{
+  switch ((RISCV_OPTIONS) opt)
+    {
+      case OPTION_RISCV_RVE:
+	riscv_is_rve = 1;
+	return SIM_RC_OK;
+      default:
+	/* We'll actually never get here; the caller handles the error
+	   case.  */
+	sim_io_eprintf (sd, "Unknown option `%s'\n", arg);
+	return SIM_RC_FAIL;
+    }
+}
+
 /* Create an instance of the simulator.  */
 
 SIM_DESC
@@ -60,6 +90,12 @@ sim_open (kind, callback, abfd, argv)
     }
 
   if (sim_pre_argv_init (sd, argv[0]) != SIM_RC_OK)
+    {
+      free_state (sd);
+      return 0;
+    }
+
+  if (sim_add_option_table (sd, NULL, riscv_options) != SIM_RC_OK)
     {
       free_state (sd);
       return 0;
