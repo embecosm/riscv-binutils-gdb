@@ -48,6 +48,13 @@
 
 #if defined (HANDLE_SIGNALS)
 
+/* With more recent MinGW/Windows, stricter C23 enforcement means signal
+   handlers must be declared as returning void. Ensure VOID_SIGHANDLER is
+   set so that RETSIGTYPE and SIGHANDLER_RETURN are defined consistently. */
+#if !defined (VOID_SIGHANDLER) && defined (_WIN32)
+#  define VOID_SIGHANDLER 1
+#endif
+
 #if !defined (RETSIGTYPE)
 #  if defined (VOID_SIGHANDLER)
 #    define RETSIGTYPE void
